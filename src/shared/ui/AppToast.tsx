@@ -11,7 +11,7 @@ const toastStyles: Record<ToastMessage['type'], string> = {
 import CloseIcon from '@/assets/icons/close.svg?react';
 import { AppIcon } from '@/shared/ui/AppIcon';
 
-const ToastItem: React.FC<{ toast: ToastMessage }> = ({ toast }) => {
+function ToastItem({ toast }: { toast: ToastMessage }) {
   const removeToast = useToastStore((state) => state.removeToast);
 
   return (
@@ -29,9 +29,9 @@ const ToastItem: React.FC<{ toast: ToastMessage }> = ({ toast }) => {
       </button>
     </div>
   );
-};
+}
 
-export const AppGlobalToast: React.FC = () => {
+export function AppGlobalToast() {
   const toasts = useToastStore((state) => state.toasts);
 
   return (
@@ -41,4 +41,4 @@ export const AppGlobalToast: React.FC = () => {
       ))}
     </div>
   );
-};
+}

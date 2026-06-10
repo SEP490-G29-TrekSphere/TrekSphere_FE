@@ -4,7 +4,7 @@ import AppRoutes from './routes/AppRoutes';
 import { AppGlobalLoadingSpinner } from './shared/ui/AppGlobalLoadingSpinner';
 import { AppGlobalToast } from './shared/ui/AppToast';
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppRoutes />
@@ -12,6 +12,4 @@ const App: React.FC = () => {
       <AppGlobalToast />
     </QueryClientProvider>
   );
-};
-
-export default App;
+}

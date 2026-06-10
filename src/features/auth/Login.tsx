@@ -6,7 +6,7 @@ import { AppFormInput } from '@/shared/ui/AppFormInput';
 import { useAppStore } from '@/store/useAppStore';
 import { loginSchema, type LoginFormValues } from '@/validations/auth.schema';
 
-const Login: React.FC = () => {
+export default function Login() {
   const setUser = useAppStore((state) => state.setUser);
 
   const {
@@ -62,6 +62,4 @@ const Login: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

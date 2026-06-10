@@ -1,40 +1,40 @@
 # TrekSphere Frontend
 
-Dự án Frontend cho nền tảng TrekSphere, được xây dựng bằng React 19, TypeScript và Vite, hướng tới trải nghiệm người dùng mượt mà và giao diện hiện đại.
+Frontend project for the TrekSphere platform, built with React 19, TypeScript, and Vite, aiming for a smooth user experience and modern interface.
 
-## Công nghệ sử dụng
+## Technologies Used
 
 - **Core**: React 19 + TypeScript + Vite.
 - **Styling**: Tailwind CSS v4.
 - **State Management**: Zustand (Global State) + React Query (Server State).
 - **Form & Validation**: React Hook Form + Zod.
-- **UI Architecture**: Tuân thủ chuẩn FSD (Feature-Sliced Design) và sử dụng bộ UI Kit với tiền tố `App` (AppButton, AppCard...).
+- **UI Architecture**: Follows FSD (Feature-Sliced Design) principles and utilizes a UI Kit with the `App` prefix (AppButton, AppCard...).
 
-## Cài đặt & Chạy dự án
+## Installation & Running the Project
 
-1. Clone project và cài đặt thư viện:
+1. Clone the project and install dependencies:
 
    ```bash
    pnpm install
-   # hoặc
+   # or
    npm install
    ```
 
-2. Chạy môi trường Development:
+2. Run the Development environment:
    ```bash
    npm run dev
    ```
-   Dự án sẽ khởi chạy tại `http://localhost:5173`.
+   The project will launch at `http://localhost:5173`.
 
-## Quy định & Tiêu chuẩn
+## Guidelines & Standards
 
-Vui lòng đọc kỹ tài liệu [GUIDELINES.md](./GUIDELINES.md) để nắm rõ:
+Please carefully read the [GUIDELINES.md](./GUIDELINES.md) document to understand:
 
-- Cấu trúc thư mục FSD.
-- Cách đặt tên Component (Arrow function, tiền tố `App`).
-- Chuẩn commit code (Conventional Commits).
+- The FSD directory structure.
+- Component naming conventions (Function Declarations, `App` prefix).
+- Commit code standards (Conventional Commits).
 
-## Liên kết API
+## API Integration
 
-- API Base URL hiện được cấu hình tại biến môi trường `VITE_API_URL` (mặc định: `http://localhost:3000/api`).
-- Tầng giao tiếp API sử dụng `Axios` với interceptors được cấu hình sẵn tại `src/config/apiClient.ts`.
+- The API Base URL is currently configured via the `VITE_API_URL` environment variable (default: `http://localhost:3000/api`).
+- The API communication layer uses `Axios` with pre-configured interceptors at `src/config/apiClient.ts`.

@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 
-const MainLayout: React.FC = () => {
+export default function MainLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-muted/20">
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -13,6 +13,4 @@ const MainLayout: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default MainLayout;
+}

@@ -11,11 +11,11 @@ export interface AppEmptyStateProps {
   icon?: React.ElementType;
 }
 
-export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
+export function AppEmptyState({
   title = 'No Data Available',
   description,
   icon: CustomIcon,
-}) => {
+}: AppEmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/50 mb-4">
@@ -29,4 +29,4 @@ export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
       {description && <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>}
     </div>
   );
-};
+}

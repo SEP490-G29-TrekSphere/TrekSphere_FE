@@ -1,75 +1,90 @@
 # TrekSphere Frontend Guidelines
 
-Tài liệu này quy định các nguyên tắc, tiêu chuẩn lập trình và cấu trúc kiến trúc của dự án TrekSphere Frontend nhằm đảm bảo code dễ bảo trì, dễ mở rộng và đồng nhất giữa các lập trình viên trong team.
+This document outlines the coding principles, standards, and architectural structure of the TrekSphere Frontend project to ensure maintainable, scalable, and consistent code among team members.
 
-## 1. Kiến trúc thư mục (FSD - Feature-Sliced Design)
+## 1. Directory Architecture (FSD - Feature-Sliced Design)
 
-Dự án áp dụng một biến thể của FSD để phân chia cấu trúc rõ ràng:
+The project applies a variant of FSD for clear structural separation:
 
-- **`src/app/`**: (Nếu có) Chứa các cấu hình khởi tạo của toàn ứng dụng (Provider, Store gốc).
-- **`src/features/`**: Chứa các tính năng chính của ứng dụng (VD: `auth`, `dashboard`). Mỗi tính năng hoạt động độc lập và chứa UI, logic cục bộ.
-- **`src/shared/ui/`**: Chứa các UI Components dùng chung toàn dự án (Buttons, Inputs, Cards...).
-- **`src/services/`**: Tầng giao tiếp với Backend. Tuyệt đối **không** gọi Axios trực tiếp trong Component. Phải gọi thông qua các file Service (VD: `authService.ts`).
-- **`src/validations/`**: Chứa các Schema dùng để validate form (Zod).
-- **`src/utils/`**: Các hàm tiện ích dùng chung (VD: `storage.ts`, format ngày tháng).
-- **`src/store/`**: Quản lý State toàn cục bằng Zustand (`useAppStore.ts`, `useToastStore.ts`).
+- **`src/assets/`**: Contains static resources like images, SVG icons, and global CSS (`global.css`).
+- **`src/config/`**: Where global application configurations are set, such as Axios configuration (`apiClient.ts`) or environment constants.
+- **`src/features/`**: Contains the main features of the application (e.g., `auth`, `dashboard`). Each feature operates independently and encapsulates its own UI and local logic.
+- **`src/routes/`**: Where application routes are defined.
+- **`src/services/`**: The communication layer with the Backend. Absolutely **do not** call Axios directly within Components. All API calls must go through Service files (e.g., `authService.ts`).
+- **`src/shared/`**: Contains components and utilities shared across the entire project (like `ui/` for UI Components, `layout/` for common layouts).
+- **`src/store/`**: Global State management using Zustand (`useAppStore.ts`, `useToastStore.ts`).
+- **`src/utils/`**: Shared utility functions (e.g., `storage.ts`, date formatting).
+- **`src/validations/`**: Contains Schemas used for form validation (Zod).
 
-## 2. Tiêu chuẩn viết Code (Coding Rules)
+## 2. Coding Rules
 
-### Component & Hàm (Arrow Functions)
+### Component & Functions (Function Declaration)
 
-Tất cả các React Components và Hàm tiện ích đều phải sử dụng cú pháp **Arrow Function** để đảm bảo tính đồng nhất.
+All React Components should use the **Function Declaration** syntax (traditional function) instead of Arrow Functions. This syntax makes the file easier to read and is more friendly with React features like Fast Refresh.
 
 ```tsx
-// ✅ ĐÚNG
+// ✅ DO
+export function Dashboard() { ... }
+
+// ❌ DON'T
 export const Dashboard: React.FC = () => { ... }
-
-// ❌ SAI
-export default function Dashboard() { ... }
 ```
 
-### Đặt tên Component UI (Tiền tố `App`)
+### UI Component Naming (`App` Prefix)
 
-Để tránh xung đột với các thẻ HTML mặc định và phân biệt rõ Component nội bộ:
+To avoid conflicts with default HTML tags and to clearly distinguish internal Components:
 
-- Mọi UI Component chia sẻ trong `src/shared/ui/` phải bắt đầu bằng chữ **`App`**.
-- Ví dụ: `<AppButton>`, `<AppTable>`, `<AppCard>`.
+- Every shared UI Component in `src/shared/ui/` must start with the word **`App`**.
+- Example: `<AppButton>`, `<AppTable>`, `<AppCard>`.
 
-### Quản lý Form & Validation
+### Form Management & Validation
 
-- **Luôn luôn** sử dụng `react-hook-form` kết hợp với `zod` để quản lý và validate form.
-- Schema của form phải được khai báo bằng Zod và tách riêng ra thư mục `validations/` (hoặc trong thư mục `schemas` của từng feature).
-- Sử dụng `<AppFormInput>` làm Component chuẩn hóa cho các thẻ Input trong Form.
+- **Always** use `react-hook-form` combined with `zod` for managing and validating forms.
+- Form schemas must be declared using Zod and separated into the `validations/` directory (or within a `schemas` directory inside specific features).
+- Use `<AppFormInput>` as the standardized Component for Input tags within Forms.
 
-## 3. Tiêu chuẩn Commit (Commit Rules)
+### CSS & Styling
 
-Dự án áp dụng chuẩn **Conventional Commits**.
+- The project uses **Tailwind CSS v4** as the primary styling tool.
+- **Do not** write plain CSS excessively (except for basic configurations in `src/assets/css/global.css`).
+- Limit the use of inline styles (`style={{...}}`); maximize the use of Tailwind's utility classes.
 
-**Cấu trúc:**
+## 3. State and API Management
+
+- **Local State**: Use `useState` for small, localized states within components.
+- **Global State**: Use `Zustand` (`src/store/`) for data that needs to be shared across multiple components (Auth, Toast, Loading).
+- **Server State**: Use `@tanstack/react-query` to fetch and cache data from the API, combined with services in `src/services/`.
+
+## 4. Quality Control (Linting & Formatting)
+
+- The project integrates **ESLint** and **Prettier** along with **Husky** (`pre-commit` hook).
+- Before committing, the system will automatically run checks. If the code has formatting errors or violates ESLint standards (like using `any` or unused variables), the commit will be **aborted**.
+- Please ensure the code is "clean" before pushing to the shared branch.
+
+## 5. Commit Standards
+
+The project follows the **Conventional Commits** standard.
+
+**Structure:**
 
 ```
-<type>(<scope>): <subject>
+[ type ] - <Subject>
 ```
 
-**Các `type` cho phép:**
+**Allowed `type`s:**
 
-- `feat`: Thêm tính năng mới (Feature)
-- `fix`: Sửa lỗi (Bug fix)
-- `refactor`: Tái cấu trúc code (Không đổi logic chức năng, chỉ làm code tốt hơn)
-- `style`: Định dạng code (Format, khoảng trắng, xóa comment...)
-- `docs`: Cập nhật tài liệu (README, CHANGELOG...)
-- `chore`: Các thay đổi cấu hình, build tool, dependencies
-- `test`: Thêm hoặc sửa Unit test / E2E test
+- `BASE`: Base project structure (Should not be used in final commits)
+- `FEAT`: Adds a new feature
+- `FIX`: Fixes a bug
+- `REFACTOR`: Code refactoring (Does not change logic, only improves code structure)
+- `STYLE`: Code formatting (Whitespace, formatting, removing comments...)
+- `DOCS`: Documentation updates (README, CHANGELOG...)
+- `CHORE`: Changes to configuration, build tools, dependencies
+- `TEST`: Adding or modifying Unit tests / E2E tests
 
-**Ví dụ Commit:**
+**Commit Examples:**
 
-- `feat(auth): thêm màn hình đăng nhập và tích hợp API login`
-- `refactor(ui): đồng bộ tiền tố App cho toàn bộ thư viện UI`
-- `fix(dashboard): sửa lỗi không hiển thị danh sách hóa đơn`
-- `docs: cập nhật hướng dẫn cài đặt trong README`
-
-## 4. Quản lý trạng thái và API (State & API)
-
-- **Local State**: Dùng `useState` cho các state nhỏ gọn trong component.
-- **Global State**: Dùng `Zustand` (`src/store/`) cho dữ liệu cần chia sẻ giữa nhiều component (Auth, Toast, Loading).
-- **Server State**: Sử dụng `@tanstack/react-query` để lấy và cache dữ liệu từ API, kết hợp với các service trong `src/services/`.
+- `[ FEAT ] - add login screen and integrate login API`
+- `[ REFACTOR ] - synchronize App prefix for the entire UI library`
+- `[ FIX ] - fix invoice list not displaying`
+- `[ DOCS ] - update installation instructions in README`

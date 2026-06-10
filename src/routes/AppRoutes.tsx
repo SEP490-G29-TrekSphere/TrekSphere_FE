@@ -7,13 +7,15 @@ const Dashboard = React.lazy(() => import('@/features/dashboard/Dashboard'));
 const Login = React.lazy(() => import('@/features/auth/Login'));
 
 // Basic loading fallback
-const PageLoader = () => (
-  <div className="flex h-screen w-full items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-  </div>
-);
+function PageLoader() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+    </div>
+  );
+}
 
-const AppRoutes = () => {
+export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -28,6 +30,4 @@ const AppRoutes = () => {
       </Routes>
     </Suspense>
   );
-};
-
-export default AppRoutes;
+}

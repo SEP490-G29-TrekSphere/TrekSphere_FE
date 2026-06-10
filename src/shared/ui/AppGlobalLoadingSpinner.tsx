@@ -6,7 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
  * Uses Zustand state (useAppStore) to determine visibility.
  * @returns the loading layer template
  */
-const AppGlobalLoadingSpinner: React.FC = React.memo(() => {
+const AppGlobalLoadingSpinner = React.memo(function AppGlobalLoadingSpinner() {
   const isLoading = useAppStore((state) => state.isLoading);
 
   if (!isLoading) return null;

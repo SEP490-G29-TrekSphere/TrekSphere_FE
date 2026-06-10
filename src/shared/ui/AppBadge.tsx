@@ -17,9 +17,7 @@ const variantStyles: Record<AppBadgeVariant, string> = {
 const baseStyles =
   'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
 
-const AppBadge: React.FC<AppBadgeProps> = ({ className, variant = 'default', ...props }) => {
+export function AppBadge({ className, variant = 'default', ...props }: AppBadgeProps) {
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${className || ''}`.trim();
   return <div className={combinedClassName} {...props} />;
-};
-
-export { AppBadge };
+}

@@ -52,7 +52,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const Dashboard: React.FC = () => {
+export default function Dashboard() {
   const setLoading = useAppStore((state) => state.setLoading);
 
   const { control, handleSubmit } = useForm<FormValues>({
@@ -246,6 +246,4 @@ const Dashboard: React.FC = () => {
       </section>
     </div>
   );
-};
-
-export default Dashboard;
+}

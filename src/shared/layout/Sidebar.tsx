@@ -8,7 +8,7 @@ const navItems = [
   { name: 'Settings', path: '/settings' },
 ];
 
-const Sidebar: React.FC = () => {
+export default function Sidebar() {
   const isSidebarOpen = useAppStore((state) => state.isSidebarOpen);
   const location = useLocation();
 
@@ -18,8 +18,8 @@ const Sidebar: React.FC = () => {
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
-      {/* Cần khoảng trống phía trên ở mobile để không đè lên header nếu header fixed. 
-          Tuy nhiên trong layout này header nằm bên phải sidebar, nên không cần pt-16 nếu sidebar full height */}
+      {/* Need spacing at the top on mobile so it doesn't overlap the fixed header. 
+          However, in this layout, the header is to the right of the sidebar, so pt-16 is unnecessary if the sidebar is full height */}
       <div className="flex h-16 items-center border-b px-6 md:hidden">
         <span className="font-bold text-lg">Menu</span>
       </div>
@@ -45,6 +45,4 @@ const Sidebar: React.FC = () => {
       </div>
     </aside>
   );
-};
-
-export default Sidebar;
+}
