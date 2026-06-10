@@ -1,75 +1,40 @@
-# React + TypeScript + Vite
+# TrekSphere Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dự án Frontend cho nền tảng TrekSphere, được xây dựng bằng React 19, TypeScript và Vite, hướng tới trải nghiệm người dùng mượt mà và giao diện hiện đại.
 
-Currently, two official plugins are available:
+## Công nghệ sử dụng
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Core**: React 19 + TypeScript + Vite.
+- **Styling**: Tailwind CSS v4.
+- **State Management**: Zustand (Global State) + React Query (Server State).
+- **Form & Validation**: React Hook Form + Zod.
+- **UI Architecture**: Tuân thủ chuẩn FSD (Feature-Sliced Design) và sử dụng bộ UI Kit với tiền tố `App` (AppButton, AppCard...).
 
-## React Compiler
+## Cài đặt & Chạy dự án
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Clone project và cài đặt thư viện:
 
-## Expanding the ESLint configuration
+   ```bash
+   pnpm install
+   # hoặc
+   npm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+2. Chạy môi trường Development:
+   ```bash
+   npm run dev
+   ```
+   Dự án sẽ khởi chạy tại `http://localhost:5173`.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Quy định & Tiêu chuẩn
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Vui lòng đọc kỹ tài liệu [GUIDELINES.md](./GUIDELINES.md) để nắm rõ:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- Cấu trúc thư mục FSD.
+- Cách đặt tên Component (Arrow function, tiền tố `App`).
+- Chuẩn commit code (Conventional Commits).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Liên kết API
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-# TrekSphere_FE
+- API Base URL hiện được cấu hình tại biến môi trường `VITE_API_URL` (mặc định: `http://localhost:3000/api`).
+- Tầng giao tiếp API sử dụng `Axios` với interceptors được cấu hình sẵn tại `src/config/apiClient.ts`.

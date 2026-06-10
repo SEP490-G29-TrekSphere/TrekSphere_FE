@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import MainLayout from '@/shared/layout/MainLayout';
 
 // Lazy loading features
 const Dashboard = React.lazy(() => import('@/features/dashboard/Dashboard'));
@@ -16,8 +17,14 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+
+        {/* Private/Layout Routes */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          {/* Add more routes here, e.g. <Route path="/trips" element={<Trips />} /> */}
+        </Route>
       </Routes>
     </Suspense>
   );

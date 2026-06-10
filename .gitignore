@@ -10,11 +10,15 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
+coverage/
+.vite/
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -32,3 +36,6 @@ dist-ssr
 
 # ESLint cache
 .eslintcache
+
+# Vite cache
+vite.config.ts.timestamp-*

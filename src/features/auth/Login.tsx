@@ -1,26 +1,24 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/shared/ui/Button';
+import { AppButton } from '@/shared/ui/AppButton';
+import { AppFormInput } from '@/shared/ui/AppFormInput';
 import { useAppStore } from '@/store/useAppStore';
-
-const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormValues } from '@/validations/auth.schema';
 
 const Login: React.FC = () => {
   const setUser = useAppStore((state) => state.setUser);
 
   const {
-    register,
+    control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -31,35 +29,35 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-muted/20">
+      <div className="bg-background p-8 rounded-lg shadow-md w-full max-w-sm border">
+        <div className="flex flex-col space-y-2 text-center mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">Login</h2>
+          <p className="text-sm text-muted-foreground">
+            Enter your email below to login to your account
+          </p>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              {...register('email')}
-              className={`w-full border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2`}
-              placeholder="admin@example.com"
-            />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              {...register('password')}
-              className={`w-full border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2`}
-              placeholder="••••••••"
-            />
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
-            )}
-          </div>
-          <Button variant="primary" className="w-full" disabled={isSubmitting}>
+          <AppFormInput
+            name="email"
+            label="Email"
+            control={control}
+            type="email"
+            placeholder="admin@example.com"
+          />
+
+          <AppFormInput
+            name="password"
+            label="Password"
+            control={control}
+            type="password"
+            placeholder="••••••••"
+          />
+
+          <AppButton variant="default" className="w-full mt-2" disabled={isSubmitting}>
             {isSubmitting ? 'Signing In...' : 'Sign In'}
-          </Button>
+          </AppButton>
         </form>
       </div>
     </div>

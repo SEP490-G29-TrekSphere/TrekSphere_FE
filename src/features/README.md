@@ -9,7 +9,6 @@ features/feature_name/
 ├── api/          # API call functions (e.g., login, register, fetchUser)
 ├── components/   # UI Components specific to this feature
 ├── hooks/        # Custom React hooks (e.g., useLogin, useUserStatus)
-├── schemas/      # Validation schemas (Zod, Yup...)
 ├── types/        # TypeScript types/interfaces specific to this feature
 └── utils/        # Helper functions, formatters used internally by the feature
 ```

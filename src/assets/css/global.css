@@ -1,10 +1,37 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
+  /* System Colors */
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
+
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+
+  /* Primary Palette */
+  --color-primary: #3b82f6; /* Blue 500 */
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary Palette */
+  --color-secondary: #f1f5f9; /* Slate 100 */
+  --color-secondary-foreground: #0f172a; /* Slate 900 */
+
+  /* Destructive (Error) Palette */
+  --color-destructive: #ef4444; /* Red 500 */
+  --color-destructive-foreground: #ffffff;
+
+  /* Border & Input */
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #3b82f6;
+
+  /* Border Radius */
+  --radius-sm: calc(0.5rem - 4px);
+  --radius-md: calc(0.5rem - 2px);
+  --radius-lg: 0.5rem;
 }
 
 body {
-  @apply antialiased text-gray-900 bg-gray-50;
+  @apply antialiased bg-background text-foreground;
+  /* To set a default global font later, add: font-family: 'Inter', sans-serif; */
 }
