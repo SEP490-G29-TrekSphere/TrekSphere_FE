@@ -23,27 +23,19 @@ body:
     id: disclosure
     attributes:
       label: Has this been disclosed publicly yet?
-      description: "If yes, link the public source below."
+      description: "If yes, paste the public URL in the next field."
       options:
         - "No — not disclosed"
         - "Yes — disclosed publicly"
     validations:
       required: true
-  - type: dropdown
-    id: disclosure_channel
-    attributes:
-      label: If public — disclosure channel
-      options:
-        - "GitHub commit / PR (any branch)"
-        - "Blog post, tweet, or public chat"
-        - "CVE or security advisory database"
-        - "Other"
-    validations:
-      required: false
   - type: input
     id: public_link
     attributes:
       label: Link to public disclosure
+      description: "Required only if you chose 'Yes — disclosed publicly' above. Paste the public URL (commit, PR, blog, advisory)."
+    validations:
+      required: false
   - type: textarea
     id: summary
     attributes:
