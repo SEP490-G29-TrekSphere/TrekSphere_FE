@@ -41,8 +41,8 @@ body:
         - "Small — single component or route"
         - "Medium — feature slice + service layer + types"
         - "Large — multiple slices or new architectural layer"
-      validations:
-        required: true
+    validations:
+      required: true
   - type: textarea
     id: mocks
     attributes:

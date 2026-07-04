@@ -68,7 +68,7 @@ see [Section 6](#6-pre-commit--pre-push-checks) below.
 
 ## 3. Project conventions (the short version)
 
-The full rules live in [`GUIDELINES.md`](./GUIDELINES.md). Do not duplicate them
+The full rules live in [`AGENTS.md`](./AGENTS.md). Do not duplicate them
 here — that is how rules go stale. Read this short version once, then go read
 the long one when something is unclear.
 

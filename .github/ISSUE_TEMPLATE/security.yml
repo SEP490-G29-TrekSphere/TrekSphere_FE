@@ -27,8 +27,8 @@ body:
       options:
         - "No — not disclosed"
         - "Yes — disclosed publicly"
-      validations:
-        required: true
+    validations:
+      required: true
   - type: dropdown
     id: disclosure_channel
     attributes:
@@ -38,8 +38,8 @@ body:
         - "Blog post, tweet, or public chat"
         - "CVE or security advisory database"
         - "Other"
-      validations:
-        required: false
+    validations:
+      required: false
   - type: input
     id: public_link
     attributes:

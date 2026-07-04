@@ -141,7 +141,7 @@ For answers to common questions about this code of conduct, see the FAQ at
 
 ## TrekSphere-Specific Notes
 
-- The CoC applies equally to the AGENTS.md / GUIDELINES.md-driven contribution
+- The CoC applies equally to the AGENTS.md-driven contribution
   process; review feedback is expected to follow the Standards above.
 - Automated tooling (Biome, Lefthook, CI checks) is governed by the same
   Standards — dispute tooling output respectfully and on-topic in the relevant

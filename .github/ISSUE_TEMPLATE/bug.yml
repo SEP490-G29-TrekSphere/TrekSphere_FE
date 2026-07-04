@@ -23,8 +23,8 @@ body:
         - "High — major feature unusable but workaround exists"
         - "Medium — feature works with a noticeable bug"
         - "Low — cosmetic / polish"
-      validations:
-        required: true
+    validations:
+      required: true
   - type: input
     id: env
     attributes:
