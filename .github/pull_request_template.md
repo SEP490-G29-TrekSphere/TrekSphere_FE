@@ -1,3 +1,5 @@
+> By opening this PR, you confirm you have read and agree to follow the project's [Code of Conduct](./CODE_OF_CONDUCT.md). Reviewers will enforce it; the bar for review feedback is "professional, on-topic, kind".
+
 ## Summary
 
 <!-- Briefly describe what this PR does and why. 1-3 sentences. -->
@@ -82,6 +84,10 @@ Closes #
 ### Documentation
 
 - [ ] I have updated relevant documentation (README, GUIDELINES, JSDoc, Storybook, etc.)
+
+### Conduct
+
+- [ ] I have read and agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md)
 
 ### Deployment & Breaking Changes
 
