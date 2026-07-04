@@ -3,6 +3,9 @@
 # it shows up on the chooser screen itself, not only inside each form.
 blank_issues_enabled: false
 contact_links:
+  - name: 🤝 Contributing
+    url: https://github.com/SEP490-G29-TrekSphere/TrekSphere_FE/blob/main/CONTRIBUTING.md
+    about: Start here if you want to file an issue, open a PR, or run the project locally.
   - name: 📜 Code of Conduct
     url: https://github.com/SEP490-G29-TrekSphere/TrekSphere_FE/blob/main/CODE_OF_CONDUCT.md
     about: Please read this before opening an issue or pull request. It sets the tone for every interaction in this project.
