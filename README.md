@@ -34,6 +34,8 @@ Please carefully read the [GUIDELINES.md](./GUIDELINES.md) document to understan
 - Component naming conventions (Function Declarations, `App` prefix).
 - Commit code standards (Conventional Commits).
 
+Want to contribute? Start with [CONTRIBUTING.md](./CONTRIBUTING.md) — it is the single entry point for issues, PRs, setup, and review flow.
+
 ## API Integration
 
 - The API Base URL is currently configured via the `VITE_API_URL` environment variable (default: `http://localhost:3000/api`).
