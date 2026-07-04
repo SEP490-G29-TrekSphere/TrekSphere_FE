@@ -28,7 +28,7 @@ Frontend project for the TrekSphere platform, built with React 19, TypeScript, a
 
 ## Guidelines & Standards
 
-Please carefully read the [GUIDELINES.md](./GUIDELINES.md) document to understand:
+Please carefully read the [AGENTS.md](./AGENTS.md) document to understand:
 
 - The FSD directory structure.
 - Component naming conventions (Function Declarations, `App` prefix).

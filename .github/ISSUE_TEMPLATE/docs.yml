@@ -1,8 +1,8 @@
 # .github/ISSUE_TEMPLATE/docs.yml
-# Documentation-only change. Keeps typos, README fixes, AGENTS.md / GUIDELINES.md
+# Documentation-only change. Keeps typos, README fixes, AGENTS.md / design docs
 # edits out of the feature/bug queues so they get reviewed quickly.
 name: 📝 Documentation
-description: Propose a change to README, AGENTS.md, GUIDELINES.md, JSDoc, or other docs.
+description: Propose a change to README, AGENTS.md, JSDoc, or other docs.
 title: "[Docs]: "
 labels: ["documentation"]
 assignees: []
@@ -16,7 +16,7 @@ body:
     id: target
     attributes:
       label: Document / location
-      description: "e.g. `README.md`, `AGENTS.md`, `GUIDELINES.md`, `src/features/auth/README.md`"
+      description: "e.g. `README.md`, `AGENTS.md`, `src/features/auth/README.md`"
       placeholder: "path/to/file.md or section heading"
     validations:
       required: true
