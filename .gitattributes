@@ -3,7 +3,7 @@
 # Force CRLF for all text files to match biome.json (lineEnding: "crlf")
 # and .editorconfig (end_of_line = crlf). Individual file-type entries below
 # can still override the EOL (e.g. shell scripts stay LF, batch scripts stay CRLF).
-*          text eol=crlf
+*text eol=crlf
 
 #
 # The above will handle all files NOT found below
