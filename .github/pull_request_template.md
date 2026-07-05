@@ -74,6 +74,8 @@ Preview URL:
 ### Code Quality
 
 - [ ] My code follows the project's [AGENTS.md](../AGENTS.md) (FSD layout, `App`-prefixed UI components, function declarations, RHF + Zod, Tailwind utilities, etc.)
+- [ ] I have performed a self-review of my code
+- [ ] I have commented my code, especially in non-obvious areas
 - [ ] No new Biome warnings or errors (`pnpm check`)
 - [ ] TypeScript compiles cleanly (`pnpm typecheck`)
 - [ ] I have not introduced a cross-feature import (or explained why in **Architecture Notes** above)
@@ -108,6 +110,7 @@ Preview URL:
 
 - [ ] I have updated relevant documentation ([README.md](../README.md), [AGENTS.md](../AGENTS.md), JSDoc, Storybook, etc.)
 - [ ] If this PR changes contributor-facing flow, [CONTRIBUTING.md](../CONTRIBUTING.md) reflects the new flow
+- [ ] I have updated relevant documentation (README, AGENTS.md, JSDoc, Storybook, etc.)
 
 ### Conduct
 
