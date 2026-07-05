@@ -9,6 +9,8 @@ on:
   workflow_dispatch:
 # Cancel superseded runs on the same ref, but keep main-branch deploy runs
 # safe by skipping cancel-in-progress for pushes to main.
+# Cancel superseded runs on the same ref, but keep main-branch deploy runs
+# safe by skipping cancel-in-progress for pushes to main.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
