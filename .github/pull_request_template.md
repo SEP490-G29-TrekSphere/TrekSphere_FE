@@ -1,3 +1,5 @@
+> Before you fill this in, please read [CONTRIBUTING.md](../CONTRIBUTING.md) — it is the single source of truth for setup, workflow, commit rules, and review expectations.
+>
 > By opening this PR, you confirm you have read and agree to follow the project's [Code of Conduct](../CODE_OF_CONDUCT.md). Reviewers will enforce it; the bar for review feedback is "professional, on-topic, kind".
 
 ## Summary
@@ -72,8 +74,6 @@ Preview URL:
 ### Code Quality
 
 - [ ] My code follows the project's [AGENTS.md](../AGENTS.md) (FSD layout, `App`-prefixed UI components, function declarations, RHF + Zod, Tailwind utilities, etc.)
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, especially in non-obvious areas
 - [ ] No new Biome warnings or errors (`pnpm check`)
 - [ ] TypeScript compiles cleanly (`pnpm typecheck`)
 - [ ] I have not introduced a cross-feature import (or explained why in **Architecture Notes** above)
