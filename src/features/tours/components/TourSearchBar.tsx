@@ -60,14 +60,18 @@ export default function TourSearchBar({
 
   const initKeyword = initialValues?.keyword;
   const initLocation = initialValues?.location;
+  const initDepartureDate = initialValues?.departureDate;
+  const initBudget = initialValues?.budget;
 
   useEffect(() => {
     reset({
       ...EMPTY_VALUES,
       keyword: initKeyword || '',
       location: initLocation || '',
+      departureDate: initDepartureDate || '',
+      budget: initBudget || '',
     });
-  }, [initKeyword, initLocation, reset]);
+  }, [initKeyword, initLocation, initDepartureDate, initBudget, reset]);
 
   const onSubmit = (data: TourSearchValues) => {
     onSearch(data);

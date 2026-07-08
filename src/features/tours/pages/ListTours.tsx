@@ -92,6 +92,7 @@ export default function ListTours() {
     sortBy: 'newest',
   });
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
+  const [isPriceFilterActive, setIsPriceFilterActive] = useState(false);
   const [page, setPage] = useState(0);
   const [layout, setLayout] = useState<'list' | 'grid'>('grid'); // Default to grid layout to match mockup
 
@@ -128,6 +129,12 @@ export default function ListTours() {
     setPage(0);
   };
 
+  const handlePriceRangeChange = (val: [number, number]) => {
+    setPriceRange(val);
+    setIsPriceFilterActive(true);
+    setPage(0);
+  };
+
   const handleResetFilters = () => {
     setDraft({
       keyword: '',
@@ -139,6 +146,7 @@ export default function ListTours() {
       sortBy: 'newest',
     });
     setPriceRange([minPrice, maxPrice]);
+    setIsPriceFilterActive(false);
     setPage(0);
   };
 
@@ -161,17 +169,13 @@ export default function ListTours() {
     difficulty: filters.difficulty,
   });
 
-  const isPriceRangeActive =
-    (minPrice !== 0 || maxPrice !== 0) &&
-    (priceRange[0] !== minPrice || priceRange[1] !== maxPrice);
-
   const queryParams = useMemo<TourListParams>(
     () => ({
       keyword: filters.keyword,
       location: filters.location,
       difficulty: filters.difficulty,
-      page: isPriceRangeActive ? 0 : page,
-      size: isPriceRangeActive ? 100 : PAGE_SIZE,
+      page: isPriceFilterActive ? 0 : page,
+      size: isPriceFilterActive ? 100 : PAGE_SIZE,
       sortBy,
       sortDir,
     }),
@@ -182,7 +186,7 @@ export default function ListTours() {
       page,
       sortBy,
       sortDir,
-      isPriceRangeActive,
+      isPriceFilterActive,
     ]
   );
 
@@ -196,13 +200,17 @@ export default function ListTours() {
   // Client-side price filtering (since API does not support price query range yet)
   const filteredTours = useMemo(() => {
     return tours.filter((tour) => {
-      if (isPriceRangeLoading || (priceRange[0] === 0 && priceRange[1] === 0)) {
+      if (
+        !isPriceFilterActive ||
+        isPriceRangeLoading ||
+        (priceRange[0] === 0 && priceRange[1] === 0)
+      ) {
         return true;
       }
       if (!tour.basePrice) return true;
       return tour.basePrice >= priceRange[0] && tour.basePrice <= priceRange[1];
     });
-  }, [tours, priceRange, isPriceRangeLoading]);
+  }, [tours, priceRange, isPriceRangeLoading, isPriceFilterActive]);
 
   const activeTotalCount = isLoading ? 0 : filteredTours.length;
 
@@ -243,6 +251,7 @@ export default function ListTours() {
                           key={opt.value}
                           type="button"
                           onClick={() => handleDifficultySelect(opt.value)}
+                          aria-pressed={isActive}
                           className="flex items-center gap-3 text-left transition-colors hover:text-primary"
                         >
                           <span
@@ -286,7 +295,7 @@ export default function ListTours() {
                   <div className="px-1 py-4">
                     <Slider
                       value={priceRange}
-                      onValueChange={(val) => setPriceRange(val as [number, number])}
+                      onValueChange={(val) => handlePriceRangeChange(val as [number, number])}
                       min={minPrice}
                       max={maxPrice > minPrice ? maxPrice : minPrice + 1}
                       step={Math.max(1, Math.round((maxPrice - minPrice) / 100) || 1)}
@@ -347,6 +356,7 @@ export default function ListTours() {
                     <button
                       type="button"
                       onClick={() => setLayout('list')}
+                      aria-pressed={layout === 'list'}
                       className={cn(
                         'rounded-full p-1.5 transition-colors',
                         layout === 'list'
@@ -360,6 +370,7 @@ export default function ListTours() {
                     <button
                       type="button"
                       onClick={() => setLayout('grid')}
+                      aria-pressed={layout === 'grid'}
                       className={cn(
                         'rounded-full p-1.5 transition-colors',
                         layout === 'grid'
@@ -420,7 +431,7 @@ export default function ListTours() {
               )}
 
               {/* Pagination controls */}
-              {!isPriceRangeActive && (
+              {!isPriceFilterActive && (
                 <div className="mt-8">
                   <TourPagination
                     pageNumber={pageNumber}
