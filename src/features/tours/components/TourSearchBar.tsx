@@ -29,13 +29,11 @@ const EMPTY_VALUES: TourSearchValues = {
 };
 
 const tourSearchSchema = z.object({
-  keyword: z.string().default(''),
-  location: z.string().default(''),
-  departureDate: z.string().default(''),
-  budget: z.string().default(''),
+  keyword: z.string(),
+  location: z.string(),
+  departureDate: z.string(),
+  budget: z.string(),
 });
-
-type TourSearchFormValues = z.infer<typeof tourSearchSchema>;
 
 /**
  * TourSearchBar — search card that overlaps the hero on the List Tours page.
@@ -46,7 +44,7 @@ export default function TourSearchBar({
   initialValues,
   className = '',
 }: TourSearchBarProps) {
-  const { register, handleSubmit, setValue, watch, reset } = useForm<TourSearchFormValues>({
+  const { register, handleSubmit, setValue, watch, reset } = useForm<TourSearchValues>({
     resolver: zodResolver(tourSearchSchema),
     defaultValues: {
       ...EMPTY_VALUES,
@@ -71,7 +69,7 @@ export default function TourSearchBar({
     });
   }, [initKeyword, initLocation, reset]);
 
-  const onSubmit = (data: TourSearchFormValues) => {
+  const onSubmit = (data: TourSearchValues) => {
     onSearch(data);
   };
 

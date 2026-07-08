@@ -1,4 +1,4 @@
-import { ApiService } from '@/config/apiClient';
+import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
   TourDetailFromApi,
   TourListApiResponse,
@@ -47,7 +47,7 @@ function buildQuery(params: TourListParams): string {
   return search.toString();
 }
 
-function unwrapResponse<T>(response: { data: T | null; error: string | null }): T {
+function unwrapResponse<T>(response: ApiResponse<T>): T {
   if (response.error) {
     throw new Error(response.error);
   }
