@@ -1,5 +1,8 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { MapPin, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import {
   Command,
   CommandEmpty,
@@ -25,6 +28,15 @@ const EMPTY_VALUES: TourSearchValues = {
   budget: '',
 };
 
+const tourSearchSchema = z.object({
+  keyword: z.string().default(''),
+  location: z.string().default(''),
+  departureDate: z.string().default(''),
+  budget: z.string().default(''),
+});
+
+type TourSearchFormValues = z.infer<typeof tourSearchSchema>;
+
 /**
  * TourSearchBar — search card that overlaps the hero on the List Tours page.
  * Uses shadcn Popover + Command to render a searchable location Combobox.
@@ -34,36 +46,38 @@ export default function TourSearchBar({
   initialValues,
   className = '',
 }: TourSearchBarProps) {
-  const [values, setValues] = useState<TourSearchValues>({
-    ...EMPTY_VALUES,
-    ...initialValues,
+  const { register, handleSubmit, setValue, watch, reset } = useForm<TourSearchFormValues>({
+    resolver: zodResolver(tourSearchSchema),
+    defaultValues: {
+      ...EMPTY_VALUES,
+      ...initialValues,
+    },
   });
+
   const [open, setOpen] = useState(false);
   const { locations } = useTourLocations();
+
+  const keyword = watch('keyword');
+  const location = watch('location');
 
   const initKeyword = initialValues?.keyword;
   const initLocation = initialValues?.location;
 
   useEffect(() => {
-    setValues({
+    reset({
       ...EMPTY_VALUES,
       keyword: initKeyword || '',
       location: initLocation || '',
     });
-  }, [initKeyword, initLocation]);
+  }, [initKeyword, initLocation, reset]);
 
-  const update = <K extends keyof TourSearchValues>(key: K, val: TourSearchValues[K]) => {
-    setValues((prev) => ({ ...prev, [key]: val }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(values);
+  const onSubmit = (data: TourSearchFormValues) => {
+    onSearch(data);
   };
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className={`relative z-20 mx-auto -mt-20 w-full max-w-[1100px] rounded-2xl bg-white p-3 shadow-xl ring-1 ring-black/5 sm:-mt-24 sm:p-4 lg:p-3 ${className}`}
     >
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-0">
@@ -79,21 +93,20 @@ export default function TourSearchBar({
               </span>
               <input
                 type="text"
-                value={values.keyword}
-                onChange={(e) => update('keyword', e.target.value)}
+                {...register('keyword')}
                 placeholder="Bạn muốn tìm gì?"
                 className="w-full min-w-0 bg-transparent text-sm font-semibold text-foreground placeholder:font-normal placeholder:text-muted-foreground/70 focus:outline-none"
               />
             </span>
           </div>
-          {values.keyword && (
+          {keyword && (
             <button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                update('keyword', '');
-                onSearch({ ...values, keyword: '' });
+                setValue('keyword', '');
+                onSearch({ ...watch(), keyword: '' });
               }}
               className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/60 hover:bg-muted hover:text-foreground"
               aria-label="Xóa từ khóa"
@@ -123,10 +136,10 @@ export default function TourSearchBar({
                 >
                   <span
                     className={
-                      values.location ? 'text-foreground' : 'text-muted-foreground/70 font-normal'
+                      location ? 'text-foreground' : 'text-muted-foreground/70 font-normal'
                     }
                   >
-                    {values.location || 'Bạn muốn đi đâu?'}
+                    {location || 'Bạn muốn đi đâu?'}
                   </span>
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0" align="start">
@@ -147,7 +160,7 @@ export default function TourSearchBar({
                             key={loc}
                             value={loc}
                             onSelect={() => {
-                              update('location', loc);
+                              setValue('location', loc);
                               setOpen(false);
                             }}
                           >
@@ -161,14 +174,14 @@ export default function TourSearchBar({
               </Popover>
             </span>
           </div>
-          {values.location && (
+          {location && (
             <button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                update('location', '');
-                onSearch({ ...values, location: '' });
+                setValue('location', '');
+                onSearch({ ...watch(), location: '' });
               }}
               className="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/60 hover:bg-muted hover:text-foreground"
               aria-label="Xóa điểm đến"

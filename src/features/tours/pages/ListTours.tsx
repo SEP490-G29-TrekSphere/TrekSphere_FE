@@ -196,10 +196,13 @@ export default function ListTours() {
   // Client-side price filtering (since API does not support price query range yet)
   const filteredTours = useMemo(() => {
     return tours.filter((tour) => {
+      if (isPriceRangeLoading || (priceRange[0] === 0 && priceRange[1] === 0)) {
+        return true;
+      }
       if (!tour.basePrice) return true;
       return tour.basePrice >= priceRange[0] && tour.basePrice <= priceRange[1];
     });
-  }, [tours, priceRange]);
+  }, [tours, priceRange, isPriceRangeLoading]);
 
   const activeTotalCount = isLoading ? 0 : filteredTours.length;
 

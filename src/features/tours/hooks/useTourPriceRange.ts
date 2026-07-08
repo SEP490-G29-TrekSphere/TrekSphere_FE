@@ -17,25 +17,26 @@ interface UseTourPriceRangeResult extends TourPriceRange {
 async function fetchAllTourPrices(
   params: Pick<TourListParams, 'keyword' | 'location' | 'difficulty'>
 ) {
-  const minResponse = await tourService.getTours({
-    keyword: params.keyword,
-    location: params.location,
-    difficulty: params.difficulty,
-    page: 0,
-    size: 1,
-    sortBy: 'basePrice',
-    sortDir: 'asc',
-  });
-
-  const maxResponse = await tourService.getTours({
-    keyword: params.keyword,
-    location: params.location,
-    difficulty: params.difficulty,
-    page: 0,
-    size: 1,
-    sortBy: 'basePrice',
-    sortDir: 'desc',
-  });
+  const [minResponse, maxResponse] = await Promise.all([
+    tourService.getTours({
+      keyword: params.keyword,
+      location: params.location,
+      difficulty: params.difficulty,
+      page: 0,
+      size: 1,
+      sortBy: 'basePrice',
+      sortDir: 'asc',
+    }),
+    tourService.getTours({
+      keyword: params.keyword,
+      location: params.location,
+      difficulty: params.difficulty,
+      page: 0,
+      size: 1,
+      sortBy: 'basePrice',
+      sortDir: 'desc',
+    }),
+  ]);
 
   const minPrice = minResponse.content[0]?.basePrice ?? 0;
   const maxPrice = maxResponse.content[0]?.basePrice ?? 0;
