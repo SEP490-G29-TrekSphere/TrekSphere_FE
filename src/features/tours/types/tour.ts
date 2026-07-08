@@ -152,3 +152,58 @@ export interface TourFilter {
   duration?: string;
   sortBy?: 'popular' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
 }
+
+// ============================================================
+// API Types for List Tours
+// ============================================================
+
+/**
+ * Difficulty levels from the API
+ */
+export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER';
+
+/**
+ * Status values from the API
+ */
+export type ApiStatus = 'APPROVED' | 'PENDING' | 'REJECTED';
+
+/**
+ * Query params for fetching tours list
+ */
+export interface TourListParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+/**
+ * Individual tour item from API response
+ */
+export interface TourApiItem {
+  tourId: string;
+  tourName: string;
+  location: string;
+  durationDays: number;
+  basePrice: number;
+  difficulty: ApiDifficulty;
+  status: ApiStatus;
+  coverImageUrl: string;
+  vendorId: string;
+  vendorName: string;
+  averageRating: number | null;
+  totalReviews: number;
+  createdAt: string;
+}
+
+/**
+ * Paginated response from tours API
+ */
+export interface TourListApiResponse {
+  content: TourApiItem[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}

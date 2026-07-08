@@ -14,9 +14,15 @@ export * from './components/tour-details';
 // Data
 export { popularFilters, tourCategories, tourDetails, tours } from './data/tours';
 
+// Hooks
+export { useTours } from './hooks/useTours';
+
 // Pages
 export { default as ListTours } from './pages/ListTours';
 export { default as TourDetailsPage } from './pages/TourDetails';
+
+// Services
+export { tourService } from './services/tourService';
 
 // Types
 export type {
@@ -25,11 +31,14 @@ export type {
   LevelBadgeVariant,
   LevelClass,
   Tour,
+  TourApiItem,
   TourCategory,
   TourDetail,
   TourFilter,
   TourItineraryDay,
   TourLevel,
+  TourListApiResponse,
+  TourListParams,
   TourReview,
   TourTabId,
   TourTabState,

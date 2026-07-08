@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { TourCard, TourFilters, ToursHeader } from '@/features/tours';
-import { tours } from '@/features/tours/data/tours';
+import { useTours } from '@/features/tours/hooks/useTours';
 import type { TourFilter } from '@/features/tours/types';
 import { AppButton } from '@/shared/ui';
 
@@ -11,6 +11,13 @@ export default function ListTours() {
     sortBy: 'popular',
   });
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  const { tours, isLoading, error } = useTours({
+    page: 0,
+    size: 100,
+    sortBy: 'createdAt',
+    sortDir: 'desc',
+  });
 
   const filteredTours = useMemo(() => {
     let result = [...tours];
@@ -59,7 +66,71 @@ export default function ListTours() {
     }
 
     return result;
-  }, [filters]);
+  }, [filters, tours]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ToursHeader />
+        <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
+          <TourFilters filters={filters} onFilterChange={setFilters} totalResults={0} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className="overflow-hidden rounded-xl border bg-card shadow-sm animate-pulse"
+              >
+                <div className="aspect-16/10 bg-muted" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 w-3/4 rounded bg-muted" />
+                  <div className="h-4 w-1/2 rounded bg-muted" />
+                  <div className="h-3 w-1/3 rounded bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ToursHeader />
+        <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+              <svg
+                className="w-10 h-10 text-destructive"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-primary">Đã xảy ra lỗi</h3>
+            <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+              Không thể tải danh sách tour. Vui lòng thử lại.
+            </p>
+            <AppButton
+              onClick={() => {
+                window.location.reload();
+              }}
+            >
+              Thử lại
+            </AppButton>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
