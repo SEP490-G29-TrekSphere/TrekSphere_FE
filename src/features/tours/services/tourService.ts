@@ -1,5 +1,9 @@
 import { ApiService } from '@/config/apiClient';
-import type { TourListApiResponse, TourListParams } from '@/features/tours/types';
+import type {
+  TourDetailFromApi,
+  TourListApiResponse,
+  TourListParams,
+} from '@/features/tours/types';
 
 export interface TourListResponse {
   content: TourListApiResponse['content'];
@@ -66,5 +70,19 @@ export const tourService = {
       pageSize: response.data.pageSize,
       last: response.data.last,
     };
+  },
+
+  async getTourById(tourId: string): Promise<TourDetailFromApi> {
+    const response = await ApiService<TourDetailFromApi>(`/tours/${tourId}`, 'GET');
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    if (!response.data) {
+      throw new Error('No data received from API');
+    }
+
+    return response.data;
   },
 };
