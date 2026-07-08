@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
+import type { TourDetailFromApi, TourDetailScheduleApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
-import { useTourDetail } from '../hooks/useTourDetail';
-import type { TourDetailFromApi, TourDetailScheduleApi } from '../types';
 
 // ============================================================
 // Helpers
@@ -86,7 +86,15 @@ function TourDetailSkeleton() {
   );
 }
 
-function TourDetailError({ message, onRetry }: { message: string; onRetry: () => void }) {
+function TourDetailError({
+  message,
+  onRetry,
+  isFetching,
+}: {
+  message: string;
+  onRetry: () => void;
+  isFetching?: boolean;
+}) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4">
       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
@@ -97,9 +105,10 @@ function TourDetailError({ message, onRetry }: { message: string; onRetry: () =>
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        disabled={isFetching}
+        className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
-        Thử lại
+        {isFetching ? 'Đang tải lại...' : 'Thử lại'}
       </button>
     </div>
   );
@@ -150,13 +159,7 @@ function DetailHero({ tour }: { tour: TourDetailFromApi }) {
       )}
 
       {/* Gradient overlay */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(30, 57, 50, 0.95) 0%, rgba(30, 57, 50, 0.5) 50%, rgba(30, 57, 50, 0.15) 100%)',
-        }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1e3932]/95 via-[#1e3932]/50 to-[#1e3932]/15" />
 
       {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
@@ -422,7 +425,7 @@ function ScheduleSection({ schedules }: { schedules: TourDetailScheduleApi[] }) 
       </h3>
       <div className="flex flex-col gap-3">
         {openSchedules.map((s) => {
-          const remaining = s.availableSlots - s.bookedSlots;
+          const remaining = Math.max(0, s.availableSlots - s.bookedSlots);
           return (
             <div
               key={s.scheduleId}
@@ -553,6 +556,7 @@ function ImageGallery({ tour }: { tour: TourDetailFromApi }) {
               key={img.imageId}
               type="button"
               onClick={() => setSelected(i)}
+              aria-current={i === selected ? 'true' : undefined}
               className={`h-16 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                 i === selected
                   ? 'border-primary shadow-md'
@@ -588,7 +592,7 @@ function ImageGallery({ tour }: { tour: TourDetailFromApi }) {
 export default function TourDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAppStore((s) => s.user);
-  const { data: tour, isLoading, error, refetch } = useTourDetail(id);
+  const { data: tour, isLoading, error, refetch, isFetching } = useTourDetail(id);
 
   // Loading
   if (isLoading) {
@@ -600,7 +604,10 @@ export default function TourDetailsPage() {
     return (
       <TourDetailError
         message={error.message || 'Đã xảy ra lỗi khi tải thông tin tour.'}
-        onRetry={() => refetch()}
+        onRetry={() => {
+          if (!isFetching) refetch();
+        }}
+        isFetching={isFetching}
       />
     );
   }
@@ -636,7 +643,7 @@ export default function TourDetailsPage() {
             <ItinerarySection tour={tour} />
 
             {/* Image gallery */}
-            <ImageGallery tour={tour} />
+            <ImageGallery key={tour.tourId} tour={tour} />
 
             {/* Excludes */}
             <ExcludesSection excludes={tour.excludes} />

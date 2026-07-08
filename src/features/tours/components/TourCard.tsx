@@ -29,12 +29,37 @@ function StarRating({ rating, reviewCount }: { rating: number; reviewCount: numb
   );
 }
 
+function LevelBadge({ level, className = '' }: { level: string; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm',
+        level === 'Dễ' && 'bg-emerald-500/90',
+        level === 'Trung bình' && 'bg-zinc-500/90',
+        level === 'Khó' && 'bg-primary/95',
+        level === 'Khám phá' && 'bg-rose-500/90',
+        className
+      )}
+    >
+      {level === 'Khám phá' ? 'Cực khó' : level}
+    </span>
+  );
+}
+
+function formatTourPrice(basePrice: number | undefined, priceStr: string): string {
+  if (basePrice !== undefined) {
+    return new Intl.NumberFormat('vi-VN').format(basePrice);
+  }
+  return priceStr.replace('đ', '').trim();
+}
+
 /**
  * TourCard — supports horizontal 'list' and vertical 'grid' layouts.
  * Styled to match the premium TrekSphere visual mockup.
  */
 export default function TourCard({ tour, className = '', layout = 'list' }: TourCardProps) {
   const [imgSrc, setImgSrc] = useState(tour.image);
+  const formattedPrice = formatTourPrice(tour.basePrice, tour.price);
 
   if (layout === 'grid') {
     return (
@@ -59,17 +84,7 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
             loading="lazy"
           />
           {tour.level && (
-            <span
-              className={cn(
-                'absolute right-3 top-3 inline-flex items-center rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm backdrop-blur-xs',
-                tour.level === 'Dễ' && 'bg-emerald-500/90',
-                tour.level === 'Trung bình' && 'bg-zinc-500/90',
-                tour.level === 'Khó' && 'bg-primary/95',
-                tour.level === 'Khám phá' && 'bg-rose-500/90'
-              )}
-            >
-              {tour.level === 'Khám phá' ? 'Cực khó' : tour.level}
-            </span>
+            <LevelBadge level={tour.level} className="absolute right-3 top-3 backdrop-blur-xs" />
           )}
         </Link>
 
@@ -103,7 +118,7 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
                 Từ
               </span>
               <p className="text-sm font-extrabold text-primary sm:text-base">
-                {tour.price.replace('đ', '')} VND
+                {formattedPrice} VND
               </p>
             </div>
             <Link
@@ -140,19 +155,7 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
-        {tour.level && (
-          <span
-            className={cn(
-              'absolute right-2 top-2 inline-flex items-center rounded px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-sm',
-              tour.level === 'Dễ' && 'bg-emerald-500/90',
-              tour.level === 'Trung bình' && 'bg-zinc-500/90',
-              tour.level === 'Khó' && 'bg-primary/95',
-              tour.level === 'Khám phá' && 'bg-rose-500/90'
-            )}
-          >
-            {tour.level === 'Khám phá' ? 'Cực khó' : tour.level}
-          </span>
-        )}
+        {tour.level && <LevelBadge level={tour.level} className="absolute right-2 top-2" />}
       </Link>
 
       {/* Middle content */}
@@ -194,7 +197,7 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
           Từ
         </span>
         <p className="text-base font-bold text-primary sm:text-xl lg:text-2xl">
-          {tour.price.replace('đ', '')} VND
+          {formattedPrice} VND
         </p>
       </div>
     </article>

@@ -17,47 +17,32 @@ interface UseTourPriceRangeResult extends TourPriceRange {
 async function fetchAllTourPrices(
   params: Pick<TourListParams, 'keyword' | 'location' | 'difficulty'>
 ) {
-  const firstPage = await tourService.getTours({
+  const minResponse = await tourService.getTours({
     keyword: params.keyword,
     location: params.location,
     difficulty: params.difficulty,
     page: 0,
-    size: 100,
+    size: 1,
     sortBy: 'basePrice',
     sortDir: 'asc',
   });
 
-  const pages = [firstPage.content];
+  const maxResponse = await tourService.getTours({
+    keyword: params.keyword,
+    location: params.location,
+    difficulty: params.difficulty,
+    page: 0,
+    size: 1,
+    sortBy: 'basePrice',
+    sortDir: 'desc',
+  });
 
-  if (firstPage.totalPages > 1) {
-    const remainingPages = await Promise.all(
-      Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
-        tourService.getTours({
-          keyword: params.keyword,
-          location: params.location,
-          difficulty: params.difficulty,
-          page: index + 1,
-          size: firstPage.pageSize,
-          sortBy: 'basePrice',
-          sortDir: 'asc',
-        })
-      )
-    );
-
-    pages.push(...remainingPages.map((page) => page.content));
-  }
-
-  const prices = pages.flatMap((page) =>
-    page.map((tour) => tour.basePrice).filter((price): price is number => Number.isFinite(price))
-  );
-
-  if (prices.length === 0) {
-    return { minPrice: 0, maxPrice: 0 };
-  }
+  const minPrice = minResponse.content[0]?.basePrice ?? 0;
+  const maxPrice = maxResponse.content[0]?.basePrice ?? 0;
 
   return {
-    minPrice: Math.min(...prices),
-    maxPrice: Math.max(...prices),
+    minPrice,
+    maxPrice,
   };
 }
 
@@ -74,6 +59,7 @@ export function useTourPriceRange(
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey,
     queryFn: () => fetchAllTourPrices(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   return {

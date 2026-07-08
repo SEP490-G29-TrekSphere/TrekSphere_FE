@@ -70,7 +70,10 @@ function formatShortPrice(val: number): string {
   if (val >= 1000000) {
     return `${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)}M`;
   }
-  return `${val / 1000}K`;
+  if (val >= 1000) {
+    return `${(val / 1000).toFixed(val % 1000 === 0 ? 0 : 1)}K`;
+  }
+  return String(val);
 }
 
 /**
@@ -148,20 +151,6 @@ export default function ListTours() {
 
   const { sortBy, sortDir } = resolveSort(filters.sortBy);
 
-  const queryParams = useMemo<TourListParams>(
-    () => ({
-      keyword: filters.keyword,
-      location: filters.location,
-      difficulty: filters.difficulty,
-      page,
-      size: PAGE_SIZE,
-      sortBy,
-      sortDir,
-    }),
-    [filters.keyword, filters.location, filters.difficulty, page, sortBy, sortDir]
-  );
-
-  const { tours, totalPages, pageNumber, isLoading, error, refetch } = useTours(queryParams);
   const {
     minPrice,
     maxPrice,
@@ -171,6 +160,33 @@ export default function ListTours() {
     location: filters.location,
     difficulty: filters.difficulty,
   });
+
+  const isPriceRangeActive =
+    (minPrice !== 0 || maxPrice !== 0) &&
+    (priceRange[0] !== minPrice || priceRange[1] !== maxPrice);
+
+  const queryParams = useMemo<TourListParams>(
+    () => ({
+      keyword: filters.keyword,
+      location: filters.location,
+      difficulty: filters.difficulty,
+      page: isPriceRangeActive ? 0 : page,
+      size: isPriceRangeActive ? 100 : PAGE_SIZE,
+      sortBy,
+      sortDir,
+    }),
+    [
+      filters.keyword,
+      filters.location,
+      filters.difficulty,
+      page,
+      sortBy,
+      sortDir,
+      isPriceRangeActive,
+    ]
+  );
+
+  const { tours, totalPages, pageNumber, isLoading, error, refetch } = useTours(queryParams);
 
   useEffect(() => {
     if (isPriceRangeLoading) return;
@@ -401,13 +417,15 @@ export default function ListTours() {
               )}
 
               {/* Pagination controls */}
-              <div className="mt-8">
-                <TourPagination
-                  pageNumber={pageNumber}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
+              {!isPriceRangeActive && (
+                <div className="mt-8">
+                  <TourPagination
+                    pageNumber={pageNumber}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
             </main>
           </div>
         </div>

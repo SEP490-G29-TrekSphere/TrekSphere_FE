@@ -9,8 +9,8 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useTourLocations } from '@/features/tours/hooks/useTourLocations';
 import type { TourSearchValues } from '@/features/tours/types';
-import { tourService } from '../services/tourService';
 
 interface TourSearchBarProps {
   onSearch: (values: TourSearchValues) => void;
@@ -24,16 +24,6 @@ const EMPTY_VALUES: TourSearchValues = {
   departureDate: '',
   budget: '',
 };
-
-const FALLBACK_LOCATIONS = [
-  'Lào Cai',
-  'Lai Châu',
-  'Lâm Đồng',
-  'Cao Bằng',
-  'Yên Bái',
-  'Hòa Bình',
-  'Hà Giang',
-];
 
 /**
  * TourSearchBar — search card that overlaps the hero on the List Tours page.
@@ -49,28 +39,7 @@ export default function TourSearchBar({
     ...initialValues,
   });
   const [open, setOpen] = useState(false);
-  const [locations, setLocations] = useState<string[]>([]);
-
-  // Fetch unique locations on mount
-  useEffect(() => {
-    tourService
-      .getTours({ size: 100 })
-      .then((res) => {
-        const rawLocations = res.content.map((t) => t.location).filter(Boolean);
-        const splitLocations = rawLocations.flatMap((loc) =>
-          loc
-            .split(/[-–—]+/)
-            .map((part) => part.trim())
-            .filter(Boolean)
-        );
-        const unique = Array.from(new Set(splitLocations)) as string[];
-        setLocations(unique.length > 0 ? unique : FALLBACK_LOCATIONS);
-      })
-      .catch((err) => {
-        console.error('Failed to load locations', err);
-        setLocations(FALLBACK_LOCATIONS);
-      });
-  }, []);
+  const { locations } = useTourLocations();
 
   const initKeyword = initialValues?.keyword;
   const initLocation = initialValues?.location;
@@ -162,7 +131,14 @@ export default function TourSearchBar({
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0" align="start">
                   <Command>
-                    <CommandInput placeholder="Tìm địa danh..." />
+                    <CommandInput
+                      placeholder="Tìm địa danh..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     <CommandList>
                       <CommandEmpty>Không tìm thấy địa danh</CommandEmpty>
                       <CommandGroup>

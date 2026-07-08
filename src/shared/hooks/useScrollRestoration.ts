@@ -6,6 +6,11 @@ const STORAGE_KEY_PREFIX = 'scroll_';
 /**
  * Read a saved scroll position for a given location key.
  */
+const MAX_KEYS = 30;
+
+/**
+ * Read a saved scroll position for a given location key.
+ */
 function getSavedPosition(key: string): number {
   try {
     const raw = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${key}`);
@@ -18,9 +23,25 @@ function getSavedPosition(key: string): number {
 /**
  * Persist the current scroll position for a given location key.
  */
-function savePosition(key: string, y: number): void {
+function savePosition(key: string, y: number, keys: string[], cache: Record<string, number>): void {
   try {
     sessionStorage.setItem(`${STORAGE_KEY_PREFIX}${key}`, String(Math.round(y)));
+    cache[key] = y;
+
+    const idx = keys.indexOf(key);
+    if (idx > -1) {
+      keys.splice(idx, 1);
+    }
+    keys.push(key);
+
+    if (keys.length > MAX_KEYS) {
+      const oldest = keys.shift();
+      if (oldest) {
+        sessionStorage.removeItem(`${STORAGE_KEY_PREFIX}${oldest}`);
+        delete cache[oldest];
+      }
+    }
+    sessionStorage.setItem(`${STORAGE_KEY_PREFIX}_keys`, JSON.stringify(keys));
   } catch {
     // sessionStorage full or unavailable — silently ignore
   }
@@ -41,6 +62,17 @@ export function useScrollRestoration(): void {
   const location = useLocation();
   const navigationType = useNavigationType();
   const prevKeyRef = useRef<string>(location.key);
+  const keysRef = useRef<string[]>([]);
+
+  // Load keys list from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const rawKeys = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_keys`);
+      if (rawKeys) {
+        keysRef.current = JSON.parse(rawKeys);
+      }
+    } catch {}
+  }, []);
 
   // In-memory cache of scroll positions for the current session
   const scrollCache = useRef<Record<string, number>>({});
@@ -72,8 +104,10 @@ export function useScrollRestoration(): void {
     const prevKey = prevKeyRef.current;
     const lastY = scrollCache.current[prevKey];
     if (lastY !== undefined) {
-      savePosition(prevKey, lastY);
+      savePosition(prevKey, lastY, keysRef.current, scrollCache.current);
     }
+
+    let rafId: number;
 
     if (navigationType === 'POP') {
       // Back/forward navigation — restore saved position
@@ -86,10 +120,10 @@ export function useScrollRestoration(): void {
         window.scrollTo(0, savedY);
         count++;
         if (count < 5) {
-          requestAnimationFrame(restore);
+          rafId = requestAnimationFrame(restore);
         }
       };
-      requestAnimationFrame(restore);
+      rafId = requestAnimationFrame(restore);
     } else {
       // Forward navigation (PUSH/REPLACE) — always start at the top
       window.scrollTo(0, 0);
@@ -98,13 +132,19 @@ export function useScrollRestoration(): void {
 
     // Track the current key so the next navigation can save it
     prevKeyRef.current = location.key;
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [location.key, navigationType]);
 
   // 4. Save scroll position on page unload/refresh
   useEffect(() => {
     const handleBeforeUnload = () => {
       const currentY = scrollCache.current[location.key] ?? window.scrollY;
-      savePosition(location.key, currentY);
+      savePosition(location.key, currentY, keysRef.current, scrollCache.current);
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
