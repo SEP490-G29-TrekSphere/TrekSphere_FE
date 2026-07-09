@@ -69,7 +69,7 @@ export const authService = {
   /**
    * Get the profile of the currently logged-in user.
    */
-  getProfile: () => ApiService<UserProfile>('/users/profile', 'GET'),
+  getProfile: () => ApiService<UserProfile>('/users/me', 'GET'),
 
   /**
    * Update the profile of the currently logged-in user.
