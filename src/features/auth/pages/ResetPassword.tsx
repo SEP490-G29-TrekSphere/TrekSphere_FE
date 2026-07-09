@@ -4,11 +4,14 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import heroImage from '@/assets/hero.png';
 import { PATHS } from '@/constants';
+import AuthLayout from '@/features/auth/components/AuthLayout';
+import { authService } from '@/features/auth/services/authService';
+import {
+  type ResetPasswordFormValues,
+  resetPasswordSchema,
+} from '@/features/auth/validations/auth.schema';
 import { AppButton, AppFormInput, AppSpinner } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import AuthLayout from '../components/AuthLayout';
-import { authService } from '../services/authService';
-import { type ResetPasswordFormValues, resetPasswordSchema } from '../validations/auth.schema';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -121,8 +124,7 @@ export default function ResetPassword() {
             </Link>
             <Link
               to={PATHS.LOGIN}
-              className="text-sm font-semibold hover:opacity-80 transition-opacity text-center py-2"
-              style={{ color: '#1F3933' }}
+              className="text-sm font-semibold hover:opacity-80 transition-opacity text-center py-2 text-[#1F3933]"
             >
               Quay lại đăng nhập
             </Link>
