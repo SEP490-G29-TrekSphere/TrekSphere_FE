@@ -1,32 +1,32 @@
 import axios from 'axios';
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
+  AuthActionResponse,
   AuthResponse,
   AuthUser,
+  ChangePasswordPayload,
   LoginPayload,
   RegisterPayload,
   RegisterResponseData,
+  ResetPasswordPayload,
   UpdateProfilePayload,
   UserProfile,
+  VerifyEmailResponse,
 } from '../types';
-import type {
-  ChangePasswordFormValues,
-  LoginFormValues,
-  RegisterFormValues,
-} from '../validations/auth.schema';
+import type { LoginFormValues, RegisterFormValues } from '../validations/auth.schema';
 
 export const authService = {
   /**
-   * Đăng nhập hệ thống.
-   * BE: POST /api/v1/auth/login → trả về `{ user, access_token, refresh_token }`.
+   * Log in to the system.
+   * BE: POST /api/v1/auth/login -> returns `{ user, access_token, refresh_token }`.
    */
   login: (data: LoginFormValues) =>
     ApiService<AuthResponse>('/auth/login', 'POST', data as unknown as LoginPayload),
 
   /**
-   * Đăng ký tài khoản mới.
-   * BE: POST /api/v1/auth/register → chỉ trả về `{ userId, email, fullName }`,
-   * KHÔNG kèm token — FE phải gọi tiếp /auth/login nếu muốn vào hệ thống luôn.
+   * Register a new user account.
+   * BE: POST /api/v1/auth/register -> only returns `{ userId, email, fullName }`,
+   * NO token included - FE must then call /auth/login if they want to enter the system immediately.
    */
   register: (data: RegisterFormValues): Promise<ApiResponse<RegisterResponseData>> =>
     ApiService<RegisterResponseData>('/auth/register', 'POST', {
@@ -37,53 +37,65 @@ export const authService = {
     } as unknown as RegisterPayload),
 
   /**
-   * Gửi yêu cầu khôi phục mật khẩu.
+   * Send a password reset request.
    */
   forgotPassword: (email: string) => ApiService('/auth/forgot-password', 'POST', { email }),
 
   /**
-   * Đăng xuất khỏi hệ thống.
+   * Reset the password using a verification token.
+   */
+  resetPassword: (data: ResetPasswordPayload) =>
+    ApiService<AuthActionResponse>('/auth/reset-password', 'POST', data),
+
+  /**
+   * Log out of the system.
    */
   logout: () => ApiService('/auth/logout', 'POST'),
 
   /**
-   * Làm mới token khi hết hạn.
+   * Refresh the token when expired.
    */
   refreshToken: (token: string) =>
     ApiService<AuthResponse>('/auth/refresh', 'POST', { refreshToken: token }),
 
   /**
-   * Đổi mật khẩu.
+   * Change the current password.
    */
-  changePassword: (data: ChangePasswordFormValues) =>
-    ApiService('/auth/change-password', 'POST', data),
+  changePassword: (data: ChangePasswordPayload) => {
+    return ApiService('/auth/change-password', 'POST', data);
+  },
 
   /**
-   * Lấy thông tin hồ sơ của user đang đăng nhập.
+   * Get the profile of the currently logged-in user.
    */
-  getProfile: () => ApiService<UserProfile>('/users/profile', 'GET'),
+  getProfile: () => ApiService<UserProfile>('/users/me', 'GET'),
 
   /**
-   * Cập nhật hồ sơ của user đang đăng nhập.
+   * Update the profile of the currently logged-in user.
    */
   updateProfile: (data: UpdateProfilePayload) =>
     ApiService<UserProfile>('/users/profile', 'PUT', data),
 
   /**
-   * Xác thực email qua token từ link trong mail.
-   * Dùng axios trực tiếp (không qua interceptors) để tránh gắn accessToken
-   * vào verify request — token verify ≠ access token.
-   * BE: GET /api/v1/auth/verify?token=xxx → trả về 200 JSON body.
+   * Verify email via the token from the email link.
+   * Uses axios directly (without interceptors) to avoid attaching accessToken
+   * to verify request - token verify !== access token.
+   * BE: GET /api/v1/auth/verify?token=xxx -> returns 200 JSON body.
    */
-  verifyEmail: async (
-    token: string
-  ): Promise<ApiResponse<{ success: boolean; message: string }>> => {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+  verifyEmail: async (token: string): Promise<ApiResponse<VerifyEmailResponse>> => {
+    const isDev = import.meta.env.DEV;
+    const verifyURL = isDev
+      ? `/api/v1/auth/verify?token=${token}`
+      : `${
+          import.meta.env.VITE_API_URL ?? 'https://api.treksphere.io.vn/api/v1'
+        }/auth/verify?token=${token}`;
     try {
-      const response = await axios.get<{ success: boolean; message: string }>(
-        `${baseURL}/auth/verify?token=${token}`,
-        { timeout: 60_000 }
-      );
+      const response = await axios.get<VerifyEmailResponse>(verifyURL, {
+        timeout: 60_000,
+        // Bỏ qua interceptor để không gắn accessToken vào verify request
+        __skipAuth: true,
+        __skipRefresh: true,
+      } as never);
       return { data: response.data, status: response.status };
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -97,7 +109,7 @@ export const authService = {
   },
 };
 
-/** Helper chuyển user từ BE (snake_case) sang shape mà `useAppStore` đang lưu. */
+/** Helper to convert user from BE (snake_case) to the shape stored in `useAppStore`. */
 export function toAppStoreUser(user: AuthUser): {
   id: string;
   name: string;

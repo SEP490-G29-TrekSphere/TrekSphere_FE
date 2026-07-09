@@ -4,6 +4,7 @@ import { PATHS } from '@/constants';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import MainLayout from '@/shared/layout/MainLayout';
 import PublicLayout from '@/shared/layout/PublicLayout';
+import { ScrollManager } from '@/shared/ui/ScrollManager';
 
 // Lazy loading features (code-splitting theo route)
 const Home = lazy(() => import('@/features/home/pages/Home'));
@@ -11,6 +12,7 @@ const Login = lazy(() => import('@/features/auth/pages/Login'));
 const Register = lazy(() => import('@/features/auth/pages/Register'));
 const VerifyEmail = lazy(() => import('@/features/auth/pages/VerifyEmail'));
 const ForgotPassword = lazy(() => import('@/features/auth/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/features/auth/pages/ResetPassword'));
 const ChangePassword = lazy(() => import('@/features/auth/pages/ChangePassword'));
 const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
 const Notifications = lazy(() => import('@/features/notifications/pages/Notifications'));
@@ -32,13 +34,22 @@ function PageLoader() {
 export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
+      <ScrollManager />
       <Routes>
         {/* Standalone routes — không qua layout chung (auth flow, notifications) */}
         <Route path={PATHS.LOGIN} element={<Login />} />
         <Route path={PATHS.REGISTER} element={<Register />} />
         <Route path={PATHS.VERIFY_EMAIL} element={<VerifyEmail />} />
         <Route path={PATHS.FORGOT_PASSWORD} element={<ForgotPassword />} />
-        <Route path={PATHS.CHANGE_PASSWORD} element={<ChangePassword />} />
+        <Route path={PATHS.RESET_PASSWORD} element={<ResetPassword />} />
+        <Route
+          path={PATHS.CHANGE_PASSWORD}
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
         <Route path={PATHS.NOTIFICATIONS} element={<Notifications />} />
 
         {/* Public routes — chung khung Header + Footer qua PublicLayout */}
