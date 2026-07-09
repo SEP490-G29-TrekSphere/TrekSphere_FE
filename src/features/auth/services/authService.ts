@@ -10,6 +10,7 @@ import type {
   ResetPasswordPayload,
   UpdateProfilePayload,
   UserProfile,
+  VerifyEmailResponse,
 } from '../types';
 import type {
   ChangePasswordFormValues,
@@ -69,7 +70,7 @@ export const authService = {
   /**
    * Get the profile of the currently logged-in user.
    */
-  getProfile: () => ApiService<UserProfile>('/users/profile', 'GET'),
+  getProfile: () => ApiService<UserProfile>('/users/me', 'GET'),
 
   /**
    * Update the profile of the currently logged-in user.
@@ -83,13 +84,20 @@ export const authService = {
    * to verify request - token verify !== access token.
    * BE: GET /api/v1/auth/verify?token=xxx -> returns 200 JSON body.
    */
-  verifyEmail: async (token: string): Promise<ApiResponse<AuthActionResponse>> => {
-    const baseURL = import.meta.env.VITE_API_URL || 'https://api.treksphere.io.vn/api/v1';
+  verifyEmail: async (token: string): Promise<ApiResponse<VerifyEmailResponse>> => {
+    const isDev = import.meta.env.DEV;
+    const verifyURL = isDev
+      ? `/api/v1/auth/verify?token=${token}`
+      : `${
+          import.meta.env.VITE_API_URL ?? 'https://api.treksphere.io.vn/api/v1'
+        }/auth/verify?token=${token}`;
     try {
-      const response = await axios.get<AuthActionResponse>(
-        `${baseURL}/auth/verify?token=${token}`,
-        { timeout: 60_000 }
-      );
+      const response = await axios.get<VerifyEmailResponse>(verifyURL, {
+        timeout: 60_000,
+        // Bỏ qua interceptor để không gắn accessToken vào verify request
+        __skipAuth: true,
+        __skipRefresh: true,
+      } as never);
       return { data: response.data, status: response.status };
     } catch (err) {
       if (axios.isAxiosError(err)) {

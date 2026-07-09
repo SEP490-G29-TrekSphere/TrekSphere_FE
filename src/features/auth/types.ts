@@ -26,6 +26,14 @@ export interface AuthActionResponse {
   message: string;
 }
 
+export interface VerifyEmailResponse {
+  user?: AuthUser;
+  access_token?: string;
+  refresh_token?: string;
+  success?: boolean;
+  message?: string;
+}
+
 /** Payload sent to the /auth/reset-password endpoint. */
 export interface ResetPasswordPayload {
   token: string;
@@ -61,23 +69,25 @@ export interface RegisterResponseData {
  */
 export interface UserProfile {
   id: string;
-  name: string;
   email: string;
+  name: string;
   phone?: string;
   avatar?: string;
   username?: string;
   gender?: 'male' | 'female' | 'other';
   dateOfBirth?: string;
-  address?: string;
-  bio?: string;
-  interests?: string[];
+  /** Thời gian tạo tài khoản (API trả về `createdAt`). */
+  joinedAt?: string;
+  /** Vai trò người dùng (API trả về `roles` là array). */
+  roles: string[];
+  /** Vai trò chính (lấy từ roles[0]). Dùng cho các check hiển thị. */
+  role: string;
+  /** Stats cho sidebar profile (FE tự tính hoặc mock). */
   stats?: {
     toursCount: number;
     postsCount: number;
     followersCount: number;
   };
-  joinedAt?: string;
-  role: string;
 }
 
 /**
