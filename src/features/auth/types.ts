@@ -1,15 +1,17 @@
+import type { ChangePasswordFormValues } from './validations/auth.schema';
+
 /**
- * Types riêng cho feature auth.
- * Chỉ những type thuộc về login/register/forgot-password mới đặt ở đây.
+ * Types specific to the auth feature.
+ * Only types related to login, register, forgot-password, and reset-password are defined here.
  */
 
-/** Payload FE gửi lên endpoint /auth/login. */
+/** Payload sent to the /auth/login endpoint. */
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
-/** Payload FE gửi lên endpoint /auth/register. */
+/** Payload sent to the /auth/register endpoint. */
 export interface RegisterPayload {
   fullName: string;
   email: string;
@@ -21,7 +23,32 @@ export interface ForgotPasswordResponse {
   message: string;
 }
 
-/** User object trả về trong response của BE (snake_case, dùng `fullName`/`avatarUrl`/`roles[]`). */
+export interface AuthActionResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyEmailResponse {
+  user?: AuthUser;
+  access_token?: string;
+  refresh_token?: string;
+  success?: boolean;
+  message?: string;
+}
+
+/** Payload sent to the /auth/reset-password endpoint. */
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
+/** Payload sent to the /auth/change-password endpoint. */
+export type ChangePasswordPayload = Pick<
+  ChangePasswordFormValues,
+  'currentPassword' | 'newPassword'
+>;
+
+/** User object returned in the BE response (snake_case, uses `fullName`/`avatarUrl`/`roles[]`). */
 export interface AuthUser {
   id: string;
   email: string;
@@ -30,14 +57,14 @@ export interface AuthUser {
   roles: string[];
 }
 
-/** Response envelope của `/auth/login`. BE trả token dạng snake_case. */
+/** Response envelope for `/auth/login`. The BE returns token in snake_case. */
 export interface AuthResponse {
   user: AuthUser;
   access_token: string;
   refresh_token: string;
 }
 
-/** Response.data của `/auth/register` — BE chỉ trả thông tin user, không kèm token. */
+/** Response data for `/auth/register` - BE only returns user info, no token. */
 export interface RegisterResponseData {
   userId: string;
   email: string;
@@ -45,32 +72,34 @@ export interface RegisterResponseData {
 }
 
 /**
- * Hồ sơ người dùng chi tiết (dùng cho màn hình View/Edit profile).
- * Giữ nguyên cấu trúc cũ để không vỡ các feature khác.
+ * Detailed user profile (used for the View/Edit profile screens).
+ * Preserves the existing structure to avoid breaking other features.
  */
 export interface UserProfile {
   id: string;
-  name: string;
   email: string;
+  name: string;
   phone?: string;
   avatar?: string;
   username?: string;
   gender?: 'male' | 'female' | 'other';
   dateOfBirth?: string;
-  address?: string;
-  bio?: string;
-  interests?: string[];
+  /** Thời gian tạo tài khoản (API trả về `createdAt`). */
+  joinedAt?: string;
+  /** Vai trò người dùng (API trả về `roles` là array). */
+  roles: string[];
+  /** Vai trò chính (lấy từ roles[0]). Dùng cho các check hiển thị. */
+  role: string;
+  /** Stats cho sidebar profile (FE tự tính hoặc mock). */
   stats?: {
     toursCount: number;
     postsCount: number;
     followersCount: number;
   };
-  joinedAt?: string;
-  role: string;
 }
 
 /**
- * Payload cập nhật hồ sơ (mọi field optional vì update từng phần).
+ * Payload for updating user profile (all fields are optional for partial updates).
  */
 export interface UpdateProfilePayload {
   name?: string;

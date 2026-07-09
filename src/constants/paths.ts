@@ -18,6 +18,7 @@ export const PATHS = {
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   ABOUT: '/about',
   TERMS: '/terms',
   PRIVACY: '/privacy',
@@ -26,11 +27,11 @@ export const PATHS = {
   // Customer (đăng nhập mới thấy)
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
-  TOUR_DETAIL: '/tours/:slug',
+  TOUR_DETAIL: '/tours/:id',
   MY_TOURS: '/my-tours',
   COMMUNITY: '/community',
   NEWS: '/news',
-  NEWS_DETAIL: '/news/:slug',
+  NEWS_DETAIL: '/news/:blogId',
   NOTIFICATIONS: '/notifications',
 
   // Settings
