@@ -12,7 +12,7 @@
 # The above will handle all files NOT found below
 #
 
-# Documents
+# Documents`
 *.bibtex   text diff=bibtex
 *.doc      diff=astextplain
 *.DOC      diff=astextplain
