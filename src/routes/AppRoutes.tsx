@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { PATHS, ROLES } from '@/constants';
+import { PATHS } from '@/constants';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import MainLayout from '@/shared/layout/MainLayout';
 import PublicLayout from '@/shared/layout/PublicLayout';
@@ -23,6 +23,9 @@ const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
 const EditProfile = lazy(() => import('@/features/profile/pages/EditProfile'));
 const ChatList = lazy(() => import('@/features/chat/pages/ChatList'));
+const _AdminLayout = lazy(() => import('@/shared/layout/AdminLayout'));
+const _Applications = lazy(() => import('@/features/admin/pages/Applications'));
+const _ApplicationDetails = lazy(() => import('@/features/admin/pages/ApplicationDetails'));
 const AdminLayout = lazy(() => import('@/shared/layout/AdminLayout'));
 const Applications = lazy(() => import('@/features/admin/pages/Applications'));
 const ApplicationDetails = lazy(() => import('@/features/admin/pages/ApplicationDetails'));
