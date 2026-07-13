@@ -3,6 +3,11 @@ import { PATHS } from '../constants';
 import AppRoutes from './AppRoutes';
 
 jest.mock('react-router-dom', () => {
+  if (typeof global.TextEncoder === 'undefined') {
+    const { TextEncoder, TextDecoder } = require('node:util');
+    global.TextEncoder = TextEncoder;
+    global.TextDecoder = TextDecoder;
+  }
   const actual = jest.requireActual('react-router-dom');
   return {
     ...actual,

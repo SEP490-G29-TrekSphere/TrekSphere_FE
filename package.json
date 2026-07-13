@@ -43,6 +43,7 @@
     "@biomejs/biome": "^2.5.2",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
+    "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.14",
@@ -50,9 +51,9 @@
     "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.5.2",
     "babel-jest": "^30.4.1",
-    "babel-plugin-transform-import-meta": "^3.0.0",
     "babel-plugin-transform-vite-meta-env": "^1.0.3",
     "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "lefthook": "^2.1.9",
     "postcss": "^8.5.16",
     "shadcn": "^4.12.0",
@@ -64,6 +65,7 @@
   },
   "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b",
   "jest": {
+    "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     },
@@ -71,7 +73,7 @@
       "^.+\\.(ts|tsx)$": [
         "ts-jest",
         {
-          "tsconfig": "tsconfig.app.json"
+          "tsconfig": "tsconfig.test.json"
         }
       ],
       "^.+\\.(js|jsx)$": "babel-jest"
