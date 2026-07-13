@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { PATHS, ROLES } from '@/constants';
+import { PATHS } from '@/constants';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import MainLayout from '@/shared/layout/MainLayout';
 import PublicLayout from '@/shared/layout/PublicLayout';
