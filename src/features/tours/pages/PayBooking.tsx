@@ -336,7 +336,7 @@ export default function PayBooking() {
                 </div>
                 {paymentProofUrl && (
                   <img
-                    src={paymentProofUrl}
+                    src={paymentProofUrl.startsWith('blob:') ? paymentProofUrl : ''}
                     alt="Xem trước"
                     className="w-12 h-12 rounded-lg object-cover border border-[#E5E4DE]"
                   />
