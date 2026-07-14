@@ -5,18 +5,7 @@ import { tourService } from '@/features/tours/services/tourService';
 import { AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
-interface BookingListItem {
-  bookingId: string;
-  tourName: string;
-  departureDate: string;
-  status:
-    | 'CONFIRMED'
-    | 'PENDING'
-    | 'CANCELLED'
-    | 'COMPLETED'
-    | 'AWAITING_CONFIRMATION'
-    | 'PENDING_CANCEL';
-}
+type BookingListItem = Awaited<ReturnType<typeof tourService.getMyBookings>>['content'][number];
 
 type TabType = 'UPCOMING' | 'COMPLETED' | 'CANCELLED';
 
@@ -24,15 +13,24 @@ export default function MyBookings() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingListItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>(() => {
-    return (sessionStorage.getItem('myBookingsActiveTab') as TabType) || 'UPCOMING';
+    const saved = sessionStorage.getItem('myBookingsActiveTab');
+    const validTabs: TabType[] = ['UPCOMING', 'COMPLETED', 'CANCELLED'];
+    if (saved && validTabs.includes(saved as TabType)) {
+      return saved as TabType;
+    }
+    return 'UPCOMING';
   });
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const list = await tourService.getMyBookings();
-        setBookings(list);
+        const result = await tourService.getMyBookings(1, 5);
+        setBookings(result.content);
+        setHasMore(result.hasMore);
+        setPage(1);
       } catch {
         toast.error('Không thể tải lịch sử đặt tour');
       } finally {
@@ -69,6 +67,18 @@ export default function MyBookings() {
       sessionStorage.setItem('myBookingsScrollTop', String(mainEl.scrollTop));
     }
     navigate(`/my-tours/${bookingId}`);
+  };
+
+  const handleLoadMore = async () => {
+    try {
+      const nextPage = page + 1;
+      const result = await tourService.getMyBookings(nextPage, 5);
+      setBookings((prev) => [...prev, ...result.content]);
+      setHasMore(result.hasMore);
+      setPage(nextPage);
+    } catch {
+      toast.error('Không thể tải thêm đặt tour');
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -223,15 +233,18 @@ export default function MyBookings() {
           )}
 
           {/* Load more button */}
-          <div className="pt-6 flex justify-center">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-700 font-bold text-xs cursor-pointer py-2 px-4 rounded-xl hover:bg-zinc-100 transition-colors"
-            >
-              <span>Xem thêm các tour cũ</span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-          </div>
+          {hasMore && (
+            <div className="pt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-700 font-bold text-xs cursor-pointer py-2 px-4 rounded-xl hover:bg-zinc-100 transition-colors"
+              >
+                <span>Xem thêm các tour cũ</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

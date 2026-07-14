@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { PATHS } from '@/constants';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import type { TourDetailFromApi, TourDetailScheduleApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -21,6 +22,8 @@ import { useAppStore } from '@/store/useAppStore';
 // ============================================================
 // Helpers
 // ============================================================
+
+const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
 
@@ -437,7 +440,9 @@ function ScheduleSection({
           return (
             <Link
               key={s.scheduleId}
-              to={isLoggedIn ? `/tours/${tourId}/book?scheduleId=${s.scheduleId}` : '/login'}
+              to={
+                isLoggedIn ? `${getBookTourPath(tourId)}?scheduleId=${s.scheduleId}` : PATHS.LOGIN
+              }
               className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-sm"
             >
               <div className="flex flex-col gap-1.5">
@@ -680,14 +685,14 @@ export default function TourDetailsPage() {
           </div>
           {user ? (
             <Link
-              to={`/tours/${tour.tourId}/book`}
+              to={getBookTourPath(tour.tourId)}
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Đặt ngay
             </Link>
           ) : (
             <Link
-              to="/login"
+              to={PATHS.LOGIN}
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Đăng nhập

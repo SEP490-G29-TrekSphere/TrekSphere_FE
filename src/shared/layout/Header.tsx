@@ -1,6 +1,6 @@
-import { Bell, Key, LogOut, User } from 'lucide-react';
+import { Bell, Key, LogOut, Menu, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { authService } from '@/features/auth';
@@ -18,11 +18,11 @@ const NAV_ITEMS = [
 ];
 
 export default function Header() {
-  const location = useLocation();
   const user = useAppStore((state) => state.user);
   const setUser = useAppStore((state) => state.setUser);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,29 +52,41 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between">
-        <AppLogo height={40} to={PATHS.HOME} />
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none"
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+          </button>
+          <AppLogo height={40} to={PATHS.HOME} />
+        </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.path === PATHS.HOME
-                ? location.pathname === PATHS.HOME
-                : location.pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`relative text-sm font-medium transition-colors hover:text-primary ${
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === PATHS.HOME}
+              className={({ isActive }) =>
+                `relative text-sm font-medium transition-colors hover:text-primary ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                {item.label}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-primary" />
-                )}
-              </Link>
-            );
-          })}
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-primary" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="flex items-center gap-4">
@@ -152,6 +164,29 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-background border-border px-4 py-4 space-y-3">
+          <nav className="flex flex-col gap-3">
+            {NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === PATHS.HOME}
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `text-sm font-medium transition-colors hover:text-primary ${
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

@@ -1,15 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertCircle,
-  ArrowLeft,
   Calendar,
   CheckCircle2,
   CreditCard,
-  FileImage,
   Info,
   QrCode,
   ShieldCheck,
-  Upload,
   User,
   Users,
   Wallet,
@@ -29,7 +26,7 @@ const bookingFormSchema = z.object({
   participants: z.number().min(1, 'Số lượng người tham gia tối thiểu là 1'),
   fullName: z.string().min(2, 'Họ và tên phải có ít nhất 2 ký tự'),
   phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (yêu cầu 10 chữ số)'),
-  email: z.string().email('Địa chỉ email không hợp lệ'),
+  email: z.email({ message: 'Địa chỉ email không hợp lệ' }),
   notes: z.string().optional(),
   paymentMethod: z.enum(['card', 'bank', 'wallet']),
 });
@@ -44,8 +41,8 @@ export default function BookTour() {
 
   const { data: tour, isLoading, error } = useTourDetail(id);
 
-  // Flow State: 'form' | 'payment' | 'success'
-  const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
+  // Flow State: 'form' | 'success'
+  const [step, _setStep] = useState<'form' | 'success'>('form');
   const [bookingId, setBookingId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,12 +78,6 @@ export default function BookTour() {
     fetchVouchers();
   }, []);
 
-  // Payment proof state
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
-  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(900); // 15 minutes in seconds
-  const [simulateFail, setSimulateFail] = useState(false);
-
   const {
     control,
     handleSubmit,
@@ -118,29 +109,6 @@ export default function BookTour() {
   const subtotal = basePrice * participantsCount;
   const discount = appliedVoucher ? appliedVoucher.discountAmount : 0;
   const total = Math.max(0, subtotal - discount);
-
-  // Handle countdown timer
-  useEffect(() => {
-    if (step !== 'payment') return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          toast.error('Hết thời gian giữ chỗ! Vui lòng đặt lại.');
-          setStep('form');
-          return 900;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [step]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Format currency
   const formatPrice = (price: number) => {
@@ -191,6 +159,10 @@ export default function BookTour() {
         participants: data.participants,
         paymentMethod: data.paymentMethod,
         voucherCode: appliedVoucher?.code,
+        tourName: tour?.tourName,
+        tourPrice: basePrice,
+        discountAmount: discount,
+        totalPrice: total,
       });
 
       setBookingId(response.bookingId);
@@ -202,36 +174,6 @@ export default function BookTour() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Handle proof image change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPaymentProof(file);
-      setPaymentProofUrl(URL.createObjectURL(file));
-    }
-  };
-
-  // Confirm payment & upload photo proof
-  const handleConfirmPayment = () => {
-    if (!paymentProof) {
-      toast.error('Vui lòng tải lên ảnh chụp minh chứng thanh toán.');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      if (simulateFail) {
-        // E2 Exception: Payment Failure simulation
-        toast.error('Thanh toán thất bại. Vui lòng thử lại.');
-      } else {
-        toast.success('Thanh toán thành công! Đang chờ đối tác duyệt.');
-        setStep('success');
-      }
-    }, 1500);
   };
 
   if (isLoading) {
@@ -552,11 +494,15 @@ export default function BookTour() {
 
                 {/* Voucher input */}
                 <div className="mb-6 pt-4 border-t border-[#F4F4F2]">
-                  <label className="text-zinc-600 font-bold text-xs mb-2 block">
+                  <label
+                    htmlFor="voucherCodeInput"
+                    className="text-zinc-600 font-bold text-xs mb-2 block"
+                  >
                     Mã ưu đãi (Voucher)
                   </label>
                   <div className="flex gap-2">
                     <input
+                      id="voucherCodeInput"
                       type="text"
                       className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl px-4 py-2.5 outline-none w-full text-zinc-800 font-bold text-sm placeholder-zinc-300 focus:ring-1 focus:ring-[#0B3025]"
                       placeholder="Nhập mã..."
@@ -649,156 +595,6 @@ export default function BookTour() {
             </div>
           </form>
         </>
-      )}
-
-      {step === 'payment' && (
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="flex items-center gap-3 mb-4">
-            <button
-              type="button"
-              onClick={() => setStep('form')}
-              className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-2xl font-extrabold text-[#0B3025]">Thanh toán đơn hàng</h1>
-          </div>
-
-          <div className="p-4 bg-amber-50 text-amber-800 border border-amber-100 rounded-2xl text-xs font-semibold flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>Vui lòng hoàn tất thanh toán để giữ chỗ cho tour của bạn:</span>
-            </div>
-            <span className="text-sm font-extrabold tracking-wider">{formatTime(timeLeft)}</span>
-          </div>
-
-          <AppCard className="border-[#E5E4DE] rounded-3xl bg-white p-6 shadow-sm">
-            <h3 className="font-extrabold text-base text-zinc-800 tracking-tight pb-4 border-b border-[#F4F4F2] mb-6">
-              Thông tin chuyển khoản ngân hàng
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              {/* Bank Transfer QR Mockup */}
-              <div className="flex flex-col items-center justify-center p-4 bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl">
-                <div className="w-48 h-48 bg-white border border-[#E5E4DE] rounded-xl flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
-                  <QrCode className="h-32 w-32 text-zinc-800" />
-                  <span className="text-[10px] font-extrabold text-zinc-400 mt-2 tracking-wider">
-                    VietQR / Techcombank
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-500 font-semibold mt-3 text-center">
-                  Quét mã QR để tự động điền thông tin chuyển khoản nhanh chóng.
-                </p>
-              </div>
-
-              {/* Bank Details Text */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-[#F4F4F2]">
-                  <span className="text-zinc-500 text-xs font-semibold">Tên ngân hàng</span>
-                  <span className="text-zinc-800 text-sm font-bold">Techcombank</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-[#F4F4F2]">
-                  <span className="text-zinc-500 text-xs font-semibold">Số tài khoản</span>
-                  <span className="text-zinc-800 text-sm font-extrabold">19038283929182</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-[#F4F4F2]">
-                  <span className="text-zinc-500 text-xs font-semibold">Tên chủ tài khoản</span>
-                  <span className="text-zinc-800 text-sm font-bold uppercase">TrekSphere JSC</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-[#F4F4F2]">
-                  <span className="text-zinc-500 text-xs font-semibold">Số tiền cần chuyển</span>
-                  <span className="text-red-600 text-sm font-extrabold">{formatPrice(total)}đ</span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-[#F4F4F2]">
-                  <span className="text-zinc-500 text-xs font-semibold">Nội dung chuyển khoản</span>
-                  <span className="text-emerald-700 text-sm font-extrabold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                    TS-{bookingId}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Simulated Payment Fail option */}
-            <div className="mt-6 pt-4 border-t border-[#F4F4F2] flex items-center justify-between">
-              <span className="text-zinc-500 text-xs font-semibold">
-                Mô phỏng lỗi giao dịch (E2)
-              </span>
-              <input
-                type="checkbox"
-                checked={simulateFail}
-                onChange={(e) => setSimulateFail(e.target.checked)}
-                className="accent-[#0B3025] h-4 w-4 cursor-pointer"
-              />
-            </div>
-          </AppCard>
-
-          {/* Proof of Payment Upload */}
-          <AppCard className="border-[#E5E4DE] rounded-3xl bg-white p-6 shadow-sm">
-            <h3 className="font-extrabold text-base text-zinc-800 tracking-tight pb-4 border-b border-[#F4F4F2] mb-4">
-              Tải lên minh chứng thanh toán
-            </h3>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#E5E4DE] rounded-2xl cursor-pointer bg-[#FAF9F5] hover:bg-zinc-50 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 text-zinc-400 mb-2" />
-                    <p className="mb-2 text-sm text-zinc-500 font-semibold">
-                      <span className="text-[#0B3025]">Nhấp để tải lên</span> hoặc kéo thả file
-                    </p>
-                    <p className="text-xs text-zinc-400 font-semibold">
-                      PNG, JPG hoặc JPEG (Tối đa 5MB)
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </label>
-              </div>
-
-              {paymentProof && (
-                <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-[#E5E4DE] rounded-xl">
-                  <FileImage className="h-6 w-6 text-zinc-500" />
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-xs font-bold text-zinc-800 truncate">{paymentProof.name}</p>
-                    <p className="text-[10px] text-zinc-500 font-semibold">
-                      {(paymentProof.size / 1024).toFixed(0)} KB
-                    </p>
-                  </div>
-                  {paymentProofUrl && (
-                    <img
-                      src={paymentProofUrl}
-                      alt="Xem trước"
-                      className="w-12 h-12 rounded-lg object-cover border border-[#E5E4DE]"
-                    />
-                  )}
-                </div>
-              )}
-
-              <div className="flex gap-4 pt-4">
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setStep('form')}
-                  className="flex-1 text-zinc-500 font-bold hover:text-zinc-800"
-                >
-                  Hủy giao dịch
-                </AppButton>
-                <AppButton
-                  type="button"
-                  disabled={isSubmitting || !paymentProof}
-                  onClick={handleConfirmPayment}
-                  className="flex-1 bg-[#0B3025] hover:bg-[#072019] text-white font-bold py-3.5 rounded-2xl border-none shadow-sm transition-colors"
-                >
-                  {isSubmitting ? 'Đang gửi...' : 'Xác nhận đã thanh toán'}
-                </AppButton>
-              </div>
-            </div>
-          </AppCard>
-        </div>
       )}
 
       {step === 'success' && (

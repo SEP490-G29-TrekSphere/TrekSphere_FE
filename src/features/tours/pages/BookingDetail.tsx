@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertCircle,
   Calendar,
@@ -11,44 +12,48 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
-import { tourService } from '@/features/tours/services/tourService';
+import * as z from 'zod';
+import { type MockBooking, tourService } from '@/features/tours/services/tourService';
 import { AppButton, AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
-interface Participant {
-  fullName: string;
-  phone: string;
-  email: string;
-}
+type Participant = MockBooking['participants'][number];
 
-interface BookingDetailData {
-  bookingId: string;
-  tourName: string;
-  coverImageUrl: string;
-  departureDate: string;
-  returnDate: string;
-  duration: string;
-  participants: Participant[];
-  status:
-    | 'CONFIRMED'
-    | 'PENDING'
-    | 'CANCELLED'
-    | 'PENDING_CANCEL'
-    | 'AWAITING_CONFIRMATION'
-    | 'COMPLETED';
-  tourPrice: number;
-  discountAmount: number;
-  totalPrice: number;
-  cancellationDeadline: string;
-  createdAt?: string;
-}
+const participantFormSchema = z.object({
+  participants: z.array(
+    z.object({
+      fullName: z.string().min(2, 'Họ và tên phải có ít nhất 2 ký tự'),
+      phone: z.string().regex(/^[0-9]{10}$/, 'Số điện thoại không hợp lệ (yêu cầu 10 chữ số)'),
+      email: z.string().email('Địa chỉ email không hợp lệ'),
+    })
+  ),
+});
 
 export default function BookingDetail() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
-  const [booking, setBooking] = useState<BookingDetailData | null>(null);
+  const [booking, setBooking] = useState<MockBooking | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors: formErrors },
+  } = useForm({
+    resolver: zodResolver(participantFormSchema),
+    defaultValues: {
+      participants: [] as Participant[],
+    },
+  });
+
+  const { fields } = useFieldArray({
+    control,
+    name: 'participants',
+  });
 
   // Time Countdown state for BR-08 (15 minutes)
   const [timeLeft, setTimeLeft] = useState<number>(900);
@@ -115,7 +120,6 @@ export default function BookingDetail() {
 
   // Edit Modal State
   const [isEditing, setIsEditing] = useState(false);
-  const [editParticipants, setEditParticipants] = useState<Participant[]>([]);
 
   // Days offset simulator (to test BR-10 and E1 rules)
   const [daysUntilDeparture, setDaysUntilDeparture] = useState(10);
@@ -126,26 +130,50 @@ export default function BookingDetail() {
   const [refundAmount, setRefundAmount] = useState(0);
   const [refundPercentage, setRefundPercentage] = useState(100);
 
-  // Compute dynamic dates based on simulator
-  const today = new Date();
-  const departureDateObj = new Date();
-  departureDateObj.setDate(today.getDate() + daysUntilDeparture);
-  const departureDateStr = departureDateObj.toISOString().split('T')[0];
+  // Compute dynamic dates based on simulator (only if QA flag is active)
+  const isQA =
+    typeof window !== 'undefined' && window.location.search.includes('use_simulator=true');
 
-  const returnDateObj = new Date(departureDateObj);
-  returnDateObj.setDate(departureDateObj.getDate() + 2);
-  const returnDateStr = returnDateObj.toISOString().split('T')[0];
+  const departureDateStr = booking
+    ? isQA
+      ? (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + daysUntilDeparture);
+          return d.toISOString().split('T')[0];
+        })()
+      : booking.departureDate
+    : '';
 
-  const cancellationDeadlineObj = new Date(departureDateObj);
-  cancellationDeadlineObj.setDate(departureDateObj.getDate() - 7);
-  const cancellationDeadlineStr = cancellationDeadlineObj.toISOString().split('T')[0];
+  const returnDateStr = booking
+    ? isQA
+      ? (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + daysUntilDeparture);
+          const r = new Date(d);
+          r.setDate(d.getDate() + 2);
+          return r.toISOString().split('T')[0];
+        })()
+      : booking.returnDate
+    : '';
+
+  const cancellationDeadlineStr = booking
+    ? isQA
+      ? (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + daysUntilDeparture);
+          const c = new Date(d);
+          c.setDate(d.getDate() - 7);
+          return c.toISOString().split('T')[0];
+        })()
+      : booking.cancellationDeadline
+    : '';
 
   useEffect(() => {
     async function fetchDetail() {
       try {
         const data = await tourService.getBookingDetail(bookingId || '');
         setBooking(data);
-        setEditParticipants(data.participants);
+        reset({ participants: data.participants });
       } catch {
         toast.error('Không thể tải chi tiết đặt tour');
       } finally {
@@ -153,27 +181,22 @@ export default function BookingDetail() {
       }
     }
     fetchDetail();
-  }, [bookingId]);
+  }, [bookingId, reset]);
 
-  const handleUpdateParticipants = () => {
+  const handleUpdateParticipants = handleSubmit(async (data) => {
     if (!booking) return;
-
-    // Validate edit values
-    const hasEmpty = editParticipants.some(
-      (p) => !p.fullName.trim() || !p.phone.trim() || !p.email.trim()
-    );
-    if (hasEmpty) {
-      toast.error('Vui lòng điền đầy đủ thông tin tất cả người tham gia');
-      return;
+    try {
+      await tourService.updateParticipants(booking.bookingId, data.participants);
+      setBooking({
+        ...booking,
+        participants: data.participants,
+      });
+      setIsEditing(false);
+      toast.success('Cập nhật thông tin thành công!');
+    } catch {
+      toast.error('Cập nhật thông tin thất bại.');
     }
-
-    setBooking({
-      ...booking,
-      participants: editParticipants,
-    });
-    setIsEditing(false);
-    toast.success('Cập nhật thông tin thành công!');
-  };
+  });
 
   const handleCancelClick = () => {
     if (!booking) return;
@@ -186,8 +209,13 @@ export default function BookingDetail() {
       return;
     }
 
+    const realDays = Math.ceil(
+      (new Date(booking.departureDate).getTime() - Date.now()) / (1000 * 3600 * 24)
+    );
+    const effectiveDays = isQA ? daysUntilDeparture : realDays;
+
     // E1 Exception: Outside cancellation window (< 3 days remaining)
-    if (daysUntilDeparture < 3) {
+    if (effectiveDays < 3) {
       toast.error(
         'Đã quá hạn hủy đặt tour. Theo chính sách, bạn không thể hủy tour trong vòng 3 ngày trước khởi hành.'
       );
@@ -196,7 +224,7 @@ export default function BookingDetail() {
 
     // Calculate refund amount based on BR-10
     let percentage = 100;
-    if (daysUntilDeparture < 7) {
+    if (effectiveDays < 7) {
       percentage = 50;
     }
 
@@ -209,7 +237,11 @@ export default function BookingDetail() {
   const handleConfirmCancelRequest = async () => {
     if (!booking) return;
     try {
-      const response = await tourService.requestCancel(booking.bookingId, refundAmount);
+      const response = await tourService.requestCancel(
+        booking.bookingId,
+        refundAmount,
+        cancelReason
+      );
       setBooking({
         ...booking,
         status: response.status,
@@ -543,48 +575,54 @@ export default function BookingDetail() {
             {isEditing ? (
               // Inline edit form
               <div className="space-y-4">
-                {editParticipants.map((p, idx) => (
+                {fields.map((field, idx) => (
                   <div
-                    key={p.email}
+                    key={field.id}
                     className="p-4 bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl space-y-3"
                   >
                     <span className="text-xs font-extrabold text-[#0B3025]">
                       Người thứ {idx + 1}
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <input
-                        type="text"
-                        placeholder="Họ tên"
-                        value={p.fullName}
-                        onChange={(e) => {
-                          const updated = [...editParticipants];
-                          updated[idx].fullName = e.target.value;
-                          setEditParticipants(updated);
-                        }}
-                        className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Số điện thoại"
-                        value={p.phone}
-                        onChange={(e) => {
-                          const updated = [...editParticipants];
-                          updated[idx].phone = e.target.value;
-                          setEditParticipants(updated);
-                        }}
-                        className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        value={p.email}
-                        onChange={(e) => {
-                          const updated = [...editParticipants];
-                          updated[idx].email = e.target.value;
-                          setEditParticipants(updated);
-                        }}
-                        className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
-                      />
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Họ tên"
+                          {...register(`participants.${idx}.fullName`)}
+                          className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
+                        />
+                        {formErrors.participants?.[idx]?.fullName && (
+                          <span className="text-[10px] text-red-500 font-bold block mt-1">
+                            {formErrors.participants[idx].fullName.message}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Số điện thoại"
+                          {...register(`participants.${idx}.phone`)}
+                          className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
+                        />
+                        {formErrors.participants?.[idx]?.phone && (
+                          <span className="text-[10px] text-red-500 font-bold block mt-1">
+                            {formErrors.participants[idx].phone.message}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <input
+                          type="email"
+                          placeholder="Email"
+                          {...register(`participants.${idx}.email`)}
+                          className="bg-white border border-[#E5E4DE] rounded-xl px-3 py-2 text-xs font-bold w-full"
+                        />
+                        {formErrors.participants?.[idx]?.email && (
+                          <span className="text-[10px] text-red-500 font-bold block mt-1">
+                            {formErrors.participants[idx].email.message}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -594,7 +632,7 @@ export default function BookingDetail() {
                     variant="ghost"
                     onClick={() => {
                       setIsEditing(false);
-                      setEditParticipants(booking.participants);
+                      reset({ participants: booking.participants });
                     }}
                     className="text-zinc-500 font-bold text-xs"
                   >
@@ -621,8 +659,8 @@ export default function BookingDetail() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F4F4F2]">
-                    {booking.participants.map((p) => (
-                      <tr key={p.email} className="text-zinc-700 font-bold">
+                    {booking.participants.map((p, idx) => (
+                      <tr key={`display-p-${idx}`} className="text-zinc-700 font-bold">
                         <td className="py-3.5">{p.fullName}</td>
                         <td className="py-3.5">{p.phone}</td>
                         <td className="py-3.5">{p.email}</td>

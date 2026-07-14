@@ -58,16 +58,10 @@ export default function PayBooking() {
   useEffect(() => {
     if (loading || !booking || isExpired || booking.status !== 'PENDING') return;
 
-    const timer = setInterval(async () => {
+    const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          setIsExpired(true);
-          // Auto cancel the booking on server simulation
-          if (bookingId) {
-            tourService.updateBookingStatus(bookingId, 'CANCELLED');
-          }
-          toast.error('Đã hết 15 phút thanh toán! Chỗ của bạn đã được giải phóng.');
           return 0;
         }
         return prev - 1;
@@ -75,7 +69,18 @@ export default function PayBooking() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [loading, booking, isExpired, bookingId]);
+  }, [loading, booking, isExpired]);
+
+  // Handle timer expiration side effects
+  useEffect(() => {
+    if (timeLeft === 0 && !isExpired && booking?.status === 'PENDING') {
+      setIsExpired(true);
+      if (bookingId) {
+        tourService.updateBookingStatus(bookingId, 'CANCELLED');
+      }
+      toast.error('Đã hết 15 phút thanh toán! Chỗ của bạn đã được giải phóng.');
+    }
+  }, [timeLeft, isExpired, bookingId, booking]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -183,6 +188,7 @@ export default function PayBooking() {
         <button
           type="button"
           onClick={() => navigate(`/my-tours/${bookingId}`)}
+          aria-label="Quay lại chi tiết đặt tour"
           className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />

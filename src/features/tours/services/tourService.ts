@@ -81,9 +81,10 @@ export interface MockBooking {
   paymentProofUrl?: string;
   paymentMethod: string;
   notes?: string;
+  cancelReason?: string;
 }
 
-const mockBookingsDb: Record<string, MockBooking> = {
+const mockBookingsDb: Record<string, MockBooking> = Object.assign(Object.create(null), {
   'TS-10293': {
     bookingId: 'TS-10293',
     tourId: '1',
@@ -142,7 +143,7 @@ const mockBookingsDb: Record<string, MockBooking> = {
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     paymentMethod: 'bank',
   },
-};
+});
 
 export const tourService = {
   async getTours(params: TourListParams = {}): Promise<TourListResponse> {
@@ -253,6 +254,10 @@ export const tourService = {
     participants: number;
     paymentMethod: string;
     voucherCode?: string;
+    tourName?: string;
+    tourPrice?: number;
+    discountAmount?: number;
+    totalPrice?: number;
   }): Promise<{ bookingId: string; status: string }> {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -260,7 +265,7 @@ export const tourService = {
         const newBooking: MockBooking = {
           bookingId,
           tourId: bookingData.tourId,
-          tourName: 'Trekking Tà Năng - Phan Dũng', // Default fallback tour name
+          tourName: bookingData.tourName || 'Trekking Tà Năng - Phan Dũng',
           coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
           departureDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
             .toISOString()
@@ -273,9 +278,9 @@ export const tourService = {
             email: i === 0 ? bookingData.email : '',
           })),
           status: 'PENDING',
-          tourPrice: 3000000,
-          discountAmount: bookingData.voucherCode ? 200000 : 0,
-          totalPrice: bookingData.voucherCode ? 2800000 : 3000000,
+          tourPrice: bookingData.tourPrice ?? 3000000,
+          discountAmount: bookingData.discountAmount ?? 0,
+          totalPrice: bookingData.totalPrice ?? 3000000,
           cancellationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
             .toISOString()
             .split('T')[0],
@@ -328,14 +333,32 @@ export const tourService = {
     });
   },
 
+  async updateParticipants(
+    bookingId: string,
+    participants: MockBooking['participants']
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (mockBookingsDb[bookingId]) {
+          mockBookingsDb[bookingId].participants = participants;
+          resolve();
+        } else {
+          reject(new Error('Không tìm thấy đơn đặt chỗ'));
+        }
+      }, 500);
+    });
+  },
+
   async requestCancel(
     bookingId: string,
-    _refundAmount: number
+    _refundAmount: number,
+    reason?: string
   ): Promise<{ status: 'PENDING_CANCEL' }> {
     return new Promise((resolve) => {
       setTimeout(() => {
         if (mockBookingsDb[bookingId]) {
           mockBookingsDb[bookingId].status = 'PENDING_CANCEL';
+          mockBookingsDb[bookingId].cancelReason = reason;
         }
         resolve({ status: 'PENDING_CANCEL' });
       }, 500);
@@ -393,24 +416,34 @@ export const tourService = {
     });
   },
 
-  async getMyBookings(): Promise<
-    Array<{
+  async getMyBookings(
+    page = 1,
+    limit = 5
+  ): Promise<{
+    content: Array<{
       bookingId: string;
       tourName: string;
       departureDate: string;
       status: MockBooking['status'];
-    }>
-  > {
+    }>;
+    hasMore: boolean;
+  }> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(
-          Object.values(mockBookingsDb).map((b) => ({
-            bookingId: b.bookingId,
-            tourName: b.tourName,
-            departureDate: b.departureDate,
-            status: b.status,
-          }))
-        );
+        const allBookings = Object.values(mockBookingsDb).map((b) => ({
+          bookingId: b.bookingId,
+          tourName: b.tourName,
+          departureDate: b.departureDate,
+          status: b.status,
+        }));
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        const pageContent = allBookings.slice(start, end);
+        const hasMore = end < allBookings.length;
+        resolve({
+          content: pageContent,
+          hasMore,
+        });
       }, 500);
     });
   },
