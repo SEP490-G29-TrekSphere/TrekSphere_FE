@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Bell, Mail, Save, ShieldAlert, Smartphone } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { AppBadge, AppButton, AppCard } from '@/shared/ui';
-import { toast } from '@/store/useToastStore';
-import { systemSettingsService } from '../services/systemSettingsService';
+import { systemSettingsService } from '@/features/admin/services/systemSettingsService';
 import {
   type SystemSettingsFormValues,
   systemSettingsSchema,
-} from '../validations/systemSettingsSchema';
+} from '@/features/admin/validations/systemSettingsSchema';
+import { AppBadge, AppButton, AppCard } from '@/shared/ui';
+import { toast } from '@/store/useToastStore';
 
 export default function SystemSettings() {
   const [loading, setLoading] = useState(true);
@@ -18,19 +18,23 @@ export default function SystemSettings() {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { isDirty, errors },
   } = useForm<SystemSettingsFormValues>({
     resolver: zodResolver(systemSettingsSchema),
     defaultValues: {
-      maxRainfall: 50,
-      maxWindSpeed: 40,
-      minTemperature: 5,
-      emailNotifications: true,
-      pushNotifications: true,
-      backupInterval: 'daily',
-      require2fa: true,
+      maxRainfall: 0,
+      maxWindSpeed: 0,
+      minTemperature: 0,
+      emailNotifications: false,
+      pushNotifications: false,
+      backupInterval: '',
+      require2fa: false,
     },
   });
+
+  const backupInterval = watch('backupInterval');
+  const require2fa = watch('require2fa');
 
   // Fetch initial settings
   useEffect(() => {
@@ -75,6 +79,19 @@ export default function SystemSettings() {
   // Triggers E1 exception if form validation fails
   const onInvalid = () => {
     toast.error('Threshold values out of acceptable range');
+  };
+
+  const getBackupIntervalLabel = (interval: string) => {
+    switch (interval?.toLowerCase()) {
+      case 'daily':
+        return 'Hàng ngày';
+      case 'weekly':
+        return 'Hàng tuần';
+      case 'monthly':
+        return 'Hàng tháng';
+      default:
+        return interval || '';
+    }
   };
 
   if (loading) {
@@ -256,7 +273,7 @@ export default function SystemSettings() {
                   <button
                     type="button"
                     onClick={() => onChange(!value)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3025] focus-visible:ring-offset-2 ${
                       value ? 'bg-[#0B3025]' : 'bg-zinc-200'
                     }`}
                   >
@@ -290,7 +307,7 @@ export default function SystemSettings() {
                   <button
                     type="button"
                     onClick={() => onChange(!value)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3025] focus-visible:ring-offset-2 ${
                       value ? 'bg-[#0B3025]' : 'bg-zinc-200'
                     }`}
                   >
@@ -317,7 +334,7 @@ export default function SystemSettings() {
               <h4 className="font-extrabold text-sm text-zinc-800">Tự động sao lưu</h4>
             </div>
             <AppBadge className="bg-[#E8F1EE] text-[#0B3025] border-transparent font-bold px-3 py-1 rounded-full text-xs">
-              Hàng ngày
+              {getBackupIntervalLabel(backupInterval)}
             </AppBadge>
           </div>
 
@@ -329,8 +346,10 @@ export default function SystemSettings() {
               </span>
               <h4 className="font-extrabold text-sm text-zinc-800">Xác thực 2 lớp (2FA)</h4>
             </div>
-            <AppBadge className="bg-amber-50 text-amber-800 border-transparent font-bold px-3 py-1 rounded-full text-xs">
-              Bắt buộc
+            <AppBadge
+              className={`${require2fa ? 'bg-amber-50 text-amber-800' : 'bg-zinc-100 text-zinc-500'} border-transparent font-bold px-3 py-1 rounded-full text-xs`}
+            >
+              {require2fa ? 'Bắt buộc' : 'Tắt'}
             </AppBadge>
           </div>
         </div>
