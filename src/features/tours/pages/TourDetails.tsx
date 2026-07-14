@@ -406,7 +406,15 @@ function ItinerarySection({ tour }: { tour: TourDetailFromApi }) {
 }
 
 /** Departure schedules section */
-function ScheduleSection({ schedules }: { schedules: TourDetailScheduleApi[] }) {
+function ScheduleSection({
+  schedules,
+  tourId,
+  isLoggedIn,
+}: {
+  schedules: TourDetailScheduleApi[];
+  tourId: string;
+  isLoggedIn: boolean;
+}) {
   const openSchedules = schedules.filter((s) => s.status === 'OPEN');
 
   if (openSchedules.length === 0) {
@@ -427,8 +435,9 @@ function ScheduleSection({ schedules }: { schedules: TourDetailScheduleApi[] }) 
         {openSchedules.map((s) => {
           const remaining = Math.max(0, s.availableSlots - s.bookedSlots);
           return (
-            <div
+            <Link
               key={s.scheduleId}
+              to={isLoggedIn ? `/tours/${tourId}/book?scheduleId=${s.scheduleId}` : '/login'}
               className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-sm"
             >
               <div className="flex flex-col gap-1.5">
@@ -448,7 +457,7 @@ function ScheduleSection({ schedules }: { schedules: TourDetailScheduleApi[] }) 
                   / người
                 </span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -652,7 +661,7 @@ export default function TourDetailsPage() {
           {/* Right column — vendor + schedule */}
           <div className="lg:sticky lg:top-24 flex flex-col gap-6 self-start">
             <VendorCard tour={tour} />
-            <ScheduleSection schedules={tour.schedules} />
+            <ScheduleSection schedules={tour.schedules} tourId={tour.tourId} isLoggedIn={!!user} />
           </div>
         </div>
 
@@ -670,12 +679,12 @@ export default function TourDetailsPage() {
             <span className="text-sm text-muted-foreground">/ người</span>
           </div>
           {user ? (
-            <button
-              type="button"
+            <Link
+              to={`/tours/${tour.tourId}/book`}
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Đặt ngay
-            </button>
+            </Link>
           ) : (
             <Link
               to="/login"

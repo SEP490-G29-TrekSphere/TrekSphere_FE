@@ -57,6 +57,93 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
   return response.data;
 }
 
+export interface MockBooking {
+  bookingId: string;
+  tourId: string;
+  tourName: string;
+  coverImageUrl: string;
+  departureDate: string;
+  returnDate: string;
+  duration: string;
+  participants: Array<{ fullName: string; phone: string; email: string }>;
+  status:
+    | 'PENDING'
+    | 'AWAITING_CONFIRMATION'
+    | 'CONFIRMED'
+    | 'CANCELLED'
+    | 'PENDING_CANCEL'
+    | 'COMPLETED';
+  tourPrice: number;
+  discountAmount: number;
+  totalPrice: number;
+  cancellationDeadline: string;
+  createdAt: string;
+  paymentProofUrl?: string;
+  paymentMethod: string;
+  notes?: string;
+}
+
+const mockBookingsDb: Record<string, MockBooking> = {
+  'TS-10293': {
+    bookingId: 'TS-10293',
+    tourId: '1',
+    tourName: 'Khám phá Tây Bắc Mùa Lúa Chín',
+    coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+    departureDate: '2026-10-15',
+    returnDate: '2026-10-17',
+    duration: '3 ngày 2 đêm',
+    participants: [
+      { fullName: 'Nguyễn Văn A', phone: '0901234567', email: 'nguyenvana@gmail.com' },
+      { fullName: 'Trần Thị B', phone: '0902345678', email: 'tranthib@gmail.com' },
+    ],
+    status: 'PENDING',
+    tourPrice: 3000000,
+    discountAmount: 200000,
+    totalPrice: 2800000,
+    cancellationDeadline: '2026-10-10',
+    createdAt: new Date().toISOString(),
+    paymentMethod: 'bank',
+  },
+  'TS-09821': {
+    bookingId: 'TS-09821',
+    tourId: '2',
+    tourName: 'Trekking Tà Năng - Phan Dũng',
+    coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+    departureDate: '2026-05-12',
+    returnDate: '2026-05-14',
+    duration: '3 ngày 2 đêm (28km)',
+    participants: [
+      { fullName: 'Nguyễn Văn A', phone: '0901234567', email: 'nguyenvana@gmail.com' },
+    ],
+    status: 'COMPLETED',
+    tourPrice: 3000000,
+    discountAmount: 0,
+    totalPrice: 3000000,
+    cancellationDeadline: '2026-05-05',
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    paymentMethod: 'bank',
+  },
+  'TS-08472': {
+    bookingId: 'TS-08472',
+    tourId: '3',
+    tourName: 'Chinh phục đỉnh Fansipan',
+    coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+    departureDate: '2026-03-20',
+    returnDate: '2026-03-22',
+    duration: '3 ngày 2 đêm',
+    participants: [
+      { fullName: 'Nguyễn Văn A', phone: '0901234567', email: 'nguyenvana@gmail.com' },
+    ],
+    status: 'CANCELLED',
+    tourPrice: 4000000,
+    discountAmount: 0,
+    totalPrice: 4000000,
+    cancellationDeadline: '2026-03-13',
+    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    paymentMethod: 'bank',
+  },
+};
+
 export const tourService = {
   async getTours(params: TourListParams = {}): Promise<TourListResponse> {
     const queryString = buildQuery(params);
@@ -78,5 +165,253 @@ export const tourService = {
   async getTourById(tourId: string): Promise<TourDetailFromApi> {
     const response = await ApiService<TourDetailFromApi>(`/tours/${tourId}`, 'GET');
     return unwrapResponse(response);
+  },
+
+  async getAvailableVouchers(): Promise<
+    Array<{
+      code: string;
+      description: string;
+      discountAmount: number;
+      minSpend: number;
+      isExceeded: boolean;
+      isExpired: boolean;
+    }>
+  > {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            code: 'TREKNEW',
+            description: 'Giảm 200.000đ cho mọi đơn hàng',
+            discountAmount: 200000,
+            minSpend: 0,
+            isExceeded: false,
+            isExpired: false,
+          },
+          {
+            code: 'SUMMER50',
+            description: 'Giảm 500.000đ cho đơn hàng từ 3.000.000đ',
+            discountAmount: 500000,
+            minSpend: 3000000,
+            isExceeded: false,
+            isExpired: false,
+          },
+          {
+            code: 'LIMITEXCEEDED',
+            description: 'Giảm 100.000đ (Voucher đã đạt giới hạn)',
+            discountAmount: 100000,
+            minSpend: 0,
+            isExceeded: true,
+            isExpired: false,
+          },
+          {
+            code: 'EXPIRED',
+            description: 'Giảm 150.000đ (Voucher đã hết hạn)',
+            discountAmount: 150000,
+            minSpend: 0,
+            isExceeded: false,
+            isExpired: true,
+          },
+        ]);
+      }, 300);
+    });
+  },
+
+  async validateVoucher(
+    code: string,
+    subtotal: number
+  ): Promise<{ discountAmount: number; isValid: boolean }> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const uppercaseCode = code.toUpperCase();
+        if (uppercaseCode === 'TREKNEW') {
+          resolve({ discountAmount: 200000, isValid: true });
+        } else if (uppercaseCode === 'SUMMER50') {
+          if (subtotal < 3000000) {
+            reject(
+              new Error('Đơn hàng chưa đạt giá trị tối thiểu 3.000.000đ để áp dụng voucher này')
+            );
+          } else {
+            resolve({ discountAmount: 500000, isValid: true });
+          }
+        } else if (uppercaseCode === 'LIMITEXCEEDED') {
+          reject(new Error('Voucher này đã hết lượt sử dụng'));
+        } else {
+          reject(new Error('Voucher is invalid or has expired'));
+        }
+      }, 500);
+    });
+  },
+
+  async createBooking(bookingData: {
+    tourId: string;
+    scheduleId: string;
+    fullName: string;
+    phone: string;
+    email: string;
+    notes?: string;
+    participants: number;
+    paymentMethod: string;
+    voucherCode?: string;
+  }): Promise<{ bookingId: string; status: string }> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const bookingId = `BK-${Math.floor(100000 + Math.random() * 900000)}`;
+        const newBooking: MockBooking = {
+          bookingId,
+          tourId: bookingData.tourId,
+          tourName: 'Trekking Tà Năng - Phan Dũng', // Default fallback tour name
+          coverImageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+          departureDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
+          returnDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          duration: '3 ngày 2 đêm',
+          participants: Array.from({ length: bookingData.participants }).map((_, i) => ({
+            fullName: i === 0 ? bookingData.fullName : `Khách đi cùng ${i}`,
+            phone: i === 0 ? bookingData.phone : '',
+            email: i === 0 ? bookingData.email : '',
+          })),
+          status: 'PENDING',
+          tourPrice: 3000000,
+          discountAmount: bookingData.voucherCode ? 200000 : 0,
+          totalPrice: bookingData.voucherCode ? 2800000 : 3000000,
+          cancellationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split('T')[0],
+          createdAt: new Date().toISOString(),
+          paymentMethod: bookingData.paymentMethod,
+          notes: bookingData.notes,
+        };
+        mockBookingsDb[bookingId] = newBooking;
+        resolve({
+          bookingId,
+          status: 'PENDING',
+        });
+      }, 1000);
+    });
+  },
+
+  async getBookingDetail(bookingId: string): Promise<MockBooking> {
+    return new Promise((resolve, _reject) => {
+      setTimeout(() => {
+        const booking = mockBookingsDb[bookingId];
+        if (booking) {
+          resolve(booking);
+        } else {
+          // If not found, create a temporary PENDING one for backward compatibility / debug
+          const tempBooking: MockBooking = {
+            bookingId: bookingId || 'TS-10293',
+            tourId: '1',
+            tourName: 'Trekking Tà Năng - Phan Dũng',
+            coverImageUrl:
+              'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
+            departureDate: '2026-10-15',
+            returnDate: '2026-10-17',
+            duration: '3 ngày 2 đêm (28km)',
+            participants: [
+              { fullName: 'Nguyễn Văn A', phone: '0901234567', email: 'nguyenvana@gmail.com' },
+              { fullName: 'Trần Thị B', phone: '0902345678', email: 'tranthib@gmail.com' },
+            ],
+            status: 'PENDING',
+            tourPrice: 3000000,
+            discountAmount: 200000,
+            totalPrice: 2800000,
+            cancellationDeadline: '2026-10-10',
+            createdAt: new Date().toISOString(),
+            paymentMethod: 'bank',
+          };
+          mockBookingsDb[tempBooking.bookingId] = tempBooking;
+          resolve(tempBooking);
+        }
+      }, 500);
+    });
+  },
+
+  async requestCancel(
+    bookingId: string,
+    _refundAmount: number
+  ): Promise<{ status: 'PENDING_CANCEL' }> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (mockBookingsDb[bookingId]) {
+          mockBookingsDb[bookingId].status = 'PENDING_CANCEL';
+        }
+        resolve({ status: 'PENDING_CANCEL' });
+      }, 500);
+    });
+  },
+
+  async reviewCancelRequest(
+    bookingId: string,
+    approved: boolean
+  ): Promise<{ status: 'CANCELLED' | 'CONFIRMED' }> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const nextStatus = approved ? 'CANCELLED' : 'CONFIRMED';
+        if (mockBookingsDb[bookingId]) {
+          mockBookingsDb[bookingId].status = nextStatus;
+        }
+        resolve({ status: nextStatus });
+      }, 500);
+    });
+  },
+
+  async uploadPaymentProof(
+    bookingId: string,
+    file: File
+  ): Promise<{ status: 'AWAITING_CONFIRMATION'; paymentProofUrl: string }> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const booking = mockBookingsDb[bookingId];
+        if (!booking) {
+          reject(new Error('Không tìm thấy đơn đặt chỗ'));
+          return;
+        }
+        const dummyUrl = URL.createObjectURL(file);
+        booking.status = 'AWAITING_CONFIRMATION';
+        booking.paymentProofUrl = dummyUrl;
+        resolve({
+          status: 'AWAITING_CONFIRMATION',
+          paymentProofUrl: dummyUrl,
+        });
+      }, 1500);
+    });
+  },
+
+  async updateBookingStatus(
+    bookingId: string,
+    status: MockBooking['status']
+  ): Promise<{ status: MockBooking['status'] }> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (mockBookingsDb[bookingId]) {
+          mockBookingsDb[bookingId].status = status;
+        }
+        resolve({ status });
+      }, 300);
+    });
+  },
+
+  async getMyBookings(): Promise<
+    Array<{
+      bookingId: string;
+      tourName: string;
+      departureDate: string;
+      status: MockBooking['status'];
+    }>
+  > {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(
+          Object.values(mockBookingsDb).map((b) => ({
+            bookingId: b.bookingId,
+            tourName: b.tourName,
+            departureDate: b.departureDate,
+            status: b.status,
+          }))
+        );
+      }, 500);
+    });
   },
 };
