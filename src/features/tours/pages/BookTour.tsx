@@ -105,6 +105,19 @@ export default function BookTour() {
   // Find selected schedule details
   const selectedSchedule = tour?.schedules.find((s) => s.scheduleId === selectedScheduleId);
 
+  // Clamp participants count to selected schedule remaining capacity (BR-08)
+  useEffect(() => {
+    if (selectedSchedule) {
+      const remainingCapacity = Math.max(
+        0,
+        selectedSchedule.availableSlots - selectedSchedule.bookedSlots
+      );
+      if (participantsCount > remainingCapacity) {
+        setValue('participants', Math.max(1, remainingCapacity), { shouldValidate: true });
+      }
+    }
+  }, [selectedSchedule, setValue, participantsCount]);
+
   // Get base price
   const basePrice = selectedSchedule?.price ?? tour?.basePrice ?? 0;
   const subtotal = basePrice * participantsCount;
@@ -170,8 +183,9 @@ export default function BookTour() {
       // Redirect directly to manual payment page
       toast.success('Đặt chỗ thành công! Đang chuyển đến trang thanh toán.');
       navigate(`/my-tours/${response.bookingId}/pay`);
-    } catch {
-      toast.error('Đã xảy ra lỗi khi tạo đặt chỗ.');
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tạo đặt chỗ.';
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -284,7 +298,12 @@ export default function BookTour() {
                     type="button"
                     onClick={() => {
                       const current = watch('participants');
-                      const limit = selectedSchedule?.availableSlots ?? 10;
+                      const limit = selectedSchedule
+                        ? Math.max(
+                            0,
+                            selectedSchedule.availableSlots - selectedSchedule.bookedSlots
+                          )
+                        : 10;
                       if (current < limit) setValue('participants', current + 1);
                     }}
                     className="h-8 w-8 rounded-full border border-[#E5E4DE] bg-white flex items-center justify-center font-bold hover:bg-zinc-50"
@@ -526,22 +545,31 @@ export default function BookTour() {
                     Mã giảm giá khả dụng
                   </span>
                   <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                    {availableVouchers.map((v) => (
-                      <button
-                        key={v.code}
-                        type="button"
-                        onClick={() => {
-                          setVoucherCode(v.code);
-                          handleApplyVoucher(v.code);
-                        }}
-                        className="flex flex-col text-left p-2.5 rounded-xl border border-[#E5E4DE] bg-[#FAF9F5] hover:border-[#0B3025] hover:bg-[#E8F1EE]/10 transition-all text-xs cursor-pointer"
-                      >
-                        <span className="font-bold text-zinc-800">{v.code}</span>
-                        <span className="text-[10px] text-zinc-500 font-semibold mt-0.5">
-                          {v.description}
-                        </span>
-                      </button>
-                    ))}
+                    {availableVouchers.map((v) => {
+                      const isDisabled = v.isExceeded || v.isExpired;
+                      return (
+                        <button
+                          key={v.code}
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => {
+                            if (isDisabled) return;
+                            setVoucherCode(v.code);
+                            handleApplyVoucher(v.code);
+                          }}
+                          className={`flex flex-col text-left p-2.5 rounded-xl border transition-all text-xs ${
+                            isDisabled
+                              ? 'border-zinc-200 bg-zinc-50 opacity-50 cursor-not-allowed'
+                              : 'border-[#E5E4DE] bg-[#FAF9F5] hover:border-[#0B3025] hover:bg-[#E8F1EE]/10 cursor-pointer'
+                          }`}
+                        >
+                          <span className="font-bold text-zinc-800">{v.code}</span>
+                          <span className="text-[10px] text-zinc-500 font-semibold mt-0.5">
+                            {v.description}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

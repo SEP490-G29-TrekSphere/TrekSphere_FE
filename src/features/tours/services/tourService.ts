@@ -14,6 +14,8 @@ export interface TourListResponse {
   last: boolean;
 }
 
+export const PAYMENT_DEADLINE_SECONDS = 900;
+
 /**
  * Serialize a `TourListParams` object into a query string. Only includes
  * keys with defined, non-empty values — the backend treats `keyword=` as
@@ -82,6 +84,7 @@ export interface MockBooking {
   paymentMethod: string;
   notes?: string;
   cancelReason?: string;
+  cancellationRefund?: number;
 }
 
 const mockBookingsDb: Record<string, MockBooking> = Object.assign(Object.create(null), {
@@ -361,9 +364,14 @@ export const tourService = {
           reject(new Error('Không tìm thấy đơn đặt chỗ'));
           return;
         }
+        const nonCancellable = ['CANCELLED', 'COMPLETED', 'PENDING_CANCEL'];
+        if (nonCancellable.includes(booking.status)) {
+          reject(new Error('Đơn đặt chỗ không ở trạng thái có thể yêu cầu hủy.'));
+          return;
+        }
         booking.status = 'PENDING_CANCEL';
         booking.cancelReason = reason;
-        booking.totalPrice = refundAmount;
+        booking.cancellationRefund = refundAmount;
         resolve({ status: 'PENDING_CANCEL' });
       }, 500);
     });
@@ -376,8 +384,9 @@ export const tourService = {
     return new Promise((resolve) => {
       setTimeout(() => {
         const nextStatus = approved ? 'CANCELLED' : 'CONFIRMED';
-        if (mockBookingsDb[bookingId]) {
-          mockBookingsDb[bookingId].status = nextStatus;
+        const booking = mockBookingsDb[bookingId];
+        if (booking) {
+          booking.status = nextStatus;
         }
         resolve({ status: nextStatus });
       }, 500);
@@ -401,7 +410,7 @@ export const tourService = {
         }
         const createdTime = new Date(booking.createdAt).getTime();
         const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
-        if (elapsedSeconds >= 900) {
+        if (elapsedSeconds >= PAYMENT_DEADLINE_SECONDS) {
           booking.status = 'CANCELLED';
           reject(new Error('Đã quá thời hạn thanh toán 15 phút.'));
           return;

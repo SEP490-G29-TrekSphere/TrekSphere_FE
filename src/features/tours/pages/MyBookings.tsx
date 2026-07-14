@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { tourService } from '@/features/tours/services/tourService';
 import { AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { formatDate } from '@/utils/format';
 
 type BookingListItem = Awaited<ReturnType<typeof tourService.getMyBookings>>['content'][number];
 
@@ -86,14 +87,6 @@ export default function MyBookings() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
   // Filter bookings based on activeTab
   const filteredBookings = bookings.filter((b) => {
     if (activeTab === 'UPCOMING') {
@@ -126,7 +119,7 @@ export default function MyBookings() {
             activeTab === 'UPCOMING' ? 'text-[#0B3025]' : 'text-zinc-400 hover:text-zinc-600'
           }`}
         >
-          Đang chờ
+          Sắp diễn ra
           {activeTab === 'UPCOMING' && (
             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0B3025]" />
           )}

@@ -19,6 +19,7 @@ import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown'
 import { type MockBooking, tourService } from '@/features/tours/services/tourService';
 import { AppButton, AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { formatCountdown, formatDate, formatPrice } from '@/utils/format';
 
 type Participant = MockBooking['participants'][number];
 
@@ -66,12 +67,6 @@ export default function BookingDetail() {
     }
   }, [timeLeft, booking?.status, booking?.bookingId]);
 
-  const formatTimer = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const handleVendorApprovePayment = async () => {
     if (!booking) return;
     try {
@@ -95,7 +90,6 @@ export default function BookingDetail() {
       setBooking({
         ...booking,
         status: 'PENDING',
-        createdAt: new Date().toISOString(), // Reset timer for testing ease
       });
       toast.info('Đã từ chối thanh toán. Trạng thái booking quay về CHỜ THANH TOÁN (PENDING).');
     } catch {
@@ -114,6 +108,21 @@ export default function BookingDetail() {
   const [cancelReason, setCancelReason] = useState('');
   const [refundAmount, setRefundAmount] = useState(0);
   const [refundPercentage, setRefundPercentage] = useState(100);
+
+  // Sync refund amount/percentage if booking is PENDING_CANCEL
+  useEffect(() => {
+    if (booking?.status === 'PENDING_CANCEL' && booking.cancellationRefund !== undefined) {
+      setRefundAmount(booking.cancellationRefund);
+      const pct =
+        booking.totalPrice > 0
+          ? Math.round((booking.cancellationRefund / booking.totalPrice) * 100)
+          : 100;
+      setRefundPercentage(pct);
+      if (booking.cancelReason) {
+        setCancelReason(booking.cancelReason);
+      }
+    }
+  }, [booking]);
 
   // Compute dynamic dates based on simulator (only if QA flag is active)
   const isQA =
@@ -273,18 +282,6 @@ export default function BookingDetail() {
     toast.info('Tính năng đánh giá tour đang được phát triển!');
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price);
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#FAF9F5]">
@@ -306,49 +303,51 @@ export default function BookingDetail() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 md:py-12 bg-[#FAF9F5] min-h-screen">
       {/* Test Simulator Controls */}
-      <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs">
-        <div className="flex items-center gap-2 font-bold text-[#0B3025]">
-          <span>Mô phỏng ngày khởi hành để kiểm tra chính sách hủy:</span>
+      {isQA && (
+        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2 font-bold text-[#0B3025]">
+            <span>Mô phỏng ngày khởi hành để kiểm tra chính sách hủy:</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setDaysUntilDeparture(10)}
+              className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
+                daysUntilDeparture === 10
+                  ? 'bg-[#0B3025] text-white shadow-sm'
+                  : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
+              }`}
+            >
+              Còn 10 ngày (Hoàn 100%)
+            </button>
+            <button
+              type="button"
+              onClick={() => setDaysUntilDeparture(4)}
+              className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
+                daysUntilDeparture === 4
+                  ? 'bg-[#0B3025] text-white shadow-sm'
+                  : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
+              }`}
+            >
+              Còn 4 ngày (Hoàn 50%)
+            </button>
+            <button
+              type="button"
+              onClick={() => setDaysUntilDeparture(1)}
+              className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
+                daysUntilDeparture === 1
+                  ? 'bg-[#0B3025] text-white shadow-sm'
+                  : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
+              }`}
+            >
+              Còn 1 ngày (Ngoài hạn)
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setDaysUntilDeparture(10)}
-            className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-              daysUntilDeparture === 10
-                ? 'bg-[#0B3025] text-white shadow-sm'
-                : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
-            }`}
-          >
-            Còn 10 ngày (Hoàn 100%)
-          </button>
-          <button
-            type="button"
-            onClick={() => setDaysUntilDeparture(4)}
-            className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-              daysUntilDeparture === 4
-                ? 'bg-[#0B3025] text-white shadow-sm'
-                : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
-            }`}
-          >
-            Còn 4 ngày (Hoàn 50%)
-          </button>
-          <button
-            type="button"
-            onClick={() => setDaysUntilDeparture(1)}
-            className={`px-3 py-1.5 rounded-full font-bold transition-all cursor-pointer ${
-              daysUntilDeparture === 1
-                ? 'bg-[#0B3025] text-white shadow-sm'
-                : 'bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50'
-            }`}
-          >
-            Còn 1 ngày (Ngoài hạn)
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Vendor Simulation Box */}
-      {booking.status === 'PENDING_CANCEL' && (
+      {isQA && booking.status === 'PENDING_CANCEL' && (
         <div className="mb-6 p-6 bg-amber-50 border border-amber-200 rounded-3xl space-y-4">
           <div className="flex items-center gap-2 text-amber-800 font-extrabold text-sm">
             <AlertCircle className="w-5 h-5" />
@@ -381,7 +380,7 @@ export default function BookingDetail() {
       )}
 
       {/* Vendor Payment Simulation Box */}
-      {booking.status === 'AWAITING_CONFIRMATION' && (
+      {isQA && booking.status === 'AWAITING_CONFIRMATION' && (
         <div className="mb-6 p-6 bg-blue-50 border border-blue-200 rounded-3xl space-y-4">
           <div className="flex items-center gap-2 text-blue-800 font-extrabold text-sm">
             <Info className="w-5 h-5 text-blue-600" />
@@ -418,7 +417,7 @@ export default function BookingDetail() {
               <span>Đơn hàng chưa được thanh toán!</span>
             </div>
             <span className="text-xs font-extrabold text-amber-800 bg-white px-3 py-1 rounded-xl shadow-sm border border-amber-200">
-              Thời gian còn lại: {formatTimer(timeLeft)}
+              Thời gian còn lại: {formatCountdown(timeLeft)}
             </span>
           </div>
           <p className="text-xs text-zinc-600 font-semibold leading-relaxed">

@@ -185,16 +185,17 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div
-          id="mobile-nav-menu"
-          className="md:hidden border-t bg-background border-border px-4 py-4 space-y-3"
-        >
-          <nav className="flex flex-col gap-3">
-            <NavItems variant="mobile" onItemClick={() => setMobileMenuOpen(false)} />
-          </nav>
-        </div>
-      )}
+      <div
+        id="mobile-nav-menu"
+        className={`md:hidden border-t bg-background border-border px-4 py-4 space-y-3 ${
+          mobileMenuOpen ? 'block' : 'hidden'
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <nav className="flex flex-col gap-3">
+          <NavItems variant="mobile" onItemClick={() => setMobileMenuOpen(false)} />
+        </nav>
+      </div>
     </header>
   );
 }

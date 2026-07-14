@@ -416,7 +416,9 @@ function ScheduleSection({
   tourId: string;
   isLoggedIn: boolean;
 }) {
-  const openSchedules = schedules.filter((s) => s.status === 'OPEN');
+  const openSchedules = schedules.filter(
+    (s) => s.status === 'OPEN' && s.availableSlots - s.bookedSlots > 0
+  );
 
   if (openSchedules.length === 0) {
     return (

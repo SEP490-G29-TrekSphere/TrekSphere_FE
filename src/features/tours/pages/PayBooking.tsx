@@ -1,10 +1,59 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertCircle, ArrowLeft, FileImage, QrCode, ShieldCheck, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import * as z from 'zod';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
-import { type MockBooking, tourService } from '@/features/tours/services/tourService';
+import {
+  type MockBooking,
+  PAYMENT_DEADLINE_SECONDS,
+  tourService,
+} from '@/features/tours/services/tourService';
 import { AppButton, AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { formatCountdown, formatPrice } from '@/utils/format';
+
+const isValidImageFile = async (file: File): Promise<boolean> => {
+  const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const isPng =
+    header.length >= 8 &&
+    header[0] === 0x89 &&
+    header[1] === 0x50 &&
+    header[2] === 0x4e &&
+    header[3] === 0x47 &&
+    header[4] === 0x0d &&
+    header[5] === 0x0a &&
+    header[6] === 0x1a &&
+    header[7] === 0x0a;
+
+  const isJpeg =
+    header.length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+
+  return isPng || isJpeg;
+};
+
+const paymentSchema = z.object({
+  paymentProof: z
+    .custom<File | null>((val) => val instanceof File || val === null, {
+      message: 'Vui lòng tải lên ảnh chụp minh chứng thanh toán.',
+    })
+    .refine((file) => file !== null, 'Vui lòng tải lên ảnh chụp minh chứng thanh toán.')
+    .refine((file) => {
+      if (!file) return true;
+      const allowedTypes = ['image/png', 'image/jpeg'];
+      return allowedTypes.includes(file.type);
+    }, 'Định dạng file không hợp lệ! Vui lòng chỉ tải lên file PNG hoặc JPG/JPEG.')
+    .refine((file) => {
+      if (!file) return true;
+      const maxSize = 5 * 1024 * 1024;
+      return file.size <= maxSize;
+    }, 'Kích thước file vượt quá giới hạn 5MB. Vui lòng chọn file nhỏ hơn.')
+    .refine(async (file) => {
+      if (!file) return true;
+      return await isValidImageFile(file);
+    }, 'Nội dung file không hợp lệ. Vui lòng tải lên ảnh PNG hoặc JPG/JPEG hợp lệ.'),
+});
 
 export default function PayBooking() {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -17,13 +66,26 @@ export default function PayBooking() {
   const [isExpired, setIsExpired] = useState(false);
   const timeLeft = useBookingCountdown(
     booking?.createdAt,
-    !loading && !isExpired && booking?.status === 'PENDING'
+    !loading && !isExpired && booking?.status === 'PENDING',
+    PAYMENT_DEADLINE_SECONDS
   );
 
-  // Payment Proof upload state
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      paymentProof: null as File | null,
+    },
+  });
+
+  const paymentProof = watch('paymentProof');
 
   useEffect(() => {
     return () => {
@@ -50,7 +112,7 @@ export default function PayBooking() {
         // Calculate exact remaining time based on booking creation date
         const createdTime = new Date(data.createdAt).getTime();
         const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
-        const remaining = Math.max(0, 900 - elapsedSeconds);
+        const remaining = Math.max(0, PAYMENT_DEADLINE_SECONDS - elapsedSeconds);
 
         if (remaining <= 0) {
           setIsExpired(true);
@@ -76,80 +138,31 @@ export default function PayBooking() {
     }
   }, [timeLeft, isExpired, bookingId, booking]);
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price);
-  };
-
-  const isValidImageFile = async (file: File): Promise<boolean> => {
-    const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
-    const isPng =
-      header.length >= 8 &&
-      header[0] === 0x89 &&
-      header[1] === 0x50 &&
-      header[2] === 0x4e &&
-      header[3] === 0x47 &&
-      header[4] === 0x0d &&
-      header[5] === 0x0a &&
-      header[6] === 0x1a &&
-      header[7] === 0x0a;
-
-    const isJpeg =
-      header.length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
-
-    return isPng || isJpeg;
-  };
-
   // Upload proof of payment validation (E1)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate format (only images: png, jpg, jpeg)
-    const allowedTypes = ['image/png', 'image/jpeg'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Định dạng file không hợp lệ! Vui lòng chỉ tải lên file PNG hoặc JPG/JPEG.');
-      return;
-    }
-
-    // Validate size (max 5MB = 5 * 1024 * 1024 bytes)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error('Kích thước file vượt quá giới hạn 5MB. Vui lòng chọn file nhỏ hơn.');
-      return;
-    }
-
-    const validSignature = await isValidImageFile(file);
-    if (!validSignature) {
-      toast.error('Nội dung file không hợp lệ. Vui lòng tải lên ảnh PNG hoặc JPG/JPEG hợp lệ.');
-      return;
-    }
+    setValue('paymentProof', file, { shouldValidate: true });
 
     if (paymentProofUrl) {
       URL.revokeObjectURL(paymentProofUrl);
     }
-
-    setPaymentProof(file);
     setPaymentProofUrl(URL.createObjectURL(file));
-    toast.success('Chọn ảnh minh chứng thành công.');
   };
 
   // Submit payment proof
-  const handleSubmitProof = async () => {
-    if (!bookingId || !paymentProof) {
-      toast.error('Vui lòng tải lên ảnh chụp minh chứng thanh toán.');
+  const onSubmit = async (data: { paymentProof: File | null }) => {
+    if (!bookingId || !data.paymentProof) return;
+    if (isExpired) {
+      toast.error('Đã hết hạn thanh toán 15 phút!');
       return;
     }
 
     setIsSubmitting(true);
     try {
       // Step 5: Upload image to cloud storage, update status to AWAITING_CONFIRMATION
-      await tourService.uploadPaymentProof(bookingId, paymentProof);
+      await tourService.uploadPaymentProof(bookingId, data.paymentProof);
 
       // Step 6: Notify vendor manually (simulated)
       toast.success('Đã gửi minh chứng thanh toán. Hệ thống đã gửi thông báo đến đối tác!');
@@ -157,7 +170,8 @@ export default function PayBooking() {
       // Step 7: Redirect to confirmation wait page (we redirect to Booking Detail)
       navigate(`/my-tours/${bookingId}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Gửi minh chứng thất bại.');
+      const errMsg = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi gửi minh chứng.';
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -228,7 +242,7 @@ export default function PayBooking() {
           </span>
         </div>
         <span className="text-sm font-extrabold tracking-wider bg-white px-3 py-1 rounded-xl shadow-sm border border-amber-200">
-          {formatTime(timeLeft)}
+          {formatCountdown(timeLeft)}
         </span>
       </div>
 
@@ -285,79 +299,85 @@ export default function PayBooking() {
 
         {/* Proof of Payment Upload Component */}
         <AppCard className="border-[#E5E4DE] rounded-3xl bg-white p-6 shadow-sm">
-          <h3 className="font-extrabold text-base text-zinc-800 tracking-tight pb-4 border-b border-[#F4F4F2] mb-4">
-            Tải lên minh chứng thanh toán
-          </h3>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <h3 className="font-extrabold text-base text-zinc-800 tracking-tight pb-4 border-b border-[#F4F4F2] mb-4">
+              Tải lên minh chứng thanh toán
+            </h3>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#E5E4DE] rounded-2xl cursor-pointer bg-[#FAF9F5] hover:bg-zinc-50 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-8 h-8 text-zinc-400 mb-2" />
-                  <p className="mb-2 text-sm text-zinc-500 font-semibold">
-                    <span className="text-[#0B3025]">Nhấp để tải lên</span> hoặc kéo thả file
-                  </p>
-                  <p className="text-xs text-zinc-400 font-semibold">
-                    PNG, JPG hoặc JPEG (Tối đa 5MB)
-                  </p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/png, image/jpeg, image/jpg"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </div>
-
-            {/* Display selected file details */}
-            {paymentProof && (
-              <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-[#E5E4DE] rounded-xl">
-                <FileImage className="h-6 w-6 text-zinc-500" />
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-xs font-bold text-zinc-800 truncate">{paymentProof.name}</p>
-                  <p className="text-[10px] text-zinc-500 font-semibold">
-                    {(paymentProof.size / 1024).toFixed(0)} KB
-                  </p>
-                </div>
-                {paymentProofUrl && (
-                  <img
-                    src={paymentProofUrl.startsWith('blob:') ? paymentProofUrl : ''}
-                    alt="Xem trước"
-                    className="w-12 h-12 rounded-lg object-cover border border-[#E5E4DE]"
+            <div className="space-y-4">
+              <div className="flex flex-col w-full">
+                <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-[#E5E4DE] rounded-2xl cursor-pointer bg-[#FAF9F5] hover:bg-zinc-50 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 text-zinc-400 mb-2" />
+                    <p className="mb-2 text-sm text-zinc-500 font-semibold">
+                      <span className="text-[#0B3025]">Nhấp để tải lên</span> hoặc kéo thả file
+                    </p>
+                    <p className="text-xs text-zinc-400 font-semibold">
+                      PNG, JPG hoặc JPEG (Tối đa 5MB)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/jpg"
+                    onChange={handleFileChange}
                   />
+                </label>
+                {errors.paymentProof && (
+                  <p className="text-xs text-destructive font-semibold mt-1">
+                    {errors.paymentProof.message}
+                  </p>
                 )}
               </div>
-            )}
 
-            <div className="flex gap-4 pt-4">
-              <AppButton
-                type="button"
-                variant="ghost"
-                onClick={async () => {
-                  if (!bookingId) return;
-                  try {
-                    await tourService.updateBookingStatus(bookingId, 'CANCELLED');
-                    toast.success('Hủy giao dịch thành công.');
-                    navigate(`/my-tours/${bookingId}`);
-                  } catch {
-                    toast.error('Đã xảy ra lỗi khi hủy giao dịch.');
-                  }
-                }}
-                className="flex-1 text-zinc-500 font-bold hover:text-zinc-800"
-              >
-                Hủy giao dịch
-              </AppButton>
-              <AppButton
-                type="button"
-                disabled={isSubmitting || !paymentProof}
-                onClick={handleSubmitProof}
-                className="flex-1 bg-[#0B3025] hover:bg-[#072019] text-white font-bold py-3.5 rounded-2xl border-none shadow-sm transition-colors"
-              >
-                {isSubmitting ? 'Đang gửi...' : 'Gửi bằng chứng thanh toán'}
-              </AppButton>
+              {/* Display selected file details */}
+              {paymentProof && (
+                <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-[#E5E4DE] rounded-xl">
+                  <FileImage className="h-6 w-6 text-zinc-500" />
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-xs font-bold text-zinc-800 truncate">{paymentProof.name}</p>
+                    <p className="text-[10px] text-zinc-500 font-semibold">
+                      {(paymentProof.size / 1024).toFixed(0)} KB
+                    </p>
+                  </div>
+                  {paymentProofUrl && (
+                    <img
+                      src={paymentProofUrl.startsWith('blob:') ? paymentProofUrl : ''}
+                      alt="Xem trước"
+                      className="w-12 h-12 rounded-lg object-cover border border-[#E5E4DE]"
+                    />
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-4">
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={async () => {
+                    if (!bookingId) return;
+                    try {
+                      await tourService.updateBookingStatus(bookingId, 'CANCELLED');
+                      toast.success('Hủy giao dịch thành công.');
+                      navigate(`/my-tours/${bookingId}`);
+                    } catch {
+                      toast.error('Đã xảy ra lỗi khi hủy giao dịch.');
+                    }
+                  }}
+                  className="flex-1 text-zinc-500 font-bold hover:text-zinc-800"
+                >
+                  Hủy giao dịch
+                </AppButton>
+                <AppButton
+                  type="submit"
+                  disabled={isSubmitting || !paymentProof}
+                  className="flex-1 bg-[#0B3025] hover:bg-[#072019] text-white font-bold py-3.5 rounded-2xl border-none shadow-sm transition-colors"
+                >
+                  {isSubmitting ? 'Đang gửi...' : 'Gửi bằng chứng thanh toán'}
+                </AppButton>
+              </div>
             </div>
-          </div>
+          </form>
         </AppCard>
 
         {/* Security badge and guidelines */}
