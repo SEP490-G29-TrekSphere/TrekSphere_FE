@@ -22,6 +22,14 @@ export default function PayBooking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    return () => {
+      if (paymentProofUrl) {
+        URL.revokeObjectURL(paymentProofUrl);
+      }
+    };
+  }, [paymentProofUrl]);
+
+  useEffect(() => {
     async function fetchBooking() {
       if (!bookingId) return;
       try {
@@ -92,13 +100,32 @@ export default function PayBooking() {
     return new Intl.NumberFormat('vi-VN').format(price);
   };
 
+  const isValidImageFile = async (file: File): Promise<boolean> => {
+    const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+    const isPng =
+      header.length >= 8 &&
+      header[0] === 0x89 &&
+      header[1] === 0x50 &&
+      header[2] === 0x4e &&
+      header[3] === 0x47 &&
+      header[4] === 0x0d &&
+      header[5] === 0x0a &&
+      header[6] === 0x1a &&
+      header[7] === 0x0a;
+
+    const isJpeg =
+      header.length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+
+    return isPng || isJpeg;
+  };
+
   // Upload proof of payment validation (E1)
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     // Validate format (only images: png, jpg, jpeg)
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const allowedTypes = ['image/png', 'image/jpeg'];
     if (!allowedTypes.includes(file.type)) {
       toast.error('Định dạng file không hợp lệ! Vui lòng chỉ tải lên file PNG hoặc JPG/JPEG.');
       return;
@@ -109,6 +136,16 @@ export default function PayBooking() {
     if (file.size > maxSize) {
       toast.error('Kích thước file vượt quá giới hạn 5MB. Vui lòng chọn file nhỏ hơn.');
       return;
+    }
+
+    const validSignature = await isValidImageFile(file);
+    if (!validSignature) {
+      toast.error('Nội dung file không hợp lệ. Vui lòng tải lên ảnh PNG hoặc JPG/JPEG hợp lệ.');
+      return;
+    }
+
+    if (paymentProofUrl) {
+      URL.revokeObjectURL(paymentProofUrl);
     }
 
     setPaymentProof(file);
