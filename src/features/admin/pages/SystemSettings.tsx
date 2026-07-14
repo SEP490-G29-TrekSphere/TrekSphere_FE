@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Bell, Mail, Save, ShieldAlert, Smartphone } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { AppBadge, AppButton, AppCard } from '@/shared/ui';
-import { toast } from '@/store/useToastStore';
-import { systemSettingsService } from '../services/systemSettingsService';
+import { systemSettingsService } from '@/features/admin/services/systemSettingsService';
 import {
   type SystemSettingsFormValues,
   systemSettingsSchema,
-} from '../validations/systemSettingsSchema';
+} from '@/features/admin/validations/systemSettingsSchema';
+import { AppButton, AppCard } from '@/shared/ui';
+import { toast } from '@/store/useToastStore';
 
 export default function SystemSettings() {
   const [loading, setLoading] = useState(true);
@@ -22,16 +22,15 @@ export default function SystemSettings() {
   } = useForm<SystemSettingsFormValues>({
     resolver: zodResolver(systemSettingsSchema),
     defaultValues: {
-      maxRainfall: 50,
-      maxWindSpeed: 40,
-      minTemperature: 5,
-      emailNotifications: true,
-      pushNotifications: true,
-      backupInterval: 'daily',
-      require2fa: true,
+      maxRainfall: 0,
+      maxWindSpeed: 0,
+      minTemperature: 0,
+      emailNotifications: false,
+      pushNotifications: false,
+      backupInterval: '',
+      require2fa: false,
     },
   });
-
   // Fetch initial settings
   useEffect(() => {
     async function fetchSettings() {
@@ -213,8 +212,20 @@ export default function SystemSettings() {
           </div>
 
           {/* Validation error display */}
-          {errors.maxRainfall && (
-            <p className="text-xs text-red-500 mt-3 font-semibold">{errors.maxRainfall.message}</p>
+          {(errors.maxRainfall || errors.maxWindSpeed || errors.minTemperature) && (
+            <div className="space-y-1 mt-3">
+              {errors.maxRainfall && (
+                <p className="text-xs text-red-500 font-semibold">{errors.maxRainfall.message}</p>
+              )}
+              {errors.maxWindSpeed && (
+                <p className="text-xs text-red-500 font-semibold">{errors.maxWindSpeed.message}</p>
+              )}
+              {errors.minTemperature && (
+                <p className="text-xs text-red-500 font-semibold">
+                  {errors.minTemperature.message}
+                </p>
+              )}
+            </div>
           )}
         </AppCard>
 
@@ -256,7 +267,9 @@ export default function SystemSettings() {
                   <button
                     type="button"
                     onClick={() => onChange(!value)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    aria-label="Thông báo qua Email"
+                    aria-pressed={value}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3025] focus-visible:ring-offset-2 ${
                       value ? 'bg-[#0B3025]' : 'bg-zinc-200'
                     }`}
                   >
@@ -290,7 +303,9 @@ export default function SystemSettings() {
                   <button
                     type="button"
                     onClick={() => onChange(!value)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    aria-label="Thông báo ứng dụng (Push)"
+                    aria-pressed={value}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3025] focus-visible:ring-offset-2 ${
                       value ? 'bg-[#0B3025]' : 'bg-zinc-200'
                     }`}
                   >
@@ -316,9 +331,24 @@ export default function SystemSettings() {
               </span>
               <h4 className="font-extrabold text-sm text-zinc-800">Tự động sao lưu</h4>
             </div>
-            <AppBadge className="bg-[#E8F1EE] text-[#0B3025] border-transparent font-bold px-3 py-1 rounded-full text-xs">
-              Hàng ngày
-            </AppBadge>
+            <Controller
+              name="backupInterval"
+              control={control}
+              render={({ field }) => (
+                <select
+                  id="backupInterval"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  className="bg-[#E8F1EE] text-[#0B3025] border-transparent font-bold px-3 py-1.5 rounded-full text-xs outline-none focus:ring-2 focus:ring-[#0B3025] cursor-pointer"
+                >
+                  <option value="daily">Hàng ngày</option>
+                  <option value="weekly">Hàng tuần</option>
+                  <option value="monthly">Hàng tháng</option>
+                </select>
+              )}
+            />
           </div>
 
           {/* 2FA Info */}
@@ -329,9 +359,25 @@ export default function SystemSettings() {
               </span>
               <h4 className="font-extrabold text-sm text-zinc-800">Xác thực 2 lớp (2FA)</h4>
             </div>
-            <AppBadge className="bg-amber-50 text-amber-800 border-transparent font-bold px-3 py-1 rounded-full text-xs">
-              Bắt buộc
-            </AppBadge>
+            <Controller
+              name="require2fa"
+              control={control}
+              render={({ field }) => (
+                <select
+                  id="require2fa"
+                  value={field.value ? 'true' : 'false'}
+                  onChange={(e) => field.onChange(e.target.value === 'true')}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  className={`${
+                    field.value ? 'bg-amber-50 text-amber-800' : 'bg-zinc-100 text-zinc-500'
+                  } border-transparent font-bold px-3 py-1.5 rounded-full text-xs outline-none focus:ring-2 focus:ring-[#0B3025] cursor-pointer`}
+                >
+                  <option value="true">Bắt buộc</option>
+                  <option value="false">Tắt</option>
+                </select>
+              )}
+            />
           </div>
         </div>
 
