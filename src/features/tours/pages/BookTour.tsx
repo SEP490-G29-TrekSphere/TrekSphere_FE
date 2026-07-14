@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import * as z from 'zod';
+import { getBookingPaymentPath } from '@/constants/paths';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import { tourService } from '@/features/tours/services/tourService';
 import { AppButton, AppCard, AppFormInput } from '@/shared/ui';
@@ -38,9 +39,8 @@ export default function BookTour() {
   const [searchParams] = useSearchParams();
   const preSelectedScheduleId = searchParams.get('scheduleId') || '';
   const preSelectedParticipantsStr = searchParams.get('participants');
-  const preSelectedParticipants = preSelectedParticipantsStr
-    ? parseInt(preSelectedParticipantsStr, 10) || 1
-    : 1;
+  const parsedPart = preSelectedParticipantsStr ? parseInt(preSelectedParticipantsStr, 10) : 1;
+  const preSelectedParticipants = Number.isNaN(parsedPart) || parsedPart < 1 ? 1 : parsedPart;
 
   const { data: tour, isLoading, error } = useTourDetail(id);
 
@@ -113,7 +113,7 @@ export default function BookTour() {
         selectedSchedule.availableSlots - selectedSchedule.bookedSlots
       );
       if (participantsCount > remainingCapacity) {
-        setValue('participants', Math.max(1, remainingCapacity), { shouldValidate: true });
+        setValue('participants', remainingCapacity, { shouldValidate: true });
       }
     }
   }, [selectedSchedule, setValue, participantsCount]);
@@ -182,7 +182,7 @@ export default function BookTour() {
       setBookingId(response.bookingId);
       // Redirect directly to manual payment page
       toast.success('Đặt chỗ thành công! Đang chuyển đến trang thanh toán.');
-      navigate(`/my-tours/${response.bookingId}/pay`);
+      navigate(getBookingPaymentPath(response.bookingId));
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi tạo đặt chỗ.';
       toast.error(errMsg);
@@ -214,7 +214,9 @@ export default function BookTour() {
     );
   }
 
-  const openSchedules = tour.schedules.filter((s) => s.status === 'OPEN');
+  const openSchedules = tour.schedules.filter(
+    (s) => s.status === 'OPEN' && s.availableSlots - s.bookedSlots > 0
+  );
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
 
   return (

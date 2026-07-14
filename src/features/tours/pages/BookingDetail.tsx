@@ -33,6 +33,14 @@ const participantFormSchema = z.object({
   ),
 });
 
+const cancelSchema = z.object({
+  cancelReason: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim() ?? '')
+    .pipe(z.string().max(500, 'Lý do hủy tối đa 500 ký tự.')),
+});
+
 export default function BookingDetail() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
@@ -49,6 +57,17 @@ export default function BookingDetail() {
     resolver: zodResolver(participantFormSchema),
     defaultValues: {
       participants: [] as Participant[],
+    },
+  });
+
+  const {
+    register: registerCancel,
+    handleSubmit: handleSubmitCancel,
+    formState: { errors: cancelErrors },
+  } = useForm({
+    resolver: zodResolver(cancelSchema),
+    defaultValues: {
+      cancelReason: '',
     },
   });
 
@@ -86,11 +105,8 @@ export default function BookingDetail() {
   const handleVendorRejectPayment = async () => {
     if (!booking) return;
     try {
-      await tourService.updateBookingStatus(booking.bookingId, 'PENDING');
-      setBooking({
-        ...booking,
-        status: 'PENDING',
-      });
+      const updated = await tourService.rejectPayment(booking.bookingId);
+      setBooking(updated);
       toast.info('Đã từ chối thanh toán. Trạng thái booking quay về CHỜ THANH TOÁN (PENDING).');
     } catch {
       toast.error('Xử lý từ chối thất bại.');
@@ -105,7 +121,7 @@ export default function BookingDetail() {
 
   // Cancellation Modal States
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [_cancelReason, setCancelReason] = useState('');
   const [refundAmount, setRefundAmount] = useState(0);
   const [refundPercentage, setRefundPercentage] = useState(100);
 
@@ -181,10 +197,14 @@ export default function BookingDetail() {
     if (!booking) return;
     try {
       await tourService.updateParticipants(booking.bookingId, data.participants);
-      setBooking({
-        ...booking,
-        participants: data.participants,
-      });
+      setBooking((prev) =>
+        prev
+          ? {
+              ...prev,
+              participants: data.participants,
+            }
+          : null
+      );
       setIsEditing(false);
       toast.success('Cập nhật thông tin thành công!');
     } catch {
@@ -228,20 +248,26 @@ export default function BookingDetail() {
     setShowCancelModal(true);
   };
 
-  const handleConfirmCancelRequest = async () => {
+  const handleConfirmCancelRequest = async (data: { cancelReason?: string }) => {
     if (!booking) return;
     try {
       const response = await tourService.requestCancel(
         booking.bookingId,
         refundAmount,
-        cancelReason
+        data.cancelReason
       );
-      setBooking({
-        ...booking,
-        status: response.status,
-      });
+      setBooking((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: response.status,
+              cancelReason: data.cancelReason,
+              cancellationRefund: refundAmount,
+            }
+          : null
+      );
       setShowCancelModal(false);
-      toast.success('Yêu cầu hủy tour đã được gửi thành công! Đang chờ đối tác duyệt.');
+      toast.success('Yêu cầu hủy tour đã được gửi thành công! Đang chuyển đến trang chi tiết.');
     } catch {
       toast.error('Gửi yêu cầu hủy thất bại.');
     }
@@ -742,7 +768,10 @@ export default function BookingDetail() {
       {/* Cancellation Request Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border border-[#E5E4DE] rounded-3xl p-6 max-w-md w-full shadow-lg space-y-4">
+          <form
+            onSubmit={handleSubmitCancel(handleConfirmCancelRequest)}
+            className="bg-white border border-[#E5E4DE] rounded-3xl p-6 max-w-md w-full shadow-lg space-y-4"
+          >
             <h3 className="font-extrabold text-lg text-zinc-800 tracking-tight">
               Yêu cầu hủy đặt tour
             </h3>
@@ -770,9 +799,13 @@ export default function BookingDetail() {
                 id="cancelReason"
                 className="w-full min-h-[80px] p-3 bg-[#FAF9F5] border border-[#E5E4DE] rounded-xl text-zinc-800 font-medium text-xs focus:outline-none focus:ring-1 focus:ring-[#0B3025]"
                 placeholder="Vui lòng nhập lý do hủy đặt tour của bạn..."
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
+                {...registerCancel('cancelReason')}
               />
+              {cancelErrors.cancelReason && (
+                <p className="text-xs text-destructive font-semibold">
+                  {cancelErrors.cancelReason.message}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -784,14 +817,13 @@ export default function BookingDetail() {
                 Quay lại
               </button>
               <button
-                type="button"
-                onClick={handleConfirmCancelRequest}
+                type="submit"
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs py-2.5 transition-colors border-none shadow-sm cursor-pointer"
               >
                 Gửi yêu cầu hủy
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>

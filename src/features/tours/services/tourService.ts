@@ -381,14 +381,36 @@ export const tourService = {
     bookingId: string,
     approved: boolean
   ): Promise<{ status: 'CANCELLED' | 'CONFIRMED' }> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const nextStatus = approved ? 'CANCELLED' : 'CONFIRMED';
         const booking = mockBookingsDb[bookingId];
-        if (booking) {
-          booking.status = nextStatus;
+        if (!booking) {
+          reject(new Error('Không tìm thấy đơn đặt chỗ'));
+          return;
+        }
+        const nextStatus = approved ? 'CANCELLED' : 'CONFIRMED';
+        booking.status = nextStatus;
+        if (!approved) {
+          booking.cancelReason = undefined;
+          booking.cancellationRefund = undefined;
         }
         resolve({ status: nextStatus });
+      }, 500);
+    });
+  },
+
+  async rejectPayment(bookingId: string): Promise<MockBooking> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const booking = mockBookingsDb[bookingId];
+        if (!booking) {
+          reject(new Error('Không tìm thấy đơn đặt chỗ'));
+          return;
+        }
+        booking.status = 'PENDING';
+        booking.createdAt = new Date().toISOString();
+        booking.paymentProofUrl = undefined;
+        resolve(booking);
       }, 500);
     });
   },

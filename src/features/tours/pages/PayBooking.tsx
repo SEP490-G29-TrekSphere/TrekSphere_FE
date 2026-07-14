@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as z from 'zod';
+import { getBookingDetailPath } from '@/constants/paths';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import {
   type MockBooking,
@@ -71,7 +72,7 @@ export default function PayBooking() {
   );
 
   const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   const {
     handleSubmit,
@@ -79,7 +80,7 @@ export default function PayBooking() {
     watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(paymentSchema),
+    resolver: zodResolver(paymentSchema, undefined, { mode: 'async' }),
     defaultValues: {
       paymentProof: null as File | null,
     },
@@ -105,7 +106,7 @@ export default function PayBooking() {
         // If it's already awaiting confirmation or confirmed/cancelled, we shouldn't show the pay screen
         if (data.status !== 'PENDING') {
           toast.info('Đơn hàng này không ở trạng thái cần thanh toán.');
-          navigate(`/my-tours/${bookingId}`);
+          navigate(getBookingDetailPath(bookingId));
           return;
         }
 
@@ -159,7 +160,7 @@ export default function PayBooking() {
       return;
     }
 
-    setIsSubmitting(true);
+    setIsMutating(true);
     try {
       // Step 5: Upload image to cloud storage, update status to AWAITING_CONFIRMATION
       await tourService.uploadPaymentProof(bookingId, data.paymentProof);
@@ -168,12 +169,12 @@ export default function PayBooking() {
       toast.success('Đã gửi minh chứng thanh toán. Hệ thống đã gửi thông báo đến đối tác!');
 
       // Step 7: Redirect to confirmation wait page (we redirect to Booking Detail)
-      navigate(`/my-tours/${bookingId}`);
+      navigate(getBookingDetailPath(bookingId));
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi gửi minh chứng.';
       toast.error(errMsg);
     } finally {
-      setIsSubmitting(false);
+      setIsMutating(false);
     }
   };
 
@@ -356,24 +357,28 @@ export default function PayBooking() {
                   variant="ghost"
                   onClick={async () => {
                     if (!bookingId) return;
+                    setIsMutating(true);
                     try {
                       await tourService.updateBookingStatus(bookingId, 'CANCELLED');
                       toast.success('Hủy giao dịch thành công.');
-                      navigate(`/my-tours/${bookingId}`);
+                      navigate(getBookingDetailPath(bookingId));
                     } catch {
                       toast.error('Đã xảy ra lỗi khi hủy giao dịch.');
+                    } finally {
+                      setIsMutating(false);
                     }
                   }}
+                  disabled={isMutating}
                   className="flex-1 text-zinc-500 font-bold hover:text-zinc-800"
                 >
                   Hủy giao dịch
                 </AppButton>
                 <AppButton
                   type="submit"
-                  disabled={isSubmitting || !paymentProof}
+                  disabled={isMutating || !paymentProof}
                   className="flex-1 bg-[#0B3025] hover:bg-[#072019] text-white font-bold py-3.5 rounded-2xl border-none shadow-sm transition-colors"
                 >
-                  {isSubmitting ? 'Đang gửi...' : 'Gửi bằng chứng thanh toán'}
+                  {isMutating ? 'Đang gửi...' : 'Gửi bằng chứng thanh toán'}
                 </AppButton>
               </div>
             </div>
