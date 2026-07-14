@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PATHS } from '@/constants';
+import { getBookTourPath, PATHS } from '@/constants';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import type { BookingFormState, TourDetail } from '../../types';
@@ -10,8 +10,6 @@ interface TourBookingCardProps {
   tour: TourDetail;
   className?: string;
 }
-
-const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
 
 /**
  * Sticky booking sidebar with date picker placeholder, guest selector, and price summary
@@ -57,8 +55,15 @@ export function TourBookingCard({ tour, className }: TourBookingCardProps) {
       navigate(PATHS.LOGIN);
       return;
     }
-    navigate(getBookTourPath(tour.id));
-  }, [user, navigate, tour.id]);
+    const params = new URLSearchParams();
+    params.set('participants', String(state.participants));
+    if (state.selectedDate) {
+      const dateStr = state.selectedDate.toISOString().split('T')[0];
+      params.set('date', dateStr);
+      params.set('scheduleId', `sched-${dateStr}`);
+    }
+    navigate(`${getBookTourPath(tour.id)}?${params.toString()}`);
+  }, [user, navigate, tour.id, state.participants, state.selectedDate]);
 
   // Generate available dates (mock)
   const availableDates = useMemo(() => {

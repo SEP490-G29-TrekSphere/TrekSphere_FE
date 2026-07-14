@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { PATHS } from '@/constants';
+import { getBookTourPath, PATHS } from '@/constants';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import type { TourDetailFromApi, TourDetailScheduleApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -22,8 +22,6 @@ import { useAppStore } from '@/store/useAppStore';
 // ============================================================
 // Helpers
 // ============================================================
-
-const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
 
@@ -223,7 +221,7 @@ function MemberBanner({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
       </div>
       <Link
-        to="/login"
+        to={PATHS.LOGIN}
         className="shrink-0 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
       >
         Đăng nhập để đặt tour

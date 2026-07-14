@@ -60,3 +60,5 @@ export const PATHS = {
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
+
+export const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);

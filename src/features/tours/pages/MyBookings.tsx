@@ -23,6 +23,7 @@ export default function MyBookings() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     async function fetchBookings() {
@@ -70,6 +71,8 @@ export default function MyBookings() {
   };
 
   const handleLoadMore = async () => {
+    if (isLoadingMore) return;
+    setIsLoadingMore(true);
     try {
       const nextPage = page + 1;
       const result = await tourService.getMyBookings(nextPage, 5);
@@ -78,6 +81,8 @@ export default function MyBookings() {
       setPage(nextPage);
     } catch {
       toast.error('Không thể tải thêm đặt tour');
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -238,9 +243,10 @@ export default function MyBookings() {
               <button
                 type="button"
                 onClick={handleLoadMore}
-                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-700 font-bold text-xs cursor-pointer py-2 px-4 rounded-xl hover:bg-zinc-100 transition-colors"
+                disabled={isLoadingMore}
+                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-700 font-bold text-xs cursor-pointer py-2 px-4 rounded-xl hover:bg-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Xem thêm các tour cũ</span>
+                <span>{isLoadingMore ? 'Đang tải...' : 'Xem thêm các tour cũ'}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
             </div>

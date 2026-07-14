@@ -17,6 +17,44 @@ const NAV_ITEMS = [
   { label: 'Tin tức', path: PATHS.NEWS },
 ];
 
+interface NavItemsProps {
+  variant: 'desktop' | 'mobile';
+  onItemClick?: () => void;
+}
+
+function NavItems({ variant, onItemClick }: NavItemsProps) {
+  return (
+    <>
+      {NAV_ITEMS.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          end={item.path === PATHS.HOME}
+          onClick={onItemClick}
+          className={({ isActive }) =>
+            variant === 'mobile'
+              ? `text-sm font-medium transition-colors hover:text-primary ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`
+              : `relative text-sm font-medium transition-colors hover:text-primary ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              {item.label}
+              {variant === 'desktop' && isActive && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-primary" />
+              )}
+            </>
+          )}
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
 export default function Header() {
   const user = useAppStore((state) => state.user);
   const setUser = useAppStore((state) => state.setUser);
@@ -57,7 +95,8 @@ export default function Header() {
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none"
-            aria-label="Toggle menu"
+            aria-label="Mở menu điều hướng"
+            aria-controls="mobile-nav-menu"
             aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -66,27 +105,7 @@ export default function Header() {
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === PATHS.HOME}
-              className={({ isActive }) =>
-                `relative text-sm font-medium transition-colors hover:text-primary ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-primary" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
+          <NavItems variant="desktop" />
         </nav>
 
         <div className="flex items-center gap-4">
@@ -167,23 +186,12 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background border-border px-4 py-4 space-y-3">
+        <div
+          id="mobile-nav-menu"
+          className="md:hidden border-t bg-background border-border px-4 py-4 space-y-3"
+        >
           <nav className="flex flex-col gap-3">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === PATHS.HOME}
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `text-sm font-medium transition-colors hover:text-primary ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
+            <NavItems variant="mobile" onItemClick={() => setMobileMenuOpen(false)} />
           </nav>
         </div>
       )}

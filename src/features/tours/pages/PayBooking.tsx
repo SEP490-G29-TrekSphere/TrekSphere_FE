@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowLeft, FileImage, QrCode, ShieldCheck, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import { type MockBooking, tourService } from '@/features/tours/services/tourService';
 import { AppButton, AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -13,8 +14,11 @@ export default function PayBooking() {
   const [loading, setLoading] = useState(true);
 
   // Time Countdown state (BR-08: 15 minutes)
-  const [timeLeft, setTimeLeft] = useState<number>(900);
   const [isExpired, setIsExpired] = useState(false);
+  const timeLeft = useBookingCountdown(
+    booking?.createdAt,
+    !loading && !isExpired && booking?.status === 'PENDING'
+  );
 
   // Payment Proof upload state
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
@@ -48,7 +52,6 @@ export default function PayBooking() {
         const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
         const remaining = Math.max(0, 900 - elapsedSeconds);
 
-        setTimeLeft(remaining);
         if (remaining <= 0) {
           setIsExpired(true);
           await tourService.updateBookingStatus(bookingId, 'CANCELLED');
@@ -61,23 +64,6 @@ export default function PayBooking() {
     }
     fetchBooking();
   }, [bookingId, navigate]);
-
-  // Countdown timer effect
-  useEffect(() => {
-    if (loading || !booking || isExpired || booking.status !== 'PENDING') return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [loading, booking, isExpired]);
 
   // Handle timer expiration side effects
   useEffect(() => {
@@ -348,7 +334,16 @@ export default function PayBooking() {
               <AppButton
                 type="button"
                 variant="ghost"
-                onClick={() => navigate(`/my-tours/${bookingId}`)}
+                onClick={async () => {
+                  if (!bookingId) return;
+                  try {
+                    await tourService.updateBookingStatus(bookingId, 'CANCELLED');
+                    toast.success('Hủy giao dịch thành công.');
+                    navigate(`/my-tours/${bookingId}`);
+                  } catch {
+                    toast.error('Đã xảy ra lỗi khi hủy giao dịch.');
+                  }
+                }}
                 className="flex-1 text-zinc-500 font-bold hover:text-zinc-800"
               >
                 Hủy giao dịch

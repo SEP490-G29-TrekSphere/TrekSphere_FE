@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import * as z from 'zod';
+import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import { type MockBooking, tourService } from '@/features/tours/services/tourService';
 import { AppButton, AppCard } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -55,31 +56,15 @@ export default function BookingDetail() {
     name: 'participants',
   });
 
-  // Time Countdown state for BR-08 (15 minutes)
-  const [timeLeft, setTimeLeft] = useState<number>(900);
-  const [, setTimerExpired] = useState(false);
+  const timeLeft = useBookingCountdown(booking?.createdAt, booking?.status === 'PENDING');
 
   useEffect(() => {
-    if (booking?.status !== 'PENDING') return;
-
-    const createdTime = new Date(booking.createdAt || Date.now()).getTime();
-    const updateTimer = () => {
-      const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
-      const remaining = Math.max(0, 900 - elapsedSeconds);
-      setTimeLeft(remaining);
-
-      if (remaining <= 0) {
-        setTimerExpired(true);
-        setBooking((prev) => (prev ? { ...prev, status: 'CANCELLED' } : null));
-        tourService.updateBookingStatus(booking.bookingId, 'CANCELLED');
-        toast.error('Đã hết hạn thanh toán 15 phút! Đơn đặt tour đã tự động hủy.');
-      }
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [booking]);
+    if (timeLeft === 0 && booking?.status === 'PENDING') {
+      setBooking((prev) => (prev ? { ...prev, status: 'CANCELLED' } : null));
+      tourService.updateBookingStatus(booking.bookingId, 'CANCELLED');
+      toast.error('Đã hết hạn thanh toán 15 phút! Đơn đặt tour đã tự động hủy.');
+    }
+  }, [timeLeft, booking?.status, booking?.bookingId]);
 
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

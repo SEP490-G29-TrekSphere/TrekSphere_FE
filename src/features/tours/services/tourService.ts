@@ -351,15 +351,19 @@ export const tourService = {
 
   async requestCancel(
     bookingId: string,
-    _refundAmount: number,
+    refundAmount: number,
     reason?: string
   ): Promise<{ status: 'PENDING_CANCEL' }> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (mockBookingsDb[bookingId]) {
-          mockBookingsDb[bookingId].status = 'PENDING_CANCEL';
-          mockBookingsDb[bookingId].cancelReason = reason;
+        const booking = mockBookingsDb[bookingId];
+        if (!booking) {
+          reject(new Error('Không tìm thấy đơn đặt chỗ'));
+          return;
         }
+        booking.status = 'PENDING_CANCEL';
+        booking.cancelReason = reason;
+        booking.totalPrice = refundAmount;
         resolve({ status: 'PENDING_CANCEL' });
       }, 500);
     });
@@ -389,6 +393,17 @@ export const tourService = {
         const booking = mockBookingsDb[bookingId];
         if (!booking) {
           reject(new Error('Không tìm thấy đơn đặt chỗ'));
+          return;
+        }
+        if (booking.status !== 'PENDING') {
+          reject(new Error('Đơn hàng không ở trạng thái chờ thanh toán.'));
+          return;
+        }
+        const createdTime = new Date(booking.createdAt).getTime();
+        const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
+        if (elapsedSeconds >= 900) {
+          booking.status = 'CANCELLED';
+          reject(new Error('Đã quá thời hạn thanh toán 15 phút.'));
           return;
         }
         const dummyUrl = URL.createObjectURL(file);
