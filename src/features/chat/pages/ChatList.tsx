@@ -226,18 +226,18 @@ export default function ChatList() {
         <div className="mb-6 flex flex-col gap-1">
           <span className="text-3xl font-extrabold tracking-tight text-primary">TrekSphere</span>
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            STAFF PORTAL
+            TRANG NHÂN VIÊN
           </span>
         </div>
 
-        {/* New Trek Button */}
+        {/* Nút hành trình mới */}
         <button
           type="button"
           onClick={() => alert('New Trek button clicked')}
           className="mb-8 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/95 hover:shadow-md"
         >
           <Plus className="h-4 w-4" />
-          New Trek
+          Hành trình Mới
         </button>
 
         {/* Navigation Section */}
@@ -247,28 +247,28 @@ export default function ChatList() {
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <LayoutDashboard className="h-5 w-5" />
-            Dashboard
+            Bảng điều khiển
           </Link>
           <Link
             to={PATHS.TOURS}
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <Compass className="h-5 w-5" />
-            Tours
+            Tour du lịch
           </Link>
           <Link
             to={PATHS.DASHBOARD}
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <CalendarRange className="h-5 w-5" />
-            Bookings
+            Đặt chỗ
           </Link>
           <Link
             to={PATHS.CHAT}
             className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3 text-sm font-bold text-primary transition-all relative"
           >
             <MessageSquare className="h-5 w-5" />
-            Chat
+            Trò chuyện
             <span className="absolute right-4 top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-primary" />
           </Link>
           <Link
@@ -276,7 +276,7 @@ export default function ChatList() {
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <BarChart3 className="h-5 w-5" />
-            Reports
+            Báo cáo
           </Link>
         </nav>
 
@@ -287,14 +287,14 @@ export default function ChatList() {
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <SettingsIcon className="h-5 w-5" />
-            Settings
+            Cài đặt
           </Link>
           <Link
             to={PATHS.DASHBOARD}
             className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             <HelpCircle className="h-5 w-5" />
-            Support
+            Hỗ trợ
           </Link>
         </div>
       </aside>
@@ -308,8 +308,8 @@ export default function ChatList() {
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search conversations..."
-              aria-label="Search conversations"
+              placeholder="Tìm kiếm cuộc trò chuyện..."
+              aria-label="Tìm kiếm cuộc trò chuyện"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-10 w-full rounded-full border border-border bg-muted/30 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:bg-background focus:ring-1 focus:ring-primary"
@@ -357,7 +357,7 @@ export default function ChatList() {
           >
             {/* Title */}
             <div className="px-6 py-4">
-              <h1 className="text-2xl font-bold tracking-tight">Chat Room</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Phòng Chat</h1>
             </div>
 
             {/* Filtering Tabs */}
@@ -371,7 +371,7 @@ export default function ChatList() {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                All Chats
+                Tất cả
               </button>
               <button
                 type="button"
@@ -382,7 +382,7 @@ export default function ChatList() {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Unread
+                Chưa đọc
               </button>
             </div>
 
@@ -391,7 +391,7 @@ export default function ChatList() {
               {filteredConversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
                   <MessageSquare className="mb-2 h-8 w-8 stroke-1" />
-                  <p className="text-sm">No conversations found</p>
+                  <p className="text-sm">Không tìm thấy cuộc trò chuyện nào</p>
                 </div>
               ) : (
                 filteredConversations.map((item) => {
@@ -503,12 +503,12 @@ export default function ChatList() {
                       {selectedConversation.online ? (
                         <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          Online
+                          Trực tuyến
                         </span>
                       ) : (
                         <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
                           <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
-                          Offline
+                          Ngoại tuyến
                         </span>
                       )}
                     </div>
@@ -553,7 +553,7 @@ export default function ChatList() {
                   {selectedConversation.startDate && (
                     <div className="flex items-center justify-center">
                       <span className="rounded-full bg-muted border border-border/40 px-4 py-1 text-[11px] font-bold text-muted-foreground">
-                        Conversation started • {selectedConversation.startDate}
+                        Cuộc hội thoại bắt đầu • {selectedConversation.startDate}
                       </span>
                     </div>
                   )}
@@ -734,7 +734,7 @@ export default function ChatList() {
                     <div className="flex items-end gap-3">
                       <textarea
                         rows={2}
-                        placeholder="Type your message here..."
+                        placeholder="Nhập tin nhắn của bạn tại đây..."
                         value={newMessageText}
                         onChange={(e) => setNewMessageText(e.target.value)}
                         className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1"
@@ -754,8 +754,10 @@ export default function ChatList() {
               // Empty State
               <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-muted-foreground">
                 <MessageSquare className="mb-4 h-12 w-12 stroke-1" />
-                <h3 className="text-lg font-bold">No Conversation Selected</h3>
-                <p className="text-sm">Choose a chat room on the left side pane to start.</p>
+                <h3 className="text-lg font-bold">Chưa chọn cuộc trò chuyện nào</h3>
+                <p className="text-sm">
+                  Chọn một phòng chat ở thanh bên trái để bắt đầu cuộc trò chuyện.
+                </p>
               </div>
             )}
           </div>
