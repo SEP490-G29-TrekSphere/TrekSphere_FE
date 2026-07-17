@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
   BarChart3,
@@ -21,9 +22,12 @@ import {
   Settings as SettingsIcon,
   Smile,
 } from 'lucide-react';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import * as z from 'zod';
 import { PATHS } from '@/constants';
+import { toast } from '@/store/useToastStore';
 import type { Conversation, DetailMessage } from '../types/types';
 
 const getTagStyles = (variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'accent') => {
@@ -132,6 +136,15 @@ const initialMockMessages: Record<string, DetailMessage[]> = {
   ],
 };
 
+const chatMessageSchema = z.object({
+  message: z
+    .string()
+    .transform((val) => val.trim())
+    .refine((val) => val.length > 0, { message: 'Tin nhắn không được để trống' }),
+});
+
+type ChatMessageFormValues = z.infer<typeof chatMessageSchema>;
+
 export default function ChatList() {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [messagesMap, setMessagesMap] =
@@ -139,12 +152,16 @@ export default function ChatList() {
   const [selectedId, setSelectedId] = useState<string | null>('1'); // Select Nguyen Van A by default
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
-  const [newMessageText, setNewMessageText] = useState('');
+
+  const { register, handleSubmit, reset } = useForm<ChatMessageFormValues>({
+    resolver: zodResolver(chatMessageSchema),
+    defaultValues: { message: '' },
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We want to clear the message input draft whenever the selected conversation changes.
   useEffect(() => {
-    setNewMessageText('');
-  }, [selectedId]);
+    reset({ message: '' });
+  }, [selectedId, reset]);
 
   // Find active conversation
   const selectedConversation = conversations.find((c) => c.id === selectedId);
@@ -179,15 +196,15 @@ export default function ChatList() {
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unread: false } : c)));
   };
 
-  const handleSendMessage = (e: FormEvent) => {
-    e.preventDefault();
-    if (!newMessageText.trim() || !selectedId) return;
+  const onSubmitMessage = (data: ChatMessageFormValues) => {
+    if (!selectedId) return;
 
+    const msgText = data.message;
     const newMsgId = `m_${selectedId}_${Date.now()}`;
     const newMsg: DetailMessage = {
       id: newMsgId,
       sender: 'agent',
-      text: newMessageText,
+      text: msgText,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isSeen: false,
     };
@@ -204,18 +221,15 @@ export default function ChatList() {
         c.id === selectedId
           ? {
               ...c,
-              lastMessage:
-                newMessageText.length > 22
-                  ? `${newMessageText.substring(0, 22)}...`
-                  : newMessageText,
-              lastMessageTime: 'Just now',
+              lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+              lastMessageTime: 'Vừa xong',
               timestamp: new Date().toISOString(),
             }
           : c
       )
     );
 
-    setNewMessageText('');
+    reset({ message: '' });
   };
 
   return (
@@ -233,7 +247,7 @@ export default function ChatList() {
         {/* Nút hành trình mới */}
         <button
           type="button"
-          onClick={() => alert('New Trek button clicked')}
+          onClick={() => toast.info('Tính năng Hành trình Mới đang được phát triển.')}
           className="mb-8 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/95 hover:shadow-md"
         >
           <Plus className="h-4 w-4" />
@@ -553,7 +567,10 @@ export default function ChatList() {
                   {selectedConversation.startDate && (
                     <div className="flex items-center justify-center">
                       <span className="rounded-full bg-muted border border-border/40 px-4 py-1 text-[11px] font-bold text-muted-foreground">
-                        Cuộc hội thoại bắt đầu • {selectedConversation.startDate}
+                        Cuộc hội thoại bắt đầu •{' '}
+                        {new Intl.DateTimeFormat('vi-VN').format(
+                          new Date(selectedConversation.startDate)
+                        )}
                       </span>
                     </div>
                   )}
@@ -672,7 +689,7 @@ export default function ChatList() {
                 {/* 4. Bottom Rich Editor Composer */}
                 <div className="p-6 bg-background border-t border-border">
                   <form
-                    onSubmit={handleSendMessage}
+                    onSubmit={handleSubmit(onSubmitMessage)}
                     className="flex flex-col rounded-2xl border border-border bg-muted/10 p-3"
                   >
                     {/* Editor Toolbar */}
@@ -735,8 +752,7 @@ export default function ChatList() {
                       <textarea
                         rows={2}
                         placeholder="Nhập tin nhắn của bạn tại đây..."
-                        value={newMessageText}
-                        onChange={(e) => setNewMessageText(e.target.value)}
+                        {...register('message')}
                         className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1"
                       />
                       <button
