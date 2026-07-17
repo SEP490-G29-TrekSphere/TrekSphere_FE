@@ -28,11 +28,15 @@ export const PATHS = {
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
   TOUR_DETAIL: '/tours/:id',
+  BOOK_TOUR: '/tours/:id/book',
+  BOOKING_DETAIL: '/bookings/:bookingId',
+  BOOKING_PAYMENT: '/bookings/:bookingId/payment',
   MY_TOURS: '/my-tours',
   COMMUNITY: '/community',
   NEWS: '/news',
   NEWS_DETAIL: '/news/:blogId',
   NOTIFICATIONS: '/notifications',
+  CHAT: '/chat',
 
   // Settings
   SETTINGS: '/settings',
@@ -41,6 +45,29 @@ export const PATHS = {
   // Profile
   PROFILE: '/profile',
   EDIT_PROFILE: '/profile/edit',
+
+  // Trekker Community / Blog
+  BLOG_LIST: '/blog',
+  BLOG_CREATE: '/blog/create',
+  BLOG_EDIT: '/blog/edit/:blogId',
+
+  // Admin
+  ADMIN: '/admin',
+  ADMIN_DASHBOARD: '/admin/dashboard',
+  ADMIN_ACCOUNTS: '/admin/accounts',
+  ADMIN_ACCOUNT_DETAIL: '/admin/accounts/:id',
+  ADMIN_TOURS: '/admin/tours',
+  ADMIN_DATA: '/admin/data',
+  ADMIN_APPLICATIONS: '/admin/applications',
+  ADMIN_APPLICATION_DETAIL: '/admin/applications/:id',
+  ADMIN_VOUCHERS: '/admin/vouchers',
+  ADMIN_SETTINGS: '/admin/settings',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
+
+export const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
+export const getBookingDetailPath = (bookingId: string) =>
+  PATHS.BOOKING_DETAIL.replace(':bookingId', bookingId);
+export const getBookingPaymentPath = (bookingId: string) =>
+  PATHS.BOOKING_PAYMENT.replace(':bookingId', bookingId);

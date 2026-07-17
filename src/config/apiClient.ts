@@ -109,24 +109,21 @@ function buildAbsoluteBaseURL(): string {
  */
 async function performRefresh(): Promise<string | null> {
   const refreshToken = storage.get<string>('refreshToken');
-  // Nếu không có refresh token trong storage mà BE có thể dùng cookie → vẫn thử gọi
-  // với body rỗng. Nếu cả 2 đều không có → không gọi.
   if (!refreshToken) {
     console.warn(
       '[apiClient] performRefresh: no refreshToken in storage — trying cookie-based refresh'
     );
   }
 
-  const absoluteURL = `${buildAbsoluteBaseURL()}/auth/refresh`;
-  // Thử từng shape body phổ biến; cái nào BE accept thì lấy token từ đó.
+  const absoluteURL = `${buildAbsoluteBaseURL()}/auth/refresh-token`;
   const bodyCandidates: Array<Record<string, unknown> | null> = [
     refreshToken ? { refreshToken } : null,
     refreshToken ? { refresh_token: refreshToken } : null,
     refreshToken ? { token: refreshToken } : null,
-    null, // Không body — phụ thuộc vào cookie
+    null,
   ];
 
-  for (const body of bodyCandidates) {
+  for (const _body of bodyCandidates) {
     try {
       const response = await axios.post<{
         access_token?: string;
@@ -141,7 +138,7 @@ async function performRefresh(): Promise<string | null> {
           refresh_token?: string;
           refreshToken?: string;
         };
-      }>(absoluteURL, body ?? {}, { timeout: TIME_OUT, withCredentials });
+      }>(absoluteURL, _body ?? {}, { timeout: TIME_OUT, withCredentials });
 
       const root = response.data as Record<string, unknown>;
       const inner = (root.data as Record<string, unknown> | undefined) ?? {};
@@ -222,11 +219,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Endpoint /auth/refresh tự nó cũng có thể 401 khi refresh token hết hạn —
+    // Endpoint /auth/refresh-token tự nó cũng có thể 401 khi refresh token hết hạn —
     // trong trường hợp đó axios.post trong `performRefresh` đã xử lý rồi, không
-    // cần chạy vào flow này. Cờ __skipRefresh được set cho request /auth/refresh
+    // cần chạy vào flow này. Cờ __skipRefresh được set cho request /auth/refresh-token
     // qua `performRefresh` rồi, nên logic ở đây an toàn.
-    if (originalConfig.url?.includes('/auth/refresh')) {
+    if (originalConfig.url?.includes('/auth/refresh-token')) {
       return Promise.reject(error);
     }
 
@@ -363,13 +360,15 @@ export const ApiUpload = async <T>(
 export const ApiService = async <T>(
   path: string,
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-  data?: unknown
+  data?: unknown,
+  params?: Record<string, string>
 ): Promise<ApiResponse<T>> => {
   try {
     const response = await apiClient.request({
       url: path,
       method,
       data,
+      params,
     });
 
     return handleResponse<T>(response);
