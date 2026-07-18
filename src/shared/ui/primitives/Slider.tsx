@@ -72,7 +72,12 @@ export default function Slider({
     };
   }, [autoplayInterval, children.length, scrollToIndex, getCurrentIndex]);
 
-  const getKey = (_child: React.ReactNode, index: number) => `slider-${index}`;
+  const displayedChildren = (
+    children.length > slidesPerView ? [...children, ...children] : children
+  ).map((child, idx) => ({
+    id: `slider-idx-${idx}-${(child as React.ReactElement)?.key || 'item'}`,
+    node: child,
+  }));
 
   return (
     <section className={`relative group ${className}`} aria-label="slider">
@@ -93,9 +98,9 @@ export default function Slider({
             borderRadius: '8px',
           }}
         >
-          {[...children, ...children].map((child, i) => (
+          {displayedChildren.map((item) => (
             <div
-              key={getKey(child, i)}
+              key={item.id}
               style={{
                 flex: `0 0 ${itemWidth}`,
                 maxWidth: itemWidth,
@@ -104,7 +109,7 @@ export default function Slider({
                 overflow: 'hidden',
               }}
             >
-              {child}
+              {item.node}
             </div>
           ))}
         </div>
