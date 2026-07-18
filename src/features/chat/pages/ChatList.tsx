@@ -153,7 +153,12 @@ export default function ChatList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 
-  const { register, handleSubmit, reset } = useForm<ChatMessageFormValues>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ChatMessageFormValues>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: { message: '' },
   });
@@ -564,16 +569,21 @@ export default function ChatList() {
                   className="flex-1 overflow-y-auto p-6 space-y-6 bg-muted/5"
                 >
                   {/* Started conversation divider */}
-                  {selectedConversation.startDate && (
-                    <div className="flex items-center justify-center">
-                      <span className="rounded-full bg-muted border border-border/40 px-4 py-1 text-[11px] font-bold text-muted-foreground">
-                        Cuộc hội thoại bắt đầu •{' '}
-                        {new Intl.DateTimeFormat('vi-VN').format(
-                          new Date(selectedConversation.startDate)
-                        )}
-                      </span>
-                    </div>
-                  )}
+                  {selectedConversation.startDate &&
+                    (() => {
+                      const parsedDate = new Date(selectedConversation.startDate);
+                      const isValidDate = !Number.isNaN(parsedDate.getTime());
+                      const displayDate = isValidDate
+                        ? new Intl.DateTimeFormat('vi-VN').format(parsedDate)
+                        : selectedConversation.startDate;
+                      return (
+                        <div className="flex items-center justify-center">
+                          <span className="rounded-full bg-muted border border-border/40 px-4 py-1 text-[11px] font-bold text-muted-foreground">
+                            Cuộc hội thoại bắt đầu • {displayDate}
+                          </span>
+                        </div>
+                      );
+                    })()}
 
                   {currentMessages.map((msg) => {
                     const isAgent = msg.sender === 'agent';
@@ -748,20 +758,32 @@ export default function ChatList() {
                     </div>
 
                     {/* Text Field & Action Send */}
-                    <div className="flex items-end gap-3">
-                      <textarea
-                        rows={2}
-                        placeholder="Nhập tin nhắn của bạn tại đây..."
-                        {...register('message')}
-                        className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1"
-                      />
-                      <button
-                        type="submit"
-                        aria-label="Send"
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 flex-shrink-0"
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
+                    <div className="flex flex-col w-full gap-1">
+                      <div className="flex items-end gap-3">
+                        <textarea
+                          rows={2}
+                          placeholder="Nhập tin nhắn của bạn tại đây..."
+                          {...register('message')}
+                          aria-invalid={errors.message ? 'true' : 'false'}
+                          aria-describedby={errors.message ? 'chat-message-error' : undefined}
+                          className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1"
+                        />
+                        <button
+                          type="submit"
+                          aria-label="Send"
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform hover:scale-105 active:scale-95 flex-shrink-0"
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </div>
+                      {errors.message?.message && (
+                        <p
+                          id="chat-message-error"
+                          className="text-xs text-destructive mt-1 font-medium"
+                        >
+                          {errors.message.message}
+                        </p>
+                      )}
                     </div>
                   </form>
                 </div>
