@@ -97,7 +97,7 @@ const onRefreshFailed = (): void => {
 
 function buildAbsoluteBaseURL(): string {
   if (isDev) {
-    return deriveApiUrl(envApiUrl);
+    return baseURL;
   }
   return baseURL;
 }

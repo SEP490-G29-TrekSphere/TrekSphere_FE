@@ -82,7 +82,11 @@ export default function HomeNewsletter() {
               className="newsletter-glass-input w-full h-13 px-6 rounded-full text-sm outline-none focus:ring-2 focus:ring-white/30"
             />
             {errors.email && (
-              <span id="newsletter-email-error" className="text-rose-400 text-xs mt-1 pl-4">
+              <span
+                id="newsletter-email-error"
+                role="alert"
+                className="text-rose-400 text-xs mt-1 pl-4"
+              >
                 {errors.email.message}
               </span>
             )}
