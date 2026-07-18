@@ -37,12 +37,24 @@ export default function HomeHero() {
       if (headline) {
         const rawText = headline.textContent ?? '';
         const words = rawText.split(' ');
-        headline.innerHTML = words
-          .map(
-            (w) =>
-              `<span class="inline-block overflow-hidden"><span class="inline-block hero-word">${w}</span></span>`
-          )
-          .join(' ');
+
+        headline.replaceChildren();
+        words.forEach((w, i) => {
+          const outer = document.createElement('span');
+          outer.className = 'inline-block overflow-hidden';
+
+          const inner = document.createElement('span');
+          inner.className = 'inline-block hero-word';
+          inner.textContent = w;
+
+          outer.appendChild(inner);
+          headline.appendChild(outer);
+
+          if (i < words.length - 1) {
+            headline.appendChild(document.createTextNode(' '));
+          }
+        });
+
         tl.from(
           '.hero-word',
           {
