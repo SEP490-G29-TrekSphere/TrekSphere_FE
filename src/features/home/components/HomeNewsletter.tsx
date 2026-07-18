@@ -1,28 +1,59 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { newsletterService } from '@/features/home/services/newsletterService';
 
-const BG_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80';
+const newsletterSchema = z.object({
+  email: z.string().min(1, 'Vui lòng nhập email').email('Địa chỉ email không hợp lệ'),
+});
+
+type NewsletterFormValues = z.infer<typeof newsletterSchema>;
 
 export default function HomeNewsletter() {
-  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<NewsletterFormValues>({
+    resolver: zodResolver(newsletterSchema),
+    mode: 'onChange',
+    defaultValues: { email: '' },
+  });
+
+  const onSubmit = async (values: NewsletterFormValues) => {
+    setStatus('pending');
+    setErrorMessage('');
+    try {
+      const response = await newsletterService.subscribe(values.email);
+      if (response.error) {
+        setStatus('error');
+        setErrorMessage(response.error || 'Có lỗi xảy ra, vui lòng thử lại.');
+      } else {
+        setStatus('success');
+        reset();
+      }
+    } catch (err) {
+      setStatus('error');
+      const message = err instanceof Error ? err.message : 'Có lỗi xảy ra, vui lòng thử lại.';
+      setErrorMessage(message);
+    }
   };
 
   return (
-    <section className="relative overflow-hidden" style={{ minHeight: 440 }}>
+    <section className="relative overflow-hidden min-h-[440px]">
       {/* Background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${BG_IMAGE})` }}
+        className="absolute inset-0 bg-cover bg-center bg-[url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80')]"
         aria-hidden="true"
       />
       {/* Overlay */}
       <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(135deg, rgba(15,32,28,0.93) 0%, rgba(31,57,51,0.82) 100%)',
-        }}
+        className="absolute inset-0 bg-[linear-gradient(135deg,rgba(15,32,28,0.93)_0%,rgba(31,57,51,0.82)_100%)]"
         aria-hidden="true"
       />
 
@@ -37,25 +68,39 @@ export default function HomeNewsletter() {
         </p>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-lg w-full"
         >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email của bạn"
-            aria-label="Email đăng ký nhận tin"
-            className="newsletter-glass-input flex-1 h-13 px-6 rounded-full text-sm outline-none focus:ring-2 focus:ring-white/30"
-          />
+          <div className="flex-1 flex flex-col items-start gap-1">
+            <input
+              type="email"
+              {...register('email')}
+              placeholder="Email của bạn"
+              aria-label="Email đăng ký nhận tin"
+              className="newsletter-glass-input w-full h-13 px-6 rounded-full text-sm outline-none focus:ring-2 focus:ring-white/30"
+            />
+            {errors.email && (
+              <span className="text-rose-400 text-xs mt-1 pl-4">{errors.email.message}</span>
+            )}
+          </div>
           <button
             type="submit"
+            disabled={status === 'pending' || !isValid}
             className="shrink-0 h-13 px-7 rounded-full text-sm font-bold cursor-pointer
-              text-primary bg-white hover:bg-white/90 transition-all hover:scale-[1.03] shadow-lg whitespace-nowrap"
+              text-primary bg-white hover:bg-white/90 transition-all hover:scale-[1.03] shadow-lg whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none"
           >
-            Đăng ký ngay
+            {status === 'pending' ? 'Đang đăng ký...' : 'Đăng ký ngay'}
           </button>
         </form>
+
+        {status === 'success' && (
+          <p className="mt-4 text-emerald-400 text-sm font-semibold">
+            Đăng ký nhận tin thành công!
+          </p>
+        )}
+        {status === 'error' && (
+          <p className="mt-4 text-rose-400 text-sm font-semibold">{errorMessage}</p>
+        )}
 
         <p className="mt-4 text-white/40 text-xs">Miễn phí. Hủy đăng ký bất kỳ lúc nào.</p>
       </div>

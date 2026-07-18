@@ -48,6 +48,10 @@ export default function HomeTours() {
               <div key={skeletonId} className="h-[420px] rounded-3xl bg-muted animate-pulse" />
             ))}
           </div>
+        ) : tours.length === 0 ? (
+          <div className="mt-10 text-center py-12 bg-card border border-border/50 rounded-3xl">
+            <p className="text-muted-foreground text-sm">Hiện tại chưa có tour nổi bật nào.</p>
+          </div>
         ) : (
           <ScrollReveal variant="fade-up" scrollOptions={{ delay: 100 }}>
             <div className="mt-10">
@@ -66,11 +70,7 @@ export default function HomeTours() {
                       />
                       {/* Gradient overlay on image */}
                       <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background:
-                            'linear-gradient(180deg, transparent 50%, rgba(15,32,28,0.55) 100%)',
-                        }}
+                        className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#0f201c]/55"
                         aria-hidden="true"
                       />
                       {/* Rating on image */}
@@ -127,13 +127,11 @@ export default function HomeTours() {
                           <p className="text-xs text-muted-foreground">Từ</p>
                           <p className="text-xl font-black text-primary">{tour.price}</p>
                         </div>
-                        <Link to={`${PATHS.TOURS}/${tour.id}`}>
-                          <button
-                            type="button"
-                            className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 bg-primary cursor-pointer"
-                          >
-                            Chi tiết
-                          </button>
+                        <Link
+                          to={`${PATHS.TOURS}/${tour.id}`}
+                          className="px-5 py-2 rounded-full text-sm font-semibold text-white hover:opacity-90 bg-primary cursor-pointer"
+                        >
+                          Chi tiết
                         </Link>
                       </div>
                     </div>

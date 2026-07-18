@@ -167,7 +167,7 @@ export default function HomeMap() {
     const globeMaterial = globeInstance.globeMaterial() as unknown as {
       color: { set: (color: string) => void };
     };
-    if (globeMaterial && globeMaterial.color) {
+    if (globeMaterial?.color) {
       globeMaterial.color.set('#0c1c16');
     }
 
@@ -210,7 +210,8 @@ export default function HomeMap() {
     // Smooth native auto-rotation (using OrbitControls). Suspends automatically on drag.
     const controls = globeInstance.controls();
     if (controls) {
-      controls.autoRotate = true;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      controls.autoRotate = !prefersReduced;
       controls.autoRotateSpeed = 0.6; // Adjust speed for a natural feel
     }
 
@@ -271,6 +272,29 @@ export default function HomeMap() {
               sơ nhất Việt Nam. Tương tác với quả địa cầu 3D để xem sơ đồ di chuyển của các tuyến
               tour trekking độc quyền.
             </p>
+
+            {/* Accessible list of point buttons */}
+            <fieldset
+              className="mt-6 flex flex-wrap gap-2 border-none p-0 m-0"
+              aria-label="Danh sách các điểm trên bản đồ"
+            >
+              {MAP_POINTS.map((point) => (
+                <button
+                  key={point.id}
+                  type="button"
+                  onClick={() => setHoveredPoint(point)}
+                  onFocus={() => setHoveredPoint(point)}
+                  onBlur={() => setHoveredPoint(null)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border cursor-pointer ${
+                    hoveredPoint?.id === point.id
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-background text-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {point.name}
+                </button>
+              ))}
+            </fieldset>
 
             {/* Detail details panel */}
             <div className="mt-8 p-6 rounded-2xl bg-card border border-border shadow-sm min-h-[160px] flex flex-col justify-center transition-all duration-300">

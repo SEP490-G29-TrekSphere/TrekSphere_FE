@@ -3,8 +3,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
+import { popularDestinations } from '@/features/home/data/destinations';
 import { useTourLocations } from '@/features/tours/hooks/useTourLocations';
-import { popularDestinations } from '../data/destinations';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -110,10 +110,7 @@ export default function HomeDestinations() {
 
         {/* Masonry grid — 3 cols on desktop, 2 on tablet, 1 on mobile */}
         {isLoading ? (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            style={{ gridAutoRows: '220px' }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 [grid-auto-rows:220px]">
             {['ds-1', 'ds-2', 'ds-3', 'ds-4', 'ds-5', 'ds-6'].map((skeletonId, i) => (
               <div
                 key={skeletonId}
@@ -122,10 +119,7 @@ export default function HomeDestinations() {
             ))}
           </div>
         ) : (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            style={{ gridAutoRows: '220px' }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 [grid-auto-rows:220px]">
             {displayedDestinations.map((d, i) => (
               <div
                 key={d.id}

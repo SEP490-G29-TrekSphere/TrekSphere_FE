@@ -1,6 +1,8 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { PATHS } from '@/constants';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,8 +13,6 @@ const AVATARS = [
   'https://i.pravatar.cc/80?img=14',
   'https://i.pravatar.cc/80?img=15',
 ];
-
-const BG_IMAGE = 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?w=1920&q=80';
 
 export default function HomeCompanions() {
   const textRef = useRef<HTMLDivElement>(null);
@@ -52,11 +52,10 @@ export default function HomeCompanions() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="companions-banner" style={{ minHeight: 480 }}>
+    <section ref={sectionRef} className="companions-banner min-h-[480px]">
       {/* Background image */}
       <div
-        className="companions-banner-bg"
-        style={{ backgroundImage: `url(${BG_IMAGE})` }}
+        className="companions-banner-bg bg-[url('https://images.unsplash.com/photo-1533240332313-0db49b459ad6?w=1920&q=80')]"
         aria-hidden="true"
       />
 
@@ -73,13 +72,13 @@ export default function HomeCompanions() {
             Đừng để hành trình đơn độc. Kết nối với hàng ngàn trekker cùng đam mê, chia sẻ kinh
             nghiệm và cùng nhau chinh phục những đỉnh cao.
           </p>
-          <button
-            type="button"
-            className="mt-8 px-7 py-3.5 rounded-full font-bold text-sm cursor-pointer
-              text-primary bg-white hover:bg-white/90 transition-all hover:scale-[1.03] shadow-lg"
+          <Link
+            to={PATHS.COMMUNITY}
+            className="inline-block mt-8 px-7 py-3.5 rounded-full font-bold text-sm cursor-pointer
+              text-primary bg-white hover:bg-white/90 transition-all hover:scale-[1.03] shadow-lg text-center"
           >
             Tham gia nhóm ngay
-          </button>
+          </Link>
         </div>
 
         {/* Avatar stack + count — glassmorphism pill */}

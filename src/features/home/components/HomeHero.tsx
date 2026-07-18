@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import TrekkingVideo from '@/assets/videos/Trekking.mp4';
 import { PATHS } from '@/constants';
@@ -22,8 +22,11 @@ export default function HomeHero() {
   const searchRef = useRef<HTMLFormElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
 
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setPrefersReducedMotion(prefersReduced);
     if (prefersReduced) return;
 
     const ctx = gsap.context(() => {
@@ -80,15 +83,11 @@ export default function HomeHero() {
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full"
-      style={{ height: '100dvh', minHeight: 600 }}
-    >
+    <section ref={sectionRef} className="relative w-full h-[100dvh] min-h-[600px]">
       {/* ── Video background ── */}
       <video
         className="hero-video-bg"
-        autoPlay
+        autoPlay={!prefersReducedMotion}
         muted
         loop
         playsInline
@@ -100,11 +99,7 @@ export default function HomeHero() {
 
       {/* ── Gradient overlay ── */}
       <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(15,32,28,0.45) 0%, rgba(15,32,28,0.65) 60%, rgba(15,32,28,0.85) 100%)',
-        }}
+        className="absolute inset-0 bg-gradient-to-b from-[#0f201c]/45 via-[#0f201c]/65 to-[#0f201c]/85"
         aria-hidden="true"
       />
 
@@ -116,8 +111,7 @@ export default function HomeHero() {
 
         <h1
           ref={headlineRef}
-          className="text-5xl md:text-7xl font-black text-white leading-[1.05] tracking-tight max-w-[900px] mx-auto"
-          style={{ letterSpacing: '-0.02em' }}
+          className="text-5xl md:text-7xl font-black text-white leading-[1.05] tracking-[-0.02em] max-w-[900px] mx-auto"
         >
           Chinh phục những đỉnh cao mới cùng TrekSphere
         </h1>
@@ -131,14 +125,12 @@ export default function HomeHero() {
         </p>
 
         <div ref={ctaRef} className="mt-8">
-          <Link to={PATHS.TOURS}>
-            <button
-              type="button"
-              className="px-8 py-3.5 rounded-full bg-white text-primary text-sm font-bold
-                shadow-lg hover:bg-white/90 transition-all hover:scale-[1.03] cursor-pointer"
-            >
-              Khám phá ngay
-            </button>
+          <Link
+            to={PATHS.TOURS}
+            className="inline-block px-8 py-3.5 rounded-full bg-white text-primary text-sm font-bold
+              shadow-lg hover:bg-white/90 transition-all hover:scale-[1.03] cursor-pointer"
+          >
+            Khám phá ngay
           </Link>
         </div>
 

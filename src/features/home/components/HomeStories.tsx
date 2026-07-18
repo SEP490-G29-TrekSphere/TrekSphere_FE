@@ -1,7 +1,9 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useEffect, useRef } from 'react';
-import { stories } from '../data/stories';
+import { Link } from 'react-router-dom';
+import { PATHS } from '@/constants';
+import { stories } from '@/features/home/data/stories';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -60,8 +62,8 @@ export default function HomeStories() {
               Câu chuyện hành trình
             </h2>
           </div>
-          <button
-            type="button"
+          <Link
+            to={PATHS.NEWS}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
           >
             Xem tất cả bài viết
@@ -78,11 +80,11 @@ export default function HomeStories() {
                 d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
               />
             </svg>
-          </button>
+          </Link>
         </div>
 
         {/* Editorial grid: first card is tall (spans 2 rows), others are normal */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5" style={{ gridAutoRows: '260px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 [grid-auto-rows:260px]">
           {stories.map((story, idx) => (
             <article
               key={story.id}
@@ -104,8 +106,11 @@ export default function HomeStories() {
                 >
                   {story.title}
                 </h3>
-                <div className="mt-3 flex items-center gap-1.5 text-white/60 text-xs font-medium group cursor-pointer">
-                  <span className="group-hover:text-white transition-colors">Đọc thêm</span>
+                <Link
+                  to={PATHS.NEWS_DETAIL.replace(':blogId', story.id)}
+                  className="mt-3 inline-flex items-center gap-1.5 text-white/60 text-xs font-medium group cursor-pointer hover:text-white transition-colors"
+                >
+                  <span>Đọc thêm</span>
                   <svg
                     className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
                     fill="none"
@@ -119,7 +124,7 @@ export default function HomeStories() {
                       d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                     />
                   </svg>
-                </div>
+                </Link>
               </div>
             </article>
           ))}
