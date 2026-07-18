@@ -38,9 +38,16 @@ const deriveApiUrl = (rawUrl?: string): string => {
   return `${cleanUrl}/api/v1`;
 };
 
-// Dùng full URL trỏ thẳng BE.
-const getBaseURL = () => {
-  return deriveApiUrl(envApiUrl);
+// Dev without VITE_API_URL → use relative path so Vite proxy forwards to BE.
+// Prod without VITE_API_URL → fail fast with a clear error rather than silently
+// pointing at a hardcoded URL.
+const getBaseURL = (): string => {
+  if (envApiUrl) return deriveApiUrl(envApiUrl);
+  if (isDev) return '/api/v1';
+  throw new Error(
+    '[apiClient] VITE_API_URL is not set. ' +
+      'Set it in your .env file before running a production build.'
+  );
 };
 
 const baseURL = getBaseURL();

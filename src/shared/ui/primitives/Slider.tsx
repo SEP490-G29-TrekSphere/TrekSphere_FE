@@ -148,33 +148,7 @@ export default function Slider({
               type="button"
               onClick={goPrev}
               aria-label="Previous slide"
-              style={{
-                position: 'absolute',
-                left: '-60px',
-                top: '50%',
-                transform: 'translateY(-50%) translateX(-12px)',
-                zIndex: 10,
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                border: '1px solid #E6E2D1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                opacity: 0,
-                transition: 'all 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0';
-                e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1)';
-              }}
+              className="absolute left-[-60px] top-1/2 z-10 flex h-10 w-10 -translate-x-3 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-[#E6E2D1] bg-white opacity-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:scale-110 group-hover:opacity-100 focus-visible:opacity-100"
             >
               <svg
                 width="16"
@@ -196,33 +170,7 @@ export default function Slider({
               type="button"
               onClick={goNext}
               aria-label="Next slide"
-              style={{
-                position: 'absolute',
-                right: '-60px',
-                top: '50%',
-                transform: 'translateY(-50%) translateX(12px)',
-                zIndex: 10,
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                border: '1px solid #E6E2D1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                opacity: 0,
-                transition: 'all 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0';
-                e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1)';
-              }}
+              className="absolute right-[-60px] top-1/2 z-10 flex h-10 w-10 translate-x-3 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-[#E6E2D1] bg-white opacity-0 shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all duration-200 hover:scale-110 group-hover:opacity-100 focus-visible:opacity-100"
             >
               <svg
                 width="16"

@@ -77,10 +77,14 @@ export default function HomeNewsletter() {
               {...register('email')}
               placeholder="Email của bạn"
               aria-label="Email đăng ký nhận tin"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'newsletter-email-error' : undefined}
               className="newsletter-glass-input w-full h-13 px-6 rounded-full text-sm outline-none focus:ring-2 focus:ring-white/30"
             />
             {errors.email && (
-              <span className="text-rose-400 text-xs mt-1 pl-4">{errors.email.message}</span>
+              <span id="newsletter-email-error" className="text-rose-400 text-xs mt-1 pl-4">
+                {errors.email.message}
+              </span>
             )}
           </div>
           <button
@@ -94,12 +98,14 @@ export default function HomeNewsletter() {
         </form>
 
         {status === 'success' && (
-          <p className="mt-4 text-emerald-400 text-sm font-semibold">
+          <p role="status" className="mt-4 text-emerald-400 text-sm font-semibold">
             Đăng ký nhận tin thành công!
           </p>
         )}
         {status === 'error' && (
-          <p className="mt-4 text-rose-400 text-sm font-semibold">{errorMessage}</p>
+          <p role="alert" className="mt-4 text-rose-400 text-sm font-semibold">
+            {errorMessage}
+          </p>
         )}
 
         <p className="mt-4 text-white/40 text-xs">Miễn phí. Hủy đăng ký bất kỳ lúc nào.</p>
