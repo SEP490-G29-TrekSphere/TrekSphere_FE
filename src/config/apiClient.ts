@@ -38,12 +38,8 @@ const deriveApiUrl = (rawUrl?: string): string => {
   return `${cleanUrl}/api/v1`;
 };
 
-// Trong môi trường dev, dùng relative path `/api/v1` để đi qua Vite proxy.
-// Trong môi trường prod, dùng full URL trỏ thẳng BE.
+// Dùng full URL trỏ thẳng BE.
 const getBaseURL = () => {
-  if (isDev) {
-    return '/api/v1';
-  }
   return deriveApiUrl(envApiUrl);
 };
 

@@ -1,5 +1,5 @@
+import { travelerReviews } from '@/features/home/data/reviews';
 import { ScrollReveal } from '@/shared/ui';
-import { travelerReviews } from '../data/reviews';
 
 export default function HomeTestimonials() {
   return (
@@ -39,13 +39,18 @@ export default function HomeTestimonials() {
 
                   <div>
                     {/* Stars */}
-                    <div className="flex items-center gap-0.5 mb-4">
+                    <div
+                      className="flex items-center gap-0.5 mb-4"
+                      role="img"
+                      aria-label={`${review.rating} trên 5 sao`}
+                    >
                       {[1, 2, 3, 4, 5].slice(0, review.rating).map((starVal) => (
                         <svg
                           key={`${review.id}-star-${starVal}`}
                           className="w-4 h-4 text-amber-500"
                           viewBox="0 0 24 24"
                           fill="currentColor"
+                          aria-hidden="true"
                         >
                           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>

@@ -1,15 +1,15 @@
 import React, { Suspense } from 'react';
-import HomeCompanions from '../components/HomeCompanions';
-import HomeDestinations from '../components/HomeDestinations';
-import HomeHero from '../components/HomeHero';
-import HomeNewsletter from '../components/HomeNewsletter';
-import HomeStories from '../components/HomeStories';
-import HomeTestimonials from '../components/HomeTestimonials';
-import HomeTours from '../components/HomeTours';
-import HomeWhyChooseUs from '../components/HomeWhyChooseUs';
+import HomeCompanions from '@/features/home/components/HomeCompanions';
+import HomeDestinations from '@/features/home/components/HomeDestinations';
+import HomeHero from '@/features/home/components/HomeHero';
+import HomeNewsletter from '@/features/home/components/HomeNewsletter';
+import HomeStories from '@/features/home/components/HomeStories';
+import HomeTestimonials from '@/features/home/components/HomeTestimonials';
+import HomeTours from '@/features/home/components/HomeTours';
+import HomeWhyChooseUs from '@/features/home/components/HomeWhyChooseUs';
 
 // Lazy load 3D Globe section to maintain optimal initial loading speeds
-const HomeMap = React.lazy(() => import('../components/HomeMap'));
+const HomeMap = React.lazy(() => import('@/features/home/components/HomeMap'));
 
 function MapSkeleton() {
   return (

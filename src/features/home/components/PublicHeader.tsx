@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { authService } from '@/features/auth';
+import { mockNotifications } from '@/features/notifications/data/mockNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { AppLogo } from '@/shared/ui';
@@ -36,10 +37,12 @@ export default function PublicHeader() {
 
   // Glassmorphism on scroll
   useEffect(() => {
+    void location.pathname;
     const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [location.pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -63,6 +66,7 @@ export default function PublicHeader() {
   };
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
+  const unreadCount = mockNotifications.filter((n) => !n.read).length;
 
   // On the home page the header starts transparent over the cinematic hero
   const isHome = location.pathname === PATHS.HOME;
@@ -71,7 +75,9 @@ export default function PublicHeader() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled || !isHome ? 'glass-nav' : 'bg-transparent border-b border-transparent'
+        scrolled || !isHome
+          ? 'bg-background/80 backdrop-blur-[16px] border-b border-border/60'
+          : 'bg-transparent border-b border-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between px-4 sm:px-6">
@@ -134,9 +140,11 @@ export default function PublicHeader() {
                 }`}
               >
                 <Bell className="size-5" />
-                <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary ring-2 ring-background">
-                  4
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary ring-2 ring-background">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
               <div className="relative" ref={dropdownRef}>
                 <button

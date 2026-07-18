@@ -20,6 +20,7 @@ export default function Slider({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isHovered = useRef(false);
 
+  const canSlide = children.length > slidesPerView;
   const itemWidth = `calc(${100 / slidesPerView}% - ${GAP - GAP / slidesPerView}px)`;
 
   const getCurrentIndex = useCallback(() => {
@@ -45,39 +46,66 @@ export default function Slider({
   );
 
   const goNext = useCallback(() => {
+    if (!canSlide) return;
     const total = children.length;
     const currentIndex = getCurrentIndex();
-    scrollToIndex((currentIndex + 1) % total);
-  }, [children.length, scrollToIndex, getCurrentIndex]);
+
+    if (currentIndex >= total) {
+      // Seamlessly jump back to original range before animating next scroll
+      const container = containerRef.current;
+      if (container) {
+        const itemW = container.offsetWidth / slidesPerView;
+        container.style.scrollBehavior = 'auto';
+        container.scrollLeft = (currentIndex - total) * itemW;
+        container.getBoundingClientRect(); // force reflow
+        container.style.scrollBehavior = 'smooth';
+      }
+      scrollToIndex(currentIndex - total + 1);
+    } else {
+      scrollToIndex(currentIndex + 1);
+    }
+  }, [children.length, slidesPerView, scrollToIndex, getCurrentIndex, canSlide]);
 
   const goPrev = useCallback(() => {
+    if (!canSlide) return;
     const total = children.length;
     const currentIndex = getCurrentIndex();
-    scrollToIndex((currentIndex - 1 + total) % total);
-  }, [children.length, scrollToIndex, getCurrentIndex]);
+
+    if (currentIndex <= 0) {
+      // Seamlessly jump to the end of the cloned range before animating prev scroll
+      const container = containerRef.current;
+      if (container) {
+        const itemW = container.offsetWidth / slidesPerView;
+        container.style.scrollBehavior = 'auto';
+        container.scrollLeft = total * itemW;
+        container.getBoundingClientRect(); // force reflow
+        container.style.scrollBehavior = 'smooth';
+      }
+      scrollToIndex(total - 1);
+    } else {
+      scrollToIndex(currentIndex - 1);
+    }
+  }, [children.length, slidesPerView, scrollToIndex, getCurrentIndex, canSlide]);
 
   useEffect(() => {
-    if (autoplayInterval === 0) return;
+    if (autoplayInterval === 0 || !canSlide) return;
 
     timerRef.current = setInterval(() => {
       if (isHovered.current) return;
-
-      const total = children.length;
-      const currentIndex = getCurrentIndex();
-      scrollToIndex((currentIndex + 1) % total);
+      goNext();
     }, autoplayInterval);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [autoplayInterval, children.length, scrollToIndex, getCurrentIndex]);
+  }, [autoplayInterval, goNext, canSlide]);
 
-  const displayedChildren = (
-    children.length > slidesPerView ? [...children, ...children] : children
-  ).map((child, idx) => ({
-    id: `slider-idx-${idx}-${(child as React.ReactElement)?.key || 'item'}`,
-    node: child,
-  }));
+  const displayedChildren = (canSlide ? [...children, ...children] : children).map(
+    (child, idx) => ({
+      id: `slider-idx-${idx}-${(child as React.ReactElement)?.key || 'item'}`,
+      node: child,
+    })
+  );
 
   return (
     <section className={`relative group ${className}`} aria-label="slider">
@@ -114,93 +142,101 @@ export default function Slider({
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={goPrev}
-          aria-label="Previous slide"
-          style={{
-            position: 'absolute',
-            left: '-60px',
-            top: '50%',
-            transform: 'translateY(-50%) translateX(-12px)',
-            zIndex: 10,
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#FFFFFF',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            border: '1px solid #E6E2D1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            opacity: 0,
-            transition: 'all 200ms',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-            e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0';
-            e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1)';
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            stroke="#1F3933"
-            strokeWidth={2.5}
-            fill="none"
-          >
-            <path d="M15.75 19.5L8.25 12l7.5-7.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+        {canSlide && (
+          <>
+            <button
+              type="button"
+              onClick={goPrev}
+              aria-label="Previous slide"
+              style={{
+                position: 'absolute',
+                left: '-60px',
+                top: '50%',
+                transform: 'translateY(-50%) translateX(-12px)',
+                zIndex: 10,
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                border: '1px solid #E6E2D1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                opacity: 0,
+                transition: 'all 200ms',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0';
+                e.currentTarget.style.transform = 'translateY(-50%) translateX(-12px) scale(1)';
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                stroke="#1F3933"
+                strokeWidth={2.5}
+                fill="none"
+              >
+                <path
+                  d="M15.75 19.5L8.25 12l7.5-7.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
 
-        <button
-          type="button"
-          onClick={goNext}
-          aria-label="Next slide"
-          style={{
-            position: 'absolute',
-            right: '-60px',
-            top: '50%',
-            transform: 'translateY(-50%) translateX(12px)',
-            zIndex: 10,
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#FFFFFF',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-            border: '1px solid #E6E2D1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            opacity: 0,
-            transition: 'all 200ms',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '1';
-            e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '0';
-            e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1)';
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            stroke="#1F3933"
-            strokeWidth={2.5}
-            fill="none"
-          >
-            <path d="M8.25 4.5l7.5 7.5-7.5 7.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label="Next slide"
+              style={{
+                position: 'absolute',
+                right: '-60px',
+                top: '50%',
+                transform: 'translateY(-50%) translateX(12px)',
+                zIndex: 10,
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                border: '1px solid #E6E2D1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                opacity: 0,
+                transition: 'all 200ms',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0';
+                e.currentTarget.style.transform = 'translateY(-50%) translateX(12px) scale(1)';
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                stroke="#1F3933"
+                strokeWidth={2.5}
+                fill="none"
+              >
+                <path d="M8.25 4.5l7.5 7.5-7.5 7.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </>
+        )}
       </section>
     </section>
   );

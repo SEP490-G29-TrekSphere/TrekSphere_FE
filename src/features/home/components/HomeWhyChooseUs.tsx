@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -56,16 +56,18 @@ const FEATURES = [
 export default function HomeWhyChooseUs() {
   const statsRef = useRef<HTMLDivElement[]>([]);
   const sectionRef = useRef<HTMLElement>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setPrefersReducedMotion(prefersReduced);
     if (prefersReduced) return;
 
     const ctx = gsap.context(() => {
       statsRef.current.forEach((el, i) => {
         if (!el) return;
         const stat = STATS[i];
-        const numEl = el.querySelector('.stat-number') as HTMLElement | null;
+        const numEl = el.querySelector('.stat-value-display') as HTMLElement | null;
         if (!numEl) return;
 
         ScrollTrigger.create({
@@ -129,7 +131,11 @@ export default function HomeWhyChooseUs() {
                   {stat.value}
                   {stat.suffix}
                 </span>
-                <span aria-hidden="true">0{stat.suffix}</span>
+                <span className="stat-value-display" aria-hidden="true">
+                  {prefersReducedMotion
+                    ? `${stat.value.toLocaleString('vi-VN')}${stat.suffix}`
+                    : `0${stat.suffix}`}
+                </span>
               </p>
               <p className="stat-label">{stat.label}</p>
             </div>

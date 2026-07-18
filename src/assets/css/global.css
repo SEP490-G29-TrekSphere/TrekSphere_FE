@@ -538,6 +538,12 @@
     animation: scroll-bounce 2s ease-in-out infinite;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-indicator {
+      animation: none;
+    }
+  }
+
   /* ─── Newsletter glassmorphism ─── */
   .newsletter-glass-input {
     background: rgba(255, 255, 255, 0.15);
