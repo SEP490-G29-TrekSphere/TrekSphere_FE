@@ -53,8 +53,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PATHS } from '@/constants';
+import type { Conversation, DetailMessage } from '@/features/chat/types/types';
 import { toast } from '@/store/useToastStore';
-import type { Conversation, DetailMessage } from '../types/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -657,6 +657,7 @@ export default function ChatList() {
                             key={title}
                             type="button"
                             title={title}
+                            aria-label={title}
                             disabled
                             className="p-1.5 rounded-md opacity-40 cursor-not-allowed"
                           >
@@ -673,6 +674,7 @@ export default function ChatList() {
                             key={title}
                             type="button"
                             title={title}
+                            aria-label={title}
                             disabled
                             className="p-1.5 rounded-md opacity-40 cursor-not-allowed"
                           >
