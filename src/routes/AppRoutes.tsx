@@ -29,11 +29,16 @@ const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
 const EditProfile = lazy(() => import('@/features/profile/pages/EditProfile'));
 const MyBlogList = lazy(() => import('@/features/trekker-community/pages/MyBlogList'));
+const CreateBlogPost = lazy(() => import('@/features/trekker-community/pages/CreateBlogPost'));
 const ChatList = lazy(() => import('@/features/chat/pages/ChatList'));
 const AdminLayout = lazy(() => import('@/shared/layout/AdminLayout'));
 const Applications = lazy(() => import('@/features/admin/pages/Applications'));
 const ApplicationDetails = lazy(() => import('@/features/admin/pages/ApplicationDetails'));
 const SystemSettings = lazy(() => import('@/features/admin/pages/SystemSettings'));
+const VendorManagerDashboard = lazy(
+  () => import('@/features/dashboard/pages/VendorManagerDashboard')
+);
+const PartnerDashboard = lazy(() => import('@/features/dashboard/pages/PartnerDashboard'));
 
 function PageLoader() {
   return (
@@ -93,6 +98,9 @@ export default function AppRoutes() {
           <Route path={PATHS.DASHBOARD} element={<Dashboard />} />
           <Route path={PATHS.PROFILE} element={<ViewProfile />} />
           <Route path={PATHS.EDIT_PROFILE} element={<EditProfile />} />
+          <Route path={PATHS.BLOG_LIST} element={<MyBlogList />} />
+          <Route path={PATHS.BLOG_CREATE} element={<CreateBlogPost />} />
+          <Route path={PATHS.BLOG_EDIT} element={<CreateBlogPost editMode />} />
           <Route path={PATHS.BOOK_TOUR} element={<BookTour />} />
           <Route path={PATHS.BOOKING_DETAIL} element={<BookingDetail />} />
           <Route path={PATHS.BOOKING_PAYMENT} element={<PayBooking />} />
@@ -118,6 +126,30 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_APPLICATIONS} element={<Applications />} />
           <Route path={PATHS.ADMIN_APPLICATION_DETAIL} element={<ApplicationDetails />} />
           <Route path={PATHS.ADMIN_SETTINGS} element={<SystemSettings />} />
+        </Route>
+
+        {/* Vendor Manager routes */}
+        <Route
+          path="/vendor-manager"
+          element={
+            <RequireRole allowedRoles={[ROLES.VENDOR_MANAGER]}>
+              <MainLayout />
+            </RequireRole>
+          }
+        >
+          <Route index element={<VendorManagerDashboard />} />
+        </Route>
+
+        {/* Partner routes */}
+        <Route
+          path="/partner"
+          element={
+            <RequireRole allowedRoles={[ROLES.VENDOR_STAFF]}>
+              <MainLayout />
+            </RequireRole>
+          }
+        >
+          <Route index element={<PartnerDashboard />} />
         </Route>
       </Routes>
     </Suspense>
