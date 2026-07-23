@@ -36,7 +36,8 @@ export default function RequireRole({ children, allowedRoles = [ROLES.ADMIN] }: 
     return <Navigate to={PATHS.LOGIN} state={{ from: location }} replace />;
   }
 
-  // Lấy danh sách vai trò của user (đã được chuẩn hóa về lowercase)
+  // User có thể có nhiều role cùng lúc (vd: trekker + vendor_manager) — kiểm
+  // tra trên toàn bộ mảng thay vì chỉ 1 role "chính" duy nhất.
   const userRoles = (user.roles ?? []) as Role[];
 
   // Nếu user có ít nhất một role nằm trong allowedRoles → cho vào
