@@ -73,6 +73,7 @@ export const PATHS = {
   VENDOR_MANAGER_TOURS: '/vendor-manager/tours',
   VENDOR_MANAGER_TOUR_CREATE: '/vendor-manager/tours/new',
   VENDOR_MANAGER_TOUR_EDIT: '/vendor-manager/tours/:id/edit',
+  VENDOR_MANAGER_TOUR_APPROVALS: '/vendor-manager/tours/approvals',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',

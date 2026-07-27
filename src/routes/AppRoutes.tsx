@@ -53,6 +53,7 @@ const StaffList = lazy(() => import('@/features/vendor-manager/staff/pages/Staff
 const TourList = lazy(() => import('@/features/vendor-manager/tours/pages/TourList'));
 const TourCreate = lazy(() => import('@/features/vendor-manager/tours/pages/TourCreate'));
 const TourEdit = lazy(() => import('@/features/vendor-manager/tours/pages/TourEdit'));
+const TourApprovals = lazy(() => import('@/features/vendor-manager/tours/pages/TourApprovals'));
 const VendorStaffLayout = lazy(() => import('@/features/vendor-staff/layout/VendorStaffLayout'));
 const PartnerTourList = lazy(() => import('@/features/vendor-staff/tours/pages/TourList'));
 const PartnerTourCreate = lazy(() => import('@/features/vendor-staff/tours/pages/TourCreate'));
@@ -163,6 +164,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_MANAGER_TOURS} element={<TourList />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_CREATE} element={<TourCreate />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_EDIT} element={<TourEdit />} />
+          <Route path={PATHS.VENDOR_MANAGER_TOUR_APPROVALS} element={<TourApprovals />} />
         </Route>
 
         {/* Vendor Staff routes — yêu cầu role vendor_staff, dùng VendorStaffLayout riêng */}
