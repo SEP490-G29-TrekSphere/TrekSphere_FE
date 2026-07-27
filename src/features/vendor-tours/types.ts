@@ -21,6 +21,7 @@ export interface VendorTourListItem {
   basePrice: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
+  createdAt: string;
 }
 
 /**
