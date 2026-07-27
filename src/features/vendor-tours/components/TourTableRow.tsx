@@ -1,4 +1,4 @@
-import { Check, Pencil, Send, Trash2, X } from 'lucide-react';
+import { CalendarClock, Check, Pencil, Send, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '@/utils/format';
 import type { VendorTourListItem } from '../types';
@@ -21,6 +21,8 @@ interface TourTableRowProps {
   tour: VendorTourListItem;
   /** Đường dẫn màn Sửa cho đúng tour này — do trang cha tính sẵn (khác nhau giữa Manager/Staff). */
   editPath: string;
+  /** Đường dẫn màn Lịch khởi hành cho đúng tour này — do trang cha tính sẵn (khác nhau giữa Manager/Staff). */
+  schedulesPath: string;
   onDeleteClick: (tour: VendorTourListItem) => void;
   /** Chỉ truyền prop này (vd: từ màn Staff) nếu muốn hiện nút "Gửi kiểm duyệt". */
   onSubmitApprovalClick?: (tour: VendorTourListItem) => void;
@@ -36,6 +38,7 @@ interface TourTableRowProps {
 export function TourTableRow({
   tour,
   editPath,
+  schedulesPath,
   onDeleteClick,
   onSubmitApprovalClick,
   onApproveClick,
@@ -127,6 +130,15 @@ export function TourTableRow({
               <Pencil className="h-4 w-4" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => navigate(schedulesPath)}
+            className="transition-opacity hover:opacity-70"
+            style={{ color: '#0E7C6B' }}
+            title="Lịch khởi hành"
+          >
+            <CalendarClock className="h-4 w-4" />
+          </button>
           <button
             type="button"
             onClick={() => onDeleteClick(tour)}

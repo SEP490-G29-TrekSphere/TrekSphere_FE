@@ -74,12 +74,14 @@ export const PATHS = {
   VENDOR_MANAGER_TOUR_CREATE: '/vendor-manager/tours/new',
   VENDOR_MANAGER_TOUR_EDIT: '/vendor-manager/tours/:id/edit',
   VENDOR_MANAGER_TOUR_APPROVALS: '/vendor-manager/tours/approvals',
+  VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor-manager/tours/:id/schedules',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',
   PARTNER_TOURS: '/partner/tours',
   PARTNER_TOUR_CREATE: '/partner/tours/new',
   PARTNER_TOUR_EDIT: '/partner/tours/:id/edit',
+  PARTNER_TOUR_SCHEDULES: '/partner/tours/:id/schedules',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
@@ -95,3 +97,7 @@ export const getGroupJoinPath = (groupId: string) => PATHS.GROUPS_JOIN.replace('
 export const getVendorManagerTourEditPath = (id: string) =>
   PATHS.VENDOR_MANAGER_TOUR_EDIT.replace(':id', id);
 export const getPartnerTourEditPath = (id: string) => PATHS.PARTNER_TOUR_EDIT.replace(':id', id);
+export const getVendorManagerTourSchedulesPath = (id: string) =>
+  PATHS.VENDOR_MANAGER_TOUR_SCHEDULES.replace(':id', id);
+export const getPartnerTourSchedulesPath = (id: string) =>
+  PATHS.PARTNER_TOUR_SCHEDULES.replace(':id', id);
