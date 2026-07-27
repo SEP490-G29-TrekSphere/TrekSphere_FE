@@ -11,6 +11,12 @@ const FALLBACK_COVER =
 /** Chỉ tour đang bản nháp hoặc bị từ chối mới gửi kiểm duyệt được (khớp mô tả API). */
 const SUBMITTABLE_STATUSES = new Set(['DRAFT', 'REJECTED']);
 
+/**
+ * Sửa tour chỉ được phép khi đang DRAFT/REJECTED — BE trả lỗi nếu sửa lúc đang chờ duyệt,
+ * đã duyệt, hoặc đã ẩn (cùng 1 API PUT /vendor/tours/{id} dùng chung cho Manager và Staff).
+ */
+const EDITABLE_STATUSES = new Set(['DRAFT', 'REJECTED']);
+
 interface TourTableRowProps {
   tour: VendorTourListItem;
   /** Đường dẫn màn Sửa cho đúng tour này — do trang cha tính sẵn (khác nhau giữa Manager/Staff). */
@@ -38,6 +44,7 @@ export function TourTableRow({
   const navigate = useNavigate();
   const canSubmitApproval = onSubmitApprovalClick && SUBMITTABLE_STATUSES.has(tour.status);
   const canReview = (onApproveClick || onRejectClick) && tour.status === 'PENDING_APPROVAL';
+  const canEdit = EDITABLE_STATUSES.has(tour.status);
 
   return (
     <tr className="border-b transition-colors last:border-b-0" style={{ borderColor: '#E6E2D1' }}>
@@ -109,15 +116,17 @@ export function TourTableRow({
               <X className="h-4 w-4" />
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => navigate(editPath)}
-            className="transition-opacity hover:opacity-70"
-            style={{ color: '#06261D' }}
-            title="Sửa tour"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => navigate(editPath)}
+              className="transition-opacity hover:opacity-70"
+              style={{ color: '#06261D' }}
+              title="Sửa tour"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onDeleteClick(tour)}
