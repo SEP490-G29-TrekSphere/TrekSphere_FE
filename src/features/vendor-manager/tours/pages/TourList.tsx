@@ -74,15 +74,6 @@ export default function TourList() {
     ? filteredTours.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
     : filteredTours;
 
-  // BE chưa có API duyệt/từ chối tour — 2 nút này tạm thời chỉ là placeholder,
-  // giống cách nút Sửa từng làm trước khi có API thật.
-  const handleApprovePlaceholder = () => {
-    toast.info('Chức năng duyệt tour đang phát triển.');
-  };
-  const handleRejectPlaceholder = () => {
-    toast.info('Chức năng từ chối tour đang phát triển.');
-  };
-
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
     deleteTour.mutate(deleteTarget.id, {
@@ -235,8 +226,6 @@ export default function TourList() {
                     tour={tour}
                     editPath={getVendorManagerTourEditPath(tour.id)}
                     onDeleteClick={setDeleteTarget}
-                    onApproveClick={handleApprovePlaceholder}
-                    onRejectClick={handleRejectPlaceholder}
                   />
                 ))
               )}
