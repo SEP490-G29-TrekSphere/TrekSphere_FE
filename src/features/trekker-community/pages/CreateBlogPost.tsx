@@ -11,25 +11,13 @@ import { profileService } from '@/features/profile/services/profileService';
 import { AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import { MyBlogPagination } from '../components/MyBlogPagination';
 import { MyBlogTable } from '../components/MyBlogTable';
 import { useTrekkerBlogDetail, useTrekkerBlogList } from '../hooks/useTrekkerBlog';
 import { useTrekkerBlogMutations } from '../hooks/useTrekkerBlogMutations';
 
 const STAFF_POSTS_PAGE_SIZE = 5;
-
-/** Chỉ cho phép URL http(s), data: hoặc blob: — chặn các scheme nguy hiểm như javascript: */
-function getSafeImageUrl(url: string | null): string | undefined {
-  if (!url) return undefined;
-  try {
-    if (url.startsWith('blob:')) return url;
-    const parsed = new URL(url, window.location.origin);
-    const allowedProtocols = ['http:', 'https:', 'data:'];
-    return allowedProtocols.includes(parsed.protocol) ? url : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 /** ~200 từ/phút — ước tính đơn giản, tính hoàn toàn phía client. */
 function computeReadStats(content: string) {
@@ -531,9 +519,9 @@ function BlogPreviewModal({
           </button>
         </div>
 
-        {coverPreview && (
+        {getSafeImageUrl(coverPreview) && (
           <img
-            src={coverPreview}
+            src={getSafeImageUrl(coverPreview)}
             alt="Cover"
             className="mb-6 h-56 w-full rounded-2xl object-cover"
           />
@@ -548,8 +536,12 @@ function BlogPreviewModal({
             className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white"
             style={{ backgroundColor: '#06261D' }}
           >
-            {authorAvatarUrl ? (
-              <img src={authorAvatarUrl} alt={authorName} className="h-full w-full object-cover" />
+            {getSafeImageUrl(authorAvatarUrl) ? (
+              <img
+                src={getSafeImageUrl(authorAvatarUrl)}
+                alt={authorName}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span>{authorName.charAt(0).toUpperCase()}</span>
             )}

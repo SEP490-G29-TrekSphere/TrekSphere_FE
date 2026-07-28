@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import * as z from 'zod';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { PorterStatus } from '../types';
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
@@ -144,9 +145,9 @@ export function PorterForm({
                   : { border: '2px dashed #C9C3AE', backgroundColor: '#FAF8F1' }
               }
             >
-              {avatarPreview ? (
+              {getSafeImageUrl(avatarPreview) ? (
                 <img
-                  src={avatarPreview}
+                  src={getSafeImageUrl(avatarPreview)}
                   alt="Avatar porter"
                   className="h-full w-full object-cover"
                 />
