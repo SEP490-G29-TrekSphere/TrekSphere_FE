@@ -1,23 +1,18 @@
 import {
   Backpack,
   BarChart3,
-  Bell,
   CalendarClock,
   ClipboardCheck,
   LayoutGrid,
   LogOut,
   Map as MapIcon,
-  Search,
-  Settings,
   Ticket,
   UserRound,
   Users,
 } from 'lucide-react';
-import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
-import type { VendorManagerLayoutContext } from '@/features/vendor-manager/staff/types';
 import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
@@ -41,15 +36,9 @@ export default function VendorManagerLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
   const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
-  const [searchValue, setSearchValue] = useState('');
 
   const vendorName = user?.name || 'Vendor Manager';
   const vendorInitial = vendorName.charAt(0).toUpperCase();
-  // Header search chỉ phục vụ trang Nhân viên (lọc qua context) — ẩn ở màn Tour
-  // và Thiết bị vì 2 trang đó đã có ô lọc riêng của chính mình, header ở đây chỉ là dư thừa.
-  const showHeader =
-    !location.pathname.startsWith(PATHS.VENDOR_MANAGER_TOURS) &&
-    !location.pathname.startsWith(PATHS.VENDOR_MANAGER_EQUIPMENT);
 
   // Nhiều mục có thể cùng khớp prefix (vd "Tour" và "Duyệt tour" đều bắt đầu bằng
   // "/vendor-manager/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
@@ -153,7 +142,7 @@ export default function VendorManagerLayout() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          <Outlet context={{ searchValue } satisfies VendorManagerLayoutContext} />
+          <Outlet />
         </main>
       </div>
     </div>
