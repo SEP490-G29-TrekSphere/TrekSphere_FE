@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarClock,
   ClipboardCheck,
+  Footprints,
   LayoutGrid,
   LogOut,
   Map as MapIcon,
@@ -29,6 +30,7 @@ const navItems = [
   { name: 'Đặt tour', path: PATHS.VENDOR_MANAGER_BOOKINGS, icon: Ticket, disabled: false },
   { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
   { name: 'Thiết bị', path: PATHS.VENDOR_MANAGER_EQUIPMENT, icon: Backpack, disabled: false },
+  { name: 'Porter', path: PATHS.VENDOR_MANAGER_PORTERS, icon: Footprints, disabled: false },
   { name: 'Báo cáo', path: '', icon: BarChart3, disabled: true },
 ];
 
