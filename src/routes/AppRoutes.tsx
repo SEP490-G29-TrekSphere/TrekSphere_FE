@@ -65,6 +65,7 @@ const PartnerTourSchedules = lazy(
   () => import('@/features/vendor-staff/tours/pages/TourSchedules')
 );
 const EquipmentList = lazy(() => import('@/features/vendor-equipment/pages/EquipmentList'));
+const VendorBookingList = lazy(() => import('@/features/vendor-bookings/pages/BookingList'));
 
 function PageLoader() {
   return (
@@ -175,6 +176,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_MANAGER_TOUR_EDIT} element={<TourEdit />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_APPROVALS} element={<TourApprovals />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_SCHEDULES} element={<TourSchedules />} />
+          <Route path={PATHS.VENDOR_MANAGER_BOOKINGS} element={<VendorBookingList />} />
           <Route path={PATHS.VENDOR_MANAGER_EQUIPMENT} element={<EquipmentList />} />
         </Route>
 
@@ -192,6 +194,7 @@ export default function AppRoutes() {
           <Route path={PATHS.PARTNER_TOUR_CREATE} element={<PartnerTourCreate />} />
           <Route path={PATHS.PARTNER_TOUR_EDIT} element={<PartnerTourEdit />} />
           <Route path={PATHS.PARTNER_TOUR_SCHEDULES} element={<PartnerTourSchedules />} />
+          <Route path={PATHS.PARTNER_BOOKINGS} element={<VendorBookingList />} />
           <Route path={PATHS.PARTNER_EQUIPMENT} element={<EquipmentList />} />
         </Route>
       </Routes>
