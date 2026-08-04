@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { getBookingPaymentPath } from '@/constants/paths';
-import { profileService } from '@/features/profile/services/profileService';
+// import { profileService } from '@/features/profile/services/profileService';
 import { BookingSosPanel } from '@/features/tours/components/BookingSosPanel';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import { PAYMENT_DEADLINE_SECONDS, tourService } from '@/features/tours/services/tourService';

@@ -192,7 +192,6 @@ export const vendorTourService = {
     const response = await ApiUpload<TourDetailResponseDto>(
       `/vendor/tours/${tourId}`,
       formData,
-      undefined,
       'PUT'
     );
     const data = unwrapResponse(response);
@@ -240,7 +239,6 @@ export const vendorTourService = {
     const response = await ApiUpload<TourCheckpointResponseDto>(
       `/vendor/tours/checkpoints/${checkpointId}`,
       formData,
-      undefined,
       'PUT'
     );
     unwrapResponse(response);
