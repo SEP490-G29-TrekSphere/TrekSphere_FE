@@ -3,10 +3,12 @@ import {
   CalendarDays,
   CheckCircle,
   ChevronLeft,
+  ChevronRight,
   Clock,
   MapPin,
   MessageCircle,
   Mountain,
+  Search,
   Shield,
   Star,
   Users,
@@ -14,9 +16,17 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getBookTourPath, PATHS } from '@/constants';
+import { getBookTourPath, PATHS, ROLES } from '@/constants';
+import { useAdminReviewMutations } from '@/features/tours/hooks/useAdminReviewMutations';
+import { useTourCheckpoints } from '@/features/tours/hooks/useTourCheckpoints';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
-import type { TourDetailFromApi, TourDetailScheduleApi } from '@/features/tours/types';
+import { useTourReviews } from '@/features/tours/hooks/useTourReviews';
+import { useTourSchedules } from '@/features/tours/hooks/useTourSchedules';
+import type {
+  TourCheckpoint,
+  TourDetailFromApi,
+  TourDetailScheduleApi,
+} from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
 
 // ============================================================
@@ -470,6 +480,74 @@ function ScheduleSection({
   );
 }
 
+/** Route checkpoints section */
+function CheckpointsSection({ checkpoints }: { checkpoints?: TourCheckpoint[] }) {
+  if (!checkpoints || checkpoints.length === 0) return null;
+
+  // Sort checkpoints by order
+  const sortedCheckpoints = [...checkpoints].sort((a, b) => a.checkpointOrder - b.checkpointOrder);
+
+  return (
+    <section>
+      <h2 className="mb-6 text-xl font-bold text-foreground md:text-2xl">Lộ trình các trạm dừng</h2>
+
+      <div className="relative flex flex-col gap-8 pl-8">
+        {/* Timeline line */}
+        <div className="absolute bottom-0 left-3 top-0 w-px bg-border" aria-hidden="true" />
+
+        {sortedCheckpoints.map((cp) => (
+          <div key={cp.checkpointId} className="relative group">
+            {/* Dot indicator */}
+            <div className="absolute -left-8 top-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-background text-[10px] font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+              {cp.checkpointOrder}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-foreground">{cp.checkpointName}</h3>
+                {cp.altitude !== null && cp.altitude !== undefined && cp.altitude !== 0 && (
+                  <span className="text-xs text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded font-mono">
+                    Độ cao: {cp.altitude}m
+                  </span>
+                )}
+              </div>
+
+              {cp.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{cp.description}</p>
+              )}
+
+              {cp.checkpointImageUrl && (
+                <img
+                  src={cp.checkpointImageUrl}
+                  alt={cp.checkpointName}
+                  onError={(e) => {
+                    if (e.currentTarget.src !== FALLBACK_IMAGE) {
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                    }
+                  }}
+                  className="mt-1 h-44 w-full rounded-xl object-cover shadow-sm sm:h-56 sm:max-w-md"
+                  loading="lazy"
+                />
+              )}
+
+              {(cp.latitude || cp.longitude) && (
+                <div className="text-[11px] text-muted-foreground font-mono flex gap-3">
+                  {cp.latitude !== null && cp.latitude !== undefined && (
+                    <span>Vĩ độ: {cp.latitude.toFixed(5)}</span>
+                  )}
+                  {cp.longitude !== null && cp.longitude !== undefined && (
+                    <span>Kinh độ: {cp.longitude.toFixed(5)}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /** Excludes section */
 function ExcludesSection({ excludes }: { excludes: string | null }) {
   const items = splitField(excludes);
@@ -492,41 +570,314 @@ function ExcludesSection({ excludes }: { excludes: string | null }) {
 
 /** Reviews / community rating section */
 function ReviewsSection({ tour }: { tour: TourDetailFromApi }) {
-  const rating = tour.averageRating ?? 0;
-  const total = tour.totalReviews;
+  const [ratingFilter, setRatingFilter] = useState<number | undefined>(undefined);
+  const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const { data, isLoading } = useTourReviews(tour.tourId, {
+    rating: ratingFilter,
+    keyword: keyword || undefined,
+    page,
+    size: 5,
+    sortBy,
+    sortDir,
+  });
+
+  const rating = data?.averageRating ?? tour.averageRating ?? 0;
+  const total = data?.totalReviews ?? tour.totalReviews ?? 0;
   const display = rating > 0 ? rating.toFixed(1) : '—';
+
+  const fiveStarCount = data?.fiveStar ?? 0;
+  const fourStarCount = data?.fourStar ?? 0;
+  const threeStarCount = data?.threeStar ?? 0;
+  const twoStarCount = data?.twoStar ?? 0;
+  const oneStarCount = data?.oneStar ?? 0;
+
+  const starPercentages = {
+    5: total > 0 ? (fiveStarCount / total) * 100 : 0,
+    4: total > 0 ? (fourStarCount / total) * 100 : 0,
+    3: total > 0 ? (threeStarCount / total) * 100 : 0,
+    2: total > 0 ? (twoStarCount / total) * 100 : 0,
+    1: total > 0 ? (oneStarCount / total) * 100 : 0,
+  };
+
+  const reviewsList = data?.reviews?.content ?? [];
+  const totalPages = data?.reviews?.totalPages ?? 0;
+  const pageNumber = data?.reviews?.pageNumber ?? 0;
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const user = useAppStore((s) => s.user);
+  const isAdmin = user?.roles?.includes(ROLES.ADMIN) ?? false;
+  const { mutate: updateStatus } = useAdminReviewMutations(tour.tourId);
 
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
       <div className="flex items-center gap-2">
-        <Star className="h-5 w-5 text-amber-400" />
+        <Star className="h-5 w-5 text-amber-400 fill-amber-400" />
         <h2 className="text-lg font-bold text-foreground">Đánh giá cộng đồng</h2>
       </div>
 
-      <div className="mt-4 flex items-center gap-4">
-        <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold text-foreground">{display}</span>
-          <span className="text-sm text-muted-foreground">/5</span>
-        </div>
-        <div>
-          <div className="flex items-center gap-0.5">
+      {/* Stats Summary Dashboard */}
+      <div className="mt-6 grid gap-6 md:grid-cols-[1fr_2fr] border-b border-border pb-6">
+        <div className="flex flex-col items-center justify-center border-r border-border pr-6">
+          <div className="flex items-baseline gap-1">
+            <span className="text-5xl font-extrabold text-foreground">{display}</span>
+            <span className="text-lg text-muted-foreground">/5</span>
+          </div>
+          <div className="mt-2 flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star
                 key={s}
-                className={`h-4 w-4 ${s <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
+                className={`h-5 w-5 ${s <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
               />
             ))}
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground font-medium">
             {total > 0 ? `${total} đánh giá` : 'Chưa có đánh giá'}
           </p>
         </div>
+
+        {/* Star Distribution Bars */}
+        <div className="flex flex-col gap-2.5">
+          {[5, 4, 3, 2, 1].map((star) => {
+            const count =
+              star === 5
+                ? fiveStarCount
+                : star === 4
+                  ? fourStarCount
+                  : star === 3
+                    ? threeStarCount
+                    : star === 2
+                      ? twoStarCount
+                      : oneStarCount;
+            const pct = starPercentages[star as keyof typeof starPercentages];
+            return (
+              <button
+                key={star}
+                type="button"
+                onClick={() => {
+                  setRatingFilter(ratingFilter === star ? undefined : star);
+                  setPage(0);
+                }}
+                className={`flex items-center gap-3 text-sm text-muted-foreground w-full hover:bg-muted/50 p-1 rounded transition-colors text-left ${
+                  ratingFilter === star ? 'bg-primary/5 font-semibold text-primary' : ''
+                }`}
+              >
+                <span className="w-12 shrink-0">{star} sao</span>
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <span className="w-8 shrink-0 text-right">{count}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {total === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Hãy là người đầu tiên đánh giá tour này!
-        </p>
+      {/* Filter and Search Bar */}
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-6">
+        {/* Star rating selection */}
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setRatingFilter(undefined);
+              setPage(0);
+            }}
+            className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+              ratingFilter === undefined
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            Tất cả
+          </button>
+          {[5, 4, 3, 2, 1].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => {
+                setRatingFilter(star);
+                setPage(0);
+              }}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 ${
+                ratingFilter === star
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {star} <Star className="h-3 w-3 fill-current" />
+            </button>
+          ))}
+        </div>
+
+        {/* Sort and search */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] sm:flex-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Search className="h-4 w-4" />
+            </span>
+            <input
+              type="text"
+              placeholder="Tìm kiếm đánh giá..."
+              value={keyword}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                setPage(0);
+              }}
+              className="w-full rounded-full border border-border bg-background py-1.5 pl-9 pr-4 text-sm focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          <select
+            value={`${sortBy}-${sortDir}`}
+            onChange={(e) => {
+              const [field, dir] = e.target.value.split('-');
+              setSortBy(field);
+              setSortDir(dir);
+              setPage(0);
+            }}
+            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground focus:border-primary focus:outline-none"
+          >
+            <option value="createdAt-desc">Mới nhất</option>
+            <option value="createdAt-asc">Cũ nhất</option>
+            <option value="rating-desc">Đánh giá cao</option>
+            <option value="rating-asc">Đánh giá thấp</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Reviews List */}
+      {isLoading ? (
+        <div className="py-12 flex justify-center items-center">
+          <span className="text-sm text-muted-foreground">Đang tải đánh giá...</span>
+        </div>
+      ) : reviewsList.length === 0 ? (
+        <div className="py-12 text-center text-sm text-muted-foreground">
+          Không tìm thấy đánh giá nào.
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {reviewsList.map((review) => (
+            <div key={review.reviewId} className="py-6 flex gap-4">
+              {/* User Avatar */}
+              <div className="h-10 w-10 shrink-0 rounded-full bg-secondary overflow-hidden flex items-center justify-center">
+                {review.userAvatarUrl ? (
+                  <img
+                    src={review.userAvatarUrl}
+                    alt={review.userFullName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-bold text-secondary-foreground">
+                    {review.userFullName?.slice(0, 1).toUpperCase() || 'U'}
+                  </span>
+                )}
+              </div>
+
+              {/* Review Content */}
+              <div className="flex-1 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-foreground">{review.userFullName}</span>
+                    {isAdmin && (
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                          review.status === 'APPROVED'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : review.status === 'HIDDEN'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {review.status}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`h-3.5 w-3.5 ${s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
+
+                <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                  {review.content}
+                </p>
+
+                {/* Admin Moderation Controls */}
+                {isAdmin && (
+                  <div className="mt-3 flex items-center gap-2">
+                    {review.status !== 'APPROVED' && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateStatus({ reviewId: review.reviewId, status: 'APPROVED' })
+                        }
+                        className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 cursor-pointer transition-colors"
+                      >
+                        Duyệt
+                      </button>
+                    )}
+                    {review.status !== 'HIDDEN' && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateStatus({ reviewId: review.reviewId, status: 'HIDDEN' })
+                        }
+                        className="rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-1.5 cursor-pointer transition-colors"
+                      >
+                        Ẩn
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2 border-t border-border pt-6">
+          <button
+            type="button"
+            onClick={() => handlePageChange(pageNumber - 1)}
+            disabled={pageNumber === 0}
+            className="p-2 rounded-full hover:bg-secondary disabled:opacity-40 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-xs text-muted-foreground font-medium">
+            Trang {pageNumber + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => handlePageChange(pageNumber + 1)}
+            disabled={pageNumber === totalPages - 1}
+            className="p-2 rounded-full hover:bg-secondary disabled:opacity-40 transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       )}
     </section>
   );
@@ -607,6 +958,8 @@ export default function TourDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAppStore((s) => s.user);
   const { data: tour, isLoading, error, refetch, isFetching } = useTourDetail(id);
+  const { data: checkpoints } = useTourCheckpoints(id);
+  const { data: apiSchedules } = useTourSchedules(id);
 
   // Loading
   if (isLoading) {
@@ -656,6 +1009,9 @@ export default function TourDetailsPage() {
             {/* Day-by-day itinerary */}
             <ItinerarySection tour={tour} />
 
+            {/* Checkpoints timeline */}
+            <CheckpointsSection checkpoints={checkpoints} />
+
             {/* Image gallery */}
             <ImageGallery key={tour.tourId} tour={tour} />
 
@@ -666,7 +1022,11 @@ export default function TourDetailsPage() {
           {/* Right column — vendor + schedule */}
           <div className="lg:sticky lg:top-24 flex flex-col gap-6 self-start">
             <VendorCard tour={tour} />
-            <ScheduleSection schedules={tour.schedules} tourId={tour.tourId} isLoggedIn={!!user} />
+            <ScheduleSection
+              schedules={apiSchedules || tour.schedules}
+              tourId={tour.tourId}
+              isLoggedIn={!!user}
+            />
           </div>
         </div>
 

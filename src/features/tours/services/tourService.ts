@@ -1,10 +1,16 @@
-import { type ApiResponse, ApiService } from '@/config/apiClient';
+import { type ApiResponse, ApiService, ApiUpload } from '@/config/apiClient';
 import type {
   BookingDetailResponse,
   BookingHistoryApiResponse,
   BookingHistoryParams,
   CreateBookingRequest,
+  CreateReviewRequest,
+  ReviewListParams,
+  ReviewResponse,
+  ReviewSummaryResponse,
+  TourCheckpoint,
   TourDetailFromApi,
+  TourDetailScheduleApi,
   TourListApiResponse,
   TourListParams,
 } from '@/features/tours/types';
@@ -177,28 +183,31 @@ export const tourService = {
 
   async validateVoucher(
     code: string,
-    subtotal: number
+    subtotal: number,
+    vendorId?: string
   ): Promise<{ discountAmount: number; isValid: boolean }> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const uppercaseCode = code.toUpperCase();
-        if (uppercaseCode === 'TREKNEW') {
-          resolve({ discountAmount: 200000, isValid: true });
-        } else if (uppercaseCode === 'SUMMER50') {
-          if (subtotal < 3000000) {
-            reject(
-              new Error('Đơn hàng chưa đạt giá trị tối thiểu 3.000.000đ để áp dụng voucher này')
-            );
-          } else {
-            resolve({ discountAmount: 500000, isValid: true });
-          }
-        } else if (uppercaseCode === 'LIMITEXCEEDED') {
-          reject(new Error('Voucher này đã hết lượt sử dụng'));
-        } else {
-          reject(new Error('Voucher không hợp lệ hoặc đã hết hạn'));
-        }
-      }, 500);
+    const response = await ApiService<{
+      discountAmount: number;
+      message: string;
+      valid: boolean;
+    }>('/vouchers/validate', 'POST', {
+      code,
+      orderValue: subtotal,
+      vendorId: vendorId || '',
     });
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    if (!response.data) {
+      throw new Error(response.message || 'Mã giảm giá không hợp lệ hoặc đã hết hạn');
+    }
+
+    return {
+      discountAmount: response.data.discountAmount,
+      isValid: response.data.valid,
+    };
   },
 
   async createBooking(bookingData: CreateBookingRequest): Promise<BookingDetailResponse> {
@@ -277,14 +286,14 @@ export const tourService = {
     });
   },
 
-  async updatePaymentProof(
-    bookingId: string,
-    proofImageUrl: string
-  ): Promise<BookingDetailResponse> {
-    const response = await ApiService<BookingDetailResponse>(
+  async updatePaymentProof(bookingId: string, file: File): Promise<BookingDetailResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await ApiUpload<BookingDetailResponse>(
       `/bookings/${bookingId}/payment-proof`,
-      'PUT',
-      { proofImageUrl }
+      formData,
+      'POST'
     );
     return unwrapResponse(response);
   },
@@ -346,6 +355,62 @@ export const tourService = {
       undefined,
       queryParams
     );
+    return unwrapResponse(response);
+  },
+
+  async getTourCheckpoints(tourId: string): Promise<TourCheckpoint[]> {
+    const response = await ApiService<TourCheckpoint[]>(`/tours/${tourId}/checkpoints`, 'GET');
+    return unwrapResponse(response);
+  },
+
+  async getTourSchedules(tourId: string): Promise<TourDetailScheduleApi[]> {
+    const response = await ApiService<TourDetailScheduleApi[]>(`/tours/${tourId}/schedules`, 'GET');
+    return unwrapResponse(response);
+  },
+
+  async getTourReviews(
+    tourId: string,
+    params: ReviewListParams = {}
+  ): Promise<ReviewSummaryResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.rating !== undefined) {
+      searchParams.set('rating', String(params.rating));
+    }
+    if (params.keyword !== undefined && params.keyword !== '') {
+      searchParams.set('keyword', params.keyword);
+    }
+    if (params.page !== undefined) {
+      searchParams.set('page', String(params.page));
+    }
+    if (params.size !== undefined) {
+      searchParams.set('size', String(params.size));
+    }
+    if (params.sortBy) {
+      searchParams.set('sortBy', params.sortBy);
+    }
+    if (params.sortDir) {
+      searchParams.set('sortDir', params.sortDir);
+    }
+    const queryString = searchParams.toString();
+    const path = queryString
+      ? `/tours/${tourId}/reviews?${queryString}`
+      : `/tours/${tourId}/reviews`;
+    const response = await ApiService<ReviewSummaryResponse>(path, 'GET');
+    return unwrapResponse(response);
+  },
+
+  async createReview(reviewData: CreateReviewRequest): Promise<ReviewResponse> {
+    const response = await ApiService<ReviewResponse>('/reviews', 'POST', reviewData);
+    return unwrapResponse(response);
+  },
+
+  async updateReviewStatus(
+    reviewId: string,
+    status: 'PENDING' | 'APPROVED' | 'HIDDEN'
+  ): Promise<ReviewResponse> {
+    const response = await ApiService<ReviewResponse>(`/reviews/${reviewId}/status`, 'PATCH', {
+      status,
+    });
     return unwrapResponse(response);
   },
 };

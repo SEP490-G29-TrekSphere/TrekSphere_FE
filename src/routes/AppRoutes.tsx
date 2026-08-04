@@ -28,6 +28,7 @@ const BlogList = lazy(() => import('@/features/news/pages/BlogList'));
 const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
 const EditProfile = lazy(() => import('@/features/profile/pages/EditProfile'));
+const MyApplications = lazy(() => import('@/features/profile/pages/MyApplications'));
 const MyBlogList = lazy(() => import('@/features/trekker-community/pages/MyBlogList'));
 const CreateBlogPost = lazy(() => import('@/features/trekker-community/pages/CreateBlogPost'));
 const ChatList = lazy(() => import('@/features/chat/pages/ChatList'));
@@ -84,6 +85,7 @@ const CoordinatorSessionOperationsPage = lazy(
   () => import('@/features/coordinator/pages/CoordinatorSessionOperationsPage')
 );
 const EmergencySosPage = lazy(() => import('@/features/emergency-sos/pages/EmergencySosPage'));
+const VendorVoucherList = lazy(() => import('@/features/vendor-vouchers/pages/VendorVoucherList'));
 
 function PageLoader() {
   return (
@@ -153,6 +155,7 @@ export default function AppRoutes() {
           <Route path={PATHS.BOOKING_DETAIL} element={<BookingDetail />} />
           <Route path={PATHS.BOOKING_PAYMENT} element={<PayBooking />} />
           <Route path={PATHS.MY_TOURS} element={<MyBookings />} />
+          <Route path={PATHS.MY_VENDOR_APPLICATIONS} element={<MyApplications />} />
         </Route>
 
         {/* Admin routes — yêu cầu role admin, dùng AdminLayout với sidebar riêng */}
@@ -207,6 +210,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_MANAGER_SESSIONS} element={<SessionList />} />
           <Route path={PATHS.VENDOR_MANAGER_SESSION_DETAIL} element={<SessionDetail />} />
           <Route path={PATHS.VENDOR_MANAGER_EMERGENCY} element={<EmergencySosPage />} />
+          <Route path={PATHS.VENDOR_MANAGER_VOUCHERS} element={<VendorVoucherList />} />
         </Route>
 
         {/* Vendor Staff routes — yêu cầu role vendor_staff, dùng VendorStaffLayout riêng */}
@@ -232,6 +236,7 @@ export default function AppRoutes() {
           <Route path={PATHS.PARTNER_SESSIONS} element={<SessionList />} />
           <Route path={PATHS.PARTNER_SESSION_DETAIL} element={<SessionDetail />} />
           <Route path={PATHS.PARTNER_BLOG_CREATE} element={<CreateBlogPost />} />
+          <Route path={PATHS.PARTNER_VOUCHERS} element={<VendorVoucherList />} />
         </Route>
 
         {/* Coordinator routes — sidebar riêng (SummitGuard), không dùng MainLayout nữa */}

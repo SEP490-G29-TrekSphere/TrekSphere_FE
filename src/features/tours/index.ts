@@ -13,9 +13,12 @@ export { default as ToursHero } from './components/ToursHero';
 
 // Tour Details Components
 export * from './components/tour-details';
-
+export { useAdminReviewMutations } from './hooks/useAdminReviewMutations';
+export { useTourCheckpoints } from './hooks/useTourCheckpoints';
 // Hooks
 export { useTourDetail } from './hooks/useTourDetail';
+export { useTourReviews } from './hooks/useTourReviews';
+export { useTourSchedules } from './hooks/useTourSchedules';
 export { useTours } from './hooks/useTours';
 export { default as BookingDetail } from './pages/BookingDetail';
 export { default as BookTour } from './pages/BookTour';
@@ -36,6 +39,7 @@ export type {
   Tour,
   TourApiItem,
   TourCategory,
+  TourCheckpoint,
   TourDetail,
   TourDetailFromApi,
   TourDetailImageApi,

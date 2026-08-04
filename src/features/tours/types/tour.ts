@@ -287,12 +287,20 @@ export interface TourDetailImageApi {
  */
 export interface TourDetailScheduleApi {
   scheduleId: string;
+  tourId: string;
   departureDate: string;
   returnDate: string;
   availableSlots: number;
   bookedSlots: number;
   price: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  deletedAt: string | null;
+  deletedBy: string | null;
 }
 
 /**
@@ -309,8 +317,9 @@ export interface TourDetailFromApi {
   location: string;
   durationDays: number;
   basePrice: number;
-  minCapacity?: number;
+  minCapacity: number;
   maxCapacity: number;
+  totalDistanceKm: number;
   highlights: string | null;
   includes: string | null;
   excludes: string | null;
@@ -323,6 +332,9 @@ export interface TourDetailFromApi {
   vendorLogoUrl: string | null;
   vendorContactEmail: string | null;
   vendorContactPhone: string | null;
+  creatorId: string;
+  creatorName: string;
+  creatorEmail: string;
   images: TourDetailImageApi[];
   schedules: TourDetailScheduleApi[];
   averageRating: number | null;
@@ -427,6 +439,7 @@ export interface BookingDetailResponse {
   userFullName: string;
   userPhone: string;
   participants: BookingParticipantFromApi[];
+  reviewed?: boolean;
 }
 
 export interface BookingCancelRequest {
@@ -465,4 +478,87 @@ export interface ApiResponseBookingDetailResponse {
     timestamp?: string;
   }>;
   timestamp?: string;
+}
+
+export interface TourCheckpoint {
+  checkpointId: string;
+  tourId: string;
+  checkpointName: string;
+  description: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  altitude: number | null;
+  checkpointOrder: number;
+  checkpointImageUrl: string | null;
+}
+
+export interface ReviewItem {
+  reviewId: string;
+  rating: number;
+  content: string;
+  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
+  userId: string;
+  userFullName: string;
+  userAvatarUrl: string | null;
+  tourId: string;
+  tourName: string;
+  tourCoverImageUrl: string | null;
+  bookingId: string;
+  bookingCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewSummaryResponse {
+  averageRating: number;
+  totalReviews: number;
+  fiveStar: number;
+  fourStar: number;
+  threeStar: number;
+  twoStar: number;
+  oneStar: number;
+  reviews: {
+    content: ReviewItem[];
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+  };
+}
+
+export interface ReviewListParams {
+  rating?: number;
+  keyword?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: string;
+}
+
+export interface CreateReviewRequest {
+  bookingId: string;
+  rating: number;
+  content: string;
+}
+
+export interface ReviewResponse {
+  reviewId: string;
+  rating: number;
+  content: string;
+  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
+  userId: string;
+  userFullName: string;
+  userAvatarUrl: string | null;
+  tourId: string;
+  tourName: string;
+  tourCoverImageUrl: string | null;
+  bookingId: string;
+  bookingCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateReviewStatusRequest {
+  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
 }

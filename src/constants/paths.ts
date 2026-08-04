@@ -32,6 +32,7 @@ export const PATHS = {
   BOOKING_DETAIL: '/bookings/:bookingId',
   BOOKING_PAYMENT: '/bookings/:bookingId/payment',
   MY_TOURS: '/my-tours',
+  MY_VENDOR_APPLICATIONS: '/my-vendor-applications',
   GROUPS: '/groups',
   GROUPS_CREATE: '/groups/create',
   GROUPS_JOIN: '/groups/:groupId/join',
@@ -89,6 +90,7 @@ export const PATHS = {
   VENDOR_MANAGER_SESSIONS: '/vendor-manager/sessions',
   VENDOR_MANAGER_SESSION_DETAIL: '/vendor-manager/sessions/:sessionId',
   VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
+  VENDOR_MANAGER_VOUCHERS: '/vendor-manager/vouchers',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',
@@ -105,6 +107,7 @@ export const PATHS = {
   PARTNER_SESSIONS: '/partner/sessions',
   PARTNER_SESSION_DETAIL: '/partner/sessions/:sessionId',
   PARTNER_BLOG_CREATE: '/partner/blog/create',
+  PARTNER_VOUCHERS: '/partner/vouchers',
 
   // Admin — Blog moderation
   ADMIN_BLOGS: '/admin/blogs',
