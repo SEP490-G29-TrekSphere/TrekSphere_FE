@@ -9,6 +9,7 @@ import {
   Newspaper,
   Search,
   Settings,
+  Siren,
   Ticket,
   User,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ const adminNavItems = [
   { name: 'Quản lý Nhà cung cấp', path: PATHS.ADMIN_VENDORS, icon: Building2 },
   { name: 'Duyệt Tour', path: PATHS.ADMIN_APPLICATIONS, icon: ClipboardCheck },
   { name: 'Báo cáo Vi phạm', path: PATHS.ADMIN_REPORTS, icon: AlertTriangle },
+  { name: 'Khẩn cấp (SOS)', path: PATHS.ADMIN_EMERGENCY, icon: Siren },
   { name: 'Quản lý Blog', path: PATHS.ADMIN_BLOGS, icon: Newspaper },
   { name: 'Quản lý Dữ liệu', path: PATHS.ADMIN_DATA, icon: Database, disabled: true },
   { name: 'Duyệt Voucher', path: PATHS.ADMIN_VOUCHERS, icon: Ticket, disabled: true },
@@ -76,10 +78,14 @@ export default function AdminLayout() {
         <div className="flex flex-col py-6">
           {/* Header/Logo */}
           <div className="px-6 mb-8">
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
-              TrekSphere
-            </h1>
-            <span className="text-xs text-zinc-500 font-medium tracking-wide">TRANG QUẢN TRỊ</span>
+            <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
+              <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
+                TrekSphere
+              </h1>
+              <span className="text-xs text-zinc-500 font-medium tracking-wide">
+                TRANG QUẢN TRỊ
+              </span>
+            </Link>
           </div>
 
           {/* Navigation Items */}

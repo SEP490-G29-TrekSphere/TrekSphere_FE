@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   LogOut,
   Map as MapIcon,
+  Siren,
   Tag,
   Ticket,
   UserRound,
@@ -33,6 +34,7 @@ const navItems = [
   { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
   { name: 'Thiết bị', path: PATHS.VENDOR_MANAGER_EQUIPMENT, icon: Backpack, disabled: false },
   { name: 'Porter', path: PATHS.VENDOR_MANAGER_PORTERS, icon: Footprints, disabled: false },
+  { name: 'Khẩn cấp (SOS)', path: PATHS.VENDOR_MANAGER_EMERGENCY, icon: Siren, disabled: false },
   { name: 'Báo cáo', path: '', icon: BarChart3, disabled: true },
 ];
 
@@ -58,15 +60,17 @@ export default function VendorManagerLayout() {
       >
         <div className="flex flex-col py-6">
           <div className="px-6 mb-8">
-            <h1
-              className="text-3xl font-extrabold tracking-tight leading-none mb-1"
-              style={{ color: '#06261D' }}
-            >
-              TrekManager
-            </h1>
-            <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
-              Quản lý đoàn leo núi
-            </span>
+            <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
+              <h1
+                className="text-3xl font-extrabold tracking-tight leading-none mb-1"
+                style={{ color: '#06261D' }}
+              >
+                TrekManager
+              </h1>
+              <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
+                Quản lý đoàn leo núi
+              </span>
+            </Link>
           </div>
 
           <nav className="px-4 space-y-1">

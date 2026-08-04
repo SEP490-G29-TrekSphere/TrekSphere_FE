@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { PATHS, ROLES } from '@/constants';
+import { getTrekkerBookingPaymentPath, PATHS, ROLES } from '@/constants';
 import { AccountDetail, AccountList, AdminDashboard, BlogManagement } from '@/features/admin';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import RequireRole from '@/routes/RequireRole';
@@ -43,6 +43,9 @@ const JoinGroupRequestPage = lazy(
   () => import('@/features/companion-groups/pages/JoinGroupRequestPage')
 );
 const AdminLayout = lazy(() => import('@/shared/layout/AdminLayout'));
+const TrekkerLayout = lazy(() => import('@/features/trekker/layout/TrekkerLayout'));
+const TrekkerViewProfile = lazy(() => import('@/features/trekker/pages/TrekkerViewProfile'));
+const TrekkerChangePassword = lazy(() => import('@/features/trekker/pages/TrekkerChangePassword'));
 
 const Applications = lazy(() => import('@/features/admin/pages/Applications'));
 const ApplicationDetails = lazy(() => import('@/features/admin/pages/ApplicationDetails'));
@@ -80,6 +83,11 @@ const VendorProfileEdit = lazy(() => import('@/features/vendor-profile/pages/Ven
 const CoordinatorSchedulesPage = lazy(
   () => import('@/features/coordinator/pages/CoordinatorSchedulesPage')
 );
+const CoordinatorLayout = lazy(() => import('@/features/coordinator/layout/CoordinatorLayout'));
+const CoordinatorSessionOperationsPage = lazy(
+  () => import('@/features/coordinator/pages/CoordinatorSessionOperationsPage')
+);
+const EmergencySosPage = lazy(() => import('@/features/emergency-sos/pages/EmergencySosPage'));
 const VendorVoucherList = lazy(() => import('@/features/vendor-vouchers/pages/VendorVoucherList'));
 
 function PageLoader() {
@@ -153,6 +161,42 @@ export default function AppRoutes() {
           <Route path={PATHS.MY_VENDOR_APPLICATIONS} element={<MyApplications />} />
         </Route>
 
+        {/* Trekker routes — sidebar riêng (TrekSphere portal) */}
+        <Route
+          path={PATHS.TREKKER}
+          element={
+            <RequireRole allowedRoles={[ROLES.TREKKER]}>
+              <TrekkerLayout />
+            </RequireRole>
+          }
+        >
+          <Route index element={<Navigate to={PATHS.TREKKER_PROFILE} replace />} />
+          <Route path={PATHS.TREKKER_PROFILE} element={<TrekkerViewProfile />} />
+          <Route
+            path={PATHS.TREKKER_PROFILE_EDIT}
+            element={<EditProfile returnPath={PATHS.TREKKER_PROFILE} />}
+          />
+          <Route path={PATHS.TREKKER_MY_TOURS} element={<MyBookings useTrekkerPaths />} />
+          <Route path={PATHS.TREKKER_VENDOR_APPLICATIONS} element={<MyApplications />} />
+          <Route path={PATHS.TREKKER_BLOG_LIST} element={<MyBlogList />} />
+          <Route path={PATHS.TREKKER_BLOG_CREATE} element={<CreateBlogPost />} />
+          <Route path={PATHS.TREKKER_BLOG_EDIT} element={<CreateBlogPost editMode />} />
+          <Route path={PATHS.TREKKER_CHANGE_PASSWORD} element={<TrekkerChangePassword />} />
+          <Route
+            path={PATHS.TREKKER_BOOKING_DETAIL}
+            element={
+              <BookingDetail
+                backPath={PATHS.TREKKER_MY_TOURS}
+                paymentPath={getTrekkerBookingPaymentPath}
+              />
+            }
+          />
+          <Route
+            path={PATHS.TREKKER_BOOKING_PAYMENT}
+            element={<PayBooking backPath={PATHS.TREKKER_BOOKING_DETAIL} />}
+          />
+        </Route>
+
         {/* Admin routes — yêu cầu role admin, dùng AdminLayout với sidebar riêng */}
         <Route
           path={PATHS.ADMIN}
@@ -176,6 +220,7 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_REPORT_DETAIL} element={<ReportDetail />} />
           <Route path={PATHS.ADMIN_BLOGS} element={<BlogManagement />} />
           <Route path={PATHS.ADMIN_SETTINGS} element={<SystemSettings />} />
+          <Route path={PATHS.ADMIN_EMERGENCY} element={<EmergencySosPage />} />
         </Route>
 
         {/* Vendor Manager routes — yêu cầu role vendor_manager, dùng VendorManagerLayout riêng */}
@@ -203,6 +248,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_MANAGER_PORTER_EDIT} element={<PorterEdit />} />
           <Route path={PATHS.VENDOR_MANAGER_SESSIONS} element={<SessionList />} />
           <Route path={PATHS.VENDOR_MANAGER_SESSION_DETAIL} element={<SessionDetail />} />
+          <Route path={PATHS.VENDOR_MANAGER_EMERGENCY} element={<EmergencySosPage />} />
           <Route path={PATHS.VENDOR_MANAGER_VOUCHERS} element={<VendorVoucherList />} />
         </Route>
 
@@ -232,8 +278,9 @@ export default function AppRoutes() {
           <Route path={PATHS.PARTNER_VOUCHERS} element={<VendorVoucherList />} />
         </Route>
 
-        {/* Coordinator routes — dùng MainLayout */}
+        {/* Coordinator routes — sidebar riêng (SummitGuard), không dùng MainLayout nữa */}
         <Route
+          path={PATHS.COORDINATOR}
           element={
             <RequireRole
               allowedRoles={[
@@ -243,11 +290,16 @@ export default function AppRoutes() {
                 ROLES.ADMIN,
               ]}
             >
-              <MainLayout />
+              <CoordinatorLayout />
             </RequireRole>
           }
         >
+          <Route index element={<Navigate to={PATHS.COORDINATOR_SCHEDULES} replace />} />
           <Route path={PATHS.COORDINATOR_SCHEDULES} element={<CoordinatorSchedulesPage />} />
+          <Route
+            path={PATHS.COORDINATOR_SESSION_OPERATIONS}
+            element={<CoordinatorSessionOperationsPage />}
+          />
         </Route>
       </Routes>
     </Suspense>

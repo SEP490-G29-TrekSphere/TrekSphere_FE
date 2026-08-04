@@ -106,13 +106,17 @@ type ChatMessageFormValues = z.infer<typeof chatMessageSchema>;
 function ChatAutoScroller({ dependencies }: { dependencies: unknown[] }) {
   const { scrollToBottom } = useMessageScroller();
 
-  useEffect(() => {
-    // Small timeout to allow DOM to update before scrolling
-    const timeoutId = setTimeout(() => {
-      scrollToBottom();
-    }, 10);
-    return () => clearTimeout(timeoutId);
-  }, dependencies);
+  useEffect(
+    () => {
+      // Small timeout to allow DOM to update before scrolling
+      const timeoutId = setTimeout(() => {
+        scrollToBottom();
+      }, 10);
+      return () => clearTimeout(timeoutId);
+    },
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Custom dependency array passed as prop
+    dependencies
+  );
 
   return null;
 }
@@ -124,9 +128,10 @@ export default function ChatList() {
   const [page, _setPage] = useState(1);
   const [size, _setSize] = useState(10);
   const { data: apiResponse, isLoading, error } = useChatConversations({ page, size });
+  const sendMessageMutation = useSendMessage();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [localMessages, _setLocalMessages] = useState<Record<string, DetailMessage[]>>({});
+  const [_localMessages, _setLocalMessages] = useState<Record<string, DetailMessage[]>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
@@ -294,9 +299,8 @@ export default function ChatList() {
       })
       .reverse();
 
-    const localMsgs = localMessages[selectedId] || [];
-    return [...apiMsgs, ...localMsgs];
-  }, [messagesResponse, selectedId, user?.id, localMessages]);
+    return apiMsgs;
+  }, [messagesResponse, selectedId, user?.id]);
 
   const filteredConversations = conversations
     .filter((c) => {
@@ -335,7 +339,6 @@ export default function ChatList() {
           : c
       )
     );
-    reset({ message: '' });
   };
 
   return (
@@ -787,16 +790,22 @@ export default function ChatList() {
                     <div className="flex items-end gap-3">
                       <textarea
                         rows={2}
-                        placeholder="Nhập tin nhắn của bạn tại đây..."
+                        placeholder={
+                          sendMessageMutation.isPending
+                            ? 'Đang gửi...'
+                            : 'Nhập tin nhắn của bạn tại đây...'
+                        }
                         {...register('message')}
+                        disabled={sendMessageMutation.isPending}
                         aria-invalid={errors.message ? 'true' : 'false'}
                         aria-describedby={errors.message ? 'chat-message-error' : undefined}
-                        className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1"
+                        className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground py-1 disabled:opacity-50"
                       />
                       <Button
                         type="submit"
                         size="icon"
                         aria-label="Gửi"
+                        disabled={sendMessageMutation.isPending}
                         className="rounded-full flex-shrink-0 transition-transform hover:scale-105 active:scale-95"
                       >
                         <Send className="h-4 w-4" />

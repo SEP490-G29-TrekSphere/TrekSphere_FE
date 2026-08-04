@@ -27,12 +27,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { getBookingPaymentPath } from '@/constants/paths';
+// import { profileService } from '@/features/profile/services/profileService';
+import { BookingSosPanel } from '@/features/tours/components/BookingSosPanel';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import { PAYMENT_DEADLINE_SECONDS, tourService } from '@/features/tours/services/tourService';
 import type { BookingDetailResponse } from '@/features/tours/types';
-import { AppButton, AppCard } from '@/shared/ui';
+import { AppButton, AppCard, ConfirmActionDialog } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { formatCountdown, formatDate, formatPrice } from '@/utils/format';
+import { getCurrentPosition } from '@/utils/geolocation';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
 
@@ -42,7 +45,13 @@ const GENDER_MAP: Record<string, string> = {
   OTHER: 'Khác',
 };
 
-export default function BookingDetail() {
+export default function BookingDetail({
+  backPath = '/my-tours',
+  paymentPath,
+}: {
+  backPath?: string;
+  paymentPath?: (bookingId: string) => string;
+}) {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<BookingDetailResponse | null>(null);
@@ -59,6 +68,9 @@ export default function BookingDetail() {
   const [updatingProof, setUpdatingProof] = useState(false);
   const [proofError, setProofError] = useState('');
 
+  const [pendingSos, setPendingSos] = useState<{ message?: string } | null>(null);
+  const [sendingSos, setSendingSos] = useState(false);
+  const [sosSentAt, setSosSentAt] = useState<string | undefined>(undefined);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState('');
@@ -139,6 +151,28 @@ export default function BookingDetail() {
       toast.error(err instanceof Error ? err.message : 'Không thể gửi đánh giá. Vui lòng thử lại.');
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleRequestSos = (message?: string) => setPendingSos({ message });
+
+  const handleConfirmSendSos = async () => {
+    if (!booking?.tourSessionId) return;
+    setSendingSos(true);
+    try {
+      const position = await getCurrentPosition();
+      const result = await tourService.sendSos({
+        tourSessionId: booking.tourSessionId,
+        ...position,
+        message: pendingSos?.message,
+      });
+      setSosSentAt(result.createdAt);
+      toast.success('Đã gửi tín hiệu SOS tới đội cứu hộ.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Không thể gửi tín hiệu SOS.');
+    } finally {
+      setSendingSos(false);
+      setPendingSos(null);
     }
   };
 
@@ -223,7 +257,7 @@ export default function BookingDetail() {
         <p className="text-zinc-500 font-semibold text-sm mt-2">
           Vui lòng kiểm tra lại mã đơn hoặc quay về danh sách đơn đặt.
         </p>
-        <AppButton onClick={() => navigate('/my-tours')} className="mt-6">
+        <AppButton onClick={() => navigate(backPath)} className="mt-6">
           Quay lại danh sách tour
         </AppButton>
       </div>
@@ -237,7 +271,7 @@ export default function BookingDetail() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/my-tours')}
+            onClick={() => navigate(backPath)}
             aria-label="Quay lại danh sách tour"
             className="p-2 hover:bg-white border border-transparent hover:border-[#E5E4DE] rounded-full transition-all cursor-pointer"
           >
@@ -330,7 +364,7 @@ export default function BookingDetail() {
               {formatCountdown(timeLeft)}
             </span>
             <AppButton
-              onClick={() => navigate(getBookingPaymentPath(booking.bookingId))}
+              onClick={() => navigate((paymentPath ?? getBookingPaymentPath)(booking.bookingId))}
               className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs border-none"
             >
               Thanh toán ngay
@@ -619,7 +653,9 @@ export default function BookingDetail() {
             <div className="space-y-3 pt-2">
               {isPendingPayment && (
                 <AppButton
-                  onClick={() => navigate(getBookingPaymentPath(booking.bookingId))}
+                  onClick={() =>
+                    navigate((paymentPath ?? getBookingPaymentPath)(booking.bookingId))
+                  }
                   className="w-full bg-[#0B3025] hover:bg-[#072019] text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-sm transition-colors border-none text-xs"
                 >
                   <CreditCard className="h-4 w-4" />
@@ -658,6 +694,14 @@ export default function BookingDetail() {
             </div>
           </AppCard>
 
+          {booking.bookingStatus === 'CONFIRMED' && booking.tourSessionId && (
+            <BookingSosPanel
+              onSendSos={handleRequestSos}
+              isSending={sendingSos}
+              lastSentAt={sosSentAt}
+            />
+          )}
+
           {/* Additional info badge */}
           <div className="p-5 bg-white border border-[#E5E4DE] rounded-3xl text-zinc-500 font-semibold text-xs space-y-2">
             <div className="flex items-center gap-2 text-zinc-800 font-bold">
@@ -670,6 +714,19 @@ export default function BookingDetail() {
           </div>
         </div>
       </div>
+
+      {pendingSos && (
+        <ConfirmActionDialog
+          title="Chia sẻ vị trí để gửi SOS"
+          description='Tín hiệu SOS sẽ gửi kèm toạ độ GPS hiện tại của bạn ngay lập tức cho đội hỗ trợ. Trình duyệt có thể hỏi quyền truy cập vị trí — hãy chọn "Cho phép".'
+          confirmLabel="Cho phép & Gửi SOS"
+          cancelLabel="Để sau"
+          variant="destructive"
+          isPending={sendingSos}
+          onConfirm={handleConfirmSendSos}
+          onCancel={() => setPendingSos(null)}
+        />
+      )}
 
       {/* Cancel Booking Confirmation Dialog */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
