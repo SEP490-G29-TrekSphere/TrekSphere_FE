@@ -69,6 +69,7 @@ export const PATHS = {
   ADMIN_REPORT_DETAIL: '/admin/reports/:id',
   ADMIN_VOUCHERS: '/admin/vouchers',
   ADMIN_SETTINGS: '/admin/settings',
+  ADMIN_EMERGENCY: '/admin/emergency',
 
   // Vendor Manager (TrekManager portal)
   VENDOR_MANAGER: '/vendor-manager',
@@ -87,6 +88,7 @@ export const PATHS = {
   VENDOR_MANAGER_PORTER_EDIT: '/vendor-manager/porters/:id/edit',
   VENDOR_MANAGER_SESSIONS: '/vendor-manager/sessions',
   VENDOR_MANAGER_SESSION_DETAIL: '/vendor-manager/sessions/:sessionId',
+  VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',
@@ -108,7 +110,9 @@ export const PATHS = {
   ADMIN_BLOGS: '/admin/blogs',
 
   // Coordinator
+  COORDINATOR: '/coordinator',
   COORDINATOR_SCHEDULES: '/coordinator/schedules',
+  COORDINATOR_SESSION_OPERATIONS: '/coordinator/sessions/:sessionId',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
@@ -133,3 +137,5 @@ export const getVendorManagerSessionDetailPath = (sessionId: string) =>
   PATHS.VENDOR_MANAGER_SESSION_DETAIL.replace(':sessionId', sessionId);
 export const getPartnerSessionDetailPath = (sessionId: string) =>
   PATHS.PARTNER_SESSION_DETAIL.replace(':sessionId', sessionId);
+export const getCoordinatorSessionOperationsPath = (sessionId: string) =>
+  PATHS.COORDINATOR_SESSION_OPERATIONS.replace(':sessionId', sessionId);

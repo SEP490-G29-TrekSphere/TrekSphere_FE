@@ -27,12 +27,14 @@ import {
 } from '@/components/ui/dialog';
 import { getBookingPaymentPath } from '@/constants/paths';
 import { profileService } from '@/features/profile/services/profileService';
+import { BookingSosPanel } from '@/features/tours/components/BookingSosPanel';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
 import { PAYMENT_DEADLINE_SECONDS, tourService } from '@/features/tours/services/tourService';
 import type { BookingDetailResponse } from '@/features/tours/types';
-import { AppButton, AppCard } from '@/shared/ui';
+import { AppButton, AppCard, ConfirmActionDialog } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { formatCountdown, formatDate, formatPrice } from '@/utils/format';
+import { getCurrentPosition } from '@/utils/geolocation';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
 
@@ -58,6 +60,10 @@ export default function BookingDetail() {
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string>('');
   const [updatingProof, setUpdatingProof] = useState(false);
   const [proofError, setProofError] = useState('');
+
+  const [pendingSos, setPendingSos] = useState<{ message?: string } | null>(null);
+  const [sendingSos, setSendingSos] = useState(false);
+  const [sosSentAt, setSosSentAt] = useState<string | undefined>(undefined);
 
   const isPendingPayment =
     booking?.bookingStatus === 'PENDING' &&
@@ -101,6 +107,28 @@ export default function BookingDetail() {
 
   const handleWriteReview = () => {
     toast.info('Tính năng đánh giá tour đang được phát triển!');
+  };
+
+  const handleRequestSos = (message?: string) => setPendingSos({ message });
+
+  const handleConfirmSendSos = async () => {
+    if (!booking?.tourSessionId) return;
+    setSendingSos(true);
+    try {
+      const position = await getCurrentPosition();
+      const result = await tourService.sendSos({
+        tourSessionId: booking.tourSessionId,
+        ...position,
+        message: pendingSos?.message,
+      });
+      setSosSentAt(result.createdAt);
+      toast.success('Đã gửi tín hiệu SOS tới đội cứu hộ.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Không thể gửi tín hiệu SOS.');
+    } finally {
+      setSendingSos(false);
+      setPendingSos(null);
+    }
   };
 
   const handleConfirmCancel = async () => {
@@ -629,6 +657,14 @@ export default function BookingDetail() {
             </div>
           </AppCard>
 
+          {booking.bookingStatus === 'CONFIRMED' && booking.tourSessionId && (
+            <BookingSosPanel
+              onSendSos={handleRequestSos}
+              isSending={sendingSos}
+              lastSentAt={sosSentAt}
+            />
+          )}
+
           {/* Additional info badge */}
           <div className="p-5 bg-white border border-[#E5E4DE] rounded-3xl text-zinc-500 font-semibold text-xs space-y-2">
             <div className="flex items-center gap-2 text-zinc-800 font-bold">
@@ -641,6 +677,19 @@ export default function BookingDetail() {
           </div>
         </div>
       </div>
+
+      {pendingSos && (
+        <ConfirmActionDialog
+          title="Chia sẻ vị trí để gửi SOS"
+          description='Tín hiệu SOS sẽ gửi kèm toạ độ GPS hiện tại của bạn ngay lập tức cho đội hỗ trợ. Trình duyệt có thể hỏi quyền truy cập vị trí — hãy chọn "Cho phép".'
+          confirmLabel="Cho phép & Gửi SOS"
+          cancelLabel="Để sau"
+          variant="destructive"
+          isPending={sendingSos}
+          onConfirm={handleConfirmSendSos}
+          onCancel={() => setPendingSos(null)}
+        />
+      )}
 
       {/* Cancel Booking Confirmation Dialog */}
       <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
