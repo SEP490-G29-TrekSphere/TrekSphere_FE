@@ -2,29 +2,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
   BarChart3,
-  Bell,
-  Bold,
   CalendarRange,
   Compass,
   Download,
   FileText,
   HelpCircle,
-  Image as ImageIcon,
-  Italic,
   LayoutDashboard,
-  List,
   MessageSquare,
-  MoreVertical,
-  Paperclip,
   Plus,
-  Search,
   Send,
   Settings as SettingsIcon,
-  Smile,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import * as z from 'zod';
 import {
   Attachment,
@@ -39,7 +30,6 @@ import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Marker, MarkerContent } from '@/components/ui/marker';
 import { Message, MessageAvatar, MessageContent, MessageFooter } from '@/components/ui/message';
 import {
@@ -49,14 +39,16 @@ import {
   MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
+  useMessageScroller,
 } from '@/components/ui/message-scroller';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
-import type { Conversation, DetailMessage } from '@/features/chat/types/types';
+import type { Conversation, DetailMessage, MessageResponse } from '@/features/chat/types/types';
 import { AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
+import { useChatWebSocket } from '../context/ChatWebSocketContext';
 import { useChatConversations } from '../hooks/useChatConversations';
 import { useChatMessages } from '../hooks/useChatMessages';
 import { useSendMessage } from '../hooks/useSendMessage';
@@ -100,19 +92,46 @@ const chatMessageSchema = z.object({
 
 type ChatMessageFormValues = z.infer<typeof chatMessageSchema>;
 
+function ChatAutoScroller({ dependencies }: { dependencies: unknown[] }) {
+  const { scrollToBottom } = useMessageScroller();
+
+  useEffect(
+    () => {
+      // Small timeout to allow DOM to update before scrolling
+      const timeoutId = setTimeout(() => {
+        scrollToBottom();
+      }, 10);
+      return () => clearTimeout(timeoutId);
+    },
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Custom dependency array passed as prop
+    dependencies
+  );
+
+  return null;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function ChatList() {
+interface ChatListProps {
+  hideSidebar?: boolean;
+}
+
+export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const { user } = useAppStore();
+  const [searchParams] = useSearchParams();
+  const paramConversationId = searchParams.get('conversationId');
   const [page, _setPage] = useState(1);
   const [size, _setSize] = useState(10);
   const { data: apiResponse, isLoading, error } = useChatConversations({ page, size });
   const sendMessageMutation = useSendMessage();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [_localMessages, _setLocalMessages] = useState<Record<string, DetailMessage[]>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const [searchQuery, _setSearchQuery] = useState('');
+
+  const { client, isConnected } = useChatWebSocket();
+  const { mutate: sendMessage } = useSendMessage();
 
   const {
     data: messagesResponse,
@@ -138,6 +157,65 @@ export default function ChatList() {
   useEffect(() => {
     reset({ message: '' });
   }, [selectedId, reset]);
+
+  // WebSocket Subscription
+  useEffect(() => {
+    if (!client || !isConnected || !selectedId) return;
+
+    const subscription = client.subscribe(
+      `/topic/chat/conversations/${selectedId}/messages`,
+      (message) => {
+        if (message.body) {
+          try {
+            const parsed = JSON.parse(message.body);
+
+            // Cập nhật React Query cache
+            // biome-ignore lint/suspicious/noExplicitAny: React Query cache structure
+            queryClient.setQueryData(['chatMessages', selectedId, 1, 50], (oldData: any) => {
+              if (!oldData) return oldData;
+
+              // Tránh duplicate tin nhắn
+              const isExist = oldData.content?.some(
+                (msg: MessageResponse) => msg.messageId === parsed.messageId
+              );
+              if (isExist) return oldData;
+
+              return {
+                ...oldData,
+                content: [parsed, ...oldData.content],
+              };
+            });
+
+            // Cập nhật last message trong danh sách conversation
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.id === selectedId
+                  ? {
+                      ...c,
+                      lastMessage:
+                        parsed.content?.length > 22
+                          ? `${parsed.content.substring(0, 22)}...`
+                          : parsed.content,
+                      lastMessageTime: new Date(parsed.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }),
+                      timestamp: parsed.createdAt,
+                    }
+                  : c
+              )
+            );
+          } catch (e) {
+            console.error('Failed to parse incoming message', e);
+          }
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client, isConnected, selectedId]);
 
   // Sync API response to local state
   useEffect(() => {
@@ -168,6 +246,9 @@ export default function ChatList() {
 
       if (mapped.length > 0) {
         setSelectedId((prev) => {
+          if (paramConversationId && mapped.some((c) => c.id === paramConversationId)) {
+            return paramConversationId;
+          }
           if (prev && mapped.some((c) => c.id === prev)) return prev;
           return mapped[0].id;
         });
@@ -175,7 +256,13 @@ export default function ChatList() {
         setSelectedId(null);
       }
     }
-  }, [apiResponse]);
+  }, [apiResponse, paramConversationId]);
+
+  useEffect(() => {
+    if (paramConversationId) {
+      setSelectedId(paramConversationId);
+    }
+  }, [paramConversationId]);
 
   // Error toast feedback
   useEffect(() => {
@@ -223,7 +310,7 @@ export default function ChatList() {
       const matchesSearch =
         c.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.lastMessage.toLowerCase().includes(searchQuery.toLowerCase());
-      return activeTab === 'unread' ? matchesSearch && c.unread : matchesSearch;
+      return matchesSearch;
     })
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -235,135 +322,103 @@ export default function ChatList() {
   const onSubmitMessage = (data: ChatMessageFormValues) => {
     if (!selectedId) return;
     const msgText = data.message;
-    sendMessageMutation.mutate(
-      {
-        conversationId: selectedId,
-        content: msgText,
-      },
-      {
-        onSuccess: () => {
-          reset({ message: '' });
-        },
-        onError: (err: any) => {
-          toast.error(err.message || 'Không thể gửi tin nhắn');
-        },
-      }
+
+    // Gọi API để gửi tin nhắn
+    sendMessage({
+      conversationId: selectedId,
+      content: msgText,
+    });
+
+    // Optimistic UI updates
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === selectedId
+          ? {
+              ...c,
+              lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+              lastMessageTime: 'Vừa xong',
+              timestamp: new Date().toISOString(),
+            }
+          : c
+      )
     );
+
+    // Xóa nội dung trên trường tin nhắn sau khi gửi
+    reset({ message: '' });
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+    <div
+      className={`flex w-full overflow-hidden bg-background text-foreground ${hideSidebar ? 'h-full' : 'h-screen'}`}
+    >
       {/* ── 1. Sidebar ─────────────────────────────────────────────────── */}
-      <aside className="hidden w-64 flex-col border-r border-border bg-background p-6 md:flex">
-        {/* Logo */}
-        <div className="mb-6 flex flex-col gap-1">
-          <span className="text-3xl font-extrabold tracking-tight text-primary">TrekSphere</span>
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            TRANG NHÂN VIÊN
-          </span>
-        </div>
+      {!hideSidebar && (
+        <aside className="hidden w-64 flex-col border-r border-border bg-background p-6 md:flex">
+          {/* Logo */}
+          <div className="mb-6 flex flex-col gap-1">
+            <span className="text-3xl font-extrabold tracking-tight text-primary">TrekSphere</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              TRANG NHÂN VIÊN
+            </span>
+          </div>
 
-        {/* New journey button */}
-        <Button
-          className="mb-8 w-full rounded-full"
-          onClick={() => toast.info('Tính năng Hành trình Mới đang được phát triển.')}
-        >
-          <Plus data-icon="inline-start" />
-          Hành trình Mới
-        </Button>
-
-        {/* Nav */}
-        <nav className="flex-1 flex flex-col gap-1">
-          {[
-            { to: PATHS.DASHBOARD, icon: LayoutDashboard, label: 'Bảng điều khiển' },
-            { to: PATHS.TOURS, icon: Compass, label: 'Tour du lịch' },
-            { to: PATHS.DASHBOARD, icon: CalendarRange, label: 'Đặt chỗ' },
-            { to: PATHS.DASHBOARD, icon: BarChart3, label: 'Báo cáo' },
-          ].map(({ to, icon: Icon, label }) => (
-            <Link
-              key={label}
-              to={to}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          ))}
-          <Link
-            to={PATHS.CHAT}
-            className="relative flex items-center gap-3 rounded-xl bg-muted px-4 py-3 text-sm font-bold text-primary transition-all"
+          {/* New journey button */}
+          <Button
+            className="mb-8 w-full rounded-full"
+            onClick={() => toast.info('Tính năng Hành trình Mới đang được phát triển.')}
           >
-            <MessageSquare className="h-5 w-5" />
-            Trò chuyện
-            <span className="absolute right-4 top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-primary" />
-          </Link>
-        </nav>
+            <Plus data-icon="inline-start" />
+            Hành trình Mới
+          </Button>
 
-        {/* Footer */}
-        <div className="border-t border-border pt-4 flex flex-col gap-1">
-          {[
-            { to: PATHS.SETTINGS, icon: SettingsIcon, label: 'Cài đặt' },
-            { to: PATHS.DASHBOARD, icon: HelpCircle, label: 'Hỗ trợ' },
-          ].map(({ to, icon: Icon, label }) => (
+          {/* Nav */}
+          <nav className="flex-1 flex flex-col gap-1">
+            {[
+              { to: PATHS.DASHBOARD, icon: LayoutDashboard, label: 'Bảng điều khiển' },
+              { to: PATHS.TOURS, icon: Compass, label: 'Tour du lịch' },
+              { to: PATHS.DASHBOARD, icon: CalendarRange, label: 'Đặt chỗ' },
+              { to: PATHS.DASHBOARD, icon: BarChart3, label: 'Báo cáo' },
+            ].map(({ to, icon: Icon, label }) => (
+              <Link
+                key={label}
+                to={to}
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </Link>
+            ))}
             <Link
-              key={label}
-              to={to}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              to={PATHS.CHAT}
+              className="relative flex items-center gap-3 rounded-xl bg-muted px-4 py-3 text-sm font-bold text-primary transition-all"
             >
-              <Icon className="h-5 w-5" />
-              {label}
+              <MessageSquare className="h-5 w-5" />
+              Trò chuyện
+              <span className="absolute right-4 top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-primary" />
             </Link>
-          ))}
-        </div>
-      </aside>
+          </nav>
+
+          {/* Footer */}
+          <div className="border-t border-border pt-4 flex flex-col gap-1">
+            {[
+              { to: PATHS.SETTINGS, icon: SettingsIcon, label: 'Cài đặt' },
+              { to: PATHS.DASHBOARD, icon: HelpCircle, label: 'Hỗ trợ' },
+            ].map(({ to, icon: Icon, label }) => (
+              <Link
+                key={label}
+                to={to}
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </aside>
+      )}
 
       {/* ── Main Content ────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* ── 2. Header ───────────────────────────────────────────────── */}
-        <header className="flex h-16 w-full items-center justify-between border-b border-border bg-background px-6">
-          {/* Search */}
-          <div className="relative w-full max-w-md">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm cuộc trò chuyện..."
-              aria-label="Tìm kiếm cuộc trò chuyện"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="rounded-full pl-10"
-            />
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              className="relative rounded-full"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive" />
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="Help" className="rounded-full">
-              <HelpCircle className="h-5 w-5" />
-            </Button>
-
-            {/* Profile */}
-            <div className="flex items-center gap-3 pl-2">
-              <div className="text-right">
-                <p className="text-sm font-bold text-foreground leading-tight">Minh Tran</p>
-                <p className="text-[10px] text-muted-foreground font-semibold leading-none">
-                  Tour Manager
-                </p>
-              </div>
-              <Avatar size="lg" className="bg-primary text-primary-foreground font-bold">
-                <AvatarFallback>MT</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        </header>
-
         {/* ── 3. Split View ───────────────────────────────────────────── */}
         <div className="flex flex-1 overflow-hidden">
           {/* ── Conversation List ──────────────────────────────────────── */}
@@ -372,24 +427,6 @@ export default function ChatList() {
           >
             <div className="px-6 py-4">
               <h1 className="text-2xl font-bold tracking-tight">Phòng Chat</h1>
-            </div>
-
-            {/* Tab filter */}
-            <div className="px-6 mb-4">
-              <Tabs
-                value={activeTab}
-                onValueChange={(val) => setActiveTab(val as 'all' | 'unread')}
-                className="w-full"
-              >
-                <TabsList className="w-full">
-                  <TabsTrigger value="all" className="flex-1">
-                    Tất cả
-                  </TabsTrigger>
-                  <TabsTrigger value="unread" className="flex-1">
-                    Chưa đọc
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
             </div>
 
             {/* Conversation list */}
@@ -524,26 +561,14 @@ export default function ChatList() {
                         {selectedConversation.tag.text}
                       </Badge>
                     )}
-                    <Button
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => toast.info('Xem chi tiết đặt chỗ')}
-                    >
-                      Xem chi tiết đặt chỗ
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Tùy chọn khác"
-                      className="rounded-full size-8"
-                    >
-                      <MoreVertical className="h-5 w-5" />
-                    </Button>
                   </div>
                 </div>
 
                 {/* ── Messages ─────────────────────────────────────────── */}
                 <MessageScrollerProvider autoScroll>
+                  <ChatAutoScroller
+                    dependencies={[currentMessages.length, selectedId, isLoadingMessages]}
+                  />
                   <MessageScroller className="flex-1 bg-muted/5">
                     <MessageScrollerViewport className="px-6 py-6">
                       <MessageScrollerContent>
@@ -654,45 +679,6 @@ export default function ChatList() {
                     onSubmit={handleSubmit(onSubmitMessage)}
                     className="flex flex-col rounded-2xl border border-border bg-muted/10 p-3"
                   >
-                    {/* Toolbar */}
-                    <div className="flex items-center justify-between border-b border-border/60 pb-2 mb-2">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        {[
-                          { icon: Bold, title: 'In đậm' },
-                          { icon: Italic, title: 'In nghiêng' },
-                          { icon: List, title: 'Danh sách' },
-                        ].map(({ icon: Icon, title }) => (
-                          <button
-                            key={title}
-                            type="button"
-                            title={title}
-                            aria-label={title}
-                            disabled
-                            className="p-1.5 rounded-md opacity-40 cursor-not-allowed"
-                          >
-                            <Icon className="h-4 w-4" />
-                          </button>
-                        ))}
-                        <span className="mx-2 h-4 w-px bg-border" />
-                        {[
-                          { icon: ImageIcon, title: 'Chèn ảnh' },
-                          { icon: Paperclip, title: 'Đính kèm tệp' },
-                          { icon: Smile, title: 'Biểu cảm' },
-                        ].map(({ icon: Icon, title }) => (
-                          <button
-                            key={title}
-                            type="button"
-                            title={title}
-                            aria-label={title}
-                            disabled
-                            className="p-1.5 rounded-md opacity-40 cursor-not-allowed"
-                          >
-                            <Icon className="h-4 w-4" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Text area + send */}
                     <div className="flex items-end gap-3">
                       <textarea

@@ -1,4 +1,4 @@
-import { CalendarClock, LogOut, MountainSnow } from 'lucide-react';
+import { CalendarClock, LogOut, MessageSquare, MountainSnow } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
@@ -14,6 +14,7 @@ export default function CoordinatorLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
   const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
+  const isChatPage = location.pathname === PATHS.COORDINATOR_CHAT;
 
   const coordinatorName = user?.name || 'Điều phối viên';
   const coordinatorInitial = coordinatorName.charAt(0).toUpperCase();
@@ -25,19 +26,24 @@ export default function CoordinatorLayout() {
         style={{ backgroundColor: '#EFECE6', borderRight: '1px solid #E0DCD1' }}
       >
         <div className="flex flex-col py-6">
-          <div className="px-6 mb-8 flex items-center gap-2">
-            <MountainSnow className="h-7 w-7" style={{ color: '#06261D' }} />
-            <div className="flex flex-col">
-              <h1
-                className="text-2xl font-extrabold tracking-tight leading-none"
-                style={{ color: '#06261D' }}
-              >
-                SummitGuard
-              </h1>
-              <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
-                Điều phối viên hiện trường
-              </span>
-            </div>
+          <div className="px-6 mb-8">
+            <Link
+              to={PATHS.HOME}
+              className="flex items-center gap-2 hover:opacity-85 transition-opacity block"
+            >
+              <MountainSnow className="h-7 w-7" style={{ color: '#06261D' }} />
+              <div className="flex flex-col">
+                <h1
+                  className="text-2xl font-extrabold tracking-tight leading-none"
+                  style={{ color: '#06261D' }}
+                >
+                  SummitGuard
+                </h1>
+                <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
+                  Điều phối viên hiện trường
+                </span>
+              </div>
+            </Link>
           </div>
 
           <nav className="px-4 space-y-1">
@@ -55,6 +61,23 @@ export default function CoordinatorLayout() {
                 >
                   <CalendarClock className="h-5 w-5" />
                   Xem lịch & phân công
+                </Link>
+              );
+            })()}
+            {(() => {
+              const isActive = location.pathname.startsWith(PATHS.COORDINATOR_CHAT);
+              return (
+                <Link
+                  to={PATHS.COORDINATOR_CHAT}
+                  className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold transition-all"
+                  style={
+                    isActive
+                      ? { backgroundColor: 'rgba(162, 235, 210, 0.35)', color: '#06261D' }
+                      : { color: '#6F7B75' }
+                  }
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  Trò chuyện
                 </Link>
               );
             })()}
@@ -100,7 +123,9 @@ export default function CoordinatorLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main
+          className={`flex-1 ${isChatPage ? 'overflow-hidden p-0' : 'overflow-y-auto p-6 md:p-8'}`}
+        >
           <Outlet />
         </main>
       </div>

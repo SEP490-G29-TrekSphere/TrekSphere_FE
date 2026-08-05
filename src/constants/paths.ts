@@ -56,6 +56,21 @@ export const PATHS = {
   BLOG_CREATE: '/blog/create',
   BLOG_EDIT: '/blog/edit/:blogId',
 
+  // Trekker portal
+  TREKKER: '/trekker',
+  TREKKER_PROFILE: '/trekker/profile',
+  TREKKER_PROFILE_EDIT: '/trekker/profile/edit',
+  TREKKER_MY_TOURS: '/trekker/my-tours',
+  TREKKER_VENDOR_APPLICATIONS: '/trekker/vendor-applications',
+  TREKKER_BLOG_LIST: '/trekker/blog',
+  TREKKER_BLOG_CREATE: '/trekker/blog/create',
+  TREKKER_BLOG_EDIT: '/trekker/blog/edit/:blogId',
+  TREKKER_CHANGE_PASSWORD: '/trekker/change-password',
+  TREKKER_BOOKING_DETAIL: '/trekker/bookings/:bookingId',
+  TREKKER_BOOKING_PAYMENT: '/trekker/bookings/:bookingId/payment',
+  TREKKER_BOOK_TOUR: '/tours/:id/book',
+  TREKKER_CHAT: '/trekker/chat',
+
   // Admin
   ADMIN: '/admin',
   ADMIN_DASHBOARD: '/admin/dashboard',
@@ -71,6 +86,7 @@ export const PATHS = {
   ADMIN_VOUCHERS: '/admin/vouchers',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_EMERGENCY: '/admin/emergency',
+  ADMIN_CHAT: '/admin/chat',
 
   // Vendor Manager (TrekManager portal)
   VENDOR_MANAGER: '/vendor-manager',
@@ -91,6 +107,7 @@ export const PATHS = {
   VENDOR_MANAGER_SESSION_DETAIL: '/vendor-manager/sessions/:sessionId',
   VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
   VENDOR_MANAGER_VOUCHERS: '/vendor-manager/vouchers',
+  VENDOR_MANAGER_CHAT: '/vendor-manager/chat',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',
@@ -108,6 +125,7 @@ export const PATHS = {
   PARTNER_SESSION_DETAIL: '/partner/sessions/:sessionId',
   PARTNER_BLOG_CREATE: '/partner/blog/create',
   PARTNER_VOUCHERS: '/partner/vouchers',
+  PARTNER_CHAT: '/partner/chat',
 
   // Admin — Blog moderation
   ADMIN_BLOGS: '/admin/blogs',
@@ -116,6 +134,7 @@ export const PATHS = {
   COORDINATOR: '/coordinator',
   COORDINATOR_SCHEDULES: '/coordinator/schedules',
   COORDINATOR_SESSION_OPERATIONS: '/coordinator/sessions/:sessionId',
+  COORDINATOR_CHAT: '/coordinator/chat',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
@@ -142,3 +161,7 @@ export const getPartnerSessionDetailPath = (sessionId: string) =>
   PATHS.PARTNER_SESSION_DETAIL.replace(':sessionId', sessionId);
 export const getCoordinatorSessionOperationsPath = (sessionId: string) =>
   PATHS.COORDINATOR_SESSION_OPERATIONS.replace(':sessionId', sessionId);
+export const getTrekkerBookingDetailPath = (bookingId: string) =>
+  PATHS.TREKKER_BOOKING_DETAIL.replace(':bookingId', bookingId);
+export const getTrekkerBookingPaymentPath = (bookingId: string) =>
+  PATHS.TREKKER_BOOKING_PAYMENT.replace(':bookingId', bookingId);
