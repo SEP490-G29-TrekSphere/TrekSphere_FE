@@ -125,7 +125,14 @@ export default function AppRoutes() {
           <Route path={PATHS.HOME} element={<Home />} />
           <Route path={PATHS.GROUPS} element={<CompanionGroups />} />
           <Route path={PATHS.GROUPS_CREATE} element={<CreateCompanionGroup />} />
-          <Route path={PATHS.GROUPS_JOIN} element={<JoinGroupRequestPage />} />
+          <Route
+            path={PATHS.GROUPS_JOIN}
+            element={
+              <ProtectedRoute>
+                <JoinGroupRequestPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path={PATHS.GROUPS_DETAIL} element={<CompanionGroupDetail />} />
           <Route path={PATHS.TOURS} element={<ListTours />} />
           <Route path={PATHS.TOUR_DETAIL} element={<TourDetails />} />

@@ -107,7 +107,7 @@ export function CompanionGroupCard({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                <span>Khởi hành: {departureDate}</span>
+                <span>Dự kiến đi: {departureDate}</span>
               </span>
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5 text-primary/70" />
@@ -192,7 +192,7 @@ export function CompanionGroupCard({
         <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-primary/70" />
-            Khởi hành: {departureDate}
+            Dự kiến đi: {departureDate}
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="h-3.5 w-3.5 text-primary/70" />

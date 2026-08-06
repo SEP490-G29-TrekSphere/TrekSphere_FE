@@ -91,6 +91,10 @@ export interface MatchingGroupDetailResponse {
   status: MatchingGroupStatus;
   createdAt: string; // ISO string
   members: MatchingMemberItem[];
+  isOwner: boolean;
+  myMembershipStatus?: MatchingMemberStatus | null;
+  canJoin: boolean;
+  canLeave: boolean;
 }
 
 function unwrapResponse<T>(response: ApiResponse<T>): T {
@@ -99,16 +103,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
   }
   return response.data as T;
 }
-
-/** Pagination rỗng trả về khi BE chưa mở public access (guest 401). */
-const EMPTY_PAGINATION: MatchingGroupPaginationResponse = {
-  content: [],
-  pageNumber: 0,
-  pageSize: 0,
-  totalElements: 0,
-  totalPages: 0,
-  last: true,
-};
 
 export const companionGroupService = {
   async getMatchingGroups(
@@ -132,12 +126,6 @@ export const companionGroupService = {
       undefined,
       queryParams
     );
-
-    // Nếu BE trả 401 (chưa mở public access cho guest), trả về danh sách rỗng
-    // thay vì throw lỗi — trang vẫn hiển thị được, không bị màn hình đỏ.
-    if (response.status === 401) {
-      return EMPTY_PAGINATION;
-    }
 
     return unwrapResponse(response);
   },

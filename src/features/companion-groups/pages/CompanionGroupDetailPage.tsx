@@ -39,7 +39,7 @@ export default function CompanionGroupDetailPage() {
   const { data: groupData, isLoading, isError, error, refetch } = useMatchingGroupDetail(groupId);
 
   // Fetch join requests (PENDING) — dedicated endpoint, only runs when user is owner
-  const isOwner: boolean = Boolean(user && groupData && groupData.ownerId === user.id);
+  const isOwner = Boolean(groupData?.isOwner);
 
   // Join requests pagination state (must be declared before useJoinRequests)
   const [joinRequestsPage, setJoinRequestsPage] = useState(1);
@@ -59,15 +59,9 @@ export default function CompanionGroupDetailPage() {
   // Compute current user role context (Leader | Member | Pending | Guest)
   const currentUserRole: UserRoleInGroup = (() => {
     if (!user || !groupData) return 'guest';
-    if (groupData.ownerId === user.id) return 'leader';
-    const isMember = groupData.members?.some(
-      (m) => m.userId === user.id && m.status === 'ACCEPTED'
-    );
-    if (isMember) return 'member';
-    const isPending = groupData.members?.some(
-      (m) => m.userId === user.id && m.status === 'PENDING'
-    );
-    if (isPending) return 'pending';
+    if (groupData.isOwner) return 'leader';
+    if (groupData.myMembershipStatus === 'ACCEPTED') return 'member';
+    if (groupData.myMembershipStatus === 'PENDING') return 'pending';
     return 'guest';
   })();
 
@@ -214,7 +208,7 @@ export default function CompanionGroupDetailPage() {
             </span>
             <span className="flex items-center gap-1.5 text-xs font-medium text-slate-200">
               <Calendar className="h-3.5 w-3.5 text-emerald-400" />
-              Khởi hành: {groupData.targetDate}
+              Dự kiến đi: {groupData.targetDate}
             </span>
           </div>
 
@@ -455,28 +449,59 @@ export default function CompanionGroupDetailPage() {
 
           {/* Right Column: Chat Nhóm & Yêu cầu chuyến đi */}
           <div className="lg:col-span-4 space-y-6">
-            {/* Card 1: Chat Nhóm */}
-            <div className="rounded-[32px] bg-[#1B362D] p-7 text-white shadow-md space-y-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-extrabold text-white">Chat Nhóm</h3>
-                  <p className="text-xs text-slate-300 mt-1">
-                    Kết nối với thành viên trong chuyến đi
-                  </p>
+            {/* Chat chỉ dành cho owner và thành viên đã được duyệt */}
+            {(currentUserRole === 'leader' || currentUserRole === 'member') && (
+              <div className="rounded-[32px] bg-[#1B362D] p-7 text-white shadow-md space-y-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Chat Nhóm</h3>
+                    <p className="text-xs text-slate-300 mt-1">
+                      Kết nối với thành viên trong chuyến đi
+                    </p>
+                  </div>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#26483D] text-white">
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#26483D] text-white">
-                  <MessageSquare className="h-5 w-5" />
-                </div>
-              </div>
 
+                <button
+                  type="button"
+                  onClick={() => navigate(PATHS.CHAT)}
+                  className="w-full rounded-full bg-white py-3.5 text-xs font-bold text-slate-900 transition-all hover:bg-slate-100 active:scale-[0.99] shadow-xs cursor-pointer"
+                >
+                  Nhắn tin cho nhóm
+                </button>
+              </div>
+            )}
+
+            {currentUserRole === 'guest' && (
+              <div className="rounded-[32px] border border-emerald-100 bg-white p-7 shadow-2xs">
+                <h3 className="text-lg font-extrabold text-slate-900">Bạn muốn đồng hành?</h3>
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  {user && !groupData.canJoin
+                    ? 'Nhóm hiện không còn nhận thêm yêu cầu tham gia.'
+                    : 'Gửi yêu cầu để trưởng nhóm xem xét và kết nối với bạn.'}
+                </p>
+                <button
+                  type="button"
+                  disabled={Boolean(user) && !groupData.canJoin}
+                  onClick={() => navigate(user ? `/groups/${groupId}/join` : PATHS.LOGIN)}
+                  className="mt-5 w-full rounded-full bg-[#0D3B2E] py-3 text-xs font-bold text-white transition-colors hover:bg-emerald-950 disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {user ? 'Gửi yêu cầu tham gia' : 'Đăng nhập để xin tham gia'}
+                </button>
+              </div>
+            )}
+
+            {groupData.canLeave && (
               <button
                 type="button"
-                onClick={() => navigate(PATHS.CHAT)}
-                className="w-full rounded-full bg-white py-3.5 text-xs font-bold text-slate-900 transition-all hover:bg-slate-100 active:scale-[0.99] shadow-xs cursor-pointer"
+                onClick={() => setActiveModal('leave')}
+                className="w-full rounded-full border border-rose-200 bg-white py-3 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50"
               >
-                Nhắn tin cho nhóm
+                {currentUserRole === 'pending' ? 'Hủy yêu cầu tham gia' : 'Rời khỏi nhóm'}
               </button>
-            </div>
+            )}
 
             {/* Card 3: Nút tác vụ nhóm phụ thuộc vào vai trò */}
             {currentUserRole === 'pending' && (

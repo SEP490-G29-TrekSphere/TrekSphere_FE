@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import { PATHS } from '@/constants/paths';
-import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMatchingGroupDetail } from '../hooks/useMatchingGroupDetail';
@@ -22,7 +21,6 @@ export default function JoinGroupRequestPage() {
 
   const { data: groupData, isLoading, isError } = useMatchingGroupDetail(groupId);
   const joinMutation = useJoinMatchingGroup();
-  const user = useAppStore((state) => state.user);
 
   const form = useForm<JoinRequestFormValues>({
     resolver: zodResolver(joinRequestSchema),
@@ -31,18 +29,16 @@ export default function JoinGroupRequestPage() {
     },
   });
 
-  // Redirect if current user is the owner of the group
+  // Owner không thể gửi yêu cầu tham gia nhóm của chính mình.
   useEffect(() => {
-    if (user && groupData && groupData.ownerId === user.id) {
+    if (groupData?.isOwner) {
       navigate(`/groups/${groupId}`, { replace: true });
     }
-  }, [user, groupData, groupId, navigate]);
+  }, [groupData?.isOwner, groupId, navigate]);
 
-  if (user && groupData && groupData.ownerId === user.id) {
+  if (groupData?.isOwner) {
     return null;
   }
-
-  const existingMember = groupData?.members?.find((m) => m.userId === user?.id);
 
   const onSubmit = () => {
     if (!groupId) return;
@@ -92,9 +88,10 @@ export default function JoinGroupRequestPage() {
 
   // Filter accepted members to display in current members section
   const acceptedMembers = groupData.members?.filter((m) => m.status === 'ACCEPTED') || [];
-  // Max members
+  const membershipStatus = groupData.myMembershipStatus;
+  const hasActiveMembership = membershipStatus === 'PENDING' || membershipStatus === 'ACCEPTED';
   const maxSize = groupData.maxSize || 10;
-  const currentSize = acceptedMembers.length;
+  const currentSize = groupData.currentSize;
 
   return (
     <div className="min-h-screen bg-[#F7F4EB] dark:bg-background pt-20 pb-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
@@ -122,7 +119,7 @@ export default function JoinGroupRequestPage() {
 
                 <div className="flex items-center gap-2 text-xs font-medium text-stone-600 dark:text-muted-foreground">
                   <Calendar className="w-4 h-4 text-stone-500" />
-                  <span>Khởi hành: {groupData.targetDate}</span>
+                  <span>Dự kiến đi: {groupData.targetDate}</span>
                 </div>
 
                 <div className="pt-2 border-t border-stone-300/40 dark:border-border/40 flex items-center justify-between text-xs font-medium text-stone-700 dark:text-stone-300">
@@ -201,17 +198,14 @@ export default function JoinGroupRequestPage() {
 
           {/* CỘT PHẢI: Form Gửi yêu cầu tham gia hoặc Trạng thái yêu cầu */}
           <div className="lg:col-span-7 space-y-6">
-            {existingMember &&
-            (existingMember.status === 'PENDING' || existingMember.status === 'ACCEPTED') ? (
+            {hasActiveMembership ? (
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-foreground tracking-tight">
-                    {existingMember.status === 'PENDING'
-                      ? 'Yêu cầu đang chờ duyệt'
-                      : 'Đã tham gia nhóm'}
+                    {membershipStatus === 'PENDING' ? 'Yêu cầu đang chờ duyệt' : 'Đã tham gia nhóm'}
                   </h1>
                   <p className="text-xs sm:text-sm text-stone-600 dark:text-muted-foreground mt-1 leading-relaxed">
-                    {existingMember.status === 'PENDING'
+                    {membershipStatus === 'PENDING'
                       ? 'Bạn đã gửi yêu cầu tham gia nhóm ghép này rồi. Vui lòng chờ trưởng nhóm xét duyệt.'
                       : 'Bạn đã là thành viên chính thức của nhóm ghép này.'}
                   </p>
@@ -222,7 +216,7 @@ export default function JoinGroupRequestPage() {
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">
-                    {existingMember.status === 'PENDING'
+                    {membershipStatus === 'PENDING'
                       ? 'Yêu cầu của bạn đang ở trạng thái chờ duyệt.'
                       : 'Bạn đã tham gia nhóm thành công.'}
                   </p>
@@ -234,6 +228,23 @@ export default function JoinGroupRequestPage() {
                     Xem chi tiết nhóm
                   </button>
                 </div>
+              </div>
+            ) : !groupData.canJoin ? (
+              <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-7 text-center">
+                <ShieldCheck className="mx-auto h-12 w-12 text-amber-700" />
+                <h1 className="mt-4 text-2xl font-extrabold text-stone-900">
+                  Nhóm không còn nhận yêu cầu
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-stone-600">
+                  Nhóm có thể đã đủ thành viên, quá hạn ghép hoặc ngày dự kiến đã qua.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/groups/${groupId}`)}
+                  className="mt-5 rounded-full bg-[#0D3B2E] px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-950"
+                >
+                  Xem chi tiết nhóm
+                </button>
               </div>
             ) : (
               <>

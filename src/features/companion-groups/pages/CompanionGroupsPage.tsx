@@ -1,5 +1,5 @@
 import { LayoutGrid, List, RotateCcw, SearchX } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { PATHS } from '@/constants';
@@ -10,7 +10,6 @@ import { useDebounce } from '@/shared/hooks/useDebounce';
 import { AppButton } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { CompanionGroupCard, type GroupCardData } from '../components/CompanionGroupCard';
-import { CreateCompanionGroupModal } from '../components/CreateCompanionGroupModal';
 import { useMatchingGroups } from '../hooks/useMatchingGroups';
 
 const PAGE_SIZE = 9;
@@ -20,13 +19,6 @@ const sortOptions = [
   { value: 'targetDate-asc', label: 'Ngày đi: Sớm nhất' },
   { value: 'targetDate-desc', label: 'Ngày đi: Muộn nhất' },
   { value: 'currentSize-desc', label: 'Nhiều thành viên nhất' },
-];
-
-const statusFilterOptions = [
-  { value: 'ALL', label: 'Tất cả trạng thái' },
-  { value: 'OPEN', label: 'Đang mở' },
-  { value: 'FULL', label: 'Đã đủ' },
-  { value: 'CLOSED', label: 'Đã đóng' },
 ];
 
 export default function CompanionGroupsPage() {
@@ -39,16 +31,14 @@ export default function CompanionGroupsPage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
   const [selectedTourId, setSelectedTourId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
   const [sortKey, setSortKey] = useState('createdAt-desc');
   const [page, setPage] = useState(0);
   const [layout, setLayout] = useState<'list' | 'grid'>('grid');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: setPage is a stable useState setter
   useEffect(() => {
     setPage(0);
-  }, [debouncedSearchQuery, selectedTourId, selectedDate, statusFilter, sortKey]);
+  }, [debouncedSearchQuery, selectedTourId, selectedDate, sortKey]);
 
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
 
@@ -71,31 +61,20 @@ export default function CompanionGroupsPage() {
   // Tours for sidebar filter dropdown
   const { tours: allTours } = useTours({ size: 50 });
 
-  // Client-side status filter (API doesn't support it directly)
-  const filteredGroups = useMemo(() => {
-    if (statusFilter === 'ALL') return matchingGroups;
-    return matchingGroups.filter((g) => g.status === statusFilter);
-  }, [matchingGroups, statusFilter]);
-
   const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedTourId('');
     setSelectedDate('');
-    setStatusFilter('ALL');
     setSortKey('createdAt-desc');
     setPage(0);
   };
 
-  const handleCreateClick = () => {
+  const handleJoinGroup = (group: GroupCardData) => {
+    const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
     if (isGuest) {
       navigate(PATHS.LOGIN);
       return;
     }
-    setIsCreateModalOpen(true);
-  };
-
-  const handleJoinGroup = (group: GroupCardData) => {
-    const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
     navigate(`/groups/${groupId}/join`);
   };
 
@@ -110,7 +89,6 @@ export default function CompanionGroupsPage() {
   };
 
   const currentSortLabel = sortOptions.find((o) => o.value === sortKey)?.label ?? 'Mới nhất';
-  const isStatusFiltered = statusFilter !== 'ALL';
 
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -127,7 +105,7 @@ export default function CompanionGroupsPage() {
             </p>
 
             {/* Search bar pill */}
-            <div className="mt-7 mx-auto max-w-2xl bg-white border border-border rounded-full p-2 shadow-md flex items-center gap-2">
+            <div className="mt-7 mx-auto max-w-2xl bg-white border border-border rounded-full p-3 shadow-md flex items-center gap-2">
               <div className="flex-1 flex items-center gap-2 px-3">
                 <svg
                   className="h-4 w-4 text-muted-foreground shrink-0"
@@ -151,13 +129,6 @@ export default function CompanionGroupsPage() {
                   className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
               </div>
-              <button
-                type="button"
-                onClick={handleCreateClick}
-                className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary/90 shrink-0"
-              >
-                + Tạo nhóm
-              </button>
             </div>
           </div>
 
@@ -189,10 +160,10 @@ export default function CompanionGroupsPage() {
 
                 <hr className="my-5 border-border" />
 
-                {/* Filter: Ngày khởi hành */}
+                {/* Filter: Ngày dự kiến đi */}
                 <div className="mb-6">
                   <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Ngày khởi hành
+                    Ngày dự kiến đi
                   </span>
                   <input
                     type="date"
@@ -200,46 +171,6 @@ export default function CompanionGroupsPage() {
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   />
-                </div>
-
-                <hr className="my-5 border-border" />
-
-                {/* Filter: Trạng thái */}
-                <div className="mb-6">
-                  <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Trạng thái
-                  </span>
-                  <div className="flex flex-col gap-2.5">
-                    {statusFilterOptions.map((opt) => {
-                      const isActive = statusFilter === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setStatusFilter(opt.value)}
-                          aria-pressed={isActive}
-                          className="flex items-center gap-3 text-left transition-colors hover:text-primary"
-                        >
-                          <span
-                            className={cn(
-                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all',
-                              isActive ? 'border-primary bg-primary' : 'border-input bg-transparent'
-                            )}
-                          >
-                            {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                          </span>
-                          <span
-                            className={cn(
-                              'text-sm transition-all',
-                              isActive ? 'font-semibold text-primary' : 'text-muted-foreground'
-                            )}
-                          >
-                            {opt.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
 
                 {/* Reset button */}
@@ -260,9 +191,7 @@ export default function CompanionGroupsPage() {
                 <div>
                   <h2 className="text-2xl font-bold text-primary">Nhóm ghép</h2>
                   <span className="text-xs text-muted-foreground">
-                    {isStatusFiltered
-                      ? `Hiển thị ${filteredGroups.length}/${matchingGroups.length} nhóm ở trang này`
-                      : `Hiển thị ${totalElements} nhóm`}
+                    Hiển thị {totalElements} nhóm đang mở
                   </span>
                 </div>
 
@@ -328,12 +257,8 @@ export default function CompanionGroupsPage() {
                 <GroupsSkeleton layout={layout} />
               ) : isError ? (
                 <GroupsError onRetry={handleResetFilters} />
-              ) : filteredGroups.length === 0 ? (
-                <GroupsEmpty
-                  isGuest={isGuest}
-                  onLogin={() => navigate(PATHS.LOGIN)}
-                  onReset={handleResetFilters}
-                />
+              ) : matchingGroups.length === 0 ? (
+                <GroupsEmpty onReset={handleResetFilters} />
               ) : (
                 <div
                   className={
@@ -342,7 +267,7 @@ export default function CompanionGroupsPage() {
                       : 'flex flex-col gap-5'
                   }
                 >
-                  {filteredGroups.map((group) => (
+                  {matchingGroups.map((group) => (
                     <CompanionGroupCard
                       key={group.matchingGroupId}
                       group={group}
@@ -368,12 +293,6 @@ export default function CompanionGroupsPage() {
 
         <div className="h-16 sm:h-24" />
       </div>
-
-      {/* Create modal */}
-      <CreateCompanionGroupModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
     </div>
   );
 }
@@ -454,33 +373,17 @@ function GroupsError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function GroupsEmpty({
-  isGuest,
-  onLogin,
-  onReset,
-}: {
-  isGuest: boolean;
-  onLogin: () => void;
-  onReset: () => void;
-}) {
+function GroupsEmpty({ onReset }: { onReset: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
         <SearchX className="h-8 w-8" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold text-primary">
-        {isGuest ? 'Đăng nhập để xem nhóm ghép' : 'Không tìm thấy nhóm phù hợp'}
-      </h3>
+      <h3 className="mb-2 text-lg font-semibold text-primary">Không tìm thấy nhóm phù hợp</h3>
       <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-        {isGuest
-          ? 'Các nhóm ghép sẽ hiển thị sau khi bạn đăng nhập.'
-          : 'Thử thay đổi bộ lọc hoặc từ khoá để xem thêm kết quả.'}
+        Thử thay đổi Tour, ngày dự kiến hoặc từ khóa để xem thêm kết quả.
       </p>
-      {isGuest ? (
-        <AppButton onClick={onLogin}>Đăng nhập ngay</AppButton>
-      ) : (
-        <AppButton onClick={onReset}>Xóa tất cả bộ lọc</AppButton>
-      )}
+      <AppButton onClick={onReset}>Xóa tất cả bộ lọc</AppButton>
     </div>
   );
 }
