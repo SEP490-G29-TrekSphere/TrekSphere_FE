@@ -94,7 +94,7 @@ export function CreateVoucherDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold" style={{ color: '#06261D' }}>
             Tạo mã giảm giá mới
@@ -127,7 +127,7 @@ export function CreateVoucherDialog({
             {errors.code && <p className="mt-1 text-xs text-red-500">{errors.code.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Discount Type */}
             <div>
               <label
@@ -175,7 +175,7 @@ export function CreateVoucherDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Minimum Order Value */}
             <div>
               <label
@@ -223,7 +223,7 @@ export function CreateVoucherDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Valid From */}
             <div>
               <label

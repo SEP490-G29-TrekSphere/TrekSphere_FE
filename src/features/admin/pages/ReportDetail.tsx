@@ -127,7 +127,7 @@ export default function ReportDetail() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-fade-in">
       {/* Breadcrumb & Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
           <Link to={PATHS.ADMIN_REPORTS} className="hover:text-zinc-900 transition-colors">
             Báo cáo
@@ -148,7 +148,7 @@ export default function ReportDetail() {
       {/* Top Title Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025]">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B3025]">
             Xử lý Báo cáo #{reportData.code}
           </h1>
         </div>
@@ -241,7 +241,7 @@ export default function ReportDetail() {
 
           {/* Attached Evidence Images */}
           {reportData.target.images && reportData.target.images.length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {reportData.target.images.slice(0, 2).map((img, idx) => (
                 <div
                   key={img}
@@ -451,7 +451,7 @@ export default function ReportDetail() {
           </div>
 
           {/* User Stats Widgets at bottom */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl p-4 text-center">
               <span className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase block">
                 BÁO CÁO CỦA USER NÀY

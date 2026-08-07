@@ -190,7 +190,10 @@ export default function VendorVoucherList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: '#06261D' }}>
+          <h2
+            className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+            style={{ color: '#06261D' }}
+          >
             Quản lý Voucher
           </h2>
           <p className="text-sm font-medium mt-1" style={{ color: '#6F7B75' }}>
@@ -539,7 +542,7 @@ export default function VendorVoucherList() {
         {/* Pagination Footer */}
         {!isLoading && !isError && vouchers.length > 0 && (
           <div
-            className="flex items-center justify-between px-6 py-5 border-t"
+            className="flex flex-col gap-3 px-4 py-4 border-t sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5"
             style={{ borderColor: '#E6E2D1' }}
           >
             <p className="text-sm" style={{ color: '#6F7B75' }}>
