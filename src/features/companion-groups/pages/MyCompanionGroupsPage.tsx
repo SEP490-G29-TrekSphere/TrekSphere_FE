@@ -2,12 +2,12 @@ import { LayoutGrid, List, RotateCcw, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { PATHS } from '@/constants';
+import { getTrekkerGroupDetailPath, getTrekkerGroupJoinPath, PATHS } from '@/constants';
 import { TourPagination } from '@/features/tours';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { cn } from '@/lib/utils';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { AppButton } from '@/shared/ui';
+import { AppButton, AppDatePicker } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { CompanionGroupCard, type GroupCardData } from '../components/CompanionGroupCard';
 import { CreateCompanionGroupModal } from '../components/CreateCompanionGroupModal';
@@ -150,12 +150,12 @@ export default function MyCompanionGroupsPage() {
 
   const handleJoinGroup = (group: GroupCardData) => {
     const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
-    navigate(`/groups/${groupId}/join`);
+    navigate(getTrekkerGroupJoinPath(groupId));
   };
 
   const handleViewDetail = (group: GroupCardData) => {
     const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
-    navigate(`/groups/${groupId}`);
+    navigate(getTrekkerGroupDetailPath(groupId));
   };
 
   const handlePageChange = (next: number) => {
@@ -269,11 +269,19 @@ export default function MyCompanionGroupsPage() {
               <span className="mb-2 block text-[10px] font-bold tracking-wider text-[#6F7B75] uppercase">
                 Ngày khởi hành
               </span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E0DCD1] bg-white px-3 py-2 text-xs text-[#06261D] focus:outline-none focus:ring-1 focus:ring-[#06261D]"
+              <AppDatePicker
+                selected={selectedDate ? new Date(selectedDate) : null}
+                onChange={(date: Date | null) => {
+                  if (!date) {
+                    setSelectedDate('');
+                    return;
+                  }
+                  const offset = date.getTimezoneOffset();
+                  const localDate = new Date(date.getTime() - offset * 60 * 1000);
+                  setSelectedDate(localDate.toISOString().split('T')[0]);
+                }}
+                className="w-full rounded-xl border border-[#E0DCD1] bg-white px-3 py-2 text-xs text-[#06261D] focus:outline-none focus:ring-1 focus:ring-[#06261D] cursor-pointer"
+                placeholderText="Chọn ngày khởi hành"
               />
             </div>
 
@@ -414,6 +422,7 @@ export default function MyCompanionGroupsPage() {
                   layout={layout}
                   onJoinGroup={handleJoinGroup}
                   onViewDetail={handleViewDetail}
+                  getDetailPath={getTrekkerGroupDetailPath}
                 />
               ))}
             </div>

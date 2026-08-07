@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants';
-import RoleDashboardShell from '@/shared/layout/RoleDashboardShell';
+import PortalShell from '@/shared/layout/PortalShell';
 import { useAppStore } from '@/store/useAppStore';
 
 const adminNavItems = [
@@ -46,20 +46,21 @@ export default function AdminLayout() {
   const adminName = user?.name || 'Admin User';
   const adminInitial = adminName.charAt(0).toUpperCase();
 
-  const sidebar = (
-    <>
-      <div className="flex flex-col py-6">
-        {/* Header/Logo */}
-        <div className="px-6 mb-8">
-          <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
-              TrekSphere
-            </h1>
-            <span className="text-xs text-zinc-500 font-medium tracking-wide">TRANG QUẢN TRỊ</span>
-          </Link>
-        </div>
-
-        {/* Navigation Items */}
+  return (
+    <PortalShell
+      rootClassName="bg-[#F4F4F2]"
+      sidebarClassName="bg-[#FAF9F5] border-r border-[#E5E4DE]"
+      mobileTitle="TrekSphere Admin"
+      fullBleed={isChatPage}
+      brand={
+        <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
+            TrekSphere
+          </h1>
+          <span className="text-xs text-zinc-500 font-medium tracking-wide">TRANG QUẢN TRỊ</span>
+        </Link>
+      }
+      nav={
         <nav className="px-4 space-y-1">
           {adminNavItems.map((item) => {
             const Icon = item.icon;
@@ -100,52 +101,42 @@ export default function AdminLayout() {
             );
           })}
         </nav>
-      </div>
-
-      {/* User Card at bottom */}
-      <div className="p-4 border-t border-[#E5E4DE] bg-[#FAF9F5]">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-[#FAF9F5]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B3025] text-white text-base font-bold shadow-sm">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={adminName}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                <span>{adminInitial}</span>
-              )}
+      }
+      userCard={
+        <div className="p-4 border-t border-[#E5E4DE] bg-[#FAF9F5]">
+          <div className="flex items-center justify-between p-2 rounded-xl bg-[#FAF9F5]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0B3025] text-white text-base font-bold shadow-sm">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={adminName}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span>{adminInitial}</span>
+                )}
+              </div>
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-sm font-bold text-zinc-800 leading-tight">
+                  {adminName}
+                </span>
+                <span className="text-[11px] text-zinc-500 font-medium">Hồ sơ quản trị</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-zinc-800 leading-tight">{adminName}</span>
-              <span className="text-[11px] text-zinc-500 font-medium">Hồ sơ quản trị</span>
-            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-zinc-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+              title="Đăng xuất"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="text-zinc-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-            title="Đăng xuất"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
-      </div>
-    </>
-  );
-
-  // Không có header desktop — mọi thao tác tìm kiếm/lọc nằm trong từng trang.
-  // Riêng mobile, `RoleDashboardShell` dựng top bar để mở drawer điều hướng.
-  return (
-    <RoleDashboardShell
-      sidebar={sidebar}
-      mobileTitle={<span className="text-[#0B3025]">TrekSphere</span>}
-      className="bg-[#F4F4F2]"
-      sidebarClassName="bg-[#FAF9F5] border-[#E5E4DE] md:border-r"
-      contentBleed={isChatPage}
+      }
     >
       <Outlet />
-    </RoleDashboardShell>
+    </PortalShell>
   );
 }

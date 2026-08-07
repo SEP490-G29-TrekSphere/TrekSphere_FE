@@ -2,6 +2,7 @@ import { Calendar, Clock, Eye, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
+import { formatDate } from '@/utils/format';
 import type { MatchingGroupItem, MatchingGroupStatus } from '../services/companionGroupService';
 import type { CompanionGroup } from '../types';
 
@@ -16,6 +17,8 @@ interface CompanionGroupCardProps {
   onJoinGroup?: (group: GroupCardData) => void;
   onViewDetail?: (group: GroupCardData) => void;
   layout?: 'list' | 'grid';
+  /** Func tạo link chi tiết nhóm — dùng khi cần trỏ sang portal khác (vd trekker). */
+  getDetailPath?: (groupId: string) => string;
 }
 
 function StatusBadge({ status }: { status: MatchingGroupStatus | 'OPEN' }) {
@@ -61,11 +64,13 @@ export function CompanionGroupCard({
   onJoinGroup,
   onViewDetail,
   layout = 'grid',
+  getDetailPath,
 }: CompanionGroupCardProps) {
   const user = useAppStore((state) => state.user);
   const isApiData = isMatchingGroupItem(group);
 
   const groupId = isApiData ? group.matchingGroupId : group.id;
+  const detailPath = getDetailPath?.(groupId) ?? `/groups/${groupId}`;
   const title = isApiData ? group.groupName : group.title;
   const tourName = isApiData ? group.tourName : group.location;
   const currentMembers = isApiData ? group.currentSize : group.currentMembers;
@@ -93,7 +98,7 @@ export function CompanionGroupCard({
             <div className="flex items-center gap-2">
               <StatusBadge status={status} />
             </div>
-            <Link to={`/groups/${groupId}`}>
+            <Link to={detailPath}>
               <h3 className="line-clamp-1 text-base font-bold text-primary transition-colors group-hover:text-primary/80 sm:text-lg">
                 {title}
               </h3>
@@ -107,7 +112,7 @@ export function CompanionGroupCard({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                <span>Khởi hành: {departureDate}</span>
+                <span>Khởi hành: {formatDate(departureDate)}</span>
               </span>
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5 text-primary/70" />
@@ -176,7 +181,7 @@ export function CompanionGroupCard({
 
       {/* Card body */}
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <Link to={`/groups/${groupId}`}>
+        <Link to={detailPath}>
           <h3 className="line-clamp-2 text-base font-bold text-primary transition-colors group-hover:text-primary/80 min-h-[2.75rem]">
             {title}
           </h3>
@@ -192,7 +197,7 @@ export function CompanionGroupCard({
         <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5 text-primary/70" />
-            Khởi hành: {departureDate}
+            Khởi hành: {formatDate(departureDate)}
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="h-3.5 w-3.5 text-primary/70" />

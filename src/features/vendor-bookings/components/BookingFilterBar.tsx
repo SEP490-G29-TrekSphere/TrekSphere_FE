@@ -1,4 +1,4 @@
-import { Download, Filter, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { BookingStatus, PaymentStatus, VendorBookingFilter } from '../types';
 
 interface BookingFilterBarProps {
@@ -46,10 +46,10 @@ export function BookingFilterBar({ filter, onFilterChange }: BookingFilterBarPro
           style={{ backgroundColor: '#FFFFFF', color: '#06261D', border: '1px solid #E0DCD1' }}
         >
           <option value="">Tất cả trạng thái tour</option>
-          <option value="PENDING">Chờ xác nhận (PENDING)</option>
-          <option value="CONFIRMED">Đã xác nhận (CONFIRMED)</option>
-          <option value="CANCELLED">Đã hủy (CANCELLED)</option>
-          <option value="COMPLETED">Đã hoàn thành (COMPLETED)</option>
+          <option value="PENDING">Chờ xác nhận</option>
+          <option value="CONFIRMED">Đã xác nhận</option>
+          <option value="CANCELLED">Đã hủy</option>
+          <option value="COMPLETED">Đã hoàn thành</option>
         </select>
 
         {/* Filter Payment Status */}
@@ -65,32 +65,11 @@ export function BookingFilterBar({ filter, onFilterChange }: BookingFilterBarPro
           style={{ backgroundColor: '#FFFFFF', color: '#06261D', border: '1px solid #E0DCD1' }}
         >
           <option value="">Tất cả trạng thái thanh toán</option>
-          <option value="PENDING">Chờ thanh toán (PENDING)</option>
-          <option value="PAID">Đã thanh toán (PAID)</option>
-          <option value="REFUNDED">Đã hoàn tiền (REFUNDED)</option>
-          <option value="PARTIALLY_REFUNDED">Hoàn tiền 1 phần (PARTIALLY_REFUNDED)</option>
+          <option value="PENDING">Chờ thanh toán</option>
+          <option value="PAID">Đã thanh toán</option>
+          <option value="REFUNDED">Đã hoàn tiền</option>
+          <option value="PARTIALLY_REFUNDED">Hoàn tiền một phần</option>
         </select>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-3 self-end md:self-auto">
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors"
-          style={{ backgroundColor: '#EFECE6', color: '#06261D' }}
-        >
-          <Filter className="h-4 w-4" />
-          Lọc nâng cao
-        </button>
-
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-transform active:scale-95"
-          style={{ backgroundColor: '#06261D' }}
-        >
-          <Download className="h-4 w-4" />
-          Xuất báo cáo
-        </button>
       </div>
     </div>
   );

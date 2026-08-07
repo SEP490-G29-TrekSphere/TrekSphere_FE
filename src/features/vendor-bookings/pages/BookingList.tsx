@@ -7,9 +7,11 @@ import { BookingTableRow } from '../components/BookingTableRow';
 import { ConfirmBookingModal } from '../components/ConfirmBookingModal';
 import { ConfirmPaymentModal } from '../components/ConfirmPaymentModal';
 import { ConfirmRefundModal } from '../components/ConfirmRefundModal';
+import { RejectBookingModal } from '../components/RejectBookingModal';
 import { useConfirmBooking } from '../hooks/useConfirmBooking';
 import { useConfirmPayment } from '../hooks/useConfirmPayment';
 import { useConfirmRefund } from '../hooks/useConfirmRefund';
+import { useRejectBooking } from '../hooks/useRejectBooking';
 import { useVendorBookingStats } from '../hooks/useVendorBookingStats';
 import { useVendorBookings } from '../hooks/useVendorBookings';
 import type { VendorBookingFilter, VendorBookingItem } from '../types';
@@ -30,10 +32,13 @@ export default function BookingList() {
     useState<VendorBookingItem | null>(null);
   const [selectedBookingForConfirmRefund, setSelectedBookingForConfirmRefund] =
     useState<VendorBookingItem | null>(null);
+  const [selectedBookingForReject, setSelectedBookingForReject] =
+    useState<VendorBookingItem | null>(null);
 
   const confirmBookingMutation = useConfirmBooking();
   const confirmPaymentMutation = useConfirmPayment();
   const confirmRefundMutation = useConfirmRefund();
+  const rejectBookingMutation = useRejectBooking();
 
   const { data: stats } = useVendorBookingStats();
 
@@ -94,6 +99,17 @@ export default function BookingList() {
     });
   };
 
+  const handleRejectSubmit = (bookingId: string, cancellationReason: string) => {
+    rejectBookingMutation.mutate(
+      { bookingId, cancellationReason },
+      {
+        onSuccess: () => {
+          setSelectedBookingForReject(null);
+        },
+      }
+    );
+  };
+
   return (
     <div className="space-y-8 pb-10">
       {/* Header */}
@@ -127,17 +143,17 @@ export default function BookingList() {
         style={{ border: '1px solid #E6E2D1' }}
       >
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[760px]">
             <thead style={{ backgroundColor: '#FAF8F1' }}>
               <tr>
                 {[
-                  'BOOKING ID',
-                  'CUSTOMER NAME',
-                  'TOUR NAME',
-                  'DATE',
-                  'TOTAL AMOUNT',
-                  'STATUS',
-                  'ACTIONS',
+                  'MÃ ĐƠN',
+                  'KHÁCH HÀNG',
+                  'TÊN TOUR',
+                  'NGÀY KHỞI HÀNH',
+                  'TỔNG TIỀN',
+                  'TRẠNG THÁI',
+                  'THAO TÁC',
                 ].map((header) => (
                   <th
                     key={header}
@@ -176,7 +192,7 @@ export default function BookingList() {
                   <td colSpan={7} className="px-6 py-16 text-center text-sm text-gray-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <p className="text-base font-semibold" style={{ color: '#06261D' }}>
-                        No bookings found
+                        Không tìm thấy đơn đặt tour
                       </p>
                       <p className="text-xs text-gray-400">
                         Không có đơn đặt tour nào phù hợp với bộ lọc hiện tại.
@@ -192,6 +208,7 @@ export default function BookingList() {
                     onConfirm={(b) => setSelectedBookingForConfirm(b)}
                     onConfirmPayment={(b) => setSelectedBookingForConfirmPayment(b)}
                     onConfirmRefund={(b) => setSelectedBookingForConfirmRefund(b)}
+                    onReject={(b) => setSelectedBookingForReject(b)}
                   />
                 ))
               )}
@@ -211,7 +228,7 @@ export default function BookingList() {
                 {Math.min((page - 1) * PAGE_SIZE + 1, totalElements)} -{' '}
                 {Math.min(page * PAGE_SIZE, totalElements)}
               </span>{' '}
-              của <span className="font-bold text-gray-800">{totalElements}</span> bookings
+              trong <span className="font-bold text-gray-800">{totalElements}</span> đơn
             </p>
 
             <div className="flex items-center gap-2">
@@ -280,6 +297,15 @@ export default function BookingList() {
         isPending={confirmRefundMutation.isPending}
         onClose={() => setSelectedBookingForConfirmRefund(null)}
         onConfirm={handleConfirmRefundSubmit}
+      />
+
+      {/* Reject Booking Modal */}
+      <RejectBookingModal
+        booking={selectedBookingForReject}
+        isOpen={!!selectedBookingForReject}
+        isPending={rejectBookingMutation.isPending}
+        onClose={() => setSelectedBookingForReject(null)}
+        onConfirm={handleRejectSubmit}
       />
     </div>
   );
