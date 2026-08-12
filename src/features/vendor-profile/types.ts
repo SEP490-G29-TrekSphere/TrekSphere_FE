@@ -20,7 +20,6 @@ export interface VendorProfileDetail {
   status: VendorProfileStatus;
 }
 
-/** Payload cập nhật hồ sơ — chỉ các field `VendorProfileUpdateRequest` hỗ trợ. */
 export interface UpdateVendorProfilePayload {
   description?: string;
   contactEmail?: string;
@@ -28,6 +27,7 @@ export interface UpdateVendorProfilePayload {
   bankAccount?: string;
   bankName?: string;
   paymentQrFile?: File | null;
+  logoFile?: File | null;
 }
 
 /** Labels tiếng Việt cho trạng thái Vendor. */

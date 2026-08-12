@@ -24,6 +24,8 @@ export default function VendorProfileEdit() {
   const [bankAccount, setBankAccount] = useState('');
   const [qrFile, setQrFile] = useState<File | null>(null);
   const [qrPreview, setQrPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Nạp giá trị hiện tại khi profile tải xong.
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function VendorProfileEdit() {
     setBankName(profile.bankName ?? '');
     setBankAccount(profile.bankAccount ?? '');
     setQrPreview(profile.paymentQrUrl ?? null);
+    setLogoPreview(profile.logoUrl ?? null);
   }, [profile]);
 
   const handleQrFileSelected = (file: File) => {
@@ -46,6 +49,11 @@ export default function VendorProfileEdit() {
     setQrPreview(null);
   };
 
+  const handleLogoFileSelected = (file: File) => {
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = () => {
     updateMutation.mutate(
       {
@@ -55,6 +63,7 @@ export default function VendorProfileEdit() {
         bankName,
         bankAccount,
         paymentQrFile: qrFile,
+        logoFile,
       },
       {
         onSuccess: () => {
@@ -108,6 +117,8 @@ export default function VendorProfileEdit() {
         onContactEmailChange={setContactEmail}
         contactPhone={contactPhone}
         onContactPhoneChange={setContactPhone}
+        logoPreview={logoPreview}
+        onLogoFileSelected={handleLogoFileSelected}
       />
 
       <BankInfoCard

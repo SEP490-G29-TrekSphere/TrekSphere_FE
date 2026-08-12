@@ -75,6 +75,7 @@ export const vendorProfileService = {
     if (payload.bankAccount !== undefined) formData.append('bankAccount', payload.bankAccount);
     if (payload.bankName !== undefined) formData.append('bankName', payload.bankName);
     if (payload.paymentQrFile) formData.append('paymentQr', payload.paymentQrFile);
+    if (payload.logoFile) formData.append('logo', payload.logoFile);
 
     const response = await ApiService<VendorProfileResponseDto>(
       '/vendors/profile',
