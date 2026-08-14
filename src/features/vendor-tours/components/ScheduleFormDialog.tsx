@@ -18,13 +18,21 @@ import type { ApiScheduleStatus, CreateSchedulePayload, UpdateSchedulePayload } 
 const STATUS_OPTIONS: Array<{ value: ApiScheduleStatus; label: string }> = [
   { value: 'OPEN', label: 'Đang mở' },
   { value: 'CLOSED', label: 'Đã đóng' },
-  { value: 'CANCELLED', label: 'Đã hủy' },
   { value: 'COMPLETED', label: 'Đã hoàn thành' },
 ];
 
 /** Hôm nay dạng `yyyy-MM-dd` — cùng định dạng với giá trị lưu trong form nên so sánh chuỗi là đủ. */
 function todayIso(): string {
   return toIsoDate(new Date());
+}
+
+export function getLatestReturnDate(departureDate: string, durationDays: number): Date | null {
+  const departure = parseIsoDate(departureDate);
+  if (!departure || !Number.isInteger(durationDays) || durationDays < 1) return null;
+
+  const latestReturnDate = new Date(departure);
+  latestReturnDate.setDate(latestReturnDate.getDate() + durationDays - 1);
+  return latestReturnDate;
 }
 
 const scheduleFormSchema = z
@@ -73,6 +81,8 @@ export interface ScheduleFormDialogProps {
   bookedSlots?: number;
   /** Sức chứa tối đa của tour (`tour.maxCapacity`) — chặn không cho đặt `availableSlots` vượt quá. */
   maxCapacity: number;
+  /** Thời lượng tour tính theo ngày — dùng để giới hạn ngày kết thúc của lịch khởi hành. */
+  durationDays: number;
   isPending?: boolean;
   onSubmit: (payload: CreateSchedulePayload | UpdateSchedulePayload) => void;
 }
@@ -92,6 +102,7 @@ export function ScheduleFormDialog({
   defaultValues,
   bookedSlots = 0,
   maxCapacity,
+  durationDays,
   isPending = false,
   onSubmit: onSubmitProp,
 }: ScheduleFormDialogProps) {
@@ -105,6 +116,7 @@ export function ScheduleFormDialog({
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ScheduleFormInput, unknown, ScheduleFormValues>({
     resolver: zodResolver(scheduleFormSchema),
@@ -113,6 +125,7 @@ export function ScheduleFormDialog({
 
   // Ngày kết thúc không được chọn trước ngày khởi hành (cùng ràng buộc với `.refine` của zod).
   const departureDate = watch('departureDate');
+  const latestReturnDate = getLatestReturnDate(departureDate, durationDays);
 
   // Đổ lại giá trị mỗi lần dialog mở, tránh giữ dữ liệu của lịch/lần mở trước (cho lịch khác).
   // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ cần trigger reset khi mở dialog
@@ -125,6 +138,13 @@ export function ScheduleFormDialog({
     // các thông tin khác như giá/số chỗ/trạng thái, không thể bắt dời ngày lên tương lai.
     if (!isEdit && values.departureDate < todayIso()) {
       setError('departureDate', { message: 'Ngày khởi hành không được ở trong quá khứ' });
+      return;
+    }
+
+    if (latestReturnDate && values.returnDate > toIsoDate(latestReturnDate)) {
+      setError('returnDate', {
+        message: `Lịch trình vượt quá ${durationDays} ngày đã thiết lập cho tour.`,
+      });
       return;
     }
 
@@ -170,7 +190,7 @@ export function ScheduleFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto" initialFocus={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {isEdit ? 'Sửa lịch khởi hành' : 'Tạo lịch khởi hành mới'}
@@ -230,7 +250,16 @@ export function ScheduleFormDialog({
                   <AppDatePicker
                     id="returnDate"
                     selected={parseIsoDate(field.value)}
-                    onChange={(date: Date | null) => field.onChange(toIsoDate(date))}
+                    onChange={(date: Date | null) => {
+                      field.onChange(toIsoDate(date));
+                      if (date && latestReturnDate && date > latestReturnDate) {
+                        setError('returnDate', {
+                          message: `Lịch trình vượt quá ${durationDays} ngày đã thiết lập cho tour.`,
+                        });
+                      } else {
+                        clearErrors('returnDate');
+                      }
+                    }}
                     onBlur={field.onBlur}
                     minDate={parseIsoDate(departureDate) ?? undefined}
                     className="w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"

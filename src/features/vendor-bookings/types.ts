@@ -1,8 +1,18 @@
 // src/features/vendor-bookings/types.ts
 
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+import type { PaymentPlan, PaymentStatus } from '@/features/payments/types';
 
-export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+export type BookingStatus =
+  | 'PAYMENT_PENDING'
+  | 'PENDING_CONFIRMATION'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'EXPIRED'
+  | 'REJECTED'
+  | 'CANCELLED';
+
+export type { PaymentStatus } from '@/features/payments/types';
 
 export interface VendorBookingItem {
   bookingId: string;
@@ -15,6 +25,12 @@ export interface VendorBookingItem {
   totalPrice: number;
   bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;
+  paymentPlan?: PaymentPlan;
+  paidAmount?: number;
+  pendingRefundAmount?: number;
+  holdExpiresAt?: string;
+  confirmationExpiresAt?: string;
+  remainingDueAt?: string;
   createdAt: string;
   customerName?: string; // bổ sung hỗ trợ nếu BE/mock có
   proofImageUrl?: string;
@@ -38,6 +54,22 @@ export interface VendorBookingListResponse {
   totalElements: number;
   totalPages: number;
   last: boolean;
+}
+
+/** Booking rút gọn được nhóm từ manifest của đúng một lịch khởi hành. */
+export interface ScheduleBookingItem {
+  bookingId: string;
+  bookingCode: string;
+  numberOfParticipants: number;
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
+}
+
+/** Dữ liệu đối chiếu dùng khi Vendor hủy toàn bộ một lịch khởi hành. */
+export interface ScheduleBookingManifest {
+  scheduleId: string;
+  bookedSlots: number;
+  bookings: ScheduleBookingItem[];
 }
 
 export interface ParticipantDto {
@@ -68,6 +100,12 @@ export interface BookingDetailResponse {
   refundAmount?: number;
   bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;
+  paymentPlan: PaymentPlan;
+  paidAmount: number;
+  pendingRefundAmount: number;
+  holdExpiresAt?: string;
+  confirmationExpiresAt?: string;
+  remainingDueAt?: string;
   proofImageUrl?: string;
   cancellationReason?: string;
   cancelledAt?: string;
@@ -78,10 +116,6 @@ export interface BookingDetailResponse {
   userEmail?: string;
   userFullName?: string;
   userPhone?: string;
-  vendorBankName?: string;
-  vendorBankAccount?: string;
-  vendorCompanyName?: string;
-  paymentQrUrl?: string;
   participants?: ParticipantDto[];
 }
 
@@ -89,5 +123,5 @@ export interface BookingStats {
   totalBookings: number;
   pendingPayments: number;
   confirmedTreks: number;
-  refunded: number;
+  pendingRefunds: number;
 }

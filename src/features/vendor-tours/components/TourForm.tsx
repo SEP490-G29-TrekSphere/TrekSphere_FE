@@ -19,21 +19,67 @@ const DIFFICULTY_OPTIONS: Array<{ value: FormDifficulty; label: string }> = [
 
 const MAX_COVER_SIZE_MB = 5;
 
+const optionalNumberText = z
+  .string()
+  .trim()
+  .refine((value) => value === '' || Number.isFinite(Number(value)), 'Giá trị không hợp lệ');
+
+const requiredAgeText = z
+  .string()
+  .trim()
+  .min(1, 'Vui lòng nhập tuổi tối thiểu')
+  .refine(
+    (value) => Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 120,
+    'Tuổi phải là số nguyên từ 0 đến 120'
+  );
+
 const tourFormSchema = z
   .object({
     tourName: z.string().trim().min(1, 'Vui lòng nhập tên tour'),
     difficulty: z.enum(['EASY', 'MODERATE', 'HARD']),
     basePrice: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
-    startingPoint: z.string().trim().min(1, 'Vui lòng nhập điểm bắt đầu'),
-    endingPoint: z.string().trim().min(1, 'Vui lòng nhập điểm kết thúc'),
+    location: z.string().trim().min(1, 'Vui lòng nhập địa điểm'),
     minCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     maxCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     durationDays: z.coerce.number().int().min(1, 'Tối thiểu 1 ngày'),
     description: z.string().trim().min(1, 'Vui lòng nhập lịch trình chi tiết'),
+    minAge: requiredAgeText,
+    maxAge: optionalNumberText,
+    minHeightCm: optionalNumberText,
+    maxHeightCm: optionalNumberText,
+    minWeightKg: optionalNumberText,
+    maxWeightKg: optionalNumberText,
+    fitnessLevel: z.enum(['ANY', 'BASIC', 'MODERATE', 'HIGH', 'EXTREME']),
+    healthRequirements: z.string().trim(),
+    restrictedMedicalConditions: z.string().trim(),
+    requiredExperience: z.string().trim(),
+    requiredSkills: z.string().trim(),
+    requiredEquipment: z.string().trim(),
+    requiredDocuments: z.string().trim(),
+    requiresHealthDeclaration: z.boolean(),
+    requiresMedicalCertificate: z.boolean(),
+    guardianRequiredUnderAge: optionalNumberText,
+    additionalRequirements: z.string().trim(),
   })
   .refine((data) => data.maxCapacity >= data.minCapacity, {
     message: 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu',
     path: ['maxCapacity'],
+  })
+  .superRefine((data, context) => {
+    const ranges: Array<[string, string, keyof typeof data]> = [
+      [data.minAge, data.maxAge, 'maxAge'],
+      [data.minHeightCm, data.maxHeightCm, 'maxHeightCm'],
+      [data.minWeightKg, data.maxWeightKg, 'maxWeightKg'],
+    ];
+    for (const [minimum, maximum, path] of ranges) {
+      if (minimum && maximum && Number(minimum) > Number(maximum)) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Giá trị tối đa phải lớn hơn hoặc bằng tối thiểu',
+          path: [path],
+        });
+      }
+    }
   });
 
 /** Giá trị sau khi zod coerce (số thật) — dùng khi submit. */
@@ -78,13 +124,33 @@ const EMPTY_DEFAULTS: TourFormInput = {
   tourName: '',
   difficulty: 'EASY',
   basePrice: 0,
-  startingPoint: '',
-  endingPoint: '',
+  location: '',
   minCapacity: 1,
   maxCapacity: 1,
   durationDays: 1,
   description: '',
+  minAge: '18',
+  maxAge: '',
+  minHeightCm: '',
+  maxHeightCm: '',
+  minWeightKg: '',
+  maxWeightKg: '',
+  fitnessLevel: 'ANY',
+  healthRequirements: '',
+  restrictedMedicalConditions: '',
+  requiredExperience: '',
+  requiredSkills: '',
+  requiredEquipment: '',
+  requiredDocuments: '',
+  requiresHealthDeclaration: true,
+  requiresMedicalCertificate: false,
+  guardianRequiredUnderAge: '',
+  additionalRequirements: '',
 };
+
+function optionalNumber(value: string): number | undefined {
+  return value === '' ? undefined : Number(value);
+}
 
 export interface TourFormProps {
   mode: 'create' | 'edit';
@@ -172,7 +238,7 @@ export function TourForm({
       tourName: values.tourName,
       description: values.description,
       difficulty: values.difficulty,
-      location: `${values.startingPoint} → ${values.endingPoint}`,
+      location: values.location,
       durationDays: values.durationDays,
       basePrice: values.basePrice,
       minCapacity: values.minCapacity,
@@ -180,6 +246,25 @@ export function TourForm({
       coverImageUrl,
       // Gửi kèm cả file thô — xem ghi chú "ẢNH BÌA" trong `vendorTourService.ts`.
       coverImage: coverFile ?? undefined,
+      participationPolicy: {
+        minAge: Number(values.minAge),
+        maxAge: optionalNumber(values.maxAge),
+        minHeightCm: optionalNumber(values.minHeightCm),
+        maxHeightCm: optionalNumber(values.maxHeightCm),
+        minWeightKg: optionalNumber(values.minWeightKg),
+        maxWeightKg: optionalNumber(values.maxWeightKg),
+        fitnessLevel: values.fitnessLevel,
+        healthRequirements: values.healthRequirements || undefined,
+        restrictedMedicalConditions: values.restrictedMedicalConditions || undefined,
+        requiredExperience: values.requiredExperience || undefined,
+        requiredSkills: values.requiredSkills || undefined,
+        requiredEquipment: values.requiredEquipment || undefined,
+        requiredDocuments: values.requiredDocuments || undefined,
+        requiresHealthDeclaration: values.requiresHealthDeclaration,
+        requiresMedicalCertificate: values.requiresMedicalCertificate,
+        guardianRequiredUnderAge: optionalNumber(values.guardianRequiredUnderAge),
+        additionalRequirements: values.additionalRequirements || undefined,
+      },
     };
 
     const activeCheckpoints = checkpoints.filter((checkpoint) => checkpoint.name.trim());
@@ -340,47 +425,25 @@ export function TourForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="startingPoint"
-                  className="mb-1.5 block text-sm font-semibold"
-                  style={{ color: '#06261D' }}
-                >
-                  Điểm bắt đầu <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="startingPoint"
-                  type="text"
-                  {...register('startingPoint')}
-                  placeholder="Ví dụ: Hà Nội"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                  style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-                />
-                {errors.startingPoint && (
-                  <p className="mt-1 text-xs text-red-500">{errors.startingPoint.message}</p>
-                )}
-              </div>
-              <div>
-                <label
-                  htmlFor="endingPoint"
-                  className="mb-1.5 block text-sm font-semibold"
-                  style={{ color: '#06261D' }}
-                >
-                  Điểm kết thúc <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="endingPoint"
-                  type="text"
-                  {...register('endingPoint')}
-                  placeholder="Ví dụ: Đỉnh Fansipan"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                  style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-                />
-                {errors.endingPoint && (
-                  <p className="mt-1 text-xs text-red-500">{errors.endingPoint.message}</p>
-                )}
-              </div>
+            <div>
+              <label
+                htmlFor="location"
+                className="mb-1.5 block text-sm font-semibold"
+                style={{ color: '#06261D' }}
+              >
+                Địa điểm <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="location"
+                type="text"
+                {...register('location')}
+                placeholder="Ví dụ: Sa Pa, Lào Cai"
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
+                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+              />
+              {errors.location && (
+                <p className="mt-1 text-xs text-red-500">{errors.location.message}</p>
+              )}
             </div>
 
             {/* BE bắt buộc minCapacity/maxCapacity — không có trong thiết kế gốc nhưng
@@ -512,6 +575,98 @@ export function TourForm({
             </p>
           </section>
         </div>
+
+        <section
+          className="space-y-5 rounded-3xl bg-white p-6 lg:col-span-5"
+          style={{ border: '1px solid #E6E2D1' }}
+        >
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6F7B75]">
+              Điều kiện tham gia
+            </h3>
+            <p className="mt-1 text-xs font-medium text-[#6F7B75]">
+              Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour thiếu policy sẽ
+              không nhận đặt online.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ['minAge', 'Tuổi tối thiểu *', 'tuổi', '0', '1'],
+              ['maxAge', 'Tuổi tối đa', 'tuổi', '0', '1'],
+              ['minHeightCm', 'Chiều cao tối thiểu', 'cm', '50', '0.1'],
+              ['maxHeightCm', 'Chiều cao tối đa', 'cm', '50', '0.1'],
+              ['minWeightKg', 'Cân nặng tối thiểu', 'kg', '10', '0.1'],
+              ['maxWeightKg', 'Cân nặng tối đa', 'kg', '10', '0.1'],
+              ['guardianRequiredUnderAge', 'Cần người giám hộ nếu dưới', 'tuổi', '1', '1'],
+            ].map(([name, label, unit, minimum, step]) => (
+              <label key={name} className="text-sm font-semibold text-[#06261D]">
+                {label}
+                <span className="relative mt-1.5 block">
+                  <input
+                    type="number"
+                    min={minimum}
+                    step={step}
+                    {...register(name as keyof TourFormInput)}
+                    className="w-full rounded-xl bg-[#F8F6EF] px-4 py-2.5 pr-12 text-sm font-medium outline-none focus:ring-1"
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-xs text-[#6F7B75]">
+                    {unit}
+                  </span>
+                </span>
+                {errors[name as keyof typeof errors]?.message && (
+                  <span className="mt-1 block text-xs text-red-500">
+                    {String(errors[name as keyof typeof errors]?.message)}
+                  </span>
+                )}
+              </label>
+            ))}
+
+            <label className="text-sm font-semibold text-[#06261D]">
+              Thể lực yêu cầu
+              <select
+                {...register('fitnessLevel')}
+                className="mt-1.5 w-full rounded-xl bg-[#F8F6EF] px-4 py-2.5 text-sm font-medium outline-none focus:ring-1"
+              >
+                <option value="ANY">Không yêu cầu đặc biệt</option>
+                <option value="BASIC">Cơ bản</option>
+                <option value="MODERATE">Trung bình</option>
+                <option value="HIGH">Tốt</option>
+                <option value="EXTREME">Rất tốt / chuyên sâu</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              ['healthRequirements', 'Yêu cầu sức khỏe'],
+              ['restrictedMedicalConditions', 'Tình trạng sức khỏe không phù hợp'],
+              ['requiredExperience', 'Kinh nghiệm cần có'],
+              ['requiredSkills', 'Kỹ năng cần có'],
+              ['requiredEquipment', 'Trang bị bắt buộc'],
+              ['requiredDocuments', 'Giấy tờ bắt buộc'],
+            ].map(([name, label]) => (
+              <label key={name} className="text-sm font-semibold text-[#06261D]">
+                {label}
+                <textarea
+                  rows={2}
+                  {...register(name as keyof TourFormInput)}
+                  className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
+                />
+              </label>
+            ))}
+          </div>
+
+          <label className="block text-sm font-semibold text-[#06261D]">
+            Quy định khác
+            <textarea
+              rows={2}
+              {...register('additionalRequirements')}
+              placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành"
+              className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
+            />
+          </label>
+        </section>
 
         {/* Lịch trình chi tiết — full width */}
         <section

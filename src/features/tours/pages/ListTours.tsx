@@ -98,9 +98,19 @@ export default function ListTours() {
     setPage(0);
   };
 
+  const handleDepartureDateChange = (date: string) => {
+    setFilters((prev) => ({ ...prev, departureDate: date }));
+    setPage(0);
+  };
+
+  const handleReturnDateChange = (date: string) => {
+    setFilters((prev) => ({ ...prev, returnDate: date }));
+    setPage(0);
+  };
+
   const handleResetFilters = () => {
     setDraft({ keyword: '', location: '', departureDate: '', budget: '' });
-    setFilters({ sortBy: 'newest' });
+    setFilters({ sortBy: 'newest', departureDate: '', returnDate: '' });
     setPriceRange([0, 0]); // will be re-synced from useTourPriceRange
     setPage(0);
   };
@@ -144,12 +154,23 @@ export default function ListTours() {
       keyword: debouncedKeyword,
       location: filters.location,
       difficulty: filters.difficulty,
+      departureDate: filters.departureDate,
+      returnDate: filters.returnDate,
       page,
       size: PAGE_SIZE,
       sortBy,
       sortDir,
     }),
-    [debouncedKeyword, filters.location, filters.difficulty, page, sortBy, sortDir]
+    [
+      debouncedKeyword,
+      filters.location,
+      filters.difficulty,
+      filters.departureDate,
+      filters.returnDate,
+      page,
+      sortBy,
+      sortDir,
+    ]
   );
 
   const { tours, totalElements, totalPages, pageNumber, isLoading, error, refetch } =
@@ -166,10 +187,36 @@ export default function ListTours() {
 
   return (
     <div className="min-h-screen bg-background pt-16">
-      <div className="relative z-10">
+      {/* Hero Section */}
+      <section className="relative h-[350px] sm:h-[450px] w-full">
+        <img
+          src="/image1.jpg"
+          alt="Khám phá các tour Trekking"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4">
+          <h1 className="mb-4 text-3xl font-bold sm:text-5xl lg:text-6xl text-white">
+            Khám Phá Các Hành Trình Trekking
+          </h1>
+          <p className="max-w-2xl text-base sm:text-lg text-white/90">
+            Tìm kiếm và lựa chọn những chuyến phiêu lưu tuyệt vời nhất cùng các chuyên gia hàng đầu.
+          </p>
+        </div>
+      </section>
+
+      <div className="relative z-20 -mt-16 sm:-mt-20">
         {/* Centered max-width container — aligns search bar and grid */}
         <div className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 lg:px-8">
-          <TourSearchBar onSearch={handleSearch} initialValues={draft} className="mx-auto" />
+          <TourSearchBar
+            onSearch={handleSearch}
+            initialValues={draft}
+            className="mx-auto"
+            departureDate={filters.departureDate}
+            returnDate={filters.returnDate}
+            onDepartureDateChange={handleDepartureDateChange}
+            onReturnDateChange={handleReturnDateChange}
+          />
 
           {/* Grid Layout below Search: Left Sidebar Filters, Right Content Area */}
           <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 sm:mt-14">

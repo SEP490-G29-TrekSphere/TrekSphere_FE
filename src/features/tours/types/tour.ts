@@ -1,4 +1,7 @@
+import type { PaymentPlan, PaymentStatus, TourPaymentPolicy } from '@/features/payments/types';
 import type { CancellationPolicy } from '@/features/vendor-cancellation-policies/types';
+
+export type { PaymentStatus } from '@/features/payments/types';
 
 export type TourLevel = 'Dễ' | 'Trung bình' | 'Khó' | 'Khám phá';
 
@@ -26,6 +29,8 @@ export interface Tour {
   schedule?: string;
   isPopular?: boolean;
   isNew?: boolean;
+  onlineBookingEnabled?: boolean;
+  onlineBookingDisabledReason?: string | null;
 }
 
 // ============================================================
@@ -173,6 +178,8 @@ export interface TourFilter {
    * (xem ghi chú ở `ApiSortField`).
    */
   sortBy?: 'price-asc' | 'price-desc' | 'newest' | 'duration-asc' | 'duration-desc' | 'name-asc';
+  departureDate?: string;
+  returnDate?: string;
 }
 
 // ============================================================
@@ -226,6 +233,8 @@ export interface TourListParams {
   keyword?: string;
   location?: string;
   difficulty?: ApiDifficulty;
+  departureDate?: string;
+  returnDate?: string;
   page?: number;
   size?: number;
   sortBy?: ApiSortField;
@@ -241,15 +250,47 @@ export interface TourApiItem {
   location: string;
   durationDays: number;
   basePrice: number;
+  minCapacity: number;
+  maxCapacity: number;
+  totalDistanceKm: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   coverImageUrl: string;
+  highlights: string;
+  includes: string;
+  excludes: string;
   vendorId: string;
   vendorName: string;
   averageRating: number | null;
   totalReviews: number;
   createdAt: string;
   category?: string;
+  onlineBookingEnabled?: boolean;
+  onlineBookingDisabledReason?: string | null;
+}
+
+export type FitnessLevel = 'ANY' | 'BASIC' | 'MODERATE' | 'HIGH' | 'EXTREME';
+
+export interface TourParticipationPolicy {
+  tourId: string;
+  policyVersion: number;
+  minAge?: number | null;
+  maxAge?: number | null;
+  minHeightCm?: number | null;
+  maxHeightCm?: number | null;
+  minWeightKg?: number | null;
+  maxWeightKg?: number | null;
+  fitnessLevel: FitnessLevel;
+  healthRequirements?: string | null;
+  restrictedMedicalConditions?: string | null;
+  requiredExperience?: string | null;
+  requiredSkills?: string | null;
+  requiredEquipment?: string | null;
+  requiredDocuments?: string | null;
+  requiresHealthDeclaration: boolean;
+  requiresMedicalCertificate: boolean;
+  guardianRequiredUnderAge?: number | null;
+  additionalRequirements?: string | null;
 }
 
 /**
@@ -340,6 +381,15 @@ export interface TourDetailFromApi {
    * Optional vì vendor có thể chưa cấu hình chính sách nào.
    */
   cancellationPolicies?: CancellationPolicy[];
+  /** Policy thanh toán của riêng tour, được BE nhúng vào tour detail. */
+  paymentPolicy?: TourPaymentPolicy;
+  /** Điều kiện tham gia do vendor cấu hình riêng cho tour. */
+  participationPolicy?: TourParticipationPolicy | null;
+  /** False vẫn cho xem tour public nhưng khóa tạo booking online. */
+  onlineBookingEnabled?: boolean;
+  onlineBookingDisabledReason?: string | null;
+  /** Chi phí đã phát sinh và không hoàn lại khi tính yêu cầu hủy. */
+  nonRefundableCost?: number;
   averageRating: number | null;
   totalReviews: number;
 }
@@ -355,9 +405,15 @@ export interface TourSearchValues {
 // API Types for My Booking History (GET /api/v1/bookings/my-history)
 // ============================================================
 
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-
-export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+export type BookingStatus =
+  | 'PAYMENT_PENDING'
+  | 'PENDING_CONFIRMATION'
+  | 'CONFIRMED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'EXPIRED'
+  | 'REJECTED'
+  | 'CANCELLED';
 
 export interface BookingItemFromApi {
   bookingId: string;
@@ -431,6 +487,14 @@ export interface BookingDetailResponse {
   refundAmount: number;
   bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;
+  paymentPlan: PaymentPlan;
+  holdExpiresAt?: string;
+  confirmationExpiresAt?: string;
+  remainingDueAt?: string;
+  participationPolicyAcceptedAt?: string;
+  paidAmount: number;
+  pendingRefundAmount: number;
+  onlinePaymentEnabled?: boolean;
   proofImageUrl?: string;
   cancellationReason?: string;
   cancelledAt?: string;
@@ -441,10 +505,6 @@ export interface BookingDetailResponse {
   userEmail: string;
   userFullName: string;
   userPhone: string;
-  vendorBankName?: string;
-  vendorBankAccount?: string;
-  vendorCompanyName?: string;
-  paymentQrUrl?: string;
   refundBankName?: string;
   refundAccountNumber?: string;
   refundAccountHolder?: string;
@@ -455,12 +515,12 @@ export interface BookingDetailResponse {
 
 export interface BookingCancelRequest {
   cancellationReason: string;
-  /** Tên ngân hàng nhận hoàn tiền — ví dụ: "Vietcombank". */
-  refundBankName?: string;
+  /** Mã BIN ngân hàng nhận hoàn tiền — ví dụ: "970436". */
+  refundBankBin?: string;
   /** Số tài khoản nhận hoàn tiền. */
   refundAccountNumber?: string;
   /** Tên chủ tài khoản nhận hoàn tiền — ví dụ: "NGUYEN VAN A". */
-  refundAccountHolder?: string;
+  refundAccountName?: string;
 }
 
 export interface PaymentProofRequest {
@@ -481,6 +541,8 @@ export interface BookingParticipantRequest {
 export interface CreateBookingRequest {
   scheduleId: string;
   voucherCode?: string;
+  paymentPlan: PaymentPlan;
+  participationPolicyAccepted?: boolean;
   participants: BookingParticipantRequest[];
 }
 
@@ -507,6 +569,8 @@ export interface TourCheckpoint {
   altitude: number | null;
   checkpointOrder: number;
   checkpointImageUrl: string | null;
+  /** Danh sách URL ảnh checkpoint đã được backend tách từ trường lưu trữ. */
+  checkpointImageUrls?: string[];
 }
 
 export interface ReviewItem {

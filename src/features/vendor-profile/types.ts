@@ -14,20 +14,14 @@ export interface VendorProfileDetail {
   contactPhone?: string;
   taxCode?: string;
   businessLicenseUrl?: string;
-  bankAccount?: string;
-  bankName?: string;
-  paymentQrUrl?: string;
   status: VendorProfileStatus;
 }
 
-/** Payload cập nhật hồ sơ — chỉ các field `VendorProfileUpdateRequest` hỗ trợ. */
 export interface UpdateVendorProfilePayload {
   description?: string;
   contactEmail?: string;
   contactPhone?: string;
-  bankAccount?: string;
-  bankName?: string;
-  paymentQrFile?: File | null;
+  logo?: File;
 }
 
 /** Labels tiếng Việt cho trạng thái Vendor. */

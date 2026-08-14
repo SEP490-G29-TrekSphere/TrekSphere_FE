@@ -7,7 +7,7 @@ import {
   LogOut,
   MessageSquare,
   Newspaper,
-  Settings,
+  RotateCcw,
   Siren,
   Ticket,
   User,
@@ -21,13 +21,13 @@ const adminNavItems = [
   { name: 'Bảng điều khiển', path: PATHS.ADMIN_DASHBOARD, icon: LayoutGrid, disabled: true },
   { name: 'Tài khoản', path: PATHS.ADMIN_ACCOUNTS, icon: User },
   { name: 'Quản lý Nhà cung cấp', path: PATHS.ADMIN_VENDORS, icon: Building2 },
-  { name: 'Duyệt Vendor', path: PATHS.ADMIN_APPLICATIONS, icon: ClipboardCheck },
+  { name: 'Duyệt Nhà Cung Cấp', path: PATHS.ADMIN_APPLICATIONS, icon: ClipboardCheck },
   { name: 'Báo cáo Vi phạm', path: PATHS.ADMIN_REPORTS, icon: AlertTriangle },
+  { name: 'Duyệt hoàn tiền', path: PATHS.ADMIN_REFUNDS, icon: RotateCcw },
   { name: 'Khẩn cấp (SOS)', path: PATHS.ADMIN_EMERGENCY, icon: Siren },
-  { name: 'Quản lý Blog', path: PATHS.ADMIN_BLOGS, icon: Newspaper },
+  { name: 'Quản lý Bài Viết', path: PATHS.ADMIN_BLOGS, icon: Newspaper },
   { name: 'Quản lý Dữ liệu', path: PATHS.ADMIN_DATA, icon: Database, disabled: true },
   { name: 'Duyệt Voucher', path: PATHS.ADMIN_VOUCHERS, icon: Ticket, disabled: true },
-  { name: 'Cài đặt', path: PATHS.ADMIN_SETTINGS, icon: Settings },
   { name: 'Trò chuyện', path: PATHS.ADMIN_CHAT, icon: MessageSquare },
 ];
 
@@ -57,7 +57,7 @@ export default function AdminLayout() {
           <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
             TrekSphere
           </h1>
-          <span className="text-xs text-zinc-500 font-medium tracking-wide">TRANG QUẢN TRỊ</span>
+          <span className="text-xs text-zinc-500 font-medium tracking-wide">QUẢN TRỊ VIÊN</span>
         </Link>
       }
       nav={
@@ -75,7 +75,9 @@ export default function AdminLayout() {
               (item.path === PATHS.ADMIN_ACCOUNTS &&
                 location.pathname.startsWith(PATHS.ADMIN_ACCOUNTS)) ||
               (item.path === PATHS.ADMIN_REPORTS &&
-                location.pathname.startsWith(PATHS.ADMIN_REPORTS));
+                location.pathname.startsWith(PATHS.ADMIN_REPORTS)) ||
+              (item.path === PATHS.ADMIN_REFUNDS &&
+                location.pathname.startsWith(PATHS.ADMIN_REFUNDS));
             return (
               <Link
                 key={item.name}
@@ -112,7 +114,6 @@ export default function AdminLayout() {
                 <span className="truncate text-sm font-bold text-zinc-800 leading-tight">
                   {adminName}
                 </span>
-                <span className="text-[11px] text-zinc-500 font-medium">Hồ sơ quản trị</span>
               </div>
             </div>
             <button

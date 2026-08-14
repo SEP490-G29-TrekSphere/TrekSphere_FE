@@ -41,12 +41,13 @@ const deriveApiUrl = (rawUrl?: string): string => {
   return `${cleanUrl}/api/v1`;
 };
 
-// Dev without VITE_API_URL → use relative path so Vite proxy forwards to BE.
+// Development luôn đi qua Vite proxy để cookie HttpOnly của Backend trở thành
+// same-origin với localhost. VITE_API_URL chỉ được dùng làm proxy target.
 // Prod without VITE_API_URL → fail fast with a clear error rather than silently
 // pointing at a hardcoded URL.
 const getBaseURL = (): string => {
+  if (isDev && import.meta.env.VITE_API_USE_PROXY !== 'false') return '/api/v1';
   if (envApiUrl) return deriveApiUrl(envApiUrl);
-  if (isDev) return '/api/v1';
   throw new Error(
     '[apiClient] VITE_API_URL is not set. ' +
       'Set it in your .env file before running a production build.'
@@ -80,23 +81,11 @@ type RetryableRequest = AxiosError['config'] & {
   __skipRefresh?: boolean;
 };
 
-// Biến shared state cho refresh flow — đảm bảo nhiều request 401 đồng thời
-// chỉ trigger 1 lần refresh, các request còn lại sẽ đợi token mới rồi retry.
-let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+const COOKIE_AUTH = '__COOKIE_AUTH__';
 
-const subscribeTokenRefresh = (cb: (token: string) => void): void => {
-  refreshSubscribers.push(cb);
-};
-
-const onTokenRefreshed = (token: string): void => {
-  for (const cb of refreshSubscribers) cb(token);
-  refreshSubscribers = [];
-};
-
-const onRefreshFailed = (): void => {
-  refreshSubscribers = [];
-};
+// Mọi request 401 cùng chờ một Promise refresh; khi refresh lỗi không request
+// nào bị treo trong hàng đợi.
+let refreshPromise: Promise<string | null> | null = null;
 
 /**
  * Dọn sạch session khi token hết hạn hẳn (không refresh được nữa) — không chỉ
@@ -109,7 +98,12 @@ const onRefreshFailed = (): void => {
  * lúc (cùng 1 đợt hết hạn) gọi clear/toast lặp lại nhiều lần.
  */
 const clearExpiredSession = (): void => {
-  if (!storage.get<string>('accessToken')) return;
+  const hasSession = Boolean(
+    storage.get<string>('accessToken') ||
+      storage.get<string>('refreshToken') ||
+      useAppStore.getState().user
+  );
+  if (!hasSession) return;
   storage.remove('accessToken');
   storage.remove('refreshToken');
   useAppStore.getState().setUser(null);
@@ -141,12 +135,9 @@ async function performRefresh(): Promise<string | null> {
   }
 
   const absoluteURL = `${buildAbsoluteBaseURL()}/auth/refresh-token`;
-  const bodyCandidates: Array<Record<string, unknown> | null> = [
-    refreshToken ? { refreshToken } : null,
-    refreshToken ? { refresh_token: refreshToken } : null,
-    refreshToken ? { token: refreshToken } : null,
-    null,
-  ];
+  const bodyCandidates: Array<Record<string, unknown> | null> = refreshToken
+    ? [{ refreshToken }, { refresh_token: refreshToken }, { token: refreshToken }, null]
+    : [null];
 
   for (const _body of bodyCandidates) {
     try {
@@ -183,7 +174,9 @@ async function performRefresh(): Promise<string | null> {
         '';
 
       if (!newAccess) {
-        // Shape này không đúng → thử shape tiếp theo
+        // Backend production cũ trả user trong body và rotate token hoàn toàn
+        // bằng cookie HttpOnly. HTTP 2xx ở đây nghĩa là cookie mới đã được set.
+        if (response.status >= 200 && response.status < 300 && inner) return COOKIE_AUTH;
         continue;
       }
 
@@ -252,43 +245,25 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Có refresh token trong storage không?
-    const hasRefreshToken = Boolean(storage.get<string>('refreshToken'));
-    if (!hasRefreshToken) {
-      console.warn('[apiClient] 401 received, no refresh token available:', originalConfig?.url);
+    originalConfig.__retried = true;
+
+    refreshPromise ??= performRefresh().finally(() => {
+      refreshPromise = null;
+    });
+    const newToken = await refreshPromise;
+
+    if (!newToken) {
       clearExpiredSession();
       return Promise.reject(error);
     }
 
-    originalConfig.__retried = true;
-
-    if (!isRefreshing) {
-      isRefreshing = true;
-      const newToken = await performRefresh();
-      isRefreshing = false;
-
-      if (!newToken) {
-        // Refresh thất bại → xóa token + user + cache, để user phải login lại
-        clearExpiredSession();
-        onRefreshFailed();
-        return Promise.reject(error);
-      }
-
-      onTokenRefreshed(newToken);
-      // Retry request hiện tại với token mới
-      originalConfig.headers = originalConfig.headers ?? new axios.AxiosHeaders();
+    originalConfig.headers = originalConfig.headers ?? new axios.AxiosHeaders();
+    if (newToken === COOKIE_AUTH) {
+      originalConfig.headers.delete('Authorization');
+    } else {
       originalConfig.headers.Authorization = `Bearer ${newToken}`;
-      return apiClient.request(originalConfig);
     }
-
-    // Đang refresh rồi → đợi token mới rồi retry
-    return new Promise<AxiosResponse>((resolve, reject) => {
-      subscribeTokenRefresh((token) => {
-        originalConfig.headers = originalConfig.headers ?? new axios.AxiosHeaders();
-        originalConfig.headers.Authorization = `Bearer ${token}`;
-        apiClient.request(originalConfig).then(resolve).catch(reject);
-      });
-    });
+    return apiClient.request(originalConfig);
   }
 );
 
@@ -343,6 +318,9 @@ const handleError = (error: unknown): ApiResponse<never> => {
       | {
           message?: string;
           error?: string;
+          detail?: string;
+          title?: string;
+          error_name?: string;
           errors?: Array<{ field?: string; message?: string }>;
         }
       | undefined;
@@ -350,7 +328,14 @@ const handleError = (error: unknown): ApiResponse<never> => {
       ?.map((e) => e.message)
       .filter(Boolean)
       .join('; ');
-    const message = fieldErrors || responseData?.message || responseData?.error || error.message;
+    const cloudflareOriginError = responseData?.error_name === 'origin_bad_gateway';
+    const message =
+      fieldErrors ||
+      responseData?.message ||
+      responseData?.error ||
+      (cloudflareOriginError
+        ? 'Backend không nhận được phản hồi hợp lệ từ payOS. Vui lòng thử lại sau.'
+        : responseData?.detail || responseData?.title || error.message);
     return {
       error: message,
       message,
@@ -400,7 +385,8 @@ export const ApiService = async <T>(
   path: string,
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   data?: unknown,
-  params?: Record<string, string>
+  params?: Record<string, string>,
+  headers?: Record<string, string>
 ): Promise<ApiResponse<T>> => {
   try {
     const response = await apiClient.request({
@@ -408,6 +394,7 @@ export const ApiService = async <T>(
       method,
       data,
       params,
+      headers,
     });
 
     return handleResponse<T>(response);

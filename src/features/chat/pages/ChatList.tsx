@@ -5,10 +5,13 @@ import { ChatDetailPane } from '@/features/chat/components/ChatDetailPane';
 import { ConversationList } from '@/features/chat/components/ConversationList';
 import type {
   Conversation,
+  ConversationResponse,
   DetailMessage,
   MessageResponse,
+  PaginationResponse,
   VirtualConversationData,
 } from '@/features/chat/types/types';
+import { companionGroupKeys } from '@/features/companion-groups/hooks/companionGroupKeys';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import { useChatWebSocket } from '../context/ChatWebSocketContext';
@@ -17,6 +20,7 @@ import { useChatMessages } from '../hooks/useChatMessages';
 import { useCreateConversation } from '../hooks/useCreateConversation';
 import { useMarkAsRead } from '../hooks/useMarkAsRead';
 import { useSendMessage } from '../hooks/useSendMessage';
+import { chatService } from '../services/chatService';
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -135,6 +139,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           timestamp: item.lastMessageAt,
           online: false,
           startDate: undefined,
+          isGroupLeader: item.isGroupLeader,
           tag: {
             text: item.conversationType === 'DIRECT' ? 'DIRECT' : 'GROUP',
             variant: item.conversationType === 'DIRECT' ? 'secondary' : 'accent',
@@ -144,7 +149,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
 
       let initialSelectedId: string | null = null;
       if (virtualConversation) {
-        const vId = 'virtual_' + virtualConversation.participantIds.join('_');
+        const vId = `virtual_${virtualConversation.participantIds.join('_')}`;
         const vChat: Conversation = {
           id: vId,
           userName: virtualConversation.userName,
@@ -292,24 +297,27 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
         });
 
         // Cập nhật React Query cache để conversation không bị chớp/biến mất
-        queryClient.setQueryData(['chatConversations', page, size], (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            content: [
-              {
-                conversationId: res.conversationId,
-                conversationType: selectedConversation.virtualData!.type,
-                title: selectedConversation.virtualData!.title || selectedConversation.userName,
-                avatarUrl: selectedConversation.avatarUrl,
-                lastMessageContent: msgText,
-                lastMessageAt: new Date().toISOString(),
-                unreadCount: 0,
-              },
-              ...old.content,
-            ],
-          };
-        });
+        queryClient.setQueryData<PaginationResponse<ConversationResponse>>(
+          ['chatConversations', page, size],
+          (old) => {
+            if (!old) return old;
+            return {
+              ...old,
+              content: [
+                {
+                  conversationId: res.conversationId,
+                  conversationType: selectedConversation.virtualData!.type,
+                  title: selectedConversation.virtualData!.title || selectedConversation.userName,
+                  avatarUrl: selectedConversation.avatarUrl,
+                  lastMessageContent: msgText,
+                  lastMessageAt: new Date().toISOString(),
+                  unreadCount: 0,
+                },
+                ...old.content,
+              ],
+            };
+          }
+        );
 
         setSelectedId(res.conversationId);
 
@@ -335,7 +343,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
         });
 
         queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
-      } catch (err) {
+      } catch (_err) {
         toast.error('Không thể tạo phòng chat');
       }
       return;
@@ -362,6 +370,29 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
     );
   };
 
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      await chatService.deleteConversation(conversationId);
+      toast.success('Đã xóa cuộc hội thoại');
+      setSelectedId(null);
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+      queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
+    } catch (error) {
+      toast.error('Xóa cuộc hội thoại thất bại');
+    }
+  };
+
+  const handleRemoveMember = async (conversationId: string, memberId: string) => {
+    try {
+      await chatService.removeMember(conversationId, memberId);
+      toast.success('Đã xóa thành viên khỏi nhóm');
+      // Invalidate matching group queries so the member can be re-added from the group interface
+      queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });
+    } catch (error) {
+      toast.error('Xóa thành viên thất bại');
+    }
+  };
+
   return (
     <div
       className={`flex w-full overflow-hidden bg-background text-foreground ${
@@ -383,6 +414,8 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             isSending={isSending}
             onSendMessage={handleSendMessage}
             onBack={() => setSelectedId(null)}
+            onDeleteConversation={handleDeleteConversation}
+            onRemoveMember={handleRemoveMember}
           />
         </div>
       </div>

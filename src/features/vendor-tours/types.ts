@@ -27,6 +27,8 @@ export interface VendorTourListItem {
   difficulty: ApiDifficulty;
   status: ApiStatus;
   createdAt: string;
+  onlineBookingEnabled?: boolean;
+  onlineBookingDisabledReason?: string | null;
 }
 
 /**
@@ -61,6 +63,25 @@ export interface CreateTourPayload {
   coverImageUrl?: string;
   /** File ảnh bìa thô, chỉ có khi user vừa chọn ảnh mới ở form. */
   coverImage?: File;
+  participationPolicy: {
+    minAge: number;
+    maxAge?: number;
+    minHeightCm?: number;
+    maxHeightCm?: number;
+    minWeightKg?: number;
+    maxWeightKg?: number;
+    fitnessLevel: 'ANY' | 'BASIC' | 'MODERATE' | 'HIGH' | 'EXTREME';
+    healthRequirements?: string;
+    restrictedMedicalConditions?: string;
+    requiredExperience?: string;
+    requiredSkills?: string;
+    requiredEquipment?: string;
+    requiredDocuments?: string;
+    requiresHealthDeclaration: boolean;
+    requiresMedicalCertificate: boolean;
+    guardianRequiredUnderAge?: number;
+    additionalRequirements?: string;
+  };
 }
 
 /** `PUT /vendor/tours/{id}` nhận đúng cùng shape với tạo tour (đã test qua Swagger). */
@@ -121,13 +142,13 @@ export interface CreateSchedulePayload {
   availableSlots: number;
 }
 
-/** `PUT /vendor/tours/schedules/{scheduleId}` — mọi field đều optional trên BE, nhưng FE luôn gửi đủ. */
+/** `PUT /vendor/tours/schedules/{scheduleId}` — mọi field đều optional trên BE. */
 export interface UpdateSchedulePayload {
-  departureDate: string;
-  returnDate: string;
-  price: number;
-  availableSlots: number;
-  status: ApiScheduleStatus;
+  departureDate?: string;
+  returnDate?: string;
+  price?: number;
+  availableSlots?: number;
+  status?: ApiScheduleStatus;
   /** Bắt buộc khi lịch đã có khách đặt (`bookedSlots > 0`) — BE gửi notification cho khách dựa vào đây. */
   reason?: string;
 }

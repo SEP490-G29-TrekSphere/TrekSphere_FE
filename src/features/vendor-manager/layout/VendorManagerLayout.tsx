@@ -13,6 +13,7 @@ import {
   Ticket,
   UserRound,
   Users,
+  WalletCards,
 } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
@@ -23,7 +24,12 @@ import { useAppStore } from '@/store/useAppStore';
 const navItems = [
   { name: 'Tổng quan', path: PATHS.VENDOR_MANAGER_PROFILE, icon: LayoutGrid, disabled: false },
   { name: 'Báo cáo', path: PATHS.VENDOR_MANAGER_REPORTS, icon: BarChart3, disabled: false },
-  { name: 'Lịch trình', path: PATHS.VENDOR_MANAGER_SESSIONS, icon: CalendarClock, disabled: false },
+  {
+    name: 'Vận hành Tour',
+    path: PATHS.VENDOR_MANAGER_SESSIONS,
+    icon: CalendarClock,
+    disabled: false,
+  },
   { name: 'Nhân viên', path: PATHS.VENDOR_MANAGER_STAFF, icon: Users, disabled: false },
   { name: 'Tour', path: PATHS.VENDOR_MANAGER_TOURS, icon: MapIcon, disabled: false },
   {
@@ -32,7 +38,13 @@ const navItems = [
     icon: ClipboardCheck,
     disabled: false,
   },
-  { name: 'Đặt tour', path: PATHS.VENDOR_MANAGER_BOOKINGS, icon: Ticket, disabled: false },
+  { name: 'Đơn đặt tour', path: PATHS.VENDOR_MANAGER_BOOKINGS, icon: Ticket, disabled: false },
+  {
+    name: 'Cấu hình thanh toán',
+    path: PATHS.VENDOR_MANAGER_PAYMENT_SETTINGS,
+    icon: WalletCards,
+    disabled: false,
+  },
   { name: 'Voucher', path: PATHS.VENDOR_MANAGER_VOUCHERS, icon: Tag, disabled: false },
   { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
   { name: 'Thiết bị', path: PATHS.VENDOR_MANAGER_EQUIPMENT, icon: Backpack, disabled: false },
@@ -60,7 +72,7 @@ export default function VendorManagerLayout() {
     <PortalShell
       rootStyle={{ backgroundColor: '#FAF8F1' }}
       sidebarStyle={{ backgroundColor: '#EFECE6', borderRight: '1px solid #E0DCD1' }}
-      mobileTitle="TrekManager"
+      mobileTitle="TrekSphere"
       fullBleed={isChatPage}
       brand={
         <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
@@ -68,10 +80,10 @@ export default function VendorManagerLayout() {
             className="text-3xl font-extrabold tracking-tight leading-none mb-1"
             style={{ color: '#06261D' }}
           >
-            TrekManager
+            TrekSphere
           </h1>
           <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
-            Quản lý đoàn leo núi
+            QUẢN LÝ NHÀ CUNG CẤP
           </span>
         </Link>
       }
@@ -126,9 +138,6 @@ export default function VendorManagerLayout() {
                   style={{ color: '#06261D' }}
                 >
                   {vendorName}
-                </span>
-                <span className="text-[11px] font-medium" style={{ color: '#6F7B75' }}>
-                  Quản lý
                 </span>
               </div>
             </div>
