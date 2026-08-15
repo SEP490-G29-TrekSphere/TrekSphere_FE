@@ -2,6 +2,7 @@ import type { Client } from '@stomp/stompjs';
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { createStompClient } from '@/lib/stompClient';
+import { useAppStore } from '@/store/useAppStore';
 
 interface ChatWebSocketContextType {
   client: Client | null;
@@ -16,10 +17,12 @@ const ChatWebSocketContext = createContext<ChatWebSocketContextType>({
 export const useChatWebSocket = () => useContext(ChatWebSocketContext);
 
 export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const userId = useAppStore((state) => state.user?.id);
   const [client, setClient] = useState<Client | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    if (!userId) return;
     const stompClient = createStompClient();
 
     stompClient.onConnect = () => {
@@ -52,7 +55,7 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       stompClient.deactivate();
       setIsConnected(false);
     };
-  }, []);
+  }, [userId]);
 
   return (
     <ChatWebSocketContext.Provider value={{ client, isConnected }}>

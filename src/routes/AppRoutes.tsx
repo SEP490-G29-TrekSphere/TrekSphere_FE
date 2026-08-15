@@ -171,7 +171,14 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path={PATHS.NOTIFICATIONS} element={<Notifications />} />
+        <Route
+          path={PATHS.NOTIFICATIONS}
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
         <Route path={PATHS.CHAT} element={<ChatRedirect />} />
 
         {/* Blog của tôi chỉ sống trong portal Trekker (TrekkerLayout có sidebar).

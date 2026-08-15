@@ -5,7 +5,7 @@ import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
-import { mockNotifications } from '@/features/notifications/data/mockNotifications';
+import { useUnreadNotificationCount } from '@/features/notifications/hooks/useNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
@@ -88,7 +88,7 @@ export default function Header() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
   const showAvatar = Boolean(avatarUrl);
   const dashboardPath = getRoleDashboardPath(user?.roles);
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6">

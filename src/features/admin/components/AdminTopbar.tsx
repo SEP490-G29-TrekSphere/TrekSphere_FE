@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import { useUnreadNotificationCount } from '@/features/notifications/hooks/useNotifications';
 import { useAppStore } from '@/store/useAppStore';
 
 interface AdminTopbarProps {
@@ -35,6 +36,7 @@ export default function AdminTopbar({
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
   const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   const [language, setLanguage] = useState<Language>('Tiếng Việt');
   const [languageOpen, setLanguageOpen] = useState(false);
@@ -112,17 +114,20 @@ export default function AdminTopbar({
         {/* Notification */}
         <button
           type="button"
+          onClick={() => navigate(PATHS.NOTIFICATIONS)}
           aria-label="Thông báo"
           className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors"
           style={{ color: '#6F7B75' }}
         >
           <Bell className="h-5 w-5" />
-          <span
-            className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
-            style={{ backgroundColor: '#A2EBD2', color: '#06261D' }}
-          >
-            3
-          </span>
+          {unreadCount > 0 && (
+            <span
+              className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
+              style={{ backgroundColor: '#A2EBD2', color: '#06261D' }}
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Help */}

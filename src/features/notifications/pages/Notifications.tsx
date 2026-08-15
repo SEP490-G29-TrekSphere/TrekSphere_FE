@@ -1,188 +1,231 @@
-import { AlertTriangle, Bell, CheckCircle, Heart, Info, Megaphone, X } from 'lucide-react';
-import { memo, useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  Bell,
+  CheckCircle,
+  Clock3,
+  CreditCard,
+  LoaderCircle,
+  XCircle,
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime, getUnreadCount, mockNotifications } from '../data/mockNotifications';
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+  useUnreadNotificationCount,
+} from '../hooks/useNotifications';
 import NotificationsLayout from '../layout/NotificationsLayout';
-import type { Notification, NotificationType } from '../types/notification';
+import type { Notification, NotificationEventType } from '../types/notification';
 
-// ── Type config ──────────────────────────────────────────────────────────────
-const filterTabs: { key: 'all' | NotificationType; label: string }[] = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'success', label: 'Tour' },
-  { key: 'info', label: 'Hệ thống' },
-  { key: 'promo', label: 'Khuyến mãi' },
-];
-// NOTE: only 4 tabs in the design — Tour=success, Hệ thống=info, Khuyến mãi=promo
-// community/error/warning mapped internally but not shown as separate tabs
+const bookingEvents = new Set([
+  'BOOKING_CREATED',
+  'BOOKING_PENDING_CONFIRMATION',
+  'BOOKING_CONFIRMED',
+  'BOOKING_REJECTED',
+  'BOOKING_CANCELLED',
+  'BOOKING_EXPIRED',
+  'PAYMENT_SUCCESS',
+]);
 
-const typeConfig: Record<NotificationType, { icon: typeof Bell; bg: string; text: string }> = {
-  success: { icon: CheckCircle, bg: 'bg-emerald-100', text: 'text-emerald-600' },
-  warning: { icon: AlertTriangle, bg: 'bg-amber-100', text: 'text-amber-600' },
-  info: { icon: Info, bg: 'bg-blue-100', text: 'text-blue-600' },
-  error: { icon: X, bg: 'bg-red-100', text: 'text-red-500' },
-  community: { icon: Heart, bg: 'bg-purple-100', text: 'text-purple-600' },
-  promo: { icon: Megaphone, bg: 'bg-orange-100', text: 'text-orange-600' },
+const eventConfig: Record<string, { icon: typeof Bell; background: string; foreground: string }> = {
+  BOOKING_CREATED: { icon: Clock3, background: 'bg-blue-100', foreground: 'text-blue-600' },
+  BOOKING_PENDING_CONFIRMATION: {
+    icon: Clock3,
+    background: 'bg-amber-100',
+    foreground: 'text-amber-600',
+  },
+  BOOKING_CONFIRMED: {
+    icon: CheckCircle,
+    background: 'bg-emerald-100',
+    foreground: 'text-emerald-600',
+  },
+  PAYMENT_SUCCESS: {
+    icon: CreditCard,
+    background: 'bg-emerald-100',
+    foreground: 'text-emerald-600',
+  },
+  BOOKING_REJECTED: { icon: XCircle, background: 'bg-red-100', foreground: 'text-red-600' },
+  BOOKING_CANCELLED: {
+    icon: XCircle,
+    background: 'bg-red-100',
+    foreground: 'text-red-600',
+  },
+  BOOKING_EXPIRED: {
+    icon: AlertTriangle,
+    background: 'bg-amber-100',
+    foreground: 'text-amber-600',
+  },
 };
 
-// ── Notification Item ─────────────────────────────────────────────────────────
-interface NotificationItemProps {
-  notification: Notification;
-  onToggleRead: (id: string) => void;
+function formatRelativeTime(value: string): string {
+  const date = new Date(value);
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return 'Vừa xong';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} ngày trước`;
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
 }
 
-const NotificationItem = memo(function NotificationItem({
-  notification,
-  onToggleRead,
-}: NotificationItemProps) {
-  const config = typeConfig[notification.type];
+function getEventConfig(eventType: NotificationEventType) {
+  return (
+    eventConfig[eventType] ?? {
+      icon: Bell,
+      background: 'bg-slate-100',
+      foreground: 'text-slate-600',
+    }
+  );
+}
+
+interface NotificationItemProps {
+  notification: Notification;
+  onOpen: (notification: Notification) => void;
+  isPending: boolean;
+}
+
+function NotificationItem({ notification, onOpen, isPending }: NotificationItemProps) {
+  const config = getEventConfig(notification.eventType);
   const Icon = config.icon;
 
   return (
     <button
       type="button"
-      onClick={() => onToggleRead(notification.id)}
+      onClick={() => onOpen(notification)}
+      disabled={isPending}
       className={cn(
-        'group relative flex items-start gap-4 px-5 py-4 transition-colors cursor-pointer text-left w-full border-none outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
-        'border-b border-border last:border-b-0',
-        notification.read
-          ? 'bg-white hover:bg-muted/30'
-          : 'bg-amber-50/70 dark:bg-amber-950/10 hover:bg-amber-50/90'
+        'group relative flex w-full cursor-pointer items-start gap-4 border-none border-b border-border px-5 py-4 text-left outline-none transition-colors last:border-b-0 focus-visible:ring-2 focus-visible:ring-primary/20',
+        notification.isRead ? 'bg-white hover:bg-muted/30' : 'bg-amber-50/70 hover:bg-amber-50/90'
       )}
     >
-      {/* Unread dot */}
-      {!notification.read && (
+      {!notification.isRead && (
         <span className="absolute right-4 top-5 size-2 rounded-full bg-primary" />
       )}
-
-      {/* Icon circle */}
       <div
         className={cn(
-          'relative flex size-10 shrink-0 items-center justify-center rounded-full',
-          config.bg
+          'flex size-10 shrink-0 items-center justify-center rounded-full',
+          config.background
         )}
       >
-        <Icon className={cn('size-5', config.text)} strokeWidth={2.5} />
+        <Icon className={cn('size-5', config.foreground)} strokeWidth={2.5} />
       </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0 pr-4">
-        <p
-          className={cn(
-            'text-sm leading-snug',
-            notification.read
-              ? 'text-muted-foreground font-normal'
-              : 'font-semibold text-foreground'
-          )}
-        >
+      <div className="min-w-0 flex-1 pr-4">
+        <p className={cn('text-sm leading-snug', !notification.isRead && 'font-semibold')}>
           {notification.title}
         </p>
-        {notification.body && (
-          <p className="mt-0.5 text-sm text-muted-foreground leading-relaxed">
-            {notification.body}
-          </p>
-        )}
+        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+          {notification.content}
+        </p>
       </div>
-
-      {/* Timestamp & Action */}
-      <div className="flex flex-col items-end gap-1 shrink-0">
+      <div className="flex shrink-0 flex-col items-end gap-1">
         <span className="text-xs text-muted-foreground">
-          {formatRelativeTime(notification.timestamp)}
+          {formatRelativeTime(notification.createdAt)}
         </span>
-        <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:underline">
-          {notification.read ? 'Đánh dấu chưa đọc' : 'Đánh dấu đã đọc'}
-        </span>
+        {notification.actionUrl && (
+          <span className="text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100">
+            Xem chi tiết
+          </span>
+        )}
       </div>
     </button>
   );
-});
+}
 
-// ── Page ─────────────────────────────────────────────────────────────────────
 export default function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [activeFilter, setActiveFilter] = useState<'all' | NotificationType>('all');
+  const navigate = useNavigate();
+  const [activeFilter, setActiveFilter] = useState<'all' | 'booking'>('all');
+  const { data, isLoading, isError, refetch } = useNotifications(0);
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
-  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
+  const notifications = useMemo(() => {
+    const items = data?.content ?? [];
+    if (activeFilter === 'all') return items;
+    return items.filter((item) => bookingEvents.has(item.eventType));
+  }, [activeFilter, data]);
 
-  const filteredNotifications = useMemo(() => {
-    if (activeFilter === 'all') return notifications;
-    return notifications.filter((n) => n.type === activeFilter);
-  }, [notifications, activeFilter]);
-
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  const handleToggleRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
-  };
+  async function handleOpen(notification: Notification) {
+    if (!notification.isRead) await markRead.mutateAsync(notification.notificationId);
+    if (notification.actionUrl) navigate(notification.actionUrl);
+  }
 
   return (
     <NotificationsLayout>
-      <div className="mx-auto max-w-[800px] px-4 py-10 animate-fade-in">
-        {/* Page Header */}
+      <div className="mx-auto max-w-[800px] animate-fade-in px-4 py-10">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-1">
+          <div className="mb-1 flex items-center justify-between">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Thông báo</h1>
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={handleMarkAllRead}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
+                onClick={() => markAllRead.mutate()}
+                disabled={markAllRead.isPending}
+                className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
               >
                 Đánh dấu đã đọc tất cả
               </button>
             )}
           </div>
           <p className="text-base text-muted-foreground">
-            Cập nhật những hoạt động mới nhất từ chuyến đi của bạn.
+            Theo dõi trạng thái booking và thanh toán của bạn.
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {filterTabs.map((tab) => {
-            const isActive = activeFilter === tab.key;
-            return (
-              <button
-                type="button"
-                key={tab.key}
-                onClick={() => setActiveFilter(tab.key)}
-                className={cn(
-                  'px-4 py-2 text-sm font-medium rounded-full transition-all',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'border border-input bg-background text-muted-foreground hover:text-foreground hover:border-foreground/20'
-                )}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {(
+            [
+              ['all', 'Tất cả'],
+              ['booking', 'Booking'],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              type="button"
+              key={key}
+              onClick={() => setActiveFilter(key)}
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-medium transition-all',
+                activeFilter === key
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'border border-input bg-background text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Notification Container */}
         <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-          {/* Items */}
-          {filteredNotifications.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+              <LoaderCircle className="size-5 animate-spin" /> Đang tải thông báo...
+            </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <p className="text-sm text-destructive">Không thể tải danh sách thông báo.</p>
+              <button
+                type="button"
+                className="text-sm text-primary hover:underline"
+                onClick={() => refetch()}
+              >
+                Thử lại
+              </button>
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <div className="flex size-14 items-center justify-center rounded-full bg-muted">
                 <Bell className="size-7 text-muted-foreground" />
               </div>
-              <div>
-                <p className="font-medium text-foreground">Không có thông báo nào</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {activeFilter === 'all'
-                    ? 'Bạn đã đọc tất cả thông báo'
-                    : `Không có thông báo nào trong danh mục này`}
-                </p>
-              </div>
+              <p className="font-medium text-foreground">Không có thông báo nào</p>
             </div>
           ) : (
-            filteredNotifications.map((notification) => (
+            notifications.map((notification) => (
               <NotificationItem
-                key={notification.id}
+                key={notification.notificationId}
                 notification={notification}
-                onToggleRead={handleToggleRead}
+                onOpen={handleOpen}
+                isPending={markRead.isPending}
               />
             ))
           )}

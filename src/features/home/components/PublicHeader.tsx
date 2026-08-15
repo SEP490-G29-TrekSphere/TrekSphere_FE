@@ -5,7 +5,7 @@ import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
-import { mockNotifications } from '@/features/notifications/data/mockNotifications';
+import { useUnreadNotificationCount } from '@/features/notifications/hooks/useNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
@@ -64,7 +64,7 @@ export default function PublicHeader() {
   };
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const dashboardPath = getRoleDashboardPath(user?.roles);
 
   // On the home page the header starts transparent over the cinematic hero
