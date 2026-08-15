@@ -4,13 +4,10 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock3,
-  CreditCard,
-  ExternalLink,
   Loader2,
   ReceiptText,
   RefreshCw,
   ShieldCheck,
-  WalletCards,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -155,6 +152,12 @@ export default function PayBooking({ backPath }: { backPath?: string }) {
   const secondsLeft = expiresAt
     ? Math.max(0, Math.floor((new Date(expiresAt).getTime() - now) / 1_000))
     : 0;
+
+  function openCheckout() {
+    checkoutMutation.mutate(undefined, {
+      onSuccess: (activeCheckout) => window.location.assign(activeCheckout.checkoutUrl),
+    });
+  }
 
   if (bookingQuery.isLoading) {
     return (
@@ -309,14 +312,8 @@ export default function PayBooking({ backPath }: { backPath?: string }) {
             <AppCard className="overflow-hidden rounded-[28px] border-[#DED9CA] bg-white p-0 shadow-[0_10px_35px_rgba(30,57,50,0.06)]">
               <div className="flex items-center justify-between border-b border-[#EAE6DC] bg-[#FBF8F0] p-5 sm:px-6">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1E3932] text-[#FBF8F0]">
-                    <WalletCards className="h-5 w-5" />
-                  </span>
                   <div>
                     <h2 className="font-extrabold text-[#1E3932]">Phiên thanh toán</h2>
-                    <p className="text-xs font-medium text-[#6F7E72]">
-                      Tạo phiên và hoàn tất an toàn trên payOS
-                    </p>
                   </div>
                 </div>
                 {(paymentsQuery.isFetching || bookingQuery.isFetching) && (
@@ -326,9 +323,6 @@ export default function PayBooking({ backPath }: { backPath?: string }) {
 
               {!isPaid && canPay && checkout && secondsLeft > 0 ? (
                 <div className="px-5 py-8 text-center sm:px-8">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-[#CFE0D5] bg-[#F3F8F5]">
-                    <CreditCard className="h-10 w-10 text-[#006241]" />
-                  </div>
                   <p className="mt-5 text-xs font-bold uppercase tracking-wide text-[#6F7E72]">
                     {stageLabel(checkout.paymentStage)}
                   </p>
@@ -341,22 +335,21 @@ export default function PayBooking({ backPath }: { backPath?: string }) {
                   >
                     <Clock3 className="h-4 w-4" /> Còn {formatCountdown(secondsLeft)}
                   </div>
-                  <a
-                    href={checkout.checkoutUrl}
-                    className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-[#006241] px-7 py-3.5 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-[#004F35]"
+                  <button
+                    type="button"
+                    disabled={checkoutMutation.isPending}
+                    onClick={openCheckout}
+                    className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-[#006241] px-7 py-3.5 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-[#004F35] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Tiếp tục đến payOS <ExternalLink className="h-4 w-4" />
-                  </a>
+                    {checkoutMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Thanh toán
+                  </button>
                   <p className="mx-auto mt-3 max-w-md text-xs font-medium leading-relaxed text-[#6F7E72]">
-                    Sau khi thanh toán, payOS sẽ đưa bạn trở lại TrekSphere và đơn được cập nhật tự
-                    động.
+                    Sau khi thanh toán sẽ đưa bạn trở lại TrekSphere cập nhật tự động.
                   </p>
                 </div>
               ) : canPay && !isPaid ? (
                 <div className="flex flex-col items-center px-5 py-12 text-center">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F2F0EB]">
-                    <CreditCard className="h-7 w-7 text-[#1E3932]" />
-                  </span>
                   <h3 className="mt-4 font-extrabold text-[#1E3932]">
                     {checkout && secondsLeft === 0
                       ? 'Phiên thanh toán đã hết hạn'
@@ -446,17 +439,6 @@ export default function PayBooking({ backPath }: { backPath?: string }) {
                 </p>
               )}
             </AppCard>
-
-            <div className="rounded-[28px] border border-[#CFE0D5] bg-[#F3F8F5] p-5">
-              <div className="flex items-center gap-2 text-[#006241]">
-                <ShieldCheck className="h-4 w-4" />
-                <p className="text-xs font-extrabold uppercase tracking-wide">An toàn giao dịch</p>
-              </div>
-              <p className="mt-2 text-xs font-medium leading-relaxed text-[#446258]">
-                Trạng thái chỉ được ghi nhận từ kết nối payOS đã xác thực. TrekSphere không yêu cầu
-                tải ảnh chuyển khoản thủ công.
-              </p>
-            </div>
           </aside>
         </div>
       </div>

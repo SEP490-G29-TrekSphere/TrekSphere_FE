@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock3, ExternalLink, Loader2 } from 'luci
 import { useState } from 'react';
 import { adminRefundService } from '@/features/admin/services/adminRefundService';
 import type { RefundTransaction } from '@/features/payments/types';
+import { bankDisplayName } from '@/features/payments/utils/banks';
 import { toast } from '@/store/useToastStore';
 
 function money(value: number): string {
@@ -75,7 +76,7 @@ export default function RefundReviews() {
             Duyệt hoàn tiền thủ công
           </h1>
           <p className="mt-2 text-sm font-medium text-zinc-600">
-            Chỉ xác nhận sau khi mã giao dịch, số tiền và biên nhận đều khớp.
+            Chỉ xác nhận sau khi số tiền, tài khoản nhận và ảnh biên nhận đều khớp.
           </p>
         </div>
         <div className="flex gap-2 text-xs font-extrabold">
@@ -126,7 +127,8 @@ export default function RefundReviews() {
                     {money(refund.amount)}
                   </h2>
                   <p className="mt-1 text-xs font-semibold text-zinc-600">
-                    {refund.vendorName || 'Vendor'} · {refund.destinationBin || 'Chưa có BIN'} ·{' '}
+                    {refund.vendorName || 'Vendor'} ·{' '}
+                    {bankDisplayName(refund.destinationBin, refund.destinationBankName)} ·{' '}
                     {refund.destinationAccountNumber ||
                       refund.maskedDestinationAccountNumber ||
                       'Chưa có STK'}
@@ -147,12 +149,6 @@ export default function RefundReviews() {
               </div>
 
               <dl className="mt-4 grid gap-3 rounded-2xl bg-zinc-50 p-4 text-xs sm:grid-cols-2">
-                <div>
-                  <dt className="font-bold text-zinc-500">Mã giao dịch ngân hàng</dt>
-                  <dd className="mt-1 break-all font-extrabold text-zinc-800">
-                    {refund.manualBankReference || 'Chưa gửi'}
-                  </dd>
-                </div>
                 <div>
                   <dt className="font-bold text-zinc-500">Thời điểm gửi biên nhận</dt>
                   <dd className="mt-1 font-extrabold text-zinc-800">

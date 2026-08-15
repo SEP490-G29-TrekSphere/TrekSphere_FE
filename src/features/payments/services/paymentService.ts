@@ -25,6 +25,15 @@ export const paymentService = {
     );
   },
 
+  async cancelCheckout(bookingId: string, orderCode: string): Promise<PaymentTransaction> {
+    return unwrap(
+      await ApiService<PaymentTransaction>(
+        `/bookings/${bookingId}/payments/checkout/cancel?orderCode=${encodeURIComponent(orderCode)}`,
+        'POST'
+      )
+    );
+  },
+
   async getPayments(bookingId: string): Promise<PaymentTransaction[]> {
     return unwrap(await ApiService<PaymentTransaction[]>(`/bookings/${bookingId}/payments`, 'GET'));
   },
@@ -111,7 +120,6 @@ export const paymentService = {
 
   async completeManualRefund(
     refundId: string,
-    bankReference: string,
     receiptImageUrl: string,
     note?: string
   ): Promise<RefundTransaction> {
@@ -119,7 +127,7 @@ export const paymentService = {
       await ApiService<RefundTransaction>(
         `/vendor/bookings/refunds/${refundId}/complete-manual`,
         'POST',
-        { bankReference, receiptImageUrl, note: note?.trim() || undefined }
+        { receiptImageUrl, note: note?.trim() || undefined }
       )
     );
   },
