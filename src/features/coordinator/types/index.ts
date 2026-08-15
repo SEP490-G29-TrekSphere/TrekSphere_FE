@@ -158,7 +158,7 @@ export interface SessionSosAlert {
 
 /**
  * Trạng thái SOS của phiên tour — `GET /tracking/sessions/{sessionId}/sos/status`.
- * Cho Coordinator biết tín hiệu mình gửi đã được đội cứu hộ xử lý hay chưa.
+ * Cho Coordinator biết tín hiệu mình gửi đã được nhà cung cấp tour xử lý hay chưa.
  */
 export interface SessionSosStatus {
   tourSessionId: string;

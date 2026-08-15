@@ -202,7 +202,7 @@ export default function BookingDetail({
         message: pendingSos?.message,
       });
       setSosSentAt(result.createdAt);
-      toast.success('Đã gửi tín hiệu SOS tới đội cứu hộ.');
+      toast.success('Đã gửi tín hiệu SOS tới nhà cung cấp tour.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Không thể gửi tín hiệu SOS.');
     } finally {
