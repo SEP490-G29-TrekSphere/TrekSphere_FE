@@ -28,6 +28,10 @@ import {
   persistBookingSubmission,
   resolveBookingSubmission,
 } from '@/features/tours/utils/bookingIdempotency';
+import {
+  effectiveSchedulePaymentOption,
+  isDepositDeadlinePassed,
+} from '@/features/tours/utils/schedulePaymentOption';
 import { useVendorActiveVouchers } from '@/features/vendor-vouchers';
 import { AppButton, AppCard, AppFormDatePicker, AppFormInput } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -174,14 +178,24 @@ export default function BookTour() {
   const participantsCount = participantsList?.length || 0;
 
   const selectedSchedule = tour?.schedules.find((s) => s.scheduleId === selectedScheduleId);
+  const schedulePaymentOption = effectiveSchedulePaymentOption(
+    tour?.paymentPolicy,
+    selectedSchedule
+  );
+  const selectedScheduleDepositDeadlinePassed = isDepositDeadlinePassed(
+    tour?.paymentPolicy,
+    selectedSchedule
+  );
 
   // --- Effects ---
 
   useEffect(() => {
-    if (tour?.paymentPolicy?.paymentOption === 'DEPOSIT_ONLY') {
+    if (schedulePaymentOption === 'DEPOSIT_ONLY') {
       setValue('paymentPlan', 'DEPOSIT');
+    } else if (schedulePaymentOption === 'FULL_PAYMENT_ONLY') {
+      setValue('paymentPlan', 'FULL_PAYMENT');
     }
-  }, [setValue, tour?.paymentPolicy?.paymentOption]);
+  }, [schedulePaymentOption, setValue]);
 
   useEffect(() => {
     if (urlScheduleId && urlScheduleId !== selectedScheduleId) {
@@ -340,10 +354,23 @@ export default function BookTour() {
         };
       });
 
+      const submittedSchedule = tour?.schedules.find(
+        (schedule) => schedule.scheduleId === data.scheduleId
+      );
+      const submittedPaymentOption = effectiveSchedulePaymentOption(
+        tour?.paymentPolicy,
+        submittedSchedule
+      );
+      const resolvedPaymentPlan =
+        submittedPaymentOption === 'FULL_PAYMENT_ONLY'
+          ? 'FULL_PAYMENT'
+          : submittedPaymentOption === 'DEPOSIT_ONLY'
+            ? 'DEPOSIT'
+            : data.paymentPlan;
       const payload = {
         scheduleId: data.scheduleId,
         voucherCode: appliedVoucher?.code || undefined,
-        paymentPlan: data.paymentPlan,
+        paymentPlan: resolvedPaymentPlan,
         participationPolicyAccepted: data.participationPolicyAccepted,
         participants: formattedParticipants,
       };
@@ -500,6 +527,13 @@ export default function BookTour() {
                 const remaining = Math.max(0, s.availableSlots - s.bookedSlots);
                 const isSelected = selectedScheduleId === s.scheduleId;
                 const isLow = remaining <= 3 && remaining > 0;
+                const paymentOption = effectiveSchedulePaymentOption(tour.paymentPolicy, s);
+                const paymentOptionLabel =
+                  paymentOption === 'FULL_PAYMENT_ONLY'
+                    ? 'Thanh toán toàn bộ'
+                    : paymentOption === 'DEPOSIT_ONLY'
+                      ? 'Đặt cọc'
+                      : 'Toàn bộ hoặc đặt cọc';
 
                 return (
                   <button
@@ -548,6 +582,9 @@ export default function BookTour() {
                     </span>
                     <span className="text-base font-extrabold mt-2 text-foreground">
                       {formatPrice(s.price)}đ
+                    </span>
+                    <span className="mt-2 w-fit rounded-full bg-[#EAF4EE] px-2 py-1 text-[10px] font-bold text-[#315C4C]">
+                      {paymentOptionLabel}
                     </span>
                   </button>
                 );
@@ -1039,10 +1076,10 @@ export default function BookTour() {
 
             <div
               className={`mt-3 grid gap-2 ${
-                tour.paymentPolicy?.paymentOption === 'FULL_OR_DEPOSIT' ? 'sm:grid-cols-2' : ''
+                schedulePaymentOption === 'FULL_OR_DEPOSIT' ? 'sm:grid-cols-2' : ''
               }`}
             >
-              {tour.paymentPolicy?.paymentOption !== 'DEPOSIT_ONLY' && (
+              {schedulePaymentOption !== 'DEPOSIT_ONLY' && (
                 <button
                   type="button"
                   onClick={() => setValue('paymentPlan', 'FULL_PAYMENT', { shouldValidate: true })}
@@ -1062,7 +1099,7 @@ export default function BookTour() {
                 </button>
               )}
 
-              {tour.paymentPolicy && tour.paymentPolicy.paymentOption !== 'FULL_PAYMENT_ONLY' && (
+              {tour.paymentPolicy && schedulePaymentOption !== 'FULL_PAYMENT_ONLY' && (
                 <button
                   type="button"
                   onClick={() => setValue('paymentPlan', 'DEPOSIT', { shouldValidate: true })}
@@ -1087,6 +1124,11 @@ export default function BookTour() {
                 </button>
               )}
             </div>
+            {selectedScheduleDepositDeadlinePassed && (
+              <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-800">
+                Lịch khởi hành này đã qua hạn đặt cọc, nên đơn phải thanh toán toàn bộ.
+              </p>
+            )}
           </AppCard>
 
           <CancellationPolicyNotice

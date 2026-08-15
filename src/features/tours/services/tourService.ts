@@ -189,6 +189,9 @@ export const tourService = {
     if (refundInfo?.refundBankBin?.trim()) {
       payload.refundBankBin = refundInfo.refundBankBin.trim();
     }
+    if (refundInfo?.refundBankName?.trim()) {
+      payload.refundBankName = refundInfo.refundBankName.trim();
+    }
     if (refundInfo?.refundAccountNumber?.trim()) {
       payload.refundAccountNumber = refundInfo.refundAccountNumber.trim();
     }
