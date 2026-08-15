@@ -50,6 +50,12 @@ export interface TourCheckpoint {
   checkpointOrder: number;
 }
 
+export type EquipmentReturnStatus =
+  | 'NOT_RETURNED'
+  | 'PENDING_CONFIRMATION'
+  | 'CONFIRMED'
+  | 'REJECTED';
+
 export interface SessionCoordinatorAllocation {
   coordinatorScheduleId: string;
   coordinatorId: string;
@@ -63,6 +69,14 @@ export interface SessionEquipmentAllocation {
   equipmentName: string;
   quantity: number;
   note?: string;
+  isChecked?: boolean;
+  returnedQuantity?: number;
+  missingQuantity?: number;
+  returnStatus?: EquipmentReturnStatus;
+  submittedByName?: string;
+  submittedAt?: string;
+  confirmedByName?: string;
+  confirmedAt?: string;
 }
 
 /** Chi tiết 1 phiên tour — `GET /vendor/sessions/{id}/allocations`. */

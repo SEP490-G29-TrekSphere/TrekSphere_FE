@@ -11,6 +11,7 @@ import { EmergencySosPanel } from '../components/EmergencySosPanel';
 import { GearChecklistPanel } from '../components/GearChecklistPanel';
 import { OfflineSyncPanel } from '../components/OfflineSyncPanel';
 import { OperationsHeaderBar } from '../components/OperationsHeaderBar';
+import { ReturnEquipmentModal } from '../components/ReturnEquipmentModal';
 import { TrekkersPanel } from '../components/TrekkersPanel';
 import { useOfflineTracking } from '../hooks/useOfflineTracking';
 import {
@@ -19,6 +20,7 @@ import {
   useSessionSosStatus,
   useTourCheckpoints,
 } from '../hooks/useSessionOperations';
+import { useSessionOperationsMutations } from '../hooks/useSessionOperationsMutations';
 import { useSessionTrekkers } from '../hooks/useSessionTrekkers';
 import type { CoordinatorSessionDetail, SessionCheckpointStatus, SessionSosStatus } from '../types';
 
@@ -48,10 +50,12 @@ export default function CoordinatorSessionOperationsPage() {
   );
   const { data: sosStatus, isLoading: isSosStatusLoading } = useSessionSosStatus(sessionId);
   const { data: trekkers = [], isLoading: isTrekkersLoading } = useSessionTrekkers(sessionId);
+  const { bulkReturnEquipment } = useSessionOperationsMutations(sessionId ?? '');
 
   const [pendingEquipmentId, setPendingEquipmentId] = useState<string | undefined>(undefined);
   const [pendingGpsAction, setPendingGpsAction] = useState<PendingGpsAction | null>(null);
   const [pendingAction, setPendingAction] = useState<string>();
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 
   const effectiveSession = useMemo<CoordinatorSessionDetail | undefined>(() => {
     const base = session ?? offline.record?.sessionMeta;
@@ -201,6 +205,23 @@ export default function CoordinatorSessionOperationsPage() {
       () => offline.command.checkEquipment(sessionEquipmentId, next),
       'Đã cập nhật trạng thái trang bị.'
     );
+  };
+
+  const handleBulkReturnEquipment = async (
+    items: {
+      sessionEquipmentId: string;
+      returnedQuantity: number;
+      missingQuantity: number;
+      note?: string;
+    }[]
+  ) => {
+    try {
+      await bulkReturnEquipment.mutateAsync({ items });
+      toast.success('Hoàn trả trang bị thành công.');
+      setIsReturnModalOpen(false);
+    } catch (error) {
+      toast.error(errorMessage(error, 'Không thể hoàn trả trang bị.'));
+    }
   };
 
   const handleSendSos = (message?: string) => {
@@ -380,6 +401,7 @@ export default function CoordinatorSessionOperationsPage() {
             checkedMap={equipmentChecked}
             pendingId={pendingEquipmentId}
             onToggle={handleToggleEquipment}
+            onOpenReturnModal={() => setIsReturnModalOpen(true)}
           />
           <TrekkersPanel
             trekkers={effectiveTrekkers}
@@ -403,7 +425,7 @@ export default function CoordinatorSessionOperationsPage() {
           }
           description={
             pendingGpsAction.type === 'sos'
-              ? 'Tín hiệu SOS sẽ gửi kèm toạ độ GPS hiện tại của bạn ngay lập tức cho đội cứu hộ Base Camp. Trình duyệt có thể hỏi quyền truy cập vị trí — hãy chọn "Cho phép".'
+              ? 'Tín hiệu SOS sẽ gửi kèm toạ độ GPS hiện tại của bạn ngay lập tức cho nhà quản lý. Trình duyệt có thể hỏi quyền truy cập vị trí — hãy chọn "Cho phép".'
               : 'Ứng dụng cần vị trí GPS hiện tại của bạn để xác nhận đã đến trạm dừng (trong bán kính 200m). Trình duyệt có thể hỏi quyền truy cập vị trí — hãy chọn "Cho phép".'
           }
           confirmLabel={
@@ -418,6 +440,14 @@ export default function CoordinatorSessionOperationsPage() {
           onCancel={() => setPendingGpsAction(null)}
         />
       )}
+
+      <ReturnEquipmentModal
+        isOpen={isReturnModalOpen}
+        equipments={effectiveSession.equipments}
+        isSubmitting={bulkReturnEquipment.isPending}
+        onClose={() => setIsReturnModalOpen(false)}
+        onSubmit={handleBulkReturnEquipment}
+      />
     </div>
   );
 }
