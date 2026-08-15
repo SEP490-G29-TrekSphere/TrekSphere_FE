@@ -25,7 +25,8 @@ import { useSessionTrekkers } from '../hooks/useSessionTrekkers';
 import type { CoordinatorSessionDetail, SessionCheckpointStatus, SessionSosStatus } from '../types';
 
 function errorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
+  const message = err instanceof Error ? err.message : fallback;
+  return message.replace(/^\s*\[[^\]]+\]\s*/, '');
 }
 
 /** Hành động đang chờ người dùng xác nhận chia sẻ vị trí trước khi thực sự gọi GPS + API. */

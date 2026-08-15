@@ -76,8 +76,8 @@ export function EmergencySosPanel({
             </div>
           ) : (
             <p className="mt-1 text-xs font-medium" style={{ color: '#8A4747' }}>
-              Đã gửi tín hiệu SOS{formatTime(alert?.createdAt)}. Đội cứu hộ đã nhận được toạ độ GPS,
-              tình huống đang chờ xử lý.
+              Đã gửi tín hiệu SOS{formatTime(alert?.createdAt)}. Nhà cung cấp tour đã nhận được tọa
+              độ GPS, tình huống đang chờ xử lý.
             </p>
           )}
           {alert?.message && (
@@ -115,13 +115,13 @@ export function EmergencySosPanel({
               <p className="mt-0.5 text-xs font-medium" style={{ color: '#3F6B4E' }}>
                 {alert?.resolvedByName
                   ? `Xác nhận bởi ${alert.resolvedByName}.`
-                  : 'Đội cứu hộ đã xác nhận hoàn tất.'}
+                  : 'Nhà cung cấp tour đã xác nhận hoàn tất.'}
               </p>
             </div>
           )}
 
           <p className="mt-3 text-xs font-medium" style={{ color: '#8A4747' }}>
-            Gửi tín hiệu cấp cứu và tọa độ GPS ngay lập tức cho đội cứu hộ.
+            Gửi tín hiệu cấp cứu và tọa độ GPS ngay lập tức cho nhà cung cấp tour.
           </p>
 
           <input

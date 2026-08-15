@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { sessionOperationsService } from '../services/sessionOperationsService';
 import { trackingService } from '../services/trackingService';
 
-/** Poll trạng thái SOS khi còn tín hiệu chờ xử lý, để Coordinator thấy ngay lúc đội cứu hộ đóng ca. */
+/** Poll trạng thái SOS để Coordinator thấy ngay khi nhà cung cấp tour hoàn tất xử lý. */
 const SOS_STATUS_POLL_MS = 15_000;
 
 export const sessionOperationsKeys = {
