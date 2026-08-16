@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import type { UserProfile } from '@/features/auth';
@@ -9,7 +9,7 @@ import {
   type UpdateProfileFormValues,
   updateProfileSchema,
 } from '@/features/auth/validations/auth.schema';
-import { AppButton, AppInput, AppSpinner } from '@/shared/ui';
+import { AppButton, AppDatePicker, AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import ProfileSidebar from '../components/ProfileSidebar';
@@ -197,7 +197,7 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
                       htmlFor="name"
                       className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                     >
-                      Họ và tên <span className="text-destructive">*</span>
+                      Họ và tên
                     </label>
                     <input
                       id="name"
@@ -258,12 +258,31 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
                     >
                       Ngày sinh
                     </label>
-                    <AppInput
-                      id="dateOfBirth"
-                      type="date"
-                      {...register('dateOfBirth')}
-                      className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
+                    <Controller
+                      name="dateOfBirth"
+                      control={methods.control}
+                      render={({ field }) => (
+                        <AppDatePicker
+                          id="dateOfBirth"
+                          selected={field.value ? new Date(field.value) : null}
+                          onChange={(date: Date | null) => {
+                            if (!date) {
+                              field.onChange('');
+                              return;
+                            }
+                            const offset = date.getTimezoneOffset();
+                            const localDate = new Date(date.getTime() - offset * 60 * 1000);
+                            field.onChange(localDate.toISOString().split('T')[0]);
+                          }}
+                          placeholderText="dd/mm/yyyy"
+                          maxDate={new Date()}
+                          className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
+                        />
+                      )}
                     />
+                    {errors.dateOfBirth && (
+                      <p className="mt-1 text-xs text-destructive">{errors.dateOfBirth.message}</p>
+                    )}
                   </div>
 
                   {/* Giới tính */}

@@ -145,7 +145,7 @@ export default function MyBookings({ useTrekkerPaths = false }: { useTrekkerPath
         <form onSubmit={handleSearch} className="relative max-w-md w-full">
           <input
             type="text"
-            placeholder="Tìm theo tên tour hoặc mã đơn..."
+            placeholder="Tìm theo tên tour..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full bg-white border border-[#E5E4DE] rounded-full py-2.5 pl-4 pr-10 text-xs font-semibold text-zinc-700 placeholder-zinc-400 focus:outline-none focus:border-[#0B3025] transition-colors"
