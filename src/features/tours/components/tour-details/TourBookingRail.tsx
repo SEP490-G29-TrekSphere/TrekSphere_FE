@@ -107,9 +107,7 @@ export function TourBookingRail({
               <Users className="h-3.5 w-3.5" aria-hidden="true" />
               Chỗ còn lại
             </dt>
-            <dd className="font-semibold text-foreground">
-              {remainingSlots(selectedSchedule)}/{selectedSchedule.availableSlots}
-            </dd>
+            <dd className="font-semibold text-foreground">{remainingSlots(selectedSchedule)}</dd>
           </div>
         </dl>
       )}

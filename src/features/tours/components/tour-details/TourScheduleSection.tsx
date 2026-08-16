@@ -1,7 +1,6 @@
-import { CalendarDays, Users } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import {
   isBookableSchedule,
-  remainingSlots,
   sortSchedulesByDeparture,
 } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailScheduleApi } from '@/features/tours/types';
@@ -12,24 +11,6 @@ interface TourScheduleSectionProps {
   schedules: TourDetailScheduleApi[];
   selectedScheduleId: string | null;
   onSelect: (scheduleId: string) => void;
-}
-
-/** Còn ít hơn 20% chỗ thì báo động để tạo tính cấp thiết có căn cứ. */
-function AvailabilityBadge({ schedule }: { schedule: TourDetailScheduleApi }) {
-  const remaining = remainingSlots(schedule);
-  const isScarce = remaining <= Math.max(1, Math.round(schedule.availableSlots * 0.2));
-
-  return (
-    <span
-      className={cn(
-        'inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
-        isScarce ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'
-      )}
-    >
-      <Users className="h-3 w-3" aria-hidden="true" />
-      Còn {remaining}/{schedule.availableSlots} chỗ
-    </span>
-  );
 }
 
 /**
@@ -87,7 +68,6 @@ export function TourScheduleSection({
               <span className="text-sm font-bold text-foreground">
                 {formatDate(schedule.departureDate)} → {formatDate(schedule.returnDate)}
               </span>
-              <AvailabilityBadge schedule={schedule} />
             </div>
 
             <span className="flex flex-col items-end">

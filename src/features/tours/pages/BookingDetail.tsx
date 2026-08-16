@@ -40,7 +40,7 @@ import {
 // import { profileService } from '@/features/profile/services/profileService';
 import { BookingSosPanel } from '@/features/tours/components/BookingSosPanel';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
-import { PAYMENT_DEADLINE_SECONDS, tourService } from '@/features/tours/services/tourService';
+import { tourService } from '@/features/tours/services/tourService';
 import type { BookingDetailResponse } from '@/features/tours/types';
 import { AppButton, AppCard, ConfirmActionDialog } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -130,11 +130,7 @@ export default function BookingDetail({
     }
   };
 
-  const timeLeft = useBookingCountdown(
-    booking?.createdAt,
-    isPendingPayment,
-    PAYMENT_DEADLINE_SECONDS
-  );
+  const timeLeft = useBookingCountdown(booking?.holdExpiresAt, isPendingPayment);
 
   useEffect(() => {
     async function fetchDetail() {
@@ -412,8 +408,7 @@ export default function BookingDetail({
             <div>
               <p className="text-xs font-extrabold text-amber-900">Đơn hàng đang chờ thanh toán!</p>
               <p className="text-[11px] font-semibold text-amber-700 mt-0.5">
-                Vui lòng hoàn tất thanh toán và tải lên minh chứng trong vòng 15 phút để bảo đảm giữ
-                chỗ.
+                Vui lòng hoàn tất thanh toán trước khi thời gian giữ chỗ kết thúc.
               </p>
             </div>
           </div>
