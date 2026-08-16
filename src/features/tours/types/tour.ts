@@ -327,6 +327,7 @@ export interface TourDetailScheduleApi {
   tourId: string;
   departureDate: string;
   returnDate: string;
+  /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
   availableSlots: number;
   bookedSlots: number;
   price: number;

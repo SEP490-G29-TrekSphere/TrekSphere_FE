@@ -17,7 +17,10 @@ import * as z from 'zod';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { getBookingPaymentPath } from '@/constants/paths';
 import { CancellationPolicyNotice } from '@/features/tours/components/CancellationPolicyNotice';
-import { TourParticipationPolicySection } from '@/features/tours/components/tour-details';
+import {
+  remainingSlots as getRemainingSlots,
+  TourParticipationPolicySection,
+} from '@/features/tours/components/tour-details';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import { tourService } from '@/features/tours/services/tourService';
 import type { ParticipantGender } from '@/features/tours/types';
@@ -206,7 +209,7 @@ export default function BookTour() {
   useEffect(() => {
     if (tour && tour.schedules.length > 0) {
       const openSchedulesList = tour.schedules.filter(
-        (s) => s.status === 'OPEN' && s.availableSlots - s.bookedSlots > 0
+        (schedule) => schedule.status === 'OPEN' && getRemainingSlots(schedule) > 0
       );
       const isScheduleValid = openSchedulesList.some((s) => s.scheduleId === selectedScheduleId);
 
@@ -227,10 +230,7 @@ export default function BookTour() {
 
   useEffect(() => {
     if (selectedSchedule) {
-      const remainingCapacity = Math.max(
-        0,
-        selectedSchedule.availableSlots - selectedSchedule.bookedSlots
-      );
+      const remainingCapacity = getRemainingSlots(selectedSchedule);
       if (fields.length > remainingCapacity && remainingCapacity > 0) {
         while (fields.length > remainingCapacity) {
           remove(fields.length - 1);
@@ -247,11 +247,11 @@ export default function BookTour() {
   const total = Math.max(0, subtotal - discount);
 
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
-  const remainingSlots = selectedSchedule
-    ? Math.max(0, selectedSchedule.availableSlots - selectedSchedule.bookedSlots)
-    : 10;
+  const remainingSlots = selectedSchedule ? getRemainingSlots(selectedSchedule) : 10;
   const openSchedules = tour
-    ? tour.schedules.filter((s) => s.status === 'OPEN' && s.availableSlots - s.bookedSlots > 0)
+    ? tour.schedules.filter(
+        (schedule) => schedule.status === 'OPEN' && getRemainingSlots(schedule) > 0
+      )
     : [];
 
   // --- Handlers ---
@@ -524,7 +524,7 @@ export default function BookTour() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {openSchedules.map((s) => {
-                const remaining = Math.max(0, s.availableSlots - s.bookedSlots);
+                const remaining = getRemainingSlots(s);
                 const isSelected = selectedScheduleId === s.scheduleId;
                 const isLow = remaining <= 3 && remaining > 0;
                 const paymentOption = effectiveSchedulePaymentOption(tour.paymentPolicy, s);
