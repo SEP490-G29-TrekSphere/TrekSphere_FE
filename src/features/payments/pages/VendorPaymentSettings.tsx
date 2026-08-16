@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { VendorPayoutChannelCard } from '@/features/payments/components/VendorPayoutChannelCard';
 import { paymentService } from '@/features/payments/services/paymentService';
 import type { DepositType, TourPaymentPolicyPayload } from '@/features/payments/types';
 import { useVendorTourList } from '@/features/vendor-tours/hooks/useVendorTourList';
@@ -83,7 +82,7 @@ type PolicyValues = z.infer<typeof policySchema>;
 type PolicyInput = z.input<typeof policySchema>;
 
 const INPUT_CLASS =
-  'mt-2 w-full rounded-2xl border border-[#D9D4C6] bg-[#FBF8F0] px-4 py-3 text-sm font-semibold text-[#1E3932] outline-none transition-colors placeholder:text-[#9BA39F] focus:border-[#006241] focus:bg-white focus:ring-2 focus:ring-[#006241]/10';
+  'mt-2 w-full rounded-2xl border border-[#D9D4C6] bg-[#FBF8F0] px-4 py-3 text-sm font-semibold text-[#1E3932] outline-none transition-colors placeholder:text-[#9BA39F] hover:border-[#B9CFC3] focus:border-[#006241] focus:bg-white focus:ring-2 focus:ring-[#006241]/10';
 
 export default function VendorPaymentSettings() {
   const queryClient = useQueryClient();
@@ -188,8 +187,7 @@ export default function VendorPaymentSettings() {
             Cấu hình thanh toán
           </h1>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-relaxed text-[#6F7E72]">
-            Cấu hình riêng Kênh Thu và Kênh Chi payOS, sau đó chọn cách khách thanh toán cho từng
-            tour.
+            Cấu hình Kênh Thu payOS, sau đó chọn cách khách thanh toán cho từng tour.
           </p>
         </div>
         <span
@@ -381,9 +379,7 @@ export default function VendorPaymentSettings() {
           </details>
         </AppCard>
 
-        <VendorPayoutChannelCard />
-
-        <AppCard className="overflow-hidden rounded-[28px] border-[#DED9CA] bg-white p-0 shadow-[0_10px_35px_rgba(30,57,50,0.06)] xl:col-span-2">
+        <AppCard className="overflow-hidden rounded-[28px] border-[#DED9CA] bg-white p-0 shadow-[0_10px_35px_rgba(30,57,50,0.06)]">
           <div className="border-b border-[#EAE6DC] bg-[#FBF8F0] p-5 sm:p-6">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#6F7E72]">
               Thiết lập theo tour
@@ -475,10 +471,10 @@ export default function VendorPaymentSettings() {
                 ].map(([value, title, caption]) => (
                   <label
                     key={value}
-                    className={`relative cursor-pointer rounded-2xl border p-4 transition-colors ${
+                    className={`relative cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${
                       paymentOption === value
-                        ? 'border-[#006241] bg-[#F0F7F3] shadow-[0_0_0_1px_#006241]'
-                        : 'border-[#E1DDCF] bg-[#FBF8F0] hover:border-[#B9CFC3]'
+                        ? 'border-[#006241] bg-[#F0F7F3] shadow-xs ring-1 ring-[#006241]'
+                        : 'border-[#D9D4C6] bg-[#FBF8F0] hover:border-[#B9CFC3] hover:bg-[#F6F2E8]'
                     }`}
                   >
                     <input
@@ -488,7 +484,7 @@ export default function VendorPaymentSettings() {
                       className="sr-only"
                     />
                     {paymentOption === value && (
-                      <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#006241] text-white">
+                      <span className="absolute right-3.5 top-3.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#006241] text-white">
                         <Check className="h-3 w-3" />
                       </span>
                     )}
@@ -504,30 +500,50 @@ export default function VendorPaymentSettings() {
             </fieldset>
 
             {paymentOption !== 'FULL_PAYMENT_ONLY' && (
-              <div className="grid gap-4 rounded-2xl border border-[#E1DDCF] bg-[#FBF8F0] p-4 sm:grid-cols-3">
-                <label className="text-xs font-extrabold text-[#1E3932]">
+              <div className="grid gap-4 rounded-2xl border border-[#D9D4C6] bg-[#FBF8F0] p-4.5 sm:grid-cols-3">
+                <div className="text-xs font-extrabold text-[#1E3932]">
                   Cách tính tiền cọc
                   <Select
                     value={depositType ?? ''}
                     onValueChange={(value) =>
                       policyForm.setValue('depositType', value as DepositType, {
                         shouldDirty: true,
+                        shouldTouch: true,
                         shouldValidate: true,
                       })
                     }
                   >
-                    <SelectTrigger className="mt-2 h-auto w-full rounded-2xl border-[#D9D4C6] bg-white px-4 py-3 text-sm font-semibold text-[#1E3932] focus-visible:border-[#006241] focus-visible:ring-[#006241]/10">
-                      <span>
+                    <SelectTrigger
+                      aria-invalid={Boolean(policyForm.formState.errors.depositType)}
+                      className="mt-2 h-12 w-full rounded-2xl border-[#D9D4C6] bg-white px-4 text-sm font-semibold text-[#1E3932] shadow-[0_1px_2px_rgba(30,57,50,0.04)] transition-all hover:border-[#9EB9AA] hover:bg-white focus-visible:border-[#006241] focus-visible:ring-2 focus-visible:ring-[#006241]/12 data-popup-open:border-[#006241] data-popup-open:ring-2 data-popup-open:ring-[#006241]/12"
+                    >
+                      <span className={depositType ? '' : 'text-[#7D8983]'}>
                         {depositType === 'PERCENTAGE'
-                          ? 'Theo phần trăm'
+                          ? 'Theo phần trăm (%)'
                           : depositType === 'FIXED_AMOUNT'
-                            ? 'Số tiền cố định'
+                            ? 'Số tiền cố định (VNĐ)'
                             : 'Chọn cách tính'}
                       </span>
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-[#D9D4C6]">
-                      <SelectItem value="PERCENTAGE">Theo phần trăm giá tour</SelectItem>
-                      <SelectItem value="FIXED_AMOUNT">Một số tiền cố định</SelectItem>
+                    <SelectContent
+                      side="bottom"
+                      sideOffset={6}
+                      align="start"
+                      alignItemWithTrigger={false}
+                      className="rounded-2xl bg-white p-1.5 shadow-[0_14px_36px_rgba(30,57,50,0.16)] ring-1 ring-[#D9D4C6]"
+                    >
+                      <SelectItem
+                        value="PERCENTAGE"
+                        className="min-h-10 cursor-pointer rounded-xl px-3 py-2 font-semibold text-[#1E3932] focus:bg-[#EEF6F1] focus:text-[#006241]"
+                      >
+                        Theo phần trăm (%)
+                      </SelectItem>
+                      <SelectItem
+                        value="FIXED_AMOUNT"
+                        className="min-h-10 cursor-pointer rounded-xl px-3 py-2 font-semibold text-[#1E3932] focus:bg-[#EEF6F1] focus:text-[#006241]"
+                      >
+                        Số tiền cố định (VNĐ)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   {policyForm.formState.errors.depositType && (
@@ -535,7 +551,7 @@ export default function VendorPaymentSettings() {
                       {policyForm.formState.errors.depositType.message}
                     </span>
                   )}
-                </label>
+                </div>
                 <label className="text-xs font-extrabold text-[#1E3932]">
                   Giá trị cọc {depositType === 'PERCENTAGE' ? '(%)' : '(VNĐ)'}
                   <input
