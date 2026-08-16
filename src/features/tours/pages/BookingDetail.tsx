@@ -32,6 +32,7 @@ import { getBookingPaymentPath } from '@/constants/paths';
 import { BookingFinancialTimeline } from '@/features/payments/components/BookingFinancialTimeline';
 import { paymentService } from '@/features/payments/services/paymentService';
 import type { CancellationQuote } from '@/features/payments/types';
+import { bankNameFromBin, VIETNAM_BANKS } from '@/features/payments/utils/banks';
 import {
   isInitialCheckoutAvailable,
   isRemainingCheckoutAvailable,
@@ -39,7 +40,7 @@ import {
 // import { profileService } from '@/features/profile/services/profileService';
 import { BookingSosPanel } from '@/features/tours/components/BookingSosPanel';
 import { useBookingCountdown } from '@/features/tours/hooks/useBookingCountdown';
-import { PAYMENT_DEADLINE_SECONDS, tourService } from '@/features/tours/services/tourService';
+import { tourService } from '@/features/tours/services/tourService';
 import type { BookingDetailResponse } from '@/features/tours/types';
 import { AppButton, AppCard, ConfirmActionDialog } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -79,7 +80,7 @@ export default function BookingDetail({
   const [reasonError, setReasonError] = useState('');
   const [cancellationQuote, setCancellationQuote] = useState<CancellationQuote | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
-  const [refundBankName, setRefundBankName] = useState('');
+  const [refundBankBin, setRefundBankBin] = useState('');
   const [refundAccountNumber, setRefundAccountNumber] = useState('');
   const [refundAccountHolder, setRefundAccountHolder] = useState('');
   const [refundErrors, setRefundErrors] = useState<{
@@ -103,14 +104,9 @@ export default function BookingDetail({
 
   const isAwaitingVendorApproval = booking?.bookingStatus === 'PENDING_CONFIRMATION';
 
-  /**
-   * Tiền đã (hoặc có thể đã) rời khỏi tài khoản trekker → khi hủy sẽ phát sinh
-   * hoàn tiền, nên cần thu tài khoản nhận tiền. Đơn chưa chuyển khoản thì không
-   * hỏi để tránh làm nặng form.
-   */
-  const showRefundFields = (booking?.paidAmount ?? 0) > 0;
-  /** Đã xác nhận thanh toán thì chắc chắn có hoàn tiền → bắt buộc nhập. */
-  const isRefundInfoRequired = Boolean(cancellationQuote?.refundDestinationRequired);
+  /** Chỉ yêu cầu tài khoản khi kết quả chính sách thực sự phát sinh tiền hoàn. */
+  const showRefundFields = (cancellationQuote?.refundAmount ?? 0) > 0;
+  const isRefundInfoRequired = showRefundFields;
   /** Chỉ chia 2 cột khi cột trái thực sự có nội dung (đang tính hoặc đã có quote). */
   const hasRefundQuotePanel = quoteLoading || Boolean(cancellationQuote);
 
@@ -118,10 +114,15 @@ export default function BookingDetail({
     if (!booking) return;
     setReasonError('');
     setRefundErrors({});
+    setRefundBankBin('');
+    setRefundAccountNumber('');
+    setRefundAccountHolder('');
+    setCancellationQuote(null);
     setIsCancelModalOpen(true);
     setQuoteLoading(true);
     try {
-      setCancellationQuote(await paymentService.getCancellationQuote(booking.bookingId));
+      const quote = await paymentService.getCancellationQuote(booking.bookingId);
+      setCancellationQuote(quote);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Không thể tính trước số tiền hoàn.');
     } finally {
@@ -129,11 +130,7 @@ export default function BookingDetail({
     }
   };
 
-  const timeLeft = useBookingCountdown(
-    booking?.createdAt,
-    isPendingPayment,
-    PAYMENT_DEADLINE_SECONDS
-  );
+  const timeLeft = useBookingCountdown(booking?.holdExpiresAt, isPendingPayment);
 
   useEffect(() => {
     async function fetchDetail() {
@@ -201,7 +198,7 @@ export default function BookingDetail({
         message: pendingSos?.message,
       });
       setSosSentAt(result.createdAt);
-      toast.success('Đã gửi tín hiệu SOS tới đội cứu hộ.');
+      toast.success('Đã gửi tín hiệu SOS tới nhà cung cấp tour.');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Không thể gửi tín hiệu SOS.');
     } finally {
@@ -213,7 +210,7 @@ export default function BookingDetail({
   const handleConfirmCancel = async () => {
     if (!booking) return;
     const trimmedReason = cancellationReason.trim();
-    const bankName = refundBankName.trim();
+    const bankBin = refundBankBin.trim();
     const accountNumber = refundAccountNumber.trim();
     const accountHolder = refundAccountHolder.trim();
 
@@ -223,24 +220,18 @@ export default function BookingDetail({
     }
     setReasonError('');
 
-    // Thông tin hoàn tiền chỉ hữu ích khi đủ cả 3 field → nếu đã nhập 1 field
-    // (hoặc đơn bắt buộc hoàn tiền) thì validate cả nhóm.
+    // Có tiền hoàn thì khách phải tự chọn và nhập đủ tài khoản nhận tiền.
     const nextRefundErrors: typeof refundErrors = {};
     if (showRefundFields) {
-      const hasAnyRefundInput = Boolean(bankName || accountNumber || accountHolder);
-      if (isRefundInfoRequired || hasAnyRefundInput) {
-        if (!bankName) {
-          nextRefundErrors.bankName = 'Vui lòng nhập mã BIN ngân hàng.';
-        } else if (!/^\d{6}$/.test(bankName)) {
-          nextRefundErrors.bankName = 'Mã BIN phải gồm đúng 6 chữ số.';
-        }
-        if (!accountNumber) {
-          nextRefundErrors.accountNumber = 'Vui lòng nhập số tài khoản.';
-        } else if (!/^\d{6,20}$/.test(accountNumber.replace(/[\s-]/g, ''))) {
-          nextRefundErrors.accountNumber = 'Số tài khoản chỉ gồm 6-20 chữ số.';
-        }
-        if (!accountHolder) nextRefundErrors.accountHolder = 'Vui lòng nhập tên chủ tài khoản.';
+      if (!bankBin) {
+        nextRefundErrors.bankName = 'Vui lòng chọn ngân hàng.';
       }
+      if (!accountNumber) {
+        nextRefundErrors.accountNumber = 'Vui lòng nhập số tài khoản.';
+      } else if (!/^\d{6,20}$/.test(accountNumber.replace(/[\s-]/g, ''))) {
+        nextRefundErrors.accountNumber = 'Số tài khoản chỉ gồm 6-20 chữ số.';
+      }
+      if (!accountHolder) nextRefundErrors.accountHolder = 'Vui lòng nhập tên chủ tài khoản.';
     }
 
     setRefundErrors(nextRefundErrors);
@@ -253,7 +244,8 @@ export default function BookingDetail({
         trimmedReason,
         showRefundFields
           ? {
-              refundBankBin: bankName,
+              refundBankBin: bankBin,
+              refundBankName: bankNameFromBin(bankBin) || undefined,
               refundAccountNumber: accountNumber.replace(/[\s-]/g, ''),
               refundAccountName: accountHolder,
             }
@@ -264,7 +256,7 @@ export default function BookingDetail({
       queryClient.invalidateQueries({ queryKey: ['booking-detail', booking.bookingId] });
       setIsCancelModalOpen(false);
       setCancellationReason('');
-      setRefundBankName('');
+      setRefundBankBin('');
       setRefundAccountNumber('');
       setRefundAccountHolder('');
       setRefundErrors({});
@@ -416,8 +408,7 @@ export default function BookingDetail({
             <div>
               <p className="text-xs font-extrabold text-amber-900">Đơn hàng đang chờ thanh toán!</p>
               <p className="text-[11px] font-semibold text-amber-700 mt-0.5">
-                Vui lòng hoàn tất thanh toán và tải lên minh chứng trong vòng 15 phút để bảo đảm giữ
-                chỗ.
+                Vui lòng hoàn tất thanh toán trước khi thời gian giữ chỗ kết thúc.
               </p>
             </div>
           </div>
@@ -864,9 +855,6 @@ export default function BookingDetail({
         >
           <DialogHeader className="relative gap-0 border-b border-[#F1F0EC] bg-gradient-to-b from-[#FBFBF9] to-white px-6 py-6 sm:px-8">
             <div className="flex items-start gap-4 pr-10">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-600">
-                <XCircle className="h-6 w-6" />
-              </div>
               <div className="space-y-1.5">
                 <DialogTitle className="text-2xl font-extrabold tracking-tight text-[#0B3025]">
                   Hủy đặt tour
@@ -985,9 +973,8 @@ export default function BookingDetail({
                           {isRefundInfoRequired && <span className="text-red-500">*</span>}
                         </h4>
                         <p className="mt-1 text-xs font-medium leading-relaxed text-zinc-500">
-                          {isRefundInfoRequired
-                            ? 'Vui lòng nhập đúng tài khoản của bạn để nhận tiền hoàn từ nhà cung cấp tour.'
-                            : 'Nếu đơn của bạn phát sinh hoàn tiền, hãy cung cấp tài khoản nhận tiền.'}
+                          Vui lòng chọn ngân hàng và nhập lại tài khoản muốn nhận tiền. TrekSphere
+                          không tự động sử dụng tài khoản đã chuyển tiền.
                         </p>
                       </div>
                     </div>
@@ -998,26 +985,30 @@ export default function BookingDetail({
                           htmlFor="refund-bank-name"
                           className="mb-2 block text-sm font-bold text-zinc-700"
                         >
-                          Mã BIN ngân hàng{' '}
+                          Ngân hàng{' '}
                           {isRefundInfoRequired && <span className="text-red-500">*</span>}
                         </label>
-                        <input
+                        <select
                           id="refund-bank-name"
-                          type="text"
                           disabled={cancelling}
-                          value={refundBankName}
+                          value={refundBankBin}
                           onChange={(e) => {
-                            setRefundBankName(e.target.value);
+                            setRefundBankBin(e.target.value);
                             if (e.target.value.trim()) {
                               setRefundErrors((prev) => ({ ...prev, bankName: undefined }));
                             }
                           }}
-                          inputMode="numeric"
-                          placeholder="Ví dụ: 970436"
                           className={`${CANCEL_FIELD_BASE} ${
                             refundErrors.bankName ? CANCEL_FIELD_ERROR : CANCEL_FIELD_IDLE
                           }`}
-                        />
+                        >
+                          <option value="">Chọn ngân hàng</option>
+                          {VIETNAM_BANKS.map((bank) => (
+                            <option key={bank.bin} value={bank.bin}>
+                              {bank.name}
+                            </option>
+                          ))}
+                        </select>
                         {refundErrors.bankName && (
                           <p className="mt-1.5 text-xs font-bold text-red-500">
                             {refundErrors.bankName}
@@ -1106,7 +1097,7 @@ export default function BookingDetail({
             <button
               type="button"
               onClick={handleConfirmCancel}
-              disabled={cancelling}
+              disabled={cancelling || quoteLoading || !cancellationQuote}
               className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50 sm:w-auto sm:min-w-[200px]"
             >
               {cancelling ? (

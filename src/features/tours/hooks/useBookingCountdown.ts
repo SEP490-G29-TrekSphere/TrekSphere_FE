@@ -1,26 +1,29 @@
 import { useEffect, useState } from 'react';
 
-export function useBookingCountdown(
-  createdAtStr: string | undefined,
-  isActive: boolean,
-  limitSeconds = 900
-) {
-  const [timeLeft, setTimeLeft] = useState<number>(limitSeconds);
+export function secondsUntil(deadline: string | undefined, now = Date.now()): number {
+  if (!deadline) return 0;
+  const deadlineTime = new Date(deadline).getTime();
+  if (Number.isNaN(deadlineTime)) return 0;
+  return Math.max(0, Math.floor((deadlineTime - now) / 1_000));
+}
+
+export function useBookingCountdown(deadline: string | undefined, isActive: boolean) {
+  const [timeLeft, setTimeLeft] = useState<number>(() => (isActive ? secondsUntil(deadline) : 0));
 
   useEffect(() => {
-    if (!isActive || !createdAtStr) return;
+    if (!isActive || !deadline) {
+      setTimeLeft(0);
+      return;
+    }
 
-    const createdTime = new Date(createdAtStr).getTime();
     const updateTimer = () => {
-      const elapsedSeconds = Math.floor((Date.now() - createdTime) / 1000);
-      const remaining = Math.max(0, limitSeconds - elapsedSeconds);
-      setTimeLeft(remaining);
+      setTimeLeft(secondsUntil(deadline));
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [createdAtStr, isActive, limitSeconds]);
+  }, [deadline, isActive]);
 
   return timeLeft;
 }

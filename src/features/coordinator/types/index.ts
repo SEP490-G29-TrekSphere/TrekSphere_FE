@@ -44,9 +44,17 @@ export interface TourCheckpoint {
   checkpointId: string;
   checkpointName: string;
   description?: string;
+  latitude?: number;
+  longitude?: number;
   altitude?: number;
   checkpointOrder: number;
 }
+
+export type EquipmentReturnStatus =
+  | 'NOT_RETURNED'
+  | 'PENDING_CONFIRMATION'
+  | 'CONFIRMED'
+  | 'REJECTED';
 
 export interface SessionCoordinatorAllocation {
   coordinatorScheduleId: string;
@@ -61,6 +69,14 @@ export interface SessionEquipmentAllocation {
   equipmentName: string;
   quantity: number;
   note?: string;
+  isChecked?: boolean;
+  returnedQuantity?: number;
+  missingQuantity?: number;
+  returnStatus?: EquipmentReturnStatus;
+  submittedByName?: string;
+  submittedAt?: string;
+  confirmedByName?: string;
+  confirmedAt?: string;
 }
 
 /** Chi tiết 1 phiên tour — `GET /vendor/sessions/{id}/allocations`. */
@@ -142,7 +158,7 @@ export interface SessionSosAlert {
 
 /**
  * Trạng thái SOS của phiên tour — `GET /tracking/sessions/{sessionId}/sos/status`.
- * Cho Coordinator biết tín hiệu mình gửi đã được đội cứu hộ xử lý hay chưa.
+ * Cho Coordinator biết tín hiệu mình gửi đã được nhà cung cấp tour xử lý hay chưa.
  */
 export interface SessionSosStatus {
   tourSessionId: string;

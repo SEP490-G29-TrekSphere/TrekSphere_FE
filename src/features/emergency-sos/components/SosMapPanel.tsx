@@ -1,36 +1,66 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { MapPin } from 'lucide-react';
-import { useEffect } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import * as vietmapgl from '@vietmap/vietmap-gl-js/dist/vietmap-gl.js';
+import { AlertTriangle, MapPin } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  getVietMapStyleUrl,
+  hasVietMapApiKey,
+  VIETMAP_CONFIGURATION_MESSAGE,
+} from '@/shared/map/vietmapSetup';
 import type { SosAlert } from '../types';
-
-/** Fix icon marker mặc định của Leaflet không tự resolve được path qua bundler Vite. */
-type IconDefaultPrototype = typeof L.Icon.Default.prototype & { _getIconUrl?: () => string };
-delete (L.Icon.Default.prototype as IconDefaultPrototype)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
 
 interface SosMapPanelProps {
   alert?: SosAlert;
 }
 
-function RecenterOnAlert({ latitude, longitude }: { latitude: number; longitude: number }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([latitude, longitude], map.getZoom());
-  }, [latitude, longitude, map]);
-  return null;
+function createSosPopupContent(alert: SosAlert): HTMLElement {
+  const content = document.createElement('div');
+  content.className = 'space-y-1 text-sm';
+
+  const sender = document.createElement('strong');
+  sender.textContent = alert.senderName;
+  const tour = document.createElement('p');
+  tour.textContent = alert.tourName;
+
+  content.append(sender, tour);
+  return content;
 }
 
-/** Bản đồ Leaflet + OpenStreetMap, ghim đúng toạ độ SOS đang chọn — không có dữ liệu môi trường (nhiệt độ, pin thiết bị...) vì BE không trả các field đó. */
+/** Bản đồ SOS dùng SDK và vector tiles chính thức của VietMap. */
 export function SosMapPanel({ alert }: SosMapPanelProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const hasApiKey = hasVietMapApiKey();
+
+  useEffect(() => {
+    if (!alert || !hasApiKey || !containerRef.current) return;
+
+    setMapLoadFailed(false);
+    const position: [number, number] = [alert.longitude, alert.latitude];
+    const map = new vietmapgl.Map({
+      container: containerRef.current,
+      style: getVietMapStyleUrl(),
+      center: position,
+      zoom: 13,
+      maxZoom: 18,
+      renderWorldCopies: false,
+    });
+
+    map.addControl(new vietmapgl.NavigationControl({ showCompass: false }), 'bottom-right');
+    map.on('error', () => setMapLoadFailed(true));
+
+    const popup = new vietmapgl.Popup({ offset: 22 }).setDOMContent(createSosPopupContent(alert));
+    const marker = new vietmapgl.Marker({ color: '#D32F2F' })
+      .setLngLat(position)
+      .setPopup(popup)
+      .addTo(map);
+
+    return () => {
+      marker.remove();
+      popup.remove();
+      map.remove();
+    };
+  }, [alert, hasApiKey]);
+
   if (!alert) {
     return (
       <div
@@ -38,13 +68,22 @@ export function SosMapPanel({ alert }: SosMapPanelProps) {
         style={{ backgroundColor: '#EFECE6' }}
       >
         <p className="text-sm font-semibold" style={{ color: '#6F7B75' }}>
-          Chọn 1 tín hiệu SOS để xem vị trí trên bản đồ.
+          Chọn một tín hiệu SOS để xem vị trí trên bản đồ.
         </p>
       </div>
     );
   }
 
-  const position: [number, number] = [alert.latitude, alert.longitude];
+  if (!hasApiKey) {
+    return (
+      <div className="flex min-h-[340px] items-center justify-center rounded-[28px] border border-amber-200 bg-amber-50 p-6 text-center text-amber-800">
+        <div className="max-w-sm space-y-2">
+          <AlertTriangle className="mx-auto h-7 w-7" />
+          <p className="text-sm font-semibold">{VIETMAP_CONFIGURATION_MESSAGE}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -52,29 +91,23 @@ export function SosMapPanel({ alert }: SosMapPanelProps) {
       style={{ border: '1px solid #E6E2D1' }}
     >
       <div
-        className="absolute left-4 top-4 z-[1000] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-md"
+        className="absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-md"
         style={{ backgroundColor: '#D32F2F' }}
       >
         <MapPin className="h-3.5 w-3.5" />
         GPS: {alert.latitude.toFixed(4)}° N, {alert.longitude.toFixed(4)}° E
       </div>
-      <MapContainer
-        center={position}
-        zoom={13}
-        scrollWheelZoom
-        style={{ height: '340px', width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={position}>
-          <Popup>
-            {alert.senderName} — {alert.tourName}
-          </Popup>
-        </Marker>
-        <RecenterOnAlert latitude={alert.latitude} longitude={alert.longitude} />
-      </MapContainer>
+      <div
+        ref={containerRef}
+        className="h-[340px] w-full"
+        role="region"
+        aria-label="Bản đồ vị trí SOS"
+      />
+      {mapLoadFailed && (
+        <div className="absolute bottom-3 left-3 right-3 z-10 rounded-xl bg-white/95 px-3 py-2 text-xs font-semibold text-amber-800 shadow-md">
+          Không thể tải bản đồ VietMap. Vui lòng kiểm tra API key hoặc kết nối mạng.
+        </div>
+      )}
     </div>
   );
 }
