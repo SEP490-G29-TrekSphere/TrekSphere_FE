@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { PATHS } from '@/constants';
 import { AppButton, AppSpinner } from '@/shared/ui';
+import { formatDate } from '@/utils/format';
 import { storage } from '@/utils/storage';
 import ProfileSidebar from '../components/ProfileSidebar';
 import { useProfile } from '../hooks/useProfile';
@@ -73,7 +74,9 @@ export default function ViewProfile({ editPath }: { editPath?: string }) {
   }
 
   const displayGender = profile?.gender ? GENDER_LABELS[profile.gender] : '—';
-  const displayDob = profile?.dateOfBirth || '—';
+  const displayDob = profile?.dateOfBirth
+    ? formatDate(profile.dateOfBirth) || profile.dateOfBirth
+    : '—';
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 pb-8">
