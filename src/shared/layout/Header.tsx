@@ -1,11 +1,10 @@
-import { Bell, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
-import { mockNotifications } from '@/features/notifications/data/mockNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
@@ -88,7 +87,6 @@ export default function Header() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
   const showAvatar = Boolean(avatarUrl);
   const dashboardPath = getRoleDashboardPath(user?.roles);
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6">
@@ -113,18 +111,6 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link
-            to={PATHS.NOTIFICATIONS}
-            className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Bell className="size-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary ring-2 ring-background">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
-
           {/* User avatar + dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
