@@ -4,19 +4,16 @@ import { ReportFilterBar } from '../components/ReportFilterBar';
 import { ReportKpiCards } from '../components/ReportKpiCards';
 import { RevenueChart } from '../components/RevenueChart';
 import { TopToursCard } from '../components/TopToursCard';
-import { UnderCapacityBanner } from '../components/UnderCapacityBanner';
 import { UpcomingSchedulesTable } from '../components/UpcomingSchedulesTable';
 import {
   useRevenueChart,
   useTopTours,
-  useUnderCapacityAlerts,
   useUpcomingSchedules,
   useVendorOverview,
 } from '../hooks/useVendorReports';
 import type { ReportFilter } from '../types';
 
 /** Ngưỡng cảnh báo thiếu khách và số lịch khởi hành hiển thị — theo mặc định của BE. */
-const ALERT_DAYS_THRESHOLD = 7;
 const UPCOMING_LIMIT = 10;
 const TOP_TOURS_LIMIT = 5;
 
@@ -31,7 +28,6 @@ export default function VendorReports() {
   const revenueQuery = useRevenueChart(filter);
   const topToursQuery = useTopTours(filter, TOP_TOURS_LIMIT);
   const schedulesQuery = useUpcomingSchedules(UPCOMING_LIMIT);
-  const alertsQuery = useUnderCapacityAlerts(ALERT_DAYS_THRESHOLD);
 
   const handleFilterChange = (patch: Partial<ReportFilter>) => {
     setFilter((prev) => ({ ...prev, ...patch }));
@@ -47,12 +43,6 @@ export default function VendorReports() {
         </div>
         <ReportFilterBar filter={filter} onChange={handleFilterChange} />
       </header>
-
-      <UnderCapacityBanner
-        alerts={alertsQuery.data}
-        daysThreshold={ALERT_DAYS_THRESHOLD}
-        onViewManifest={setManifestScheduleId}
-      />
 
       <ReportKpiCards
         overview={overviewQuery.data}

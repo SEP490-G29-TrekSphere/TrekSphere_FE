@@ -26,11 +26,7 @@ export function ScheduleTableRow({
 }: ScheduleTableRowProps) {
   const hasBookings = schedule.bookedSlots > 0;
   const isEditable = EDITABLE_SCHEDULE_STATUSES.has(schedule.status);
-  // `availableSlots` là TỔNG số chỗ của lịch (đặt lúc tạo/sửa lịch), KHÔNG tự giảm khi có
-  // khách đặt — số chỗ còn trống thực tế phải tự tính = tổng - đã đặt (khớp cách tính đang
-  // dùng ở trang Trekker: `TourDetails.tsx`/`BookTour.tsx`). Kẹp về 0 để phòng dữ liệu lệch
-  // (vd tổng bị sửa thấp hơn số đã đặt) không hiện số âm.
-  const remainingSlots = Math.max(0, schedule.availableSlots - schedule.bookedSlots);
+  const remainingSlots = Math.max(0, schedule.availableSlots);
 
   return (
     <tr className="border-b transition-colors last:border-b-0" style={{ borderColor: '#E6E2D1' }}>
@@ -54,7 +50,7 @@ export function ScheduleTableRow({
 
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <span className="text-sm font-medium" style={{ color: '#06261D' }}>
-          {schedule.bookedSlots}/{schedule.availableSlots} chỗ
+          Đã đặt {schedule.bookedSlots} chỗ
         </span>
         <span className="block text-xs" style={{ color: '#6F7B75' }}>
           Còn trống {remainingSlots} chỗ

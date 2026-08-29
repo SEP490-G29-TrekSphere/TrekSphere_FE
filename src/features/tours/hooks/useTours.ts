@@ -1,6 +1,7 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { type TourListResponse, tourService } from '@/features/tours/services/tourService';
 import type { ApiDifficulty, Tour, TourApiItem, TourListParams } from '@/features/tours/types';
+import { formatTourDuration } from '@/utils/format';
 
 const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
@@ -19,7 +20,7 @@ export function mapApiItemToTour(item: TourApiItem): Tour {
     id: item.tourId,
     name: item.tourName,
     description: '',
-    duration: `${item.durationDays} ngày`,
+    duration: formatTourDuration(item.durationDays),
     level: DIFFICULTY_MAP[item.difficulty],
     price: formatPrice(item.basePrice),
     basePrice: item.basePrice,

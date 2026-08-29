@@ -327,6 +327,7 @@ export interface TourDetailScheduleApi {
   tourId: string;
   departureDate: string;
   returnDate: string;
+  /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
   availableSlots: number;
   bookedSlots: number;
   price: number;
@@ -517,6 +518,8 @@ export interface BookingCancelRequest {
   cancellationReason: string;
   /** Mã BIN ngân hàng nhận hoàn tiền — ví dụ: "970436". */
   refundBankBin?: string;
+  /** Tên ngân hàng dùng để hiển thị cho người dùng. */
+  refundBankName?: string;
   /** Số tài khoản nhận hoàn tiền. */
   refundAccountNumber?: string;
   /** Tên chủ tài khoản nhận hoàn tiền — ví dụ: "NGUYEN VAN A". */

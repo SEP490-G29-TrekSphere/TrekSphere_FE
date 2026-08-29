@@ -25,8 +25,6 @@ export interface TourListResponse {
   last: boolean;
 }
 
-export const PAYMENT_DEADLINE_SECONDS = 900;
-
 /**
  * Serialize a `TourListParams` object into a query string. Only includes
  * keys with defined, non-empty values — the backend treats `keyword=` as
@@ -188,6 +186,9 @@ export const tourService = {
 
     if (refundInfo?.refundBankBin?.trim()) {
       payload.refundBankBin = refundInfo.refundBankBin.trim();
+    }
+    if (refundInfo?.refundBankName?.trim()) {
+      payload.refundBankName = refundInfo.refundBankName.trim();
     }
     if (refundInfo?.refundAccountNumber?.trim()) {
       payload.refundAccountNumber = refundInfo.refundAccountNumber.trim();

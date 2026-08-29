@@ -2,6 +2,7 @@ import { Clock, Mountain, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { DIFFICULTY_LABELS } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailFromApi } from '@/features/tours/types';
+import { formatTourDuration } from '@/utils/format';
 
 interface TourStatsGridProps {
   tour: TourDetailFromApi;
@@ -39,7 +40,7 @@ function StatTile({
  */
 export function TourStatsGrid({ tour }: TourStatsGridProps) {
   const difficultyLabel = DIFFICULTY_LABELS[tour.difficulty] ?? tour.difficulty;
-  const durationText = `${tour.durationDays} ngày`;
+  const durationText = formatTourDuration(tour.durationDays);
 
   return (
     <div className="grid gap-3 sm:grid-cols-3">

@@ -31,3 +31,8 @@ export const formatCountdown = (seconds: number): string => {
   const secs = seconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
+
+export const formatTourDuration = (durationDays: number): string => {
+  if (durationDays <= 1) return '1 ngày';
+  return `${durationDays} ngày ${durationDays - 1} đêm`;
+};

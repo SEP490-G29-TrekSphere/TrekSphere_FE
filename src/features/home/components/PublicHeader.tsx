@@ -1,11 +1,10 @@
-import { Bell, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
-import { mockNotifications } from '@/features/notifications/data/mockNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
@@ -64,7 +63,6 @@ export default function PublicHeader() {
   };
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
   const dashboardPath = getRoleDashboardPath(user?.roles);
 
   // On the home page the header starts transparent over the cinematic hero
@@ -114,79 +112,62 @@ export default function PublicHeader() {
 
         <div className="flex items-center gap-2">
           {user ? (
-            /* Authenticated: bell + avatar + dropdown */
-            <>
-              <Link
-                to={PATHS.NOTIFICATIONS}
-                className={`relative flex size-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring mr-1 ${
-                  transparent
-                    ? 'text-white/80 hover:text-white hover:bg-white/10'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
+            /* Authenticated: avatar + dropdown */
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
+                aria-label="Mở menu cá nhân"
               >
-                <Bell className="size-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary ring-2 ring-background">
-                    {unreadCount}
-                  </span>
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name ?? 'User'}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const span = document.createElement('span');
+                      span.textContent = initial;
+                      span.className = 'text-sm font-bold text-primary-foreground';
+                      target.parentElement?.appendChild(span);
+                    }}
+                  />
+                ) : (
+                  <span>{initial}</span>
                 )}
-              </Link>
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setDropdownOpen((prev) => !prev)}
-                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
-                  aria-label="Mở menu cá nhân"
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name ?? 'User'}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const span = document.createElement('span');
-                        span.textContent = initial;
-                        span.className = 'text-sm font-bold text-primary-foreground';
-                        target.parentElement?.appendChild(span);
-                      }}
-                    />
-                  ) : (
-                    <span>{initial}</span>
-                  )}
-                </button>
+              </button>
 
-                {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border bg-popover p-1 shadow-lg">
-                    <div className="px-3 py-2">
-                      <p className="truncate text-sm font-semibold">{user.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="my-1 h-px bg-border" />
-                    {dashboardPath && (
-                      <Link
-                        to={dashboardPath}
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Bảng điều khiển
-                      </Link>
-                    )}
-                    <div className="my-1 h-px bg-border" />
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Đăng xuất
-                    </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border bg-popover p-1 shadow-lg">
+                  <div className="px-3 py-2">
+                    <p className="truncate text-sm font-semibold">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   </div>
-                )}
-              </div>
-            </>
+                  <div className="my-1 h-px bg-border" />
+                  {dashboardPath && (
+                    <Link
+                      to={dashboardPath}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Bảng điều khiển
+                    </Link>
+                  )}
+                  <div className="my-1 h-px bg-border" />
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             /* Khách vãng lai: Đăng nhập / Đăng ký */
             <>

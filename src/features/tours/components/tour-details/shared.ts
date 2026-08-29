@@ -77,9 +77,14 @@ export function handleImageFallback(event: SyntheticEvent<HTMLImageElement>): vo
   if (img.src !== FALLBACK_IMAGE) img.src = FALLBACK_IMAGE;
 }
 
-/** Số chỗ còn trống của một lịch khởi hành (kẹp về 0 phòng dữ liệu lệch). */
+/**
+ * Số chỗ còn trống của một lịch khởi hành.
+ *
+ * BE giảm trực tiếp `availableSlots` ngay khi giữ chỗ và tăng lại khi booking được
+ * hủy/hết hạn. Vì vậy đây đã là số chỗ còn lại, không được trừ `bookedSlots` lần nữa.
+ */
 export function remainingSlots(schedule: TourDetailScheduleApi): number {
-  return Math.max(0, schedule.availableSlots - schedule.bookedSlots);
+  return Math.max(0, schedule.availableSlots);
 }
 
 /** Lịch còn nhận khách: trạng thái OPEN và vẫn còn chỗ. */

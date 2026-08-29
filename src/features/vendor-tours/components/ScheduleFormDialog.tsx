@@ -77,7 +77,7 @@ export interface ScheduleFormDialogProps {
   mode: 'create' | 'edit';
   /** Giá trị có sẵn để đổ vào form — merge lên trên `EMPTY_DEFAULTS`. */
   defaultValues?: Partial<ScheduleFormDefaultValues>;
-  /** Số chỗ đã đặt của lịch đang sửa — chặn không cho hạ `availableSlots` xuống dưới số này. */
+  /** Số chỗ đã đặt của lịch đang sửa — dùng để yêu cầu lý do điều chỉnh. */
   bookedSlots?: number;
   /** Sức chứa tối đa của tour (`tour.maxCapacity`) — chặn không cho đặt `availableSlots` vượt quá. */
   maxCapacity: number;
@@ -148,13 +148,6 @@ export function ScheduleFormDialog({
       return;
     }
 
-    if (isEdit && values.availableSlots < bookedSlots) {
-      setError('availableSlots', {
-        message: `Không thể đặt thấp hơn số chỗ đã đặt (${bookedSlots}).`,
-      });
-      return;
-    }
-
     if (values.availableSlots > maxCapacity) {
       setError('availableSlots', {
         message: `Không thể vượt quá sức chứa tối đa của tour (${maxCapacity}).`,
@@ -172,7 +165,6 @@ export function ScheduleFormDialog({
         departureDate: values.departureDate,
         returnDate: values.returnDate,
         price: values.price,
-        availableSlots: values.availableSlots,
         status: values.status,
         ...(requiresReason ? { reason: values.reason } : {}),
       };
@@ -299,20 +291,22 @@ export function ScheduleFormDialog({
                 className="mb-1.5 block text-sm font-semibold"
                 style={{ color: '#06261D' }}
               >
-                Giới hạn số chỗ <span className="text-red-500">*</span>
+                {isEdit ? 'Chỗ còn trống hiện tại' : 'Số chỗ mở bán'}{' '}
+                <span className="text-red-500">*</span>
               </label>
               <input
                 id="availableSlots"
                 type="number"
-                min={isEdit ? bookedSlots : 1}
+                min={1}
                 max={maxCapacity}
+                disabled={isEdit}
                 {...register('availableSlots')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
+                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
               />
               {isEdit && (
                 <p className="mt-1 text-xs" style={{ color: '#6F7B75' }}>
-                  Đã đặt: {bookedSlots} chỗ — Sức chứa tối đa: {maxCapacity} chỗ
+                  Đã đặt: {bookedSlots} chỗ. Số chỗ mở bán chỉ được thiết lập khi tạo lịch.
                 </p>
               )}
               {errors.availableSlots && (

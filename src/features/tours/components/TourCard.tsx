@@ -121,7 +121,7 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
           <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
             <div className="flex flex-col">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Từ
+                Giá
               </span>
               <p className="text-sm font-extrabold text-primary sm:text-base">
                 {formattedPrice} VND

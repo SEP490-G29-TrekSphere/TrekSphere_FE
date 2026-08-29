@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, HelpCircle, LogOut, Search, User } from 'lucide-react';
+import { ChevronDown, HelpCircle, LogOut, Search, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants';
@@ -24,7 +24,7 @@ const FALLBACK_AVATAR =
  * Topbar của khu vực Admin.
  * - Nền trắng kem nhạt (mặc định bg-card), đường viền mỏng phân cách bên dưới.
  * - Bên trái: ô search bo góc tròn với icon kính lúp.
- * - Bên phải: thông báo (chuông), trợ giúp (chấm hỏi), chọn ngôn ngữ, avatar +
+ * - Bên phải: trợ giúp (chấm hỏi), chọn ngôn ngữ, avatar +
  *   dropdown "Hồ sơ" / "Đăng xuất".
  */
 export default function AdminTopbar({
@@ -109,22 +109,6 @@ export default function AdminTopbar({
 
       {/* Right side icons */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-        {/* Notification */}
-        <button
-          type="button"
-          aria-label="Thông báo"
-          className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors"
-          style={{ color: '#6F7B75' }}
-        >
-          <Bell className="h-5 w-5" />
-          <span
-            className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
-            style={{ backgroundColor: '#A2EBD2', color: '#06261D' }}
-          >
-            3
-          </span>
-        </button>
-
         {/* Help */}
         <button
           type="button"

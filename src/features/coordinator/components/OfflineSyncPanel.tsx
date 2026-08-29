@@ -34,6 +34,10 @@ function formatDateTime(value?: string): string {
   return new Date(value).toLocaleString('vi-VN');
 }
 
+function displayErrorMessage(message: string): string {
+  return message.replace(/^\s*\[[^\]]+\]\s*/, '');
+}
+
 export function OfflineSyncPanel({
   isOnline,
   isPrepared,
@@ -166,10 +170,12 @@ export function OfflineSyncPanel({
 
       {(error || failedItems.length > 0) && (
         <div className="border-t bg-red-50 px-5 py-3" style={{ borderColor: '#F3B4B4' }}>
-          {error && <p className="text-xs font-semibold text-red-700">{error}</p>}
+          {error && (
+            <p className="text-xs font-semibold text-red-700">{displayErrorMessage(error)}</p>
+          )}
           {failedItems.slice(-3).map((item) => (
             <p key={`${item.kind}-${item.id}`} className="mt-1 text-xs text-red-700">
-              [{item.code}] {item.message}
+              {displayErrorMessage(item.message)}
             </p>
           ))}
           {failedItems.length > 0 && (

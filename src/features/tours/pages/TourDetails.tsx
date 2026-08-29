@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { CancellationPolicyNotice } from '@/features/tours/components/CancellationPolicyNotice';
 import {
@@ -68,8 +68,6 @@ export default function TourDetailsPage() {
   const { data: apiSchedules } = useTourSchedules(id);
   const { data: checkpoints, isLoading: isLoadingCheckpoints } = useTourCheckpoints(id);
 
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
-
   // `GET /tours/{id}` đã kèm `schedules`, endpoint riêng chỉ để làm mới; ưu tiên
   // dữ liệu mới hơn nhưng vẫn có sẵn để render ngay lần đầu.
   const schedules = apiSchedules ?? tour?.schedules ?? [];
@@ -78,9 +76,6 @@ export default function TourDetailsPage() {
     () => sortSchedulesByDeparture(schedules.filter(isBookableSchedule)),
     [schedules]
   );
-
-  const selectedSchedule =
-    bookableSchedules.find((schedule) => schedule.scheduleId === selectedScheduleId) ?? null;
 
   const hasInclusions =
     splitField(tour?.includes).length > 0 || splitField(tour?.excludes).length > 0;
@@ -92,16 +87,6 @@ export default function TourDetailsPage() {
       (section.id !== SECTION_IDS.gallery || hasGallery) &&
       (section.id !== SECTION_IDS.requirements || hasParticipationPolicy)
   );
-
-  /** Bấm "Ngày khởi hành" ở thẻ đặt tour → cuộn tới danh sách lịch bên trái. */
-  function scrollToSchedules() {
-    const target = document.getElementById(SECTION_IDS.schedules);
-    if (!target) return;
-    window.scrollTo({
-      top: target.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET,
-      behavior: 'smooth',
-    });
-  }
 
   if (isLoading) return <TourDetailSkeleton />;
 
@@ -140,13 +125,9 @@ export default function TourDetailsPage() {
             <section id={SECTION_IDS.schedules} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
               <SectionHeading
                 title="Lịch khởi hành"
-                description="Chọn một đợt để xem giá và số chỗ còn trống."
+                description="Danh sách các đợt khởi hành dự kiến và giá tour."
               />
-              <TourScheduleSection
-                schedules={schedules}
-                selectedScheduleId={selectedScheduleId}
-                onSelect={setSelectedScheduleId}
-              />
+              <TourScheduleSection schedules={schedules} />
             </section>
 
             <section id={SECTION_IDS.route} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
@@ -201,13 +182,7 @@ export default function TourDetailsPage() {
 
           {/* Cột phải — thẻ đặt tour dính, ẩn trên mobile vì đã có thanh đáy */}
           <aside className="hidden flex-col gap-5 lg:sticky lg:top-32 lg:flex">
-            <TourBookingRail
-              tour={tour}
-              schedules={schedules}
-              selectedSchedule={selectedSchedule}
-              onPickSchedule={scrollToSchedules}
-              isLoggedIn={!!user}
-            />
+            <TourBookingRail tour={tour} schedules={schedules} isLoggedIn={!!user} />
             <TourVendorCard tour={tour} />
           </aside>
         </div>
@@ -220,7 +195,6 @@ export default function TourDetailsPage() {
 
       <TourMobileBookingBar
         tour={tour}
-        selectedSchedule={selectedSchedule}
         hasSchedules={bookableSchedules.length > 0}
         isLoggedIn={!!user}
       />
