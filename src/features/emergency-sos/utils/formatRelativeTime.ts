@@ -13,7 +13,7 @@ export function formatRelativeTime(dateStr: string): string {
   return `${diffDays} ngày trước`;
 }
 
-/** 8 ký tự đầu của id (bỏ dấu gạch ngang), viết hoa — cùng quy ước với `formatShortId` ở vendor-sessions. */
+/** 8 ký tự đầu của id (bỏ dấu gạch ngang), viết hoa. */
 export function formatSosCode(sosAlertId: string): string {
   return `SOS-${sosAlertId.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
 }

@@ -1,8 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getVendorManagerSessionDetailPath, PATHS } from '@/constants';
-import { vendorSessionService } from '@/features/vendor-sessions/services/vendorSessionService';
+import { PATHS } from '@/constants';
 import { CancelBookedScheduleDialog } from '@/features/vendor-tours/components/CancelBookedScheduleDialog';
 import { DeleteScheduleConfirmDialog } from '@/features/vendor-tours/components/DeleteScheduleConfirmDialog';
 import { ScheduleFormDialog } from '@/features/vendor-tours/components/ScheduleFormDialog';
@@ -37,7 +36,6 @@ export default function TourSchedules() {
 
   const [formTarget, setFormTarget] = useState<TourSchedule | 'create' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TourSchedule | null>(null);
-  const [openingSessionScheduleId, setOpeningSessionScheduleId] = useState<string | null>(null);
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
 
   const handleBack = () => navigate(PATHS.VENDOR_MANAGER_TOURS);
@@ -82,18 +80,6 @@ export default function TourSchedules() {
       onError: (err) =>
         toast.error(err instanceof Error ? err.message : 'Không thể xóa lịch trình.'),
     });
-  };
-
-  const handleOpenOperations = async (schedule: TourSchedule) => {
-    setOpeningSessionScheduleId(schedule.scheduleId);
-    try {
-      const session = await vendorSessionService.getSessionBySchedule(schedule.scheduleId);
-      navigate(getVendorManagerSessionDetailPath(session.sessionId));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Không thể mở phiên vận hành.');
-    } finally {
-      setOpeningSessionScheduleId(null);
-    }
   };
 
   const openBookedScheduleCancellation = (schedule: TourSchedule) => {
@@ -247,8 +233,6 @@ export default function TourSchedules() {
                   <ScheduleTableRow
                     key={schedule.scheduleId}
                     schedule={schedule}
-                    onOperationsClick={handleOpenOperations}
-                    isOpeningOperations={openingSessionScheduleId === schedule.scheduleId}
                     onEditClick={setFormTarget}
                     onDeleteClick={handleCancelClick}
                   />

@@ -1,9 +1,9 @@
-import { vendorBookingService } from '@/features/vendor-bookings/services/vendorBookingService';
-import type {
-  ScheduleBookingItem,
-  ScheduleBookingManifest,
-} from '@/features/vendor-bookings/types';
 import type { TourSchedule, UpdateSchedulePayload } from '../types';
+import {
+  getScheduleBookingManifest,
+  type ScheduleBookingItem,
+  type ScheduleBookingManifest,
+} from './scheduleBookingManifestService';
 import { vendorScheduleService } from './vendorScheduleService';
 
 const CANCELLABLE_BOOKING_STATUSES = new Set([
@@ -72,7 +72,7 @@ function analyzeBookings(
 }
 
 async function loadPreview(schedule: TourSchedule) {
-  const manifest = await vendorBookingService.getScheduleBookingManifest(schedule.scheduleId);
+  const manifest = await getScheduleBookingManifest(schedule.scheduleId);
   return analyzeBookings(schedule, manifest);
 }
 

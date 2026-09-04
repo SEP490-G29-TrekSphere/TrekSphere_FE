@@ -1,5 +1,4 @@
 import { getPrimaryRole, PATHS, ROLES } from '@/constants';
-import { useVendorBookingStats } from '@/features/vendor-bookings/hooks/useVendorBookingStats';
 import { VendorCancellationPolicyCard } from '@/features/vendor-cancellation-policies';
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import { useAppStore } from '@/store/useAppStore';
@@ -19,7 +18,6 @@ export default function VendorProfileOverview() {
 
   const { data: profile, isLoading, isError, error } = useVendorProfile();
   const { data: tourStats } = useVendorTourStats();
-  const { data: bookingStats } = useVendorBookingStats();
 
   if (isLoading) {
     return (
@@ -47,10 +45,7 @@ export default function VendorProfileOverview() {
       />
 
       {/* KPI */}
-      <VendorProfileKpiCards
-        totalTours={tourStats?.total}
-        totalBookings={bookingStats?.totalBookings}
-      />
+      <VendorProfileKpiCards totalTours={tourStats?.total} />
 
       {/* Bento chi tiết */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
