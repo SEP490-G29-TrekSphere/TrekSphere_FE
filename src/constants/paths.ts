@@ -89,8 +89,6 @@ export const PATHS = {
   ADMIN_APPLICATION_DETAIL: '/admin/applications/:id',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_REPORT_DETAIL: '/admin/reports/:id',
-  ADMIN_REFUNDS: '/admin/refunds',
-  ADMIN_VOUCHERS: '/admin/vouchers',
   ADMIN_EMERGENCY: '/admin/emergency',
   ADMIN_CHAT: '/admin/chat',
 
@@ -104,18 +102,8 @@ export const PATHS = {
   VENDOR_MANAGER_TOUR_EDIT: '/vendor-manager/tours/:id/edit',
   VENDOR_MANAGER_TOUR_APPROVALS: '/vendor-manager/tours/approvals',
   VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor-manager/tours/:id/schedules',
-  VENDOR_MANAGER_BOOKINGS: '/vendor-manager/bookings',
-  VENDOR_MANAGER_PAYMENT_SETTINGS: '/vendor-manager/payment-settings',
-  VENDOR_MANAGER_EQUIPMENT: '/vendor-manager/equipment',
-  VENDOR_MANAGER_PORTERS: '/vendor-manager/porters',
-  VENDOR_MANAGER_PORTER_CREATE: '/vendor-manager/porters/new',
-  VENDOR_MANAGER_PORTER_EDIT: '/vendor-manager/porters/:id/edit',
-  VENDOR_MANAGER_SESSIONS: '/vendor-manager/sessions',
-  VENDOR_MANAGER_SESSION_DETAIL: '/vendor-manager/sessions/:sessionId',
   VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
-  VENDOR_MANAGER_VOUCHERS: '/vendor-manager/vouchers',
   VENDOR_MANAGER_CHAT: '/vendor-manager/chat',
-  VENDOR_MANAGER_REPORTS: '/vendor-manager/reports',
 
   // Vendor Staff (TrekPartner portal)
   PARTNER: '/partner',
@@ -124,25 +112,11 @@ export const PATHS = {
   PARTNER_TOUR_CREATE: '/partner/tours/new',
   PARTNER_TOUR_EDIT: '/partner/tours/:id/edit',
   PARTNER_TOUR_SCHEDULES: '/partner/tours/:id/schedules',
-  PARTNER_BOOKINGS: '/partner/bookings',
-  PARTNER_EQUIPMENT: '/partner/equipment',
-  PARTNER_PORTERS: '/partner/porters',
-  PARTNER_PORTER_CREATE: '/partner/porters/new',
-  PARTNER_PORTER_EDIT: '/partner/porters/:id/edit',
-  PARTNER_SESSIONS: '/partner/sessions',
-  PARTNER_SESSION_DETAIL: '/partner/sessions/:sessionId',
   PARTNER_BLOG_CREATE: '/partner/blog/create',
-  PARTNER_VOUCHERS: '/partner/vouchers',
   PARTNER_CHAT: '/partner/chat',
 
   // Admin — Blog moderation
   ADMIN_BLOGS: '/admin/blogs',
-
-  // Coordinator
-  COORDINATOR: '/coordinator',
-  COORDINATOR_SCHEDULES: '/coordinator/schedules',
-  COORDINATOR_SESSION_OPERATIONS: '/coordinator/sessions/:sessionId',
-  COORDINATOR_CHAT: '/coordinator/chat',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
@@ -163,12 +137,6 @@ export const getVendorManagerTourSchedulesPath = (id: string) =>
 export const getPartnerTourSchedulesPath = (id: string) =>
   PATHS.PARTNER_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
-export const getVendorManagerSessionDetailPath = (sessionId: string) =>
-  PATHS.VENDOR_MANAGER_SESSION_DETAIL.replace(':sessionId', sessionId);
-export const getPartnerSessionDetailPath = (sessionId: string) =>
-  PATHS.PARTNER_SESSION_DETAIL.replace(':sessionId', sessionId);
-export const getCoordinatorSessionOperationsPath = (sessionId: string) =>
-  PATHS.COORDINATOR_SESSION_OPERATIONS.replace(':sessionId', sessionId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
 export const getTrekkerBookingDetailPath = (bookingId: string) =>

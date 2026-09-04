@@ -18,7 +18,6 @@ function resolveChatPath(roles: string[] | undefined): string {
   if (role === ROLES.ADMIN) return PATHS.ADMIN_CHAT;
   if (role === ROLES.VENDOR_MANAGER) return PATHS.VENDOR_MANAGER_CHAT;
   if (role === ROLES.VENDOR_STAFF) return PATHS.PARTNER_CHAT;
-  if (role === ROLES.COORDINATOR) return PATHS.COORDINATOR_CHAT;
   if (role === ROLES.TREKKER) return PATHS.TREKKER_CHAT;
   return PATHS.CHAT;
 }

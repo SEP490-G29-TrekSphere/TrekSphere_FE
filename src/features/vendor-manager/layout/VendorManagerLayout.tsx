@@ -1,19 +1,12 @@
 import {
-  Backpack,
-  BarChart3,
-  CalendarClock,
   ClipboardCheck,
-  Footprints,
   LayoutGrid,
   LogOut,
   Map as MapIcon,
   MessageSquare,
   Siren,
-  Tag,
-  Ticket,
   UserRound,
   Users,
-  WalletCards,
 } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
@@ -23,13 +16,6 @@ import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
   { name: 'Tổng quan', path: PATHS.VENDOR_MANAGER_PROFILE, icon: LayoutGrid, disabled: false },
-  { name: 'Báo cáo', path: PATHS.VENDOR_MANAGER_REPORTS, icon: BarChart3, disabled: false },
-  {
-    name: 'Vận hành Tour',
-    path: PATHS.VENDOR_MANAGER_SESSIONS,
-    icon: CalendarClock,
-    disabled: false,
-  },
   { name: 'Nhân viên', path: PATHS.VENDOR_MANAGER_STAFF, icon: Users, disabled: false },
   { name: 'Tour', path: PATHS.VENDOR_MANAGER_TOURS, icon: MapIcon, disabled: false },
   {
@@ -38,17 +24,7 @@ const navItems = [
     icon: ClipboardCheck,
     disabled: false,
   },
-  { name: 'Đơn đặt tour', path: PATHS.VENDOR_MANAGER_BOOKINGS, icon: Ticket, disabled: false },
-  {
-    name: 'Cấu hình thanh toán',
-    path: PATHS.VENDOR_MANAGER_PAYMENT_SETTINGS,
-    icon: WalletCards,
-    disabled: false,
-  },
-  { name: 'Voucher', path: PATHS.VENDOR_MANAGER_VOUCHERS, icon: Tag, disabled: false },
   { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
-  { name: 'Thiết bị', path: PATHS.VENDOR_MANAGER_EQUIPMENT, icon: Backpack, disabled: false },
-  { name: 'Porter', path: PATHS.VENDOR_MANAGER_PORTERS, icon: Footprints, disabled: false },
   { name: 'Khẩn cấp (SOS)', path: PATHS.VENDOR_MANAGER_EMERGENCY, icon: Siren, disabled: false },
   { name: 'Trò chuyện', path: PATHS.VENDOR_MANAGER_CHAT, icon: MessageSquare, disabled: false },
 ];

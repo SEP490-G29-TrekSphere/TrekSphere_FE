@@ -67,7 +67,6 @@ const Applications = lazy(() => import('@/features/admin/pages/Applications'));
 const ApplicationDetails = lazy(() => import('@/features/admin/pages/ApplicationDetails'));
 const ReportDetail = lazy(() => import('@/features/admin/pages/ReportDetail'));
 const Reports = lazy(() => import('@/features/admin/pages/Reports'));
-const RefundReviews = lazy(() => import('@/features/admin/pages/RefundReviews'));
 const VendorList = lazy(() => import('@/features/admin/vendors/pages/VendorList'));
 const VendorManagerLayout = lazy(
   () => import('@/features/vendor-manager/layout/VendorManagerLayout')
@@ -78,7 +77,6 @@ const TourCreate = lazy(() => import('@/features/vendor-manager/tours/pages/Tour
 const TourEdit = lazy(() => import('@/features/vendor-manager/tours/pages/TourEdit'));
 const TourApprovals = lazy(() => import('@/features/vendor-manager/tours/pages/TourApprovals'));
 const TourSchedules = lazy(() => import('@/features/vendor-manager/tours/pages/TourSchedules'));
-const VendorReports = lazy(() => import('@/features/vendor-reports/pages/VendorReports'));
 const VendorStaffLayout = lazy(() => import('@/features/vendor-staff/layout/VendorStaffLayout'));
 const PartnerTourList = lazy(() => import('@/features/vendor-staff/tours/pages/TourList'));
 const PartnerTourCreate = lazy(() => import('@/features/vendor-staff/tours/pages/TourCreate'));
@@ -86,27 +84,11 @@ const PartnerTourEdit = lazy(() => import('@/features/vendor-staff/tours/pages/T
 const PartnerTourSchedules = lazy(
   () => import('@/features/vendor-staff/tours/pages/TourSchedules')
 );
-const EquipmentList = lazy(() => import('@/features/vendor-equipment/pages/EquipmentList'));
-const VendorBookingList = lazy(() => import('@/features/vendor-bookings/pages/BookingList'));
-const VendorPaymentSettings = lazy(() => import('@/features/payments/pages/VendorPaymentSettings'));
-const PorterList = lazy(() => import('@/features/vendor-porters/pages/PorterList'));
-const PorterCreate = lazy(() => import('@/features/vendor-porters/pages/PorterCreate'));
-const PorterEdit = lazy(() => import('@/features/vendor-porters/pages/PorterEdit'));
-const SessionList = lazy(() => import('@/features/vendor-sessions/pages/SessionList'));
-const SessionDetail = lazy(() => import('@/features/vendor-sessions/pages/SessionDetail'));
 const VendorProfileOverview = lazy(
   () => import('@/features/vendor-profile/pages/VendorProfileOverview')
 );
 const VendorProfileEdit = lazy(() => import('@/features/vendor-profile/pages/VendorProfileEdit'));
-const CoordinatorSchedulesPage = lazy(
-  () => import('@/features/coordinator/pages/CoordinatorSchedulesPage')
-);
-const CoordinatorLayout = lazy(() => import('@/features/coordinator/layout/CoordinatorLayout'));
-const CoordinatorSessionOperationsPage = lazy(
-  () => import('@/features/coordinator/pages/CoordinatorSessionOperationsPage')
-);
 const EmergencySosPage = lazy(() => import('@/features/emergency-sos/pages/EmergencySosPage'));
-const VendorVoucherList = lazy(() => import('@/features/vendor-vouchers/pages/VendorVoucherList'));
 const NotFoundPage = lazy(() => import('@/shared/pages/NotFoundPage'));
 
 /**
@@ -137,8 +119,6 @@ function ChatRedirect() {
     chatPath = PATHS.VENDOR_MANAGER_CHAT;
   } else if (primaryRole === ROLES.VENDOR_STAFF) {
     chatPath = PATHS.PARTNER_CHAT;
-  } else if (primaryRole === ROLES.COORDINATOR) {
-    chatPath = PATHS.COORDINATOR_CHAT;
   }
 
   return <Navigate to={chatPath} state={location.state} replace />;
@@ -300,7 +280,6 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_APPLICATION_DETAIL} element={<ApplicationDetails />} />
           <Route path={PATHS.ADMIN_REPORTS} element={<Reports />} />
           <Route path={PATHS.ADMIN_REPORT_DETAIL} element={<ReportDetail />} />
-          <Route path={PATHS.ADMIN_REFUNDS} element={<RefundReviews />} />
           <Route path={PATHS.ADMIN_BLOGS} element={<BlogManagement />} />
           <Route path={PATHS.ADMIN_EMERGENCY} element={<EmergencySosPage />} />
           <Route path={PATHS.ADMIN_CHAT} element={<ChatList hideSidebar />} />
@@ -324,18 +303,8 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_MANAGER_TOUR_EDIT} element={<TourEdit />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_APPROVALS} element={<TourApprovals />} />
           <Route path={PATHS.VENDOR_MANAGER_TOUR_SCHEDULES} element={<TourSchedules />} />
-          <Route path={PATHS.VENDOR_MANAGER_BOOKINGS} element={<VendorBookingList />} />
-          <Route path={PATHS.VENDOR_MANAGER_PAYMENT_SETTINGS} element={<VendorPaymentSettings />} />
-          <Route path={PATHS.VENDOR_MANAGER_EQUIPMENT} element={<EquipmentList />} />
-          <Route path={PATHS.VENDOR_MANAGER_PORTERS} element={<PorterList />} />
-          <Route path={PATHS.VENDOR_MANAGER_PORTER_CREATE} element={<PorterCreate />} />
-          <Route path={PATHS.VENDOR_MANAGER_PORTER_EDIT} element={<PorterEdit />} />
-          <Route path={PATHS.VENDOR_MANAGER_SESSIONS} element={<SessionList />} />
-          <Route path={PATHS.VENDOR_MANAGER_SESSION_DETAIL} element={<SessionDetail />} />
           <Route path={PATHS.VENDOR_MANAGER_EMERGENCY} element={<EmergencySosPage />} />
-          <Route path={PATHS.VENDOR_MANAGER_VOUCHERS} element={<VendorVoucherList />} />
           <Route path={PATHS.VENDOR_MANAGER_CHAT} element={<ChatList hideSidebar />} />
-          <Route path={PATHS.VENDOR_MANAGER_REPORTS} element={<VendorReports />} />
         </Route>
 
         {/* Vendor Staff routes — yêu cầu role vendor_staff, dùng VendorStaffLayout riêng */}
@@ -353,41 +322,8 @@ export default function AppRoutes() {
           <Route path={PATHS.PARTNER_TOUR_CREATE} element={<PartnerTourCreate />} />
           <Route path={PATHS.PARTNER_TOUR_EDIT} element={<PartnerTourEdit />} />
           <Route path={PATHS.PARTNER_TOUR_SCHEDULES} element={<PartnerTourSchedules />} />
-          <Route path={PATHS.PARTNER_BOOKINGS} element={<VendorBookingList />} />
-          <Route path={PATHS.PARTNER_EQUIPMENT} element={<EquipmentList />} />
-          <Route path={PATHS.PARTNER_PORTERS} element={<PorterList />} />
-          <Route path={PATHS.PARTNER_PORTER_CREATE} element={<PorterCreate />} />
-          <Route path={PATHS.PARTNER_PORTER_EDIT} element={<PorterEdit />} />
-          <Route path={PATHS.PARTNER_SESSIONS} element={<SessionList />} />
-          <Route path={PATHS.PARTNER_SESSION_DETAIL} element={<SessionDetail />} />
           <Route path={PATHS.PARTNER_BLOG_CREATE} element={<CreateBlogPost />} />
-          <Route path={PATHS.PARTNER_VOUCHERS} element={<VendorVoucherList />} />
           <Route path={PATHS.PARTNER_CHAT} element={<ChatList hideSidebar />} />
-        </Route>
-
-        {/* Coordinator routes — sidebar riêng (SummitGuard), không dùng MainLayout nữa */}
-        <Route
-          path={PATHS.COORDINATOR}
-          element={
-            <RequireRole
-              allowedRoles={[
-                ROLES.COORDINATOR,
-                ROLES.VENDOR_STAFF,
-                ROLES.VENDOR_MANAGER,
-                ROLES.ADMIN,
-              ]}
-            >
-              <CoordinatorLayout />
-            </RequireRole>
-          }
-        >
-          <Route index element={<Navigate to={PATHS.COORDINATOR_SCHEDULES} replace />} />
-          <Route path={PATHS.COORDINATOR_SCHEDULES} element={<CoordinatorSchedulesPage />} />
-          <Route
-            path={PATHS.COORDINATOR_SESSION_OPERATIONS}
-            element={<CoordinatorSessionOperationsPage />}
-          />
-          <Route path={PATHS.COORDINATOR_CHAT} element={<ChatList hideSidebar />} />
         </Route>
 
         {/* Standalone 404 Catch-All Route */}

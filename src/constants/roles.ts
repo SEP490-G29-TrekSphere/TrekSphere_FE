@@ -33,7 +33,7 @@ export const ROLE_PROTECTED_ROUTES: Record<Role, readonly string[]> = {
   [ROLES.VENDOR_STAFF]: ['/partner'],
   [ROLES.VENDOR_MANAGER]: ['/vendor-manager'],
   [ROLES.ADMIN]: ['/admin'],
-  [ROLES.COORDINATOR]: ['/coordinator'],
+  [ROLES.COORDINATOR]: [],
 };
 
 /**
@@ -110,8 +110,6 @@ export function getRoleDashboardPath(roles: string[] | undefined | null): string
       return PATHS.VENDOR_MANAGER;
     case ROLES.VENDOR_STAFF:
       return PATHS.PARTNER;
-    case ROLES.COORDINATOR:
-      return PATHS.COORDINATOR_SCHEDULES;
     case ROLES.TREKKER:
       return PATHS.TREKKER;
     default:
@@ -146,8 +144,6 @@ export function getRoleChatPath(roles: string[] | undefined | null): string {
       return PATHS.VENDOR_MANAGER_CHAT;
     case ROLES.VENDOR_STAFF:
       return PATHS.PARTNER_CHAT;
-    case ROLES.COORDINATOR:
-      return PATHS.COORDINATOR_CHAT;
     default:
       return PATHS.TREKKER_CHAT;
   }

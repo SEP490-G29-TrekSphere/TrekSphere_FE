@@ -1,8 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPartnerSessionDetailPath, PATHS } from '@/constants';
-import { vendorSessionService } from '@/features/vendor-sessions/services/vendorSessionService';
+import { PATHS } from '@/constants';
 import { ScheduleFormDialog } from '@/features/vendor-tours/components/ScheduleFormDialog';
 import { ScheduleTableRow } from '@/features/vendor-tours/components/ScheduleTableRow';
 import {
@@ -14,7 +13,7 @@ import { useVendorTourDetail } from '@/features/vendor-tours/hooks/useVendorTour
 import type { CreateSchedulePayload, UpdateSchedulePayload } from '@/features/vendor-tours/types';
 import { toast } from '@/store/useToastStore';
 
-const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Giá', 'Chỗ (đã đặt/tổng)', 'Trạng thái', 'Thao tác'];
+const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Giá', 'Chỗ (đã đặt/tổng)', 'Trạng thái'];
 
 /**
  * Quản lý lịch khởi hành của 1 tour — bản Staff, giống hệt màn Manager nhưng KHÔNG có nút Sửa
@@ -28,7 +27,6 @@ export default function TourSchedules() {
   const { createSchedule } = useVendorScheduleMutations(id ?? '');
 
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-  const [openingSessionScheduleId, setOpeningSessionScheduleId] = useState<string | null>(null);
 
   const handleBack = () => navigate(PATHS.PARTNER_TOURS);
 
@@ -45,18 +43,6 @@ export default function TourSchedules() {
       onError: (err) =>
         toast.error(err instanceof Error ? err.message : 'Không thể tạo lịch khởi hành.'),
     });
-  };
-
-  const handleOpenOperations = async (schedule: (typeof schedules)[number]) => {
-    setOpeningSessionScheduleId(schedule.scheduleId);
-    try {
-      const session = await vendorSessionService.getSessionBySchedule(schedule.scheduleId);
-      navigate(getPartnerSessionDetailPath(session.sessionId));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Không thể mở phiên vận hành.');
-    } finally {
-      setOpeningSessionScheduleId(null);
-    }
   };
 
   if (isLoading) {
@@ -161,12 +147,7 @@ export default function TourSchedules() {
                 </tr>
               ) : (
                 schedules.map((schedule) => (
-                  <ScheduleTableRow
-                    key={schedule.scheduleId}
-                    schedule={schedule}
-                    onOperationsClick={handleOpenOperations}
-                    isOpeningOperations={openingSessionScheduleId === schedule.scheduleId}
-                  />
+                  <ScheduleTableRow key={schedule.scheduleId} schedule={schedule} />
                 ))
               )}
             </tbody>

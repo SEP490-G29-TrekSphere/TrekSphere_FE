@@ -38,8 +38,6 @@ export function useVendorScheduleMutations(tourId: string) {
       vendorScheduleCancellationService.cancel(schedule, reason),
     onSettled: () => {
       invalidate();
-      queryClient.invalidateQueries({ queryKey: ['vendor-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['vendor-booking-stats'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-cancellation-preview'] });
     },
   });

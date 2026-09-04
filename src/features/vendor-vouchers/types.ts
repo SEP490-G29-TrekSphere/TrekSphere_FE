@@ -1,18 +1,6 @@
 export type VoucherDiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
 export type VoucherStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
 
-export interface VendorVoucherFilter {
-  discountType?: VoucherDiscountType;
-  status?: VoucherStatus;
-  validUntil?: string; // yyyy-MM-dd
-  maxUsage?: number;
-  keyword?: string;
-  page?: number; // 0-based index for API, though UI can map it
-  size?: number;
-  sortBy?: string;
-  sortDir?: 'asc' | 'desc';
-}
-
 export interface VendorActiveVouchersFilter {
   discountType?: VoucherDiscountType;
   keyword?: string;
@@ -42,26 +30,6 @@ export interface PaginationVoucherResponse {
   totalElements: number;
   totalPages: number;
   last: boolean;
-}
-
-export interface CreateVoucherRequest {
-  code: string;
-  discountType: VoucherDiscountType;
-  discountValue: number;
-  minOrderValue: number;
-  maxUsage: number;
-  validFrom: string; // ISO string
-  validUntil: string; // ISO string
-}
-
-export interface UpdateVoucherRequest {
-  discountType: VoucherDiscountType;
-  discountValue: number;
-  minOrderValue: number;
-  maxUsage: number;
-  validFrom: string; // ISO string
-  validUntil: string; // ISO string
-  status: VoucherStatus;
 }
 
 export interface ValidateVoucherRequest {
