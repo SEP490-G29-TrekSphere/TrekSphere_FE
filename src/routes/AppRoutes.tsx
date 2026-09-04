@@ -1,12 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import {
-  getTrekkerBlogEditPath,
-  getTrekkerBookingPaymentPath,
-  getTrekkerGroupDetailPath,
-  PATHS,
-  ROLES,
-} from '@/constants';
+import { getTrekkerBlogEditPath, getTrekkerGroupDetailPath, PATHS, ROLES } from '@/constants';
 import { getPrimaryRole } from '@/constants/roles';
 import { AccountDetail, AccountList, AdminDashboard, BlogManagement } from '@/features/admin';
 import ProtectedRoute from '@/routes/ProtectedRoute';
@@ -29,11 +23,6 @@ const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
 const Notifications = lazy(() => import('@/features/notifications/pages/Notifications'));
 const ListTours = lazy(() => import('@/features/tours/pages/ListTours'));
 const TourDetails = lazy(() => import('@/features/tours/pages/TourDetails'));
-const BookTour = lazy(() => import('@/features/tours/pages/BookTour'));
-const BookingDetail = lazy(() => import('@/features/tours/pages/BookingDetail'));
-const PayBooking = lazy(() => import('@/features/tours/pages/PayBooking'));
-const PaymentReturn = lazy(() => import('@/features/payments/pages/PaymentReturn'));
-const MyBookings = lazy(() => import('@/features/tours/pages/MyBookings'));
 const BlogList = lazy(() => import('@/features/news/pages/BlogList'));
 const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
@@ -188,12 +177,6 @@ export default function AppRoutes() {
           <Route path={PATHS.DASHBOARD} element={<Dashboard />} />
           <Route path={PATHS.PROFILE} element={<ViewProfile />} />
           <Route path={PATHS.EDIT_PROFILE} element={<EditProfile />} />
-          <Route path={PATHS.BOOK_TOUR} element={<BookTour />} />
-          <Route path={PATHS.BOOKING_DETAIL} element={<BookingDetail />} />
-          <Route path={PATHS.BOOKING_PAYMENT} element={<PayBooking />} />
-          <Route path={PATHS.PAYMENT_SUCCESS} element={<PaymentReturn />} />
-          <Route path={PATHS.PAYMENT_CANCEL} element={<PaymentReturn cancelled />} />
-          <Route path={PATHS.MY_TOURS} element={<MyBookings />} />
           <Route path={PATHS.MY_VENDOR_APPLICATIONS} element={<MyApplications />} />
         </Route>
 
@@ -212,7 +195,6 @@ export default function AppRoutes() {
             path={PATHS.TREKKER_PROFILE_EDIT}
             element={<EditProfile returnPath={PATHS.TREKKER_PROFILE} />}
           />
-          <Route path={PATHS.TREKKER_MY_TOURS} element={<MyBookings useTrekkerPaths />} />
           <Route path={PATHS.TREKKER_MY_GROUPS} element={<MyCompanionGroupsPage />} />
           {/* Chi tiết nhóm ghép mở từ portal Trekker — giữ nguyên sidebar thay vì
               nhảy sang `/groups/:groupId` (PublicLayout) làm mất điều hướng. */}
@@ -244,19 +226,6 @@ export default function AppRoutes() {
           <Route path={PATHS.TREKKER_BLOG_CREATE} element={<CreateBlogPost />} />
           <Route path={PATHS.TREKKER_BLOG_EDIT} element={<CreateBlogPost editMode />} />
           <Route path={PATHS.TREKKER_CHANGE_PASSWORD} element={<TrekkerChangePassword />} />
-          <Route
-            path={PATHS.TREKKER_BOOKING_DETAIL}
-            element={
-              <BookingDetail
-                backPath={PATHS.TREKKER_MY_TOURS}
-                paymentPath={getTrekkerBookingPaymentPath}
-              />
-            }
-          />
-          <Route
-            path={PATHS.TREKKER_BOOKING_PAYMENT}
-            element={<PayBooking backPath={PATHS.TREKKER_BOOKING_DETAIL} />}
-          />
           <Route path={PATHS.TREKKER_CHAT} element={<ChatList hideSidebar />} />
         </Route>
 

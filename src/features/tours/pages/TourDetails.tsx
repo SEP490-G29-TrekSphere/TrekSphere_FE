@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { CancellationPolicyNotice } from '@/features/tours/components/CancellationPolicyNotice';
 import {
   isBookableSchedule,
   SECTION_IDS,
@@ -38,7 +37,6 @@ const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.inclusions, label: 'Bao gồm' },
   { id: SECTION_IDS.gallery, label: 'Hình ảnh' },
   { id: SECTION_IDS.requirements, label: 'Điều kiện' },
-  { id: SECTION_IDS.policy, label: 'Chính sách' },
   { id: SECTION_IDS.reviews, label: 'Đánh giá' },
 ];
 
@@ -163,16 +161,6 @@ export default function TourDetailsPage() {
                 <TourParticipationPolicySection policy={tour.participationPolicy} />
               </section>
             )}
-
-            <section id={SECTION_IDS.policy} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
-              {/* Không đặt SectionHeading ở đây: CancellationPolicyNotice đã tự mang
-                  tiêu đề của nó (dùng chung với màn Đặt tour) */}
-              <CancellationPolicyNotice
-                policies={tour.cancellationPolicies}
-                paymentPolicy={tour.paymentPolicy}
-                nonRefundableCost={tour.nonRefundableCost}
-              />
-            </section>
 
             <section id={SECTION_IDS.reviews} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
               <SectionHeading title="Đánh giá cộng đồng" />

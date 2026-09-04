@@ -1,6 +1,5 @@
 import {
   ClipboardList,
-  Compass,
   FileText,
   Key,
   LogOut,
@@ -17,7 +16,6 @@ import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
   { name: 'Hồ sơ', path: PATHS.TREKKER_PROFILE, icon: User, disabled: false },
-  { name: 'Tour của tôi', path: PATHS.TREKKER_MY_TOURS, icon: Compass, disabled: false },
   { name: 'Quản lý nhóm của tôi', path: PATHS.TREKKER_MY_GROUPS, icon: Users, disabled: false },
   {
     name: 'Yêu cầu gia nhập nhóm',
