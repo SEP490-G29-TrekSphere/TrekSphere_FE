@@ -29,7 +29,7 @@ import { PATHS } from './paths';
  */
 export const ROLE_PROTECTED_ROUTES: Record<Role, readonly string[]> = {
   [ROLES.GUEST]: [],
-  [ROLES.TREKKER]: ['/trekker', '/dashboard', '/my-tours', '/blog'],
+  [ROLES.TREKKER]: ['/trekker', '/dashboard', '/blog'],
   [ROLES.VENDOR_STAFF]: ['/partner'],
   [ROLES.VENDOR_MANAGER]: ['/vendor-manager'],
   [ROLES.ADMIN]: ['/admin'],

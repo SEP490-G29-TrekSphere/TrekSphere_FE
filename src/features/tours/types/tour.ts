@@ -1,4 +1,4 @@
-import type { PaymentPlan, PaymentStatus, TourPaymentPolicy } from '@/features/payments/types';
+import type { TourPaymentPolicy } from '@/features/payments/types';
 import type { CancellationPolicy } from '@/features/vendor-cancellation-policies/types';
 
 export type { PaymentStatus } from '@/features/payments/types';
@@ -78,15 +78,6 @@ export type TourTabAction =
   | { type: 'SET_TAB'; payload: TourTabId }
   | { type: 'NEXT_TAB' }
   | { type: 'PREV_TAB' };
-
-/**
- * Booking form state for the sticky sidebar
- */
-export interface BookingFormState {
-  selectedDate: Date | null;
-  participants: number;
-  totalPrice: number;
-}
 
 /**
  * Gallery image with metadata
@@ -400,166 +391,6 @@ export interface TourSearchValues {
   location: string;
   departureDate: string;
   budget: string;
-}
-
-// ============================================================
-// API Types for My Booking History (GET /api/v1/bookings/my-history)
-// ============================================================
-
-export type BookingStatus =
-  | 'PAYMENT_PENDING'
-  | 'PENDING_CONFIRMATION'
-  | 'CONFIRMED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'EXPIRED'
-  | 'REJECTED'
-  | 'CANCELLED';
-
-export interface BookingItemFromApi {
-  bookingId: string;
-  bookingCode: string;
-  tourName: string;
-  coverImageUrl: string;
-  departureDate: string;
-  returnDate: string;
-  numberOfParticipants: number;
-  totalPrice: number;
-  bookingStatus: BookingStatus;
-  paymentStatus: PaymentStatus;
-  createdAt: string;
-}
-
-export interface BookingHistoryParams {
-  status?: BookingStatus;
-  keyword?: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDir?: ApiSortDir;
-}
-
-export interface BookingHistoryApiResponse {
-  content: BookingItemFromApi[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
-
-// ============================================================
-// API Types for Booking Detail (GET /api/v1/bookings/{id})
-// ============================================================
-
-export type ParticipantGender = 'MALE' | 'FEMALE' | 'OTHER';
-
-export interface BookingParticipantFromApi {
-  participantId: string;
-  fullName: string;
-  dateOfBirth?: string;
-  gender?: ParticipantGender;
-  idNumber?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  specialRequirements?: string;
-}
-
-export interface BookingDetailResponse {
-  bookingId: string;
-  bookingCode: string;
-  tourId: string;
-  /**
-   * ID của Tour Session thực địa tương ứng — cần để gửi SOS (`POST /tracking/sos`).
-   * Optional vì BE hiện chưa trả field này ở `GET /bookings/{id}`; khi có, panel
-   * SOS ở `BookingDetail.tsx` sẽ tự hiện ra mà không cần sửa code thêm.
-   */
-  tourSessionId?: string;
-  tourName: string;
-  coverImageUrl: string;
-  departureDate: string;
-  returnDate: string;
-  pricePerSlot: number;
-  numberOfParticipants: number;
-  originalPrice: number;
-  discountAmount: number;
-  totalPrice: number;
-  refundAmount: number;
-  bookingStatus: BookingStatus;
-  paymentStatus: PaymentStatus;
-  paymentPlan: PaymentPlan;
-  holdExpiresAt?: string;
-  confirmationExpiresAt?: string;
-  remainingDueAt?: string;
-  participationPolicyAcceptedAt?: string;
-  paidAmount: number;
-  pendingRefundAmount: number;
-  onlinePaymentEnabled?: boolean;
-  proofImageUrl?: string;
-  cancellationReason?: string;
-  cancelledAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  voucherCode?: string;
-  userId: string;
-  userEmail: string;
-  userFullName: string;
-  userPhone: string;
-  refundBankName?: string;
-  refundAccountNumber?: string;
-  refundAccountHolder?: string;
-  refundProofImageUrl?: string;
-  participants: BookingParticipantFromApi[];
-  reviewed?: boolean;
-}
-
-export interface BookingCancelRequest {
-  cancellationReason: string;
-  /** Mã BIN ngân hàng nhận hoàn tiền — ví dụ: "970436". */
-  refundBankBin?: string;
-  /** Tên ngân hàng dùng để hiển thị cho người dùng. */
-  refundBankName?: string;
-  /** Số tài khoản nhận hoàn tiền. */
-  refundAccountNumber?: string;
-  /** Tên chủ tài khoản nhận hoàn tiền — ví dụ: "NGUYEN VAN A". */
-  refundAccountName?: string;
-}
-
-export interface PaymentProofRequest {
-  proofImageUrl: string;
-}
-
-export interface BookingParticipantRequest {
-  fullName: string;
-  dateOfBirth: string;
-  gender: ParticipantGender;
-  idNumber: string;
-  phone: string;
-  email?: string;
-  address?: string;
-  specialRequirements?: string;
-}
-
-export interface CreateBookingRequest {
-  scheduleId: string;
-  voucherCode?: string;
-  paymentPlan: PaymentPlan;
-  participationPolicyAccepted?: boolean;
-  participants: BookingParticipantRequest[];
-}
-
-export interface ApiResponseBookingDetailResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: BookingDetailResponse;
-  errors?: Array<{
-    field?: string;
-    message?: string;
-    timestamp?: string;
-  }>;
-  timestamp?: string;
 }
 
 export interface TourCheckpoint {

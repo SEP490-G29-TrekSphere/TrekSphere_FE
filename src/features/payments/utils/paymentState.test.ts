@@ -1,5 +1,5 @@
-import type { BookingDetailResponse } from '@/features/tours/types';
 import {
+  type CheckoutBookingState,
   canCreateCheckout,
   getPaymentReturnState,
   isRemainingCheckoutAvailable,
@@ -7,7 +7,7 @@ import {
 
 const now = Date.parse('2026-08-12T10:00:00Z');
 
-function booking(overrides: Partial<BookingDetailResponse> = {}): BookingDetailResponse {
+function booking(overrides: Partial<CheckoutBookingState> = {}): CheckoutBookingState {
   return {
     bookingStatus: 'PAYMENT_PENDING',
     paymentStatus: 'UNPAID',
@@ -15,7 +15,7 @@ function booking(overrides: Partial<BookingDetailResponse> = {}): BookingDetailR
     holdExpiresAt: '2026-08-12T10:15:00Z',
     onlinePaymentEnabled: true,
     ...overrides,
-  } as BookingDetailResponse;
+  };
 }
 
 describe('payment state guards', () => {

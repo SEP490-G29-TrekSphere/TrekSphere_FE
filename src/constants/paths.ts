@@ -28,12 +28,6 @@ export const PATHS = {
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
   TOUR_DETAIL: '/tours/:id',
-  BOOK_TOUR: '/tours/:id/book',
-  BOOKING_DETAIL: '/bookings/:bookingId',
-  BOOKING_PAYMENT: '/bookings/:bookingId/payment',
-  PAYMENT_SUCCESS: '/payment/success',
-  PAYMENT_CANCEL: '/payment/cancel',
-  MY_TOURS: '/my-tours',
   MY_VENDOR_APPLICATIONS: '/my-vendor-applications',
   GROUPS: '/groups',
   GROUPS_CREATE: '/groups/create',
@@ -62,7 +56,6 @@ export const PATHS = {
   TREKKER: '/trekker',
   TREKKER_PROFILE: '/trekker/profile',
   TREKKER_PROFILE_EDIT: '/trekker/profile/edit',
-  TREKKER_MY_TOURS: '/trekker/my-tours',
   TREKKER_MY_GROUPS: '/trekker/my-groups',
   TREKKER_GROUP_DETAIL: '/trekker/my-groups/:groupId',
   TREKKER_GROUPS_JOIN: '/trekker/my-groups/:groupId/join',
@@ -72,9 +65,6 @@ export const PATHS = {
   TREKKER_BLOG_CREATE: '/trekker/blog/create',
   TREKKER_BLOG_EDIT: '/trekker/blog/edit/:blogId',
   TREKKER_CHANGE_PASSWORD: '/trekker/change-password',
-  TREKKER_BOOKING_DETAIL: '/trekker/bookings/:bookingId',
-  TREKKER_BOOKING_PAYMENT: '/trekker/bookings/:bookingId/payment',
-  TREKKER_BOOK_TOUR: '/tours/:id/book',
   TREKKER_CHAT: '/trekker/chat',
 
   // Admin
@@ -121,11 +111,6 @@ export const PATHS = {
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
 
-export const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
-export const getBookingDetailPath = (bookingId: string) =>
-  PATHS.BOOKING_DETAIL.replace(':bookingId', bookingId);
-export const getBookingPaymentPath = (bookingId: string) =>
-  PATHS.BOOKING_PAYMENT.replace(':bookingId', bookingId);
 export const getGroupDetailPath = (groupId: string) =>
   PATHS.GROUPS_DETAIL.replace(':groupId', groupId);
 export const getGroupJoinPath = (groupId: string) => PATHS.GROUPS_JOIN.replace(':groupId', groupId);
@@ -139,10 +124,6 @@ export const getPartnerTourSchedulesPath = (id: string) =>
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
-export const getTrekkerBookingDetailPath = (bookingId: string) =>
-  PATHS.TREKKER_BOOKING_DETAIL.replace(':bookingId', bookingId);
-export const getTrekkerBookingPaymentPath = (bookingId: string) =>
-  PATHS.TREKKER_BOOKING_PAYMENT.replace(':bookingId', bookingId);
 export const getTrekkerGroupDetailPath = (groupId: string) =>
   PATHS.TREKKER_GROUP_DETAIL.replace(':groupId', groupId);
 export const getTrekkerGroupJoinPath = (groupId: string) =>
