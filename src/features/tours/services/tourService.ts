@@ -1,10 +1,5 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
-  BookingCancelRequest,
-  BookingDetailResponse,
-  BookingHistoryApiResponse,
-  BookingHistoryParams,
-  CreateBookingRequest,
   CreateReviewRequest,
   ReviewListParams,
   ReviewResponse,
@@ -138,73 +133,6 @@ export const tourService = {
     };
   },
 
-  async createBooking(
-    bookingData: CreateBookingRequest,
-    idempotencyKey: string
-  ): Promise<BookingDetailResponse> {
-    const response = await ApiService<BookingDetailResponse>(
-      '/bookings',
-      'POST',
-      bookingData,
-      undefined,
-      { 'Idempotency-Key': idempotencyKey }
-    );
-    return unwrapResponse(response);
-  },
-
-  async getBookingDetail(bookingId: string): Promise<BookingDetailResponse> {
-    const response = await ApiService<BookingDetailResponse>(`/bookings/${bookingId}`, 'GET');
-    const data = unwrapResponse(response);
-    const rawPaymentStatus = data.paymentStatus as string;
-    const paymentStatus = rawPaymentStatus === 'PENDING' ? 'UNPAID' : data.paymentStatus;
-    const rawBookingStatus = data.bookingStatus as string;
-    return {
-      ...data,
-      paymentStatus,
-      bookingStatus:
-        rawBookingStatus === 'PENDING'
-          ? paymentStatus === 'PAID'
-            ? 'PENDING_CONFIRMATION'
-            : 'PAYMENT_PENDING'
-          : data.bookingStatus,
-    };
-  },
-
-  /**
-   * `POST /bookings/{id}/cancel` — trekker tự hủy đơn.
-   *
-   * `refundInfo` là thông tin tài khoản nhận hoàn tiền; chỉ gửi kèm khi đơn đã
-   * (hoặc có thể đã) thanh toán. Các field rỗng được loại bỏ khỏi body để BE
-   * không lưu chuỗi trắng.
-   */
-  async cancelBooking(
-    bookingId: string,
-    cancellationReason: string,
-    refundInfo?: Omit<BookingCancelRequest, 'cancellationReason'>
-  ): Promise<BookingDetailResponse> {
-    const payload: BookingCancelRequest = { cancellationReason };
-
-    if (refundInfo?.refundBankBin?.trim()) {
-      payload.refundBankBin = refundInfo.refundBankBin.trim();
-    }
-    if (refundInfo?.refundBankName?.trim()) {
-      payload.refundBankName = refundInfo.refundBankName.trim();
-    }
-    if (refundInfo?.refundAccountNumber?.trim()) {
-      payload.refundAccountNumber = refundInfo.refundAccountNumber.trim();
-    }
-    if (refundInfo?.refundAccountName?.trim()) {
-      payload.refundAccountName = refundInfo.refundAccountName.trim();
-    }
-
-    const response = await ApiService<BookingDetailResponse>(
-      `/bookings/${bookingId}/cancel`,
-      'POST',
-      payload
-    );
-    return unwrapResponse(response);
-  },
-
   /** `POST /tracking/sos` — gửi tín hiệu cấp cứu kèm toạ độ GPS thực tế. */
   async sendSos(payload: {
     tourSessionId: string;
@@ -217,37 +145,6 @@ export const tourService = {
       status: 'PENDING' | 'RESOLVED';
       createdAt: string;
     }>('/tracking/sos', 'POST', payload);
-    return unwrapResponse(response);
-  },
-
-  async getMyBookings(params: BookingHistoryParams = {}): Promise<BookingHistoryApiResponse> {
-    const queryParams: Record<string, string> = {};
-
-    if (params.status) {
-      queryParams.status = params.status;
-    }
-    if (params.keyword !== undefined && params.keyword !== '') {
-      queryParams.keyword = params.keyword;
-    }
-    if (params.page !== undefined) {
-      queryParams.page = String(params.page);
-    }
-    if (params.size !== undefined) {
-      queryParams.size = String(params.size);
-    }
-    if (params.sortBy) {
-      queryParams.sortBy = params.sortBy;
-    }
-    if (params.sortDir) {
-      queryParams.sortDir = params.sortDir;
-    }
-
-    const response = await ApiService<BookingHistoryApiResponse>(
-      '/bookings/my-history',
-      'GET',
-      undefined,
-      queryParams
-    );
     return unwrapResponse(response);
   },
 

@@ -24,11 +24,8 @@ export { useTourPriceRange } from './hooks/useTourPriceRange';
 export { useTourReviews } from './hooks/useTourReviews';
 export { useTourSchedules } from './hooks/useTourSchedules';
 export { useTours } from './hooks/useTours';
-export { default as BookingDetail } from './pages/BookingDetail';
-export { default as BookTour } from './pages/BookTour';
 // Pages
 export { default as ListTours } from './pages/ListTours';
-export { default as MyBookings } from './pages/MyBookings';
 export { default as TourDetailsPage } from './pages/TourDetails';
 
 // Services
@@ -36,7 +33,6 @@ export { tourService } from './services/tourService';
 
 // Types
 export type {
-  BookingFormState,
   GalleryImage,
   LevelBadgeVariant,
   LevelClass,
