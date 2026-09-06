@@ -46,7 +46,8 @@ export const PATHS = {
   // Profile
   PROFILE: '/profile',
   EDIT_PROFILE: '/profile/edit',
-
+  /** Hồ sơ công khai của một người dùng khác (mở từ tên tác giả trong feed). */
+  USER_PROFILE: '/users/:userId',
   // Trekker Community / Blog
   BLOG_LIST: '/blog',
   BLOG_CREATE: '/blog/create',
@@ -122,6 +123,7 @@ export const getVendorManagerTourSchedulesPath = (id: string) =>
 export const getPartnerTourSchedulesPath = (id: string) =>
   PATHS.PARTNER_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
+export const getUserProfilePath = (userId: string) => PATHS.USER_PROFILE.replace(':userId', userId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
 export const getTrekkerGroupDetailPath = (groupId: string) =>

@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* Cung cấp các utility animate-in / animate-out / fade-in-0 / zoom-in-95...
+   mà các component shadcn (dialog, popover, modal) đang dùng — Tailwind v4
+   không còn kèm sẵn nhóm này. */
+@import "tw-animate-css";
 @import "react-datepicker/dist/react-datepicker.css";
 
 /* Dark mode variant — use @custom-variant for class-based dark mode */

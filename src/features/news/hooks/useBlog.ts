@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { blogService } from '../services/blogService';
 import type {
   BlogCommentItem,
@@ -21,6 +21,8 @@ export const blogKeys = {
   all: ['blogs'] as const,
   lists: () => [...blogKeys.all, 'list'] as const,
   list: (params: BlogListParams) => [...blogKeys.lists(), params] as const,
+  infiniteList: (params: Omit<BlogListParams, 'page'>) =>
+    [...blogKeys.lists(), 'infinite', params] as const,
   details: () => [...blogKeys.all, 'detail'] as const,
   detail: (blogId: string) => [...blogKeys.details(), blogId] as const,
   comments: (blogId: string) => [...blogKeys.detail(blogId), 'comments'] as const,
@@ -36,6 +38,28 @@ export function useBlogList(params: BlogListParams) {
     queryFn: () => blogService.getPosts(params),
     staleTime: 60 * 1000,
     placeholderData: (previousData) => previousData,
+  });
+}
+
+/**
+ * Hook lấy bài viết theo kiểu cuộn vô tận cho community feed.
+ *
+ * BE trả `totalPages` (Spring Data) nên `getNextPageParam` chỉ cần so trang hiện tại
+ * với tổng số trang — hết trang thì trả `undefined` để React Query dừng.
+ * `pageParam` ở đây là số trang 1-indexed (service tự trừ 1 khi gọi BE).
+ *
+ * Khi `keyword`/`sortBy`/`sortDir` đổi, query key đổi → danh sách reset về trang 1.
+ */
+export function useInfiniteBlogList(params: Omit<BlogListParams, 'page'>) {
+  return useInfiniteQuery({
+    queryKey: blogKeys.infiniteList(params),
+    queryFn: ({ pageParam }) => blogService.getPosts({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.pageNumber < lastPage.meta.totalPages
+        ? lastPage.meta.pageNumber + 1
+        : undefined,
+    staleTime: 60 * 1000,
   });
 }
 
