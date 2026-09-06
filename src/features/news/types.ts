@@ -33,6 +33,30 @@ export interface BlogListItem {
   readingTimeMinutes: number;
   tags: string[];
   viewCount: number;
+
+  /**
+   * Các field mạng xã hội của community feed.
+   * BE CHƯA trả về — khai báo optional để component feed render sẵn theo design
+   * (fallback `—` khi undefined) mà không phải sửa type lúc BE bổ sung.
+   * Xem `services/socialService.ts` và `FEATURES.SOCIAL`.
+   */
+  likeCount?: number;
+  likedByMe?: boolean;
+  commentCount?: number;
+  isFollowingAuthor?: boolean;
+}
+
+/**
+ * Một người dùng trong khối "Gợi ý theo dõi" ở sidebar feed.
+ * BE chưa có endpoint `/users/suggested` — shape này là hợp đồng dự kiến.
+ */
+export interface SuggestedUser {
+  userId: string;
+  fullName: string;
+  avatarUrl: string;
+  /** Dòng phụ dưới tên — địa điểm hoặc mô tả ngắn. */
+  subtitle?: string;
+  isFollowing?: boolean;
 }
 
 /** Một bài viết trong detail endpoint — mở rộng từ list item. */
@@ -88,6 +112,8 @@ export interface UpdateBlogCommentPayload {
 /** Tham số query cho list endpoint — bám đúng param BE hỗ trợ. */
 export interface BlogListParams {
   keyword?: string;
+  /** Lọc theo tác giả — dùng cho tab "Bài viết" ở trang hồ sơ. */
+  authorId?: string;
   page?: number;
   size?: number;
   sortBy?: string;

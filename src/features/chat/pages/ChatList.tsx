@@ -21,6 +21,7 @@ import { useCreateConversation } from '../hooks/useCreateConversation';
 import { useMarkAsRead } from '../hooks/useMarkAsRead';
 import { useSendMessage } from '../hooks/useSendMessage';
 import { chatService } from '../services/chatService';
+import { getConversationPreview } from '../utils/messageContent';
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [searchQuery, _setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { client, isConnected } = useChatWebSocket();
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
@@ -94,10 +95,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
                 c.id === selectedId
                   ? {
                       ...c,
-                      lastMessage:
-                        parsed.content?.length > 22
-                          ? `${parsed.content.substring(0, 22)}...`
-                          : parsed.content,
+                      lastMessage: parsed.content,
                       lastMessageTime: new Date(parsed.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -206,27 +204,19 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const currentMessages = useMemo(() => {
     if (!selectedId) return [];
 
-    const apiMsgs: DetailMessage[] = (messagesResponse?.content || [])
-      .map((msg) => {
-        const date = new Date(msg.createdAt);
-        const time = !Number.isNaN(date.getTime())
-          ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : '';
-
-        const isSelf = user?.id === msg.senderId;
-        const sender: 'user' | 'agent' = isSelf ? 'agent' : 'user';
-
-        return {
-          id: msg.messageId,
-          sender,
-          text: msg.content,
-          time,
-          isSeen: msg.isRead,
-        };
-      })
+    // API trả tin nhắn mới nhất trước, UI cần thứ tự tăng dần theo thời gian.
+    return (messagesResponse?.content || [])
+      .map<DetailMessage>((msg) => ({
+        id: msg.messageId,
+        senderId: msg.senderId,
+        senderName: msg.senderName || 'Người dùng',
+        senderAvatarUrl: msg.senderAvatarUrl,
+        isOwn: user?.id === msg.senderId,
+        text: msg.content,
+        createdAt: msg.createdAt,
+        isSeen: msg.isRead,
+      }))
       .reverse();
-
-    return apiMsgs;
   }, [messagesResponse, selectedId, user?.id]);
 
   // Handle window focus or active chat to mark messages as read
@@ -255,10 +245,12 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
 
   const filteredConversations = conversations
     .filter((c) => {
-      const matchesSearch =
-        (c.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesSearch;
+      const keyword = searchQuery.trim().toLowerCase();
+      if (!keyword) return true;
+      return (
+        (c.userName || '').toLowerCase().includes(keyword) ||
+        getConversationPreview(c.lastMessage).toLowerCase().includes(keyword)
+      );
     })
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -329,7 +321,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
                   ...c,
                   id: res.conversationId,
                   isVirtual: false,
-                  lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+                  lastMessage: msgText,
                   lastMessageTime: 'Vừa xong',
                   timestamp: new Date().toISOString(),
                 }
@@ -361,7 +353,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
         c.id === selectedId
           ? {
               ...c,
-              lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+              lastMessage: msgText,
               lastMessageTime: 'Vừa xong',
               timestamp: new Date().toISOString(),
             }
@@ -405,6 +397,8 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             conversations={filteredConversations}
             isLoading={isLoading}
             selectedId={selectedId}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             onSelectConversation={handleSelectConversation}
           />
           <ChatDetailPane

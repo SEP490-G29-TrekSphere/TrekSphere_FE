@@ -37,6 +37,7 @@ const MyBookings = lazy(() => import('@/features/tours/pages/MyBookings'));
 const BlogList = lazy(() => import('@/features/news/pages/BlogList'));
 const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
+const PublicProfile = lazy(() => import('@/features/profile/pages/PublicProfile'));
 const EditProfile = lazy(() => import('@/features/profile/pages/EditProfile'));
 const MyApplications = lazy(() => import('@/features/profile/pages/MyApplications'));
 const MyBlogList = lazy(() => import('@/features/trekker-community/pages/MyBlogList'));
@@ -175,6 +176,7 @@ export default function AppRoutes() {
           <Route path={PATHS.TOUR_DETAIL} element={<TourDetails />} />
           <Route path={PATHS.NEWS} element={<BlogList />} />
           <Route path={PATHS.NEWS_DETAIL} element={<BlogDetails />} />
+          <Route path={PATHS.USER_PROFILE} element={<PublicProfile />} />
         </Route>
 
         {/* Protected routes — yêu cầu đăng nhập, dùng MainLayout có Header/Sidebar */}

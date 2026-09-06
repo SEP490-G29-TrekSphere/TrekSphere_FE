@@ -32,15 +32,19 @@ export interface VirtualConversationData {
 
 export interface DetailMessage {
   id: string;
-  sender: 'user' | 'agent';
-  text?: string;
-  time: string;
+  senderId: string;
+  senderName: string;
+  senderAvatarUrl?: string;
+  /** Tin nhắn do chính người đang đăng nhập gửi. */
+  isOwn: boolean;
+  /**
+   * Nội dung thô từ backend. Nếu nội dung là một URL ảnh thì UI render thành
+   * ảnh — xem `utils/messageContent.getMessageImageUrl`.
+   */
+  text: string;
+  /** ISO string, dùng để nhóm tin nhắn và dựng vạch ngăn ngày. */
+  createdAt: string;
   isSeen?: boolean;
-  attachment?: {
-    name: string;
-    size: string;
-    type: string;
-  };
 }
 
 export interface ConversationResponse {

@@ -25,7 +25,7 @@ export interface AppFormPasswordInputProps<TFieldValues extends FieldValues>
   extends Omit<AppInputProps, 'name' | 'type'> {
   name: Path<TFieldValues>;
   control: Control<TFieldValues>;
-  label?: string;
+  label?: React.ReactNode;
   helperText?: string;
   /**
    * Override class cho thẻ <input>. Nếu truyền, classes mặc định của input
@@ -100,7 +100,7 @@ export const AppFormPasswordInput = <TFieldValues extends FieldValues>({
 // ---------------------------------------------------------------------------
 
 export interface AppPasswordInputProps extends Omit<AppInputProps, 'type'> {
-  label?: string;
+  label?: React.ReactNode;
   helperText?: string;
   error?: string;
   inputClassName?: string;
@@ -168,7 +168,7 @@ function PasswordVisibilityToggle({ visible, onToggle }: PasswordVisibilityToggl
       aria-pressed={visible}
       onClick={onToggle}
       className={cn(
-        'absolute right-0 top-0 flex h-10 w-10 items-center justify-center',
+        'absolute top-1/2 right-1 flex h-9 w-9 -translate-y-1/2 items-center justify-center',
         'text-muted-foreground hover:text-foreground',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md',
         'transition-colors cursor-pointer'

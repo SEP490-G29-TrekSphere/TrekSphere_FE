@@ -14,6 +14,7 @@
  *   import { AppButton } from '@/shared/ui/primitives/AppButton';
  */
 
+export { AppModalShell, type AppModalShellProps } from './components/AppModalShell';
 export {
   ConfirmActionDialog,
   type ConfirmActionDialogProps,
