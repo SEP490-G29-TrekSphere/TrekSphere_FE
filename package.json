@@ -87,6 +87,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "moduleNameMapper": {
+      "\\.svg(\\?.*)?$": "<rootDir>/__mocks__/svgMock.js",
       "^@/(.*)$": "<rootDir>/src/$1",
       "^react-quill-new$": "<rootDir>/__mocks__/react-quill-new.js",
       "^lodash-es$": "lodash",

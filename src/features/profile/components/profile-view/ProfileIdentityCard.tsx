@@ -16,6 +16,8 @@ interface ProfileIdentityCardProps {
   isOwnProfile: boolean;
   /** Đường dẫn trang chỉnh sửa (chỉ dùng ở hồ sơ của mình). */
   editPath: string;
+  /** Đường dẫn trang đổi mật khẩu (mặc định PATHS.CHANGE_PASSWORD). */
+  changePasswordPath?: string;
   /** Id người dùng — cần cho nút Theo dõi ở hồ sơ người khác. */
   userId?: string;
 }
@@ -55,6 +57,7 @@ export function ProfileIdentityCard({
   blogCount,
   isOwnProfile,
   editPath,
+  changePasswordPath = PATHS.CHANGE_PASSWORD,
   userId,
 }: ProfileIdentityCardProps) {
   const followMutation = useToggleFollow();
@@ -142,7 +145,7 @@ export function ProfileIdentityCard({
               Bài viết của tôi
             </Link>
             <Link
-              to={PATHS.CHANGE_PASSWORD}
+              to={changePasswordPath}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-muted px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-accent"
             >
               <KeyRound className="size-4" />

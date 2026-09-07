@@ -1,6 +1,6 @@
-export function GroupDetailSkeleton() {
+export function GroupDetailSkeleton({ embedded = false }: { embedded?: boolean } = {}) {
   return (
-    <div className="mx-auto max-w-6xl space-y-7 animate-pulse">
+    <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} space-y-7 animate-pulse`}>
       {/* Hero skeleton */}
       <div className="rounded-2xl bg-muted h-56 md:h-64" />
 
