@@ -14,6 +14,8 @@
  *   import { AppButton } from '@/shared/ui/primitives/AppButton';
  */
 
+// Portal Shared Blocks
+export * from '../components/portal';
 export { AppModalShell, type AppModalShellProps } from './components/AppModalShell';
 export {
   ConfirmActionDialog,

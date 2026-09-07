@@ -344,7 +344,7 @@ export default function CompanionGroupDetailPage({
   if (isLoading) {
     return (
       <div className={shellClassName}>
-        <GroupDetailSkeleton />
+        <GroupDetailSkeleton embedded={embedded} />
       </div>
     );
   }
@@ -397,7 +397,7 @@ export default function CompanionGroupDetailPage({
         </div>
       )}
 
-      <div className="mx-auto max-w-6xl space-y-7">
+      <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} space-y-7`}>
         <GroupDetailHero
           groupName={groupData.groupName}
           tourName={groupData.tourName}

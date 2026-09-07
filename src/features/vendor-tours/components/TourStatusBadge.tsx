@@ -1,11 +1,15 @@
+import { PortalStatusBadge } from '@/shared/ui';
 import type { ApiStatus } from '../types';
 
-const STATUS_STYLES: Record<ApiStatus, { label: string; color: string }> = {
-  APPROVED: { label: 'Đã duyệt', color: '#16A34A' },
-  PENDING_APPROVAL: { label: 'Đang chờ duyệt', color: '#EA580C' },
-  DRAFT: { label: 'Bản nháp', color: '#6F7B75' },
-  REJECTED: { label: 'Bị từ chối', color: '#DC2626' },
-  HIDDEN: { label: 'Đã ẩn', color: '#6F7B75' },
+const STATUS_CONFIG: Record<
+  ApiStatus,
+  { label: string; variant: 'success' | 'warning' | 'destructive' | 'neutral' }
+> = {
+  APPROVED: { label: 'Đã duyệt', variant: 'success' },
+  PENDING_APPROVAL: { label: 'Đang chờ duyệt', variant: 'warning' },
+  DRAFT: { label: 'Bản nháp', variant: 'neutral' },
+  REJECTED: { label: 'Bị từ chối', variant: 'destructive' },
+  HIDDEN: { label: 'Đã ẩn', variant: 'neutral' },
 };
 
 interface TourStatusBadgeProps {
@@ -13,15 +17,7 @@ interface TourStatusBadgeProps {
 }
 
 export function TourStatusBadge({ status }: TourStatusBadgeProps) {
-  const style = STATUS_STYLES[status];
+  const config = STATUS_CONFIG[status] ?? { label: status, variant: 'neutral' as const };
 
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 text-sm font-semibold"
-      style={{ color: style.color }}
-    >
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: style.color }} />
-      {style.label}
-    </span>
-  );
+  return <PortalStatusBadge label={config.label} variant={config.variant} />;
 }

@@ -8,6 +8,7 @@ import { useVendorTourList } from '@/features/vendor-tours/hooks/useVendorTourLi
 import { useVendorTourMutations } from '@/features/vendor-tours/hooks/useVendorTourMutations';
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import type { VendorTourListItem } from '@/features/vendor-tours/types';
+import { PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
@@ -64,14 +65,10 @@ export default function TourApprovals() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2
-          className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-          style={{ color: '#06261D' }}
-        >
-          Duyệt tour
-        </h2>
-      </div>
+      <PortalPageHeader
+        title="Duyệt tour"
+        description="Xét duyệt các tour đang chờ phê duyệt từ phía điều hành và quản trị viên"
+      />
 
       <div
         className="overflow-hidden rounded-3xl bg-white shadow-sm"

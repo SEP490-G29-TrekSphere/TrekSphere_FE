@@ -196,7 +196,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
     <div className="min-h-screen" style={{ backgroundColor: '#FAF8F1' }}>
       {/* Topbar Action */}
       <div
-        className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-6"
+        className="sticky top-0 z-10 flex items-center justify-between pb-4"
         style={{ backgroundColor: 'transparent' }}
       >
         <button
@@ -234,8 +234,8 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="rounded-full px-4 py-2 text-xs font-medium"
-            style={{ backgroundColor: '#06261D', color: '#FFFFFF' }}
+            className="rounded-full px-5 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: '#06261D' }}
           >
             {isSubmitting ? 'Đang xử lý...' : editMode ? 'Lưu thay đổi' : 'Đăng bài'}
           </Button>
@@ -243,7 +243,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
       </div>
 
       {/* Main content */}
-      <main className="mx-auto max-w-none w-full px-4 pb-16 sm:px-6">
+      <div className="w-full pb-16">
         <div className="mb-8">
           <h2 className="text-3xl font-bold" style={{ color: '#06261D' }}>
             {editMode ? 'Chỉnh sửa bài viết' : 'Soạn thảo bài viết mới'}
@@ -470,7 +470,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
             )}
           </div>
         )}
-      </main>
+      </div>
 
       {showPreview && (
         <BlogPreviewModal
