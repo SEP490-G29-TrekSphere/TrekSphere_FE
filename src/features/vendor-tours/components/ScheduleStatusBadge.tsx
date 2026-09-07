@@ -1,10 +1,14 @@
+import { PortalStatusBadge } from '@/shared/ui';
 import type { ApiScheduleStatus } from '../types';
 
-const STATUS_STYLES: Record<ApiScheduleStatus, { label: string; color: string }> = {
-  OPEN: { label: 'Đang mở', color: '#16A34A' },
-  CLOSED: { label: 'Đã đóng', color: '#6F7B75' },
-  CANCELLED: { label: 'Đã hủy', color: '#DC2626' },
-  COMPLETED: { label: 'Đã hoàn thành', color: '#2563EB' },
+const STATUS_CONFIG: Record<
+  ApiScheduleStatus,
+  { label: string; variant: 'success' | 'warning' | 'destructive' | 'neutral' | 'info' }
+> = {
+  OPEN: { label: 'Đang mở', variant: 'success' },
+  CLOSED: { label: 'Đã đóng', variant: 'neutral' },
+  CANCELLED: { label: 'Đã hủy', variant: 'destructive' },
+  COMPLETED: { label: 'Đã hoàn thành', variant: 'info' },
 };
 
 interface ScheduleStatusBadgeProps {
@@ -12,15 +16,7 @@ interface ScheduleStatusBadgeProps {
 }
 
 export function ScheduleStatusBadge({ status }: ScheduleStatusBadgeProps) {
-  const style = STATUS_STYLES[status];
+  const config = STATUS_CONFIG[status] ?? { label: status, variant: 'neutral' as const };
 
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 text-sm font-semibold"
-      style={{ color: style.color }}
-    >
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: style.color }} />
-      {style.label}
-    </span>
-  );
+  return <PortalStatusBadge label={config.label} variant={config.variant} />;
 }

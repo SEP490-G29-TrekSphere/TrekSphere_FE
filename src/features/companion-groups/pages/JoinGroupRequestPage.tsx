@@ -86,7 +86,7 @@ export default function JoinGroupRequestPage({
 
   // PublicLayout có header nổi nên cần pt-20; trong portal thì <main> đã có padding.
   const shellClassName = embedded
-    ? 'flex items-center justify-center py-8'
+    ? 'w-full'
     : 'min-h-screen bg-[#F7F4EB] dark:bg-background pt-20 pb-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center';
 
   const loadingClassName = embedded

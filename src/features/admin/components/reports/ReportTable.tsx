@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, FileText, MessageSquare, Star } from 'lucide
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
+import { PortalStatusBadge } from '@/shared/ui';
 import type { ReportResponse, ReportTargetType } from '../../services/adminReportService';
 import { ReportFilterTabs } from './ReportFilterTabs';
 
@@ -152,22 +153,23 @@ export function ReportTable({
 
                   {/* Status */}
                   <td className="py-4 px-6 whitespace-nowrap">
-                    {item.status === 'PENDING' ? (
-                      <div className="flex items-center gap-1.5 text-red-600 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-red-600 animate-pulse" />
-                        CHỜ XỬ LÝ
-                      </div>
-                    ) : item.status === 'RESOLVED' ? (
-                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-emerald-600" />
-                        ĐÃ XỬ LÝ
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-zinc-500 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-zinc-500" />
-                        BỎ QUA
-                      </div>
-                    )}
+                    <PortalStatusBadge
+                      status={item.status}
+                      label={
+                        item.status === 'PENDING'
+                          ? 'CHỜ XỬ LÝ'
+                          : item.status === 'RESOLVED'
+                            ? 'ĐÃ XỬ LÝ'
+                            : 'BỎ QUA'
+                      }
+                      variant={
+                        item.status === 'PENDING'
+                          ? 'destructive'
+                          : item.status === 'RESOLVED'
+                            ? 'success'
+                            : 'neutral'
+                      }
+                    />
                   </td>
 
                   {/* Action button */}

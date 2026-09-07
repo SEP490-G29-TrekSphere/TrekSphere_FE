@@ -1,20 +1,18 @@
-import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import {
-  AppBadge,
   AppButton,
-  AppCard,
-  AppCardContent,
-  AppInput,
-  AppSpinner,
   AppTable,
   AppTableBody,
   AppTableCell,
   AppTableHead,
   AppTableHeader,
   AppTableRow,
+  PortalDataTableShell,
+  PortalFilterBar,
+  PortalPageHeader,
+  PortalStatusBadge,
 } from '@/shared/ui';
 import { useVendorApplicationStats, useVendorApplications } from '../hooks/useVendorApplications';
 import type { ApplicationStatus } from '../services/vendorApplicationService';
@@ -62,41 +60,6 @@ export default function Applications() {
     }
   };
 
-  const getStatusBadge = (status: ApplicationStatus) => {
-    switch (status) {
-      case 'DRAFT':
-        return (
-          <AppBadge
-            variant="secondary"
-            className="bg-zinc-100 text-zinc-700 font-bold border-zinc-200"
-          >
-            NHÁP
-          </AppBadge>
-        );
-      case 'PENDING':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#D97706] bg-[#FEF3C7]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" />
-            CHỜ DUYỆT
-          </span>
-        );
-      case 'APPROVED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#059669] bg-[#D1FAE5]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#059669]" />
-            ĐÃ DUYỆT
-          </span>
-        );
-      case 'REJECTED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#DC2626] bg-[#FEE2E2]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#DC2626]" />
-            TỪ CHỐI
-          </span>
-        );
-    }
-  };
-
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
     try {
@@ -117,241 +80,124 @@ export default function Applications() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header Section */}
-      <div>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B3025] tracking-tight">
-            Duyệt Nhà Cung Cấp
-          </h1>
-        </div>
-      </div>
+      <PortalPageHeader
+        title="Duyệt Nhà Cung Cấp"
+        description="Quản lý và xét duyệt các hồ sơ đăng ký đối tác Vendor trên nền tảng TrekSphere"
+      />
 
-      {/* Tabs and Search / Filter */}
-      <div className="flex flex-col gap-4 border-b border-[#E5E4DE] pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => handleTabChange('ALL')}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                activeTab === 'ALL'
-                  ? 'bg-[#0B3025] text-white shadow-sm'
-                  : 'bg-white border border-[#E5E4DE] text-zinc-600 hover:bg-[#FAF9F5]'
-              }`}
-            >
-              Tất cả {statsData ? `(${statsData.all})` : ''}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange('PENDING')}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                activeTab === 'PENDING'
-                  ? 'bg-[#0B3025] text-white shadow-sm'
-                  : 'bg-white border border-[#E5E4DE] text-zinc-600 hover:bg-[#FAF9F5]'
-              }`}
-            >
-              Chờ duyệt {statsData ? `(${statsData.pending})` : ''}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange('APPROVED')}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                activeTab === 'APPROVED'
-                  ? 'bg-[#0B3025] text-white shadow-sm'
-                  : 'bg-white border border-[#E5E4DE] text-zinc-600 hover:bg-[#FAF9F5]'
-              }`}
-            >
-              Đã duyệt {statsData ? `(${statsData.approved})` : ''}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange('REJECTED')}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
-                activeTab === 'REJECTED'
-                  ? 'bg-[#0B3025] text-white shadow-sm'
-                  : 'bg-white border border-[#E5E4DE] text-zinc-600 hover:bg-[#FAF9F5]'
-              }`}
-            >
-              Từ chối {statsData ? `(${statsData.rejected})` : ''}
-            </button>
-          </div>
+      <PortalFilterBar<ApplicationStatus | 'ALL'>
+        tabs={[
+          { key: 'ALL', label: 'Tất cả', count: statsData?.all },
+          { key: 'PENDING', label: 'Chờ duyệt', count: statsData?.pending },
+          { key: 'APPROVED', label: 'Đã duyệt', count: statsData?.approved },
+          { key: 'REJECTED', label: 'Từ chối', count: statsData?.rejected },
+        ]}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        searchPlaceholder="Tìm tên công ty, email..."
+        searchValue={searchKeyword}
+        onSearchChange={setSearchKeyword}
+        onSearchSubmit={handleSearch}
+        onSearchClear={() => {
+          setSearchKeyword('');
+          setAppliedKeyword('');
+          setCurrentPage(0);
+        }}
+      />
 
-          <form onSubmit={handleSearch} className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-              <AppInput
-                type="text"
-                placeholder="Tìm tên công ty, email..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                className="pl-9 bg-white border-[#E5E4DE] rounded-xl text-sm"
-              />
-            </div>
-            <AppButton
-              type="submit"
-              variant="outline"
-              className="border-[#E5E4DE] text-zinc-700 font-bold rounded-xl"
-            >
-              Tìm
-            </AppButton>
-          </form>
-        </div>
-      </div>
-
-      {/* Main Content / Table */}
-      <AppCard className="border-[#E5E4DE] shadow-sm rounded-2xl overflow-hidden bg-white">
-        <AppCardContent className="p-0">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center p-12 text-zinc-500 gap-3">
-              <AppSpinner size="lg" />
-              <p className="text-sm font-semibold">Đang tải danh sách đơn đăng ký...</p>
-            </div>
-          ) : isError ? (
-            <div className="flex flex-col items-center justify-center p-12 text-red-600 gap-3">
-              <p className="font-bold text-base">Không thể tải danh sách đơn đăng ký</p>
-              <p className="text-xs text-zinc-500 max-w-md text-center">
-                {error instanceof Error ? error.message : 'Lỗi kết nối máy chủ.'}
-              </p>
-              <AppButton
-                onClick={() => refetch()}
-                variant="outline"
-                className="mt-2 flex items-center gap-2 border-red-200 text-red-700 hover:bg-red-50 font-bold rounded-xl"
+      <PortalDataTableShell
+        isLoading={isLoading}
+        loadingMessage="Đang tải danh sách đơn đăng ký..."
+        isError={isError}
+        errorMessage={
+          error instanceof Error ? error.message : 'Không thể tải danh sách đơn đăng ký.'
+        }
+        onRetry={() => refetch()}
+        isEmpty={applications.length === 0}
+        emptyTitle="Không tìm thấy đơn đăng ký nào"
+        emptyDescription="Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm."
+        pagination={{
+          currentPage,
+          totalPages,
+          totalElements,
+          pageSize,
+          onPageChange: handlePageChange,
+        }}
+      >
+        <AppTable>
+          <AppTableHeader className="bg-[#FAF9F5] border-b border-[#E5E4DE]">
+            <AppTableRow className="hover:bg-transparent">
+              <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
+                CÔNG TY & NGƯỜI ĐĂNG KÝ
+              </AppTableHead>
+              <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
+                LIÊN HỆ
+              </AppTableHead>
+              <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
+                NGÀY GỬI
+              </AppTableHead>
+              <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
+                TRẠNG THÁI
+              </AppTableHead>
+              <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6 text-right">
+                HÀNH ĐỘNG
+              </AppTableHead>
+            </AppTableRow>
+          </AppTableHeader>
+          <AppTableBody>
+            {applications.map((app) => (
+              <AppTableRow
+                key={app.vendorApplicationId}
+                className="border-b border-[#F4F4F2] hover:bg-[#FAF9F5] transition-colors"
               >
-                <RefreshCw className="h-4 w-4" />
-                Thử lại
-              </AppButton>
-            </div>
-          ) : applications.length === 0 ? (
-            <div className="p-12 text-center text-zinc-500">
-              <p className="font-bold text-base">Không tìm thấy đơn đăng ký nào</p>
-              <p className="text-xs mt-1 text-zinc-400">
-                Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.
-              </p>
-            </div>
-          ) : (
-            <AppTable>
-              <AppTableHeader className="bg-[#FAF9F5] border-b border-[#E5E4DE]">
-                <AppTableRow className="hover:bg-transparent">
-                  <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
-                    CÔNG TY & NGƯỜI ĐĂNG KÝ
-                  </AppTableHead>
-                  <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
-                    LIÊN HỆ
-                  </AppTableHead>
-                  <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
-                    NGÀY GỬI
-                  </AppTableHead>
-                  <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6">
-                    TRẠNG THÁI
-                  </AppTableHead>
-                  <AppTableHead className="font-bold text-zinc-400 text-xs py-4 px-6 text-right">
-                    HÀNH ĐỘNG
-                  </AppTableHead>
-                </AppTableRow>
-              </AppTableHeader>
-              <AppTableBody>
-                {applications.map((app) => (
-                  <AppTableRow
-                    key={app.vendorApplicationId}
-                    className="border-b border-[#F4F4F2] hover:bg-[#FAF9F5] transition-colors"
-                  >
-                    <AppTableCell className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B3025] text-white text-sm font-bold shadow-sm overflow-hidden">
-                          {app.applicant.avatarUrl ? (
-                            <img
-                              src={app.applicant.avatarUrl}
-                              alt={app.applicant.fullName}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            app.companyName.slice(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-zinc-800 text-sm">{app.companyName}</span>
-                          <span className="text-xs text-zinc-500 font-medium">
-                            Người nộp: {app.applicant.fullName || app.applicant.email}
-                          </span>
-                        </div>
-                      </div>
-                    </AppTableCell>
-                    <AppTableCell className="py-4 px-6">
-                      <div className="flex flex-col text-xs text-zinc-600 font-medium">
-                        <span>{app.contactEmail}</span>
-                        <span className="text-zinc-400">{app.contactPhone}</span>
-                      </div>
-                    </AppTableCell>
-                    <AppTableCell className="py-4 px-6 text-zinc-600 text-sm font-semibold">
-                      {formatDate(app.createdAt)}
-                    </AppTableCell>
-                    <AppTableCell className="py-4 px-6">
-                      {getStatusBadge(app.applicationStatus)}
-                    </AppTableCell>
-                    <AppTableCell className="py-4 px-6 text-right">
-                      <Link
-                        to={PATHS.ADMIN_APPLICATION_DETAIL.replace(':id', app.vendorApplicationId)}
-                      >
-                        <AppButton
-                          variant="outline"
-                          className="border-[#E5E4DE] text-zinc-700 hover:bg-[#F4F4F2] font-semibold text-xs py-1.5 px-4 rounded-xl"
-                        >
-                          Xem chi tiết
-                        </AppButton>
-                      </Link>
-                    </AppTableCell>
-                  </AppTableRow>
-                ))}
-              </AppTableBody>
-            </AppTable>
-          )}
-        </AppCardContent>
-      </AppCard>
-
-      {/* Pagination Footer */}
-      {!isLoading && !isError && totalElements > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-          <span className="text-xs text-zinc-500 font-semibold">
-            Hiển thị {currentPage * pageSize + 1} -{' '}
-            {Math.min((currentPage + 1) * pageSize, totalElements)} của {totalElements} hồ sơ
-          </span>
-
-          {totalPages > 1 && (
-            <div className="flex items-center gap-2 self-center sm:self-auto">
-              <button
-                type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E4DE] bg-white text-zinc-600 disabled:opacity-50 hover:bg-[#FAF9F5] transition-colors"
-              >
-                &lt;
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i).map((pageIndex) => (
-                <button
-                  key={pageIndex}
-                  type="button"
-                  onClick={() => handlePageChange(pageIndex)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                    currentPage === pageIndex
-                      ? 'bg-[#0B3025] text-white shadow-sm'
-                      : 'bg-white border border-[#E5E4DE] text-zinc-600 hover:bg-[#FAF9F5]'
-                  }`}
-                >
-                  {pageIndex + 1}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E4DE] bg-white text-zinc-600 disabled:opacity-50 hover:bg-[#FAF9F5] transition-colors"
-              >
-                &gt;
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+                <AppTableCell className="py-4 px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B3025] text-white text-sm font-bold shadow-sm overflow-hidden">
+                      {app.applicant.avatarUrl ? (
+                        <img
+                          src={app.applicant.avatarUrl}
+                          alt={app.applicant.fullName}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        app.companyName.slice(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-zinc-800 text-sm">{app.companyName}</span>
+                      <span className="text-xs text-zinc-500 font-medium">
+                        Người nộp: {app.applicant.fullName || app.applicant.email}
+                      </span>
+                    </div>
+                  </div>
+                </AppTableCell>
+                <AppTableCell className="py-4 px-6">
+                  <div className="flex flex-col text-xs text-zinc-600 font-medium">
+                    <span>{app.contactEmail}</span>
+                    <span className="text-zinc-400">{app.contactPhone}</span>
+                  </div>
+                </AppTableCell>
+                <AppTableCell className="py-4 px-6 text-zinc-600 text-sm font-semibold">
+                  {formatDate(app.createdAt)}
+                </AppTableCell>
+                <AppTableCell className="py-4 px-6">
+                  <PortalStatusBadge status={app.applicationStatus} />
+                </AppTableCell>
+                <AppTableCell className="py-4 px-6 text-right">
+                  <Link to={PATHS.ADMIN_APPLICATION_DETAIL.replace(':id', app.vendorApplicationId)}>
+                    <AppButton
+                      variant="outline"
+                      className="border-[#E5E4DE] text-zinc-700 hover:bg-[#F4F4F2] font-semibold text-xs py-1.5 px-4 rounded-xl"
+                    >
+                      Xem chi tiết
+                    </AppButton>
+                  </Link>
+                </AppTableCell>
+              </AppTableRow>
+            ))}
+          </AppTableBody>
+        </AppTable>
+      </PortalDataTableShell>
     </div>
   );
 }
