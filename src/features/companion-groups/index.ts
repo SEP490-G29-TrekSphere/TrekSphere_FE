@@ -13,14 +13,15 @@ export { MembersCard } from './components/detail/MembersCard';
 export { useApproveMember } from './hooks/useApproveMember';
 export { useCancelJoinRequest } from './hooks/useCancelJoinRequest';
 export { useCreateMatchingGroup } from './hooks/useCreateMatchingGroup';
-export { useDeleteMatchingGroup } from './hooks/useDeleteMatchingGroup';
 export { useJoinMatchingGroup } from './hooks/useJoinMatchingGroup';
 export { useLeaveMatchingGroup } from './hooks/useLeaveMatchingGroup';
 export { useMatchingGroupDetail } from './hooks/useMatchingGroupDetail';
+export { useMatchingGroupLifecycle } from './hooks/useMatchingGroupLifecycle';
 export { useMatchingGroups } from './hooks/useMatchingGroups';
 export { useMyJoinRequests } from './hooks/useMyJoinRequests';
 export { useMyMatchingGroups } from './hooks/useMyMatchingGroups';
 export { useRejectMember } from './hooks/useRejectMember';
+export { useUpdateMatchingGroup } from './hooks/useUpdateMatchingGroup';
 export { default as CompanionGroupDetailPage } from './pages/CompanionGroupDetailPage';
 export { default as CompanionGroupsPage } from './pages/CompanionGroupsPage';
 export { default as CreateCompanionGroupPage } from './pages/CreateCompanionGroupPage';
@@ -28,11 +29,18 @@ export { default as JoinGroupRequestPage } from './pages/JoinGroupRequestPage';
 export { default as MyCompanionGroupsPage } from './pages/MyCompanionGroupsPage';
 export type {
   GetMatchingGroupsParams,
+  GetMyJoinRequestsParams,
+  GetMyMatchingGroupsParams,
+  GroupApplicationRequest,
+  JoinApplicationStatus,
+  JourneyDifficulty,
   MatchingGroupCreateRequest,
   MatchingGroupDetailResponse,
   MatchingGroupItem,
   MatchingGroupPaginationResponse,
+  MatchingGroupSourceType,
   MatchingGroupStatus,
+  MatchingGroupUpdateRequest,
   MatchingMemberItem,
   MatchingMemberRole,
   MatchingMemberStatus,
