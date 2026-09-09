@@ -1,4 +1,5 @@
-import { Loader2, MessageSquare } from 'lucide-react';
+import { CheckCircle2, Loader2, MessageSquare, Send } from 'lucide-react';
+import { useState } from 'react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
@@ -7,11 +8,11 @@ interface GroupActionPanelProps {
   groupStatus: MatchingGroupStatus;
   isJoining: boolean;
   onOpenChat: () => void;
-  onJoin: () => void;
+  onJoin: (message?: string) => void;
   onLeave: () => void;
   onCancelRequest: () => void;
-  onDissolve: () => void;
   onCreateGroupChat: () => void;
+  onEditGroup?: () => void;
   acceptedMembersCount: number;
   hasConversation?: boolean;
   isInConversation?: boolean;
@@ -25,15 +26,17 @@ export function GroupActionPanel({
   onJoin,
   onLeave,
   onCancelRequest,
-  onDissolve,
   onCreateGroupChat,
+  onEditGroup,
   acceptedMembersCount,
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
+  const [applyMessage, setApplyMessage] = useState('');
+
   return (
     <div className="space-y-6">
-      {/* Chat card */}
+      {/* 1. Chat card */}
       <div className="rounded-2xl bg-primary p-7 text-white shadow-sm space-y-6">
         <div className="flex items-start justify-between">
           <div>
@@ -86,7 +89,26 @@ export function GroupActionPanel({
         )}
       </div>
 
-      {/* Role-based action card */}
+      {/* Leader management actions card */}
+      {role === 'leader' && onEditGroup && (
+        <div className="rounded-2xl bg-card border border-border p-6 space-y-3 shadow-sm">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Quản Lý Nhóm Ghép
+          </h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Bạn có thể cập nhật thông tin giới thiệu, tên nhóm hoặc sức chứa thành viên tối đa.
+          </p>
+          <button
+            type="button"
+            onClick={onEditGroup}
+            className="w-full rounded-full border border-border bg-background py-3 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer"
+          >
+            Chỉnh sửa thông tin nhóm
+          </button>
+        </div>
+      )}
+
+      {/* 2. Role-based action card */}
       {role === 'pending' && (
         <div className="rounded-2xl bg-secondary/30 border border-secondary p-6 text-left space-y-3 shadow-sm">
           <h3 className="text-xs font-semibold text-primary uppercase tracking-wider">
@@ -109,36 +131,70 @@ export function GroupActionPanel({
       )}
 
       {role === 'guest' && (
-        <div className="rounded-2xl bg-card border border-border p-6 text-center space-y-4 shadow-sm">
+        <div className="rounded-2xl bg-card border border-border p-6 space-y-4 shadow-sm">
           <div>
-            <h3 className="text-sm font-bold text-foreground">Tham gia cùng nhóm này?</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Gửi yêu cầu gia nhập để đồng hành cùng các Trekker khác.
+            <h3 className="text-base font-bold text-foreground">Gửi Đơn Tham Gia Nhóm</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Giới thiệu bản thân và kinh nghiệm trekking để trưởng nhóm dễ dàng duyệt đơn của bạn.
             </p>
           </div>
+
+          <div className="space-y-1.5">
+            <label
+              htmlFor="apply-intro-message"
+              className="block text-xs font-semibold text-foreground"
+            >
+              Lời nhắn gửi Trưởng nhóm (Tùy chọn)
+            </label>
+            <textarea
+              id="apply-intro-message"
+              value={applyMessage}
+              onChange={(e) => setApplyMessage(e.target.value)}
+              placeholder="VD: Mình đã từng leo Lảo Thẩn, thể lực tốt, muốn tham gia cùng nhóm..."
+              maxLength={500}
+              rows={3}
+              className="w-full rounded-xl border border-input bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+            />
+            <div className="flex justify-end text-[11px] text-muted-foreground">
+              {applyMessage.length}/500 ký tự
+            </div>
+          </div>
+
           <button
             type="button"
             disabled={isJoining || groupStatus !== 'OPEN'}
-            onClick={onJoin}
+            onClick={() => onJoin(applyMessage.trim() || undefined)}
             className="w-full rounded-full bg-primary py-3.5 text-xs font-bold text-white hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
           >
-            {isJoining && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            {isJoining
-              ? 'Đang gửi...'
-              : groupStatus === 'OPEN'
-                ? 'Gửi yêu cầu tham gia'
-                : 'Đã đủ thành viên'}
+            {isJoining ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Đang gửi đơn...</span>
+              </>
+            ) : groupStatus === 'OPEN' ? (
+              <>
+                <Send className="w-3.5 h-3.5" />
+                <span>Gửi đơn tham gia</span>
+              </>
+            ) : (
+              <span>Đã đủ thành viên</span>
+            )}
           </button>
         </div>
       )}
 
       {role === 'member' && (
         <div className="rounded-2xl bg-card border border-border p-6 text-center space-y-4 shadow-sm">
-          <div>
-            <h3 className="text-sm font-bold text-foreground">Bạn đã là thành viên</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Bạn đã tham gia nhóm ghép này thành công.
-            </p>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Bạn đã là thành viên</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Bạn đã được duyệt tham gia nhóm ghép này thành công.
+              </p>
+            </div>
           </div>
           <button
             type="button"
@@ -146,24 +202,6 @@ export function GroupActionPanel({
             className="w-full rounded-full border border-destructive/30 bg-card py-3.5 text-xs font-bold text-destructive hover:bg-destructive/5 transition-colors shadow-sm cursor-pointer"
           >
             Rời khỏi nhóm ghép
-          </button>
-        </div>
-      )}
-
-      {role === 'leader' && (
-        <div className="rounded-2xl bg-card border border-border p-6 text-center space-y-4 shadow-sm">
-          <div>
-            <h3 className="text-sm font-bold text-foreground">Quản lý nhóm ghép</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Bạn là trưởng nhóm. Bạn có quyền giải tán nhóm ghép này.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onDissolve}
-            className="w-full rounded-full border border-destructive/30 bg-card py-3.5 text-xs font-bold text-destructive hover:bg-destructive/5 transition-colors shadow-sm cursor-pointer"
-          >
-            Giải tán nhóm ghép
           </button>
         </div>
       )}

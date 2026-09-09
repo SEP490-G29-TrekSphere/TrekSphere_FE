@@ -1,185 +1,101 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
+import type {
+  GetJoinRequestsParams,
+  GetMatchingGroupsParams,
+  GetMyJoinRequestsParams,
+  GetMyMatchingGroupsParams,
+  GroupApplicationRequest,
+  MatchingGroupCreateRequest,
+  MatchingGroupDetailResponse,
+  MatchingGroupPaginationResponse,
+  MatchingGroupUpdateRequest,
+  MatchingMemberItem,
+  MatchingMemberPaginationResponse,
+  MyMatchingJoinRequestPaginationResponse,
+} from '../types/matchingGroup';
 
-export interface MatchingGroupCreateRequest {
-  tourId: string;
-  groupName: string;
-  description?: string;
-  maxSize: number;
-  targetDate: string; // 'yyyy-MM-dd'
-  matchingDeadline: string; // ISO date-time
-}
-
-export type MatchingGroupStatus = 'OPEN' | 'FULL' | 'CLOSED' | 'HIDDEN';
-
-export interface MatchingGroupItem {
-  matchingGroupId: string;
-  tourId: string;
-  tourName: string;
-  ownerId: string;
-  ownerName: string;
-  ownerAvatarUrl?: string;
-  groupName: string;
-  description?: string;
-  maxSize: number;
-  currentSize: number;
-  targetDate: string; // 'yyyy-MM-dd'
-  matchingDeadline: string; // ISO String
-  status: MatchingGroupStatus;
-  createdAt: string; // ISO String
-}
-
-export interface GetMatchingGroupsParams {
-  tourId?: string;
-  targetDate?: string;
-  keyword?: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDir?: string;
-}
-
-export interface GetJoinRequestsParams {
-  status?: MatchingMemberStatus;
-  page?: number;
-  size?: number;
-}
-
-export interface MyMatchingJoinRequestItem {
-  matchingMemberId: string;
-  matchingGroupId: string;
-  groupName: string;
-  groupStatus: MatchingGroupStatus;
-  tourId: string;
-  tourName: string;
-  ownerId: string;
-  ownerName: string;
-  ownerAvatarUrl?: string;
-  currentSize: number;
-  maxSize: number;
-  targetDate: string; // 'yyyy-MM-dd'
-  matchingDeadline: string; // ISO string
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'LEFT';
-  createdAt: string; // ISO string
-  updatedAt: string; // ISO string
-  canCancel: boolean;
-}
-
-export interface MyMatchingJoinRequestPaginationResponse {
-  content: MyMatchingJoinRequestItem[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
-
-export interface MatchingMemberPaginationResponse {
-  content: MatchingMemberItem[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
-
-export interface MatchingGroupPaginationResponse {
-  content: MatchingGroupItem[];
-  pageNumber: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
-
-export type MatchingMemberRole = 'OWNER' | 'MEMBER';
-export type MatchingMemberStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT';
-
-export interface MatchingMemberItem {
-  matchingMemberId: string;
-  userId: string;
-  fullName: string;
-  avatarUrl?: string;
-  role: MatchingMemberRole;
-  status: MatchingMemberStatus;
-  createdAt: string; // ISO string
-  isInConversation?: boolean;
-}
-
-export interface MatchingGroupDetailResponse {
-  matchingGroupId: string;
-  tourId: string;
-  tourName: string;
-  ownerId: string;
-  ownerName: string;
-  ownerAvatarUrl?: string;
-  groupName: string;
-  description?: string;
-  maxSize: number;
-  currentSize: number;
-  targetDate: string; // 'yyyy-MM-dd'
-  matchingDeadline: string; // ISO string
-  status: MatchingGroupStatus;
-  createdAt: string; // ISO string
-  members: MatchingMemberItem[];
-  hasConversation?: boolean;
-  isInConversation?: boolean;
-}
+export type {
+  GetJoinRequestsParams,
+  GetMatchingGroupsParams,
+  GetMyJoinRequestsParams,
+  GetMyMatchingGroupsParams,
+  GroupApplicationRequest,
+  JoinApplicationStatus,
+  JourneyDifficulty,
+  MatchingGroupCreateRequest,
+  MatchingGroupDetailResponse,
+  MatchingGroupItem,
+  MatchingGroupPaginationResponse,
+  MatchingGroupSourceType,
+  MatchingGroupStatus,
+  MatchingGroupUpdateRequest,
+  MatchingMemberItem,
+  MatchingMemberPaginationResponse,
+  MatchingMemberRole,
+  MatchingMemberStatus,
+  MyMatchingJoinRequestItem,
+  MyMatchingJoinRequestPaginationResponse,
+} from '../types/matchingGroup';
 
 function unwrapResponse<T>(response: ApiResponse<T>): T {
   if (response.error) {
     throw new Error(response.error);
   }
-  return response.data as T;
+  if (response.data === undefined || response.data === null) {
+    throw new Error(response.message ?? 'Phản hồi từ máy chủ không có dữ liệu.');
+  }
+  return response.data;
 }
 
-/** Pagination rỗng trả về khi BE chưa mở public access (guest 401). */
-const EMPTY_PAGINATION: MatchingGroupPaginationResponse = {
-  content: [],
-  pageNumber: 0,
-  pageSize: 0,
-  totalElements: 0,
-  totalPages: 0,
-  last: true,
-};
+function toQueryParams(params: object): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(params)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : String(value)])
+  );
+}
+
+async function mutateGroup(
+  groupId: string,
+  action: 'hide' | 'show' | 'close' | 'open'
+): Promise<MatchingGroupDetailResponse> {
+  const response = await ApiService<MatchingGroupDetailResponse>(
+    `/matching-groups/${groupId}/${action}`,
+    'POST'
+  );
+  return unwrapResponse(response);
+}
 
 export const companionGroupService = {
   async getMatchingGroups(
     params: GetMatchingGroupsParams = {}
   ): Promise<MatchingGroupPaginationResponse> {
-    const queryParams: Record<string, string> = {};
-
-    if (params.tourId) queryParams.tourId = params.tourId;
-    if (params.targetDate) queryParams.targetDate = params.targetDate;
-    if (params.keyword !== undefined && params.keyword.trim() !== '') {
-      queryParams.keyword = params.keyword.trim();
-    }
-    if (params.page !== undefined) queryParams.page = String(params.page);
-    if (params.size !== undefined) queryParams.size = String(params.size);
-    if (params.sortBy) queryParams.sortBy = params.sortBy;
-    if (params.sortDir) queryParams.sortDir = params.sortDir;
-
     const response = await ApiService<MatchingGroupPaginationResponse>(
       '/matching-groups',
       'GET',
       undefined,
-      queryParams
+      toQueryParams(params)
     );
-
-    // Nếu BE trả 401 (chưa mở public access cho guest), trả về danh sách rỗng
-    // thay vì throw lỗi — trang vẫn hiển thị được, không bị màn hình đỏ.
-    if (response.status === 401) {
-      return EMPTY_PAGINATION;
-    }
-
     return unwrapResponse(response);
   },
 
-  async getMatchingGroupDetail(matchingGroupId: string): Promise<MatchingGroupDetailResponse> {
+  async getMyMatchingGroups(
+    params: GetMyMatchingGroupsParams = {}
+  ): Promise<MatchingGroupPaginationResponse> {
+    const response = await ApiService<MatchingGroupPaginationResponse>(
+      '/matching-groups/my-groups',
+      'GET',
+      undefined,
+      toQueryParams(params)
+    );
+    return unwrapResponse(response);
+  },
+
+  async getMatchingGroupDetail(groupId: string): Promise<MatchingGroupDetailResponse> {
     const response = await ApiService<MatchingGroupDetailResponse>(
-      `/matching-groups/${matchingGroupId}`,
+      `/matching-groups/${groupId}`,
       'GET'
     );
-
     return unwrapResponse(response);
   },
 
@@ -191,67 +107,62 @@ export const companionGroupService = {
       'POST',
       payload
     );
-
     return unwrapResponse(response);
   },
 
-  async deleteMatchingGroup(matchingGroupId: string): Promise<void> {
-    const response = await ApiService<void>(`/matching-groups/${matchingGroupId}`, 'DELETE');
-
-    unwrapResponse(response);
+  async updateMatchingGroup(
+    groupId: string,
+    payload: MatchingGroupUpdateRequest
+  ): Promise<MatchingGroupDetailResponse> {
+    const response = await ApiService<MatchingGroupDetailResponse>(
+      `/matching-groups/${groupId}`,
+      'PATCH',
+      payload
+    );
+    return unwrapResponse(response);
   },
 
-  async joinMatchingGroup(matchingGroupId: string): Promise<MatchingMemberItem> {
+  hideMatchingGroup(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'hide');
+  },
+
+  showMatchingGroup(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'show');
+  },
+
+  closeMatchingGroup(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'close');
+  },
+
+  openMatchingGroup(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'open');
+  },
+
+  async submitApplication(
+    groupId: string,
+    payload: GroupApplicationRequest = {}
+  ): Promise<MatchingMemberItem> {
     const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${matchingGroupId}/join`,
+      `/matching-groups/${groupId}/applications`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  async withdrawApplication(groupId: string): Promise<MatchingMemberItem> {
+    const response = await ApiService<MatchingMemberItem>(
+      `/matching-groups/${groupId}/applications/me/withdraw`,
       'POST'
     );
-
     return unwrapResponse(response);
   },
 
-  async getMyMemberStatus(matchingGroupId: string): Promise<MatchingMemberItem> {
+  async leaveMatchingGroup(groupId: string): Promise<MatchingMemberItem> {
     const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${matchingGroupId}/members/me`,
-      'GET'
-    );
-
-    return unwrapResponse(response);
-  },
-
-  async leaveMatchingGroup(matchingGroupId: string): Promise<MatchingMemberItem> {
-    const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${matchingGroupId}/members/me`,
+      `/matching-groups/${groupId}/members/me`,
       'DELETE'
     );
-
-    return unwrapResponse(response);
-  },
-
-  async cancelJoinRequest(matchingGroupId: string): Promise<MatchingMemberItem> {
-    const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${matchingGroupId}/join-request`,
-      'DELETE'
-    );
-
-    return unwrapResponse(response);
-  },
-
-  async approveMember(groupId: string, memberId: string): Promise<MatchingMemberItem> {
-    const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${groupId}/join-requests/${memberId}/approve`,
-      'PUT'
-    );
-
-    return unwrapResponse(response);
-  },
-
-  async rejectMember(groupId: string, memberId: string): Promise<MatchingMemberItem> {
-    const response = await ApiService<MatchingMemberItem>(
-      `/matching-groups/${groupId}/join-requests/${memberId}/reject`,
-      'PUT'
-    );
-
     return unwrapResponse(response);
   },
 
@@ -259,71 +170,40 @@ export const companionGroupService = {
     groupId: string,
     params: GetJoinRequestsParams = {}
   ): Promise<MatchingMemberPaginationResponse> {
-    const queryParams: Record<string, string> = {};
-
-    if (params.status) queryParams.status = params.status;
-    if (params.page !== undefined) queryParams.page = String(params.page);
-    if (params.size !== undefined) queryParams.size = String(params.size);
-
     const response = await ApiService<MatchingMemberPaginationResponse>(
-      `/matching-groups/${groupId}/join-requests`,
+      `/matching-groups/${groupId}/applications`,
       'GET',
       undefined,
-      queryParams
+      toQueryParams(params)
     );
-
-    return unwrapResponse(response);
-  },
-
-  async getMyMatchingGroups(
-    params: {
-      status?: string;
-      keyword?: string;
-      page?: number;
-      size?: number;
-      sortBy?: string;
-      sortDir?: string;
-    } = {}
-  ): Promise<MatchingGroupPaginationResponse> {
-    const queryParams: Record<string, string> = {};
-    if (params.status) queryParams.status = params.status;
-    if (params.keyword !== undefined && params.keyword.trim() !== '') {
-      queryParams.keyword = params.keyword.trim();
-    }
-    if (params.page !== undefined) queryParams.page = String(params.page);
-    if (params.size !== undefined) queryParams.size = String(params.size);
-    if (params.sortBy) queryParams.sortBy = params.sortBy;
-    if (params.sortDir) queryParams.sortDir = params.sortDir;
-
-    const response = await ApiService<MatchingGroupPaginationResponse>(
-      '/matching-groups/owned',
-      'GET',
-      undefined,
-      queryParams
-    );
-
-    if (response.status === 401) {
-      return EMPTY_PAGINATION;
-    }
-
     return unwrapResponse(response);
   },
 
   async getMyJoinRequests(
-    params: { status?: string; page?: number; size?: number } = {}
+    params: GetMyJoinRequestsParams = {}
   ): Promise<MyMatchingJoinRequestPaginationResponse> {
-    const queryParams: Record<string, string> = {};
-    if (params.status) queryParams.status = params.status;
-    if (params.page !== undefined) queryParams.page = String(params.page);
-    if (params.size !== undefined) queryParams.size = String(params.size);
-
     const response = await ApiService<MyMatchingJoinRequestPaginationResponse>(
-      '/matching-groups/join-requests/me',
+      '/matching-groups/my-applications',
       'GET',
       undefined,
-      queryParams
+      toQueryParams(params)
     );
+    return unwrapResponse(response);
+  },
 
+  async approveApplication(groupId: string, applicationId: string): Promise<MatchingMemberItem> {
+    const response = await ApiService<MatchingMemberItem>(
+      `/matching-groups/${groupId}/applications/${applicationId}/approve`,
+      'POST'
+    );
+    return unwrapResponse(response);
+  },
+
+  async rejectApplication(groupId: string, applicationId: string): Promise<MatchingMemberItem> {
+    const response = await ApiService<MatchingMemberItem>(
+      `/matching-groups/${groupId}/applications/${applicationId}/reject`,
+      'POST'
+    );
     return unwrapResponse(response);
   },
 };

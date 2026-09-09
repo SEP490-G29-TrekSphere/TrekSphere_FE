@@ -1,9 +1,9 @@
-import { AlertTriangle, LogOut, ShieldAlert, UserCheck } from 'lucide-react';
+import { AlertTriangle, LogOut, UserCheck } from 'lucide-react';
 import { ConfirmActionDialog } from '@/shared/ui';
 import type { UserRoleInGroup } from '../../types';
 import type { JoinRequestAction } from './JoinRequestsCard';
 
-type ActiveModal = 'dissolve' | 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
+type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
 
 interface GroupModalsProps {
   activeModal: ActiveModal;
@@ -15,14 +15,12 @@ interface GroupModalsProps {
   // Pending states
   isApprovePending: boolean;
   isRejectPending: boolean;
-  isDissolvePending: boolean;
   isLeaveModalPending: boolean;
   isAddBackPending?: boolean;
 
   // Action Handlers
   onConfirmApprove: () => void;
   onConfirmReject: () => void;
-  onConfirmDissolveGroup: () => void;
   onConfirmLeaveGroup: () => void;
   onConfirmCancelJoinRequest: () => void;
   onConfirmAddBackToChat?: () => void;
@@ -40,12 +38,10 @@ export function GroupModals({
   currentUserRole,
   isApprovePending,
   isRejectPending,
-  isDissolvePending,
   isLeaveModalPending,
   isAddBackPending = false,
   onConfirmApprove,
   onConfirmReject,
-  onConfirmDissolveGroup,
   onConfirmLeaveGroup,
   onConfirmCancelJoinRequest,
   onConfirmAddBackToChat,
@@ -88,20 +84,6 @@ export function GroupModals({
           pendingLabel="Đang từ chối..."
           isPending={isRejectPending}
           onConfirm={onConfirmReject}
-          onCancel={closeModal}
-        />
-      )}
-
-      {activeModal === 'dissolve' && (
-        <ConfirmActionDialog
-          variant="destructive"
-          icon={<ShieldAlert className="h-5 w-5" />}
-          title="Xác nhận giải tán nhóm"
-          description="Hành động này sẽ giải tán toàn bộ nhóm ghép và thông báo tới tất cả thành viên. Hành động này không thể hoàn tác."
-          confirmLabel="Giải tán ngay"
-          pendingLabel="Đang giải tán..."
-          isPending={isDissolvePending}
-          onConfirm={onConfirmDissolveGroup}
           onCancel={closeModal}
         />
       )}
