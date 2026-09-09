@@ -11,6 +11,7 @@ import {
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
 import { AppLogo } from '@/shared/ui';
@@ -71,6 +72,7 @@ export default function TrekkerLayout() {
       sidebarStyle={{ backgroundColor: '#EFECE6', borderRight: '1px solid #E0DCD1' }}
       mobileTitle="TrekSphere"
       fullBleed={isChatPage}
+      headerRight={<NotificationBell />}
       brand={({ collapsed }) =>
         collapsed ? (
           <AppLogo

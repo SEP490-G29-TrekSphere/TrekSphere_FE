@@ -6,6 +6,7 @@ import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
@@ -112,62 +113,65 @@ export default function PublicHeader() {
 
         <div className="flex items-center gap-2">
           {user ? (
-            /* Authenticated: avatar + dropdown */
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
-                aria-label="Mở menu cá nhân"
-              >
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name ?? 'User'}
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                      const span = document.createElement('span');
-                      span.textContent = initial;
-                      span.className = 'text-sm font-bold text-primary-foreground';
-                      target.parentElement?.appendChild(span);
-                    }}
-                  />
-                ) : (
-                  <span>{initial}</span>
-                )}
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border bg-popover p-1 shadow-lg">
-                  <div className="px-3 py-2">
-                    <p className="truncate text-sm font-semibold">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                  <div className="my-1 h-px bg-border" />
-                  {dashboardPath && (
-                    <Link
-                      to={dashboardPath}
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      Bảng điều khiển
-                    </Link>
+            /* Authenticated: bell + avatar + dropdown */
+            <>
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
+                  aria-label="Mở menu cá nhân"
+                >
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name ?? 'User'}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const span = document.createElement('span');
+                        span.textContent = initial;
+                        span.className = 'text-sm font-bold text-primary-foreground';
+                        target.parentElement?.appendChild(span);
+                      }}
+                    />
+                  ) : (
+                    <span>{initial}</span>
                   )}
-                  <div className="my-1 h-px bg-border" />
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Đăng xuất
-                  </button>
-                </div>
-              )}
-            </div>
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border bg-popover p-1 shadow-lg">
+                    <div className="px-3 py-2">
+                      <p className="truncate text-sm font-semibold">{user.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                    <div className="my-1 h-px bg-border" />
+                    {dashboardPath && (
+                      <Link
+                        to={dashboardPath}
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Bảng điều khiển
+                      </Link>
+                    )}
+                    <div className="my-1 h-px bg-border" />
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Đăng xuất
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
             /* Khách vãng lai: Đăng nhập / Đăng ký */
             <>

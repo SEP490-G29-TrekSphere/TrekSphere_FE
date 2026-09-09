@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryClient } from './config/queryClient';
 import { ChatWebSocketProvider } from './features/chat/context/ChatWebSocketContext';
+import NotificationSocketMount from './features/notifications/components/NotificationSocketMount';
 import AppRoutes from './routes/AppRoutes';
 import { ThemeProvider } from './shared/hooks';
 import { AppGlobalLoadingSpinner, AppGlobalToast } from './shared/ui';
@@ -34,6 +35,7 @@ export default function App() {
       <ThemeProvider>
         <ChatWebSocketProvider>
           <AppRoutes />
+          <NotificationSocketMount />
           <AppGlobalLoadingSpinner />
           <AppGlobalToast />
         </ChatWebSocketProvider>

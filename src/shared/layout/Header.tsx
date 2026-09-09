@@ -6,6 +6,7 @@ import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
@@ -111,6 +112,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
+          {user && <NotificationBell />}
           {/* User avatar + dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
