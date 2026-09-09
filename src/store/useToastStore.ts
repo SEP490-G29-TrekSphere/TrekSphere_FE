@@ -2,51 +2,65 @@ import { create } from 'zustand';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+export interface ToastOptions {
+  title?: string;
+  duration?: number;
+}
+
 export interface ToastMessage {
   id: string;
   message: string;
   type: ToastType;
+  title?: string;
+  duration?: number;
 }
 
 interface ToastState {
   toasts: ToastMessage[];
-  addToast: (message: string, type?: ToastType) => void;
+  addToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
   removeToast: (id: string) => void;
   // Convenience methods
-  success: (message: string) => void;
-  error: (message: string) => void;
-  info: (message: string) => void;
-  warning: (message: string) => void;
+  success: (message: string, options?: ToastOptions) => void;
+  error: (message: string, options?: ToastOptions) => void;
+  info: (message: string, options?: ToastOptions) => void;
+  warning: (message: string, options?: ToastOptions) => void;
 }
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  addToast: (message, type = 'info') => {
+  addToast: (message, type = 'info', options) => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({
-      toasts: [...state.toasts, { id, message, type }],
+      toasts: [
+        ...state.toasts,
+        {
+          id,
+          message,
+          type,
+          title: options?.title,
+          duration: options?.duration ?? 4000,
+        },
+      ],
     }));
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-      set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id),
-      }));
-    }, 3000);
   },
   removeToast: (id) =>
     set((state) => ({
       toasts: state.toasts.filter((t) => t.id !== id),
     })),
-  success: (message) => get().addToast(message, 'success'),
-  error: (message) => get().addToast(message, 'error'),
-  info: (message) => get().addToast(message, 'info'),
-  warning: (message) => get().addToast(message, 'warning'),
+  success: (message, options) => get().addToast(message, 'success', options),
+  error: (message, options) => get().addToast(message, 'error', options),
+  info: (message, options) => get().addToast(message, 'info', options),
+  warning: (message, options) => get().addToast(message, 'warning', options),
 }));
 
 // Export a singleton helper for usage outside React components (e.g. inside API interceptors)
 export const toast = {
-  success: (message: string) => useToastStore.getState().success(message),
-  error: (message: string) => useToastStore.getState().error(message),
-  info: (message: string) => useToastStore.getState().info(message),
-  warning: (message: string) => useToastStore.getState().warning(message),
+  success: (message: string, options?: ToastOptions) =>
+    useToastStore.getState().success(message, options),
+  error: (message: string, options?: ToastOptions) =>
+    useToastStore.getState().error(message, options),
+  info: (message: string, options?: ToastOptions) =>
+    useToastStore.getState().info(message, options),
+  warning: (message: string, options?: ToastOptions) =>
+    useToastStore.getState().warning(message, options),
 };

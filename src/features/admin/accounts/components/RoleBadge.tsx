@@ -29,6 +29,7 @@ function getRoleBadgeStyles(role: AccountRole): React.CSSProperties {
         backgroundColor: 'rgba(162, 235, 210, 0.35)',
         color: '#06261D',
       };
+    case 'vendor':
     case 'vendor_staff':
     case 'coordinator':
     case 'vendor_manager':

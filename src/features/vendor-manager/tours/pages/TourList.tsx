@@ -20,7 +20,7 @@ import { useVendorTourMutations } from '@/features/vendor-tours/hooks/useVendorT
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import type { ApiDifficulty, ApiStatus, VendorTourListItem } from '@/features/vendor-tours/types';
 import { useDebounce } from '@/shared/hooks';
-import { AppButton, PortalFilterBar, PortalPageHeader } from '@/shared/ui';
+import { AppButton, PortalFilterBar, PortalFilterSelect, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
@@ -38,18 +38,10 @@ const REVERT_STATUS_LABELS: Partial<Record<ApiStatus, string>> = {
 };
 
 const DIFFICULTY_OPTIONS: Array<{ value: ApiDifficulty | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
+  { value: '', label: 'Tất cả độ khó' },
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-];
-
-const STATUS_OPTIONS: Array<{ value: ApiStatus | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
-  { value: 'PENDING_APPROVAL', label: 'Đang chờ duyệt' },
-  { value: 'APPROVED', label: 'Đã duyệt' },
-  { value: 'REJECTED', label: 'Bị từ chối' },
-  { value: 'HIDDEN', label: 'Đã ẩn' },
 ];
 
 export default function TourList() {
@@ -92,6 +84,17 @@ export default function TourList() {
   const tours = hasClientFilter
     ? filteredTours.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
     : filteredTours;
+
+  const statusTabs = useMemo(
+    () => [
+      { key: '', label: 'Tất cả', count: stats?.total },
+      { key: 'PENDING_APPROVAL', label: 'Chờ duyệt', count: stats?.pendingApproval },
+      { key: 'APPROVED', label: 'Đã duyệt', count: stats?.approved },
+      { key: 'REJECTED', label: 'Bị từ chối', count: stats?.rejected },
+      { key: 'HIDDEN', label: 'Đã ẩn' },
+    ],
+    [stats]
+  );
 
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
@@ -158,42 +161,20 @@ export default function TourList() {
       />
 
       <PortalFilterBar
+        tabs={statusTabs}
+        activeTab={status}
+        onTabChange={(tab) => setStatus(tab as ApiStatus | '')}
         searchPlaceholder="Lọc theo tên tour..."
         searchValue={nameFilter}
         onSearchChange={setNameFilter}
         onSearchClear={() => setNameFilter('')}
         filters={
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
-              Độ khó:
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as ApiDifficulty | '')}
-                className="rounded-xl border border-[#E5E4DE] px-3 py-2 text-sm font-semibold bg-white text-[#06261D] focus:outline-none"
-              >
-                {DIFFICULTY_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex items-center gap-2 text-xs font-bold uppercase text-zinc-500">
-              Trạng thái:
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as ApiStatus | '')}
-                className="rounded-xl border border-[#E5E4DE] px-3 py-2 text-sm font-semibold bg-white text-[#06261D] focus:outline-none"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <PortalFilterSelect
+            label="Độ khó"
+            value={difficulty}
+            onChange={(val) => setDifficulty(val as ApiDifficulty | '')}
+            options={DIFFICULTY_OPTIONS}
+          />
         }
       />
 

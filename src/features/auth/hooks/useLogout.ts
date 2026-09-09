@@ -47,7 +47,7 @@ interface UseLogoutReturn {
  * kẹt lại ở màn admin là UX tệ.
  */
 export function useLogout(options: UseLogoutOptions = {}): UseLogoutReturn {
-  const { redirectTo = PATHS.LOGIN, callApi = true } = options;
+  const { redirectTo = PATHS.HOME, callApi = true } = options;
   const navigate = useNavigate();
   const setUser = useAppStore((state) => state.setUser);
 

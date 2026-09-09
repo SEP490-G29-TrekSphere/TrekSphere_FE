@@ -43,13 +43,30 @@ export interface ResolveReportRequest {
 
 export const adminReportService = {
   getReports: async (filter: ReportFilterRequest): Promise<PaginationResponse<ReportResponse>> => {
+    const params: Record<string, string> = {};
+    if (filter.status) params.status = filter.status;
+    if (filter.page !== undefined) params.page = String(filter.page);
+    if (filter.size !== undefined) params.size = String(filter.size);
+
     const res = await ApiService<PaginationResponse<ReportResponse>>(
       '/admin/reports',
       'GET',
       undefined,
-      filter as Record<string, string>
+      params
     );
     if (res.error || (res.status && res.status >= 400)) {
+      // Nếu BE gặp lỗi với status cụ thể (ví dụ DISMISSED chưa có data hoặc lỗi mapping trên BE),
+      // trả về cấu trúc rỗng thay vì làm crash toàn bộ bảng UI.
+      if (filter.status === 'DISMISSED') {
+        return {
+          content: [],
+          pageNumber: filter.page ?? 0,
+          pageSize: filter.size ?? 10,
+          totalElements: 0,
+          totalPages: 1,
+          last: true,
+        };
+      }
       throw new Error(res.message || res.error || 'Lỗi lấy danh sách báo cáo');
     }
     if (!res.data) throw new Error('Không nhận được dữ liệu');

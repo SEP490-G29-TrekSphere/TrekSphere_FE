@@ -83,28 +83,40 @@ export const PATHS = {
   ADMIN_EMERGENCY: '/admin/emergency',
   ADMIN_CHAT: '/admin/chat',
 
-  // Vendor Manager (TrekManager portal)
-  VENDOR_MANAGER: '/vendor-manager',
-  VENDOR_MANAGER_PROFILE: '/vendor-manager/profile',
-  VENDOR_MANAGER_PROFILE_EDIT: '/vendor-manager/profile/edit',
-  VENDOR_MANAGER_STAFF: '/vendor-manager/staff',
-  VENDOR_MANAGER_TOURS: '/vendor-manager/tours',
-  VENDOR_MANAGER_TOUR_CREATE: '/vendor-manager/tours/new',
-  VENDOR_MANAGER_TOUR_EDIT: '/vendor-manager/tours/:id/edit',
-  VENDOR_MANAGER_TOUR_APPROVALS: '/vendor-manager/tours/approvals',
-  VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor-manager/tours/:id/schedules',
-  VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
-  VENDOR_MANAGER_CHAT: '/vendor-manager/chat',
+  // Vendor portal (unified)
+  VENDOR: '/vendor',
+  VENDOR_PROFILE: '/vendor/profile',
+  VENDOR_PROFILE_EDIT: '/vendor/profile/edit',
+  VENDOR_TOURS: '/vendor/tours',
+  VENDOR_TOUR_CREATE: '/vendor/tours/new',
+  VENDOR_TOUR_EDIT: '/vendor/tours/:id/edit',
+  VENDOR_TOUR_APPROVALS: '/vendor/tours/approvals',
+  VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  VENDOR_BLOG_CREATE: '/vendor/blog/create',
+  VENDOR_CHAT: '/vendor/chat',
 
-  // Vendor Staff (TrekPartner portal)
+  // Vendor Manager (Legacy - redirected to /vendor)
+  VENDOR_MANAGER: '/vendor-manager',
+  VENDOR_MANAGER_PROFILE: '/vendor/profile',
+  VENDOR_MANAGER_PROFILE_EDIT: '/vendor/profile/edit',
+  VENDOR_MANAGER_STAFF: '/vendor/staff',
+  VENDOR_MANAGER_TOURS: '/vendor/tours',
+  VENDOR_MANAGER_TOUR_CREATE: '/vendor/tours/new',
+  VENDOR_MANAGER_TOUR_EDIT: '/vendor/tours/:id/edit',
+  VENDOR_MANAGER_TOUR_APPROVALS: '/vendor/tours/approvals',
+  VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  VENDOR_MANAGER_EMERGENCY: '/vendor/emergency',
+  VENDOR_MANAGER_CHAT: '/vendor/chat',
+
+  // Vendor Staff (Legacy - redirected to /vendor)
   PARTNER: '/partner',
-  PARTNER_PROFILE: '/partner/profile',
-  PARTNER_TOURS: '/partner/tours',
-  PARTNER_TOUR_CREATE: '/partner/tours/new',
-  PARTNER_TOUR_EDIT: '/partner/tours/:id/edit',
-  PARTNER_TOUR_SCHEDULES: '/partner/tours/:id/schedules',
-  PARTNER_BLOG_CREATE: '/partner/blog/create',
-  PARTNER_CHAT: '/partner/chat',
+  PARTNER_PROFILE: '/vendor/profile',
+  PARTNER_TOURS: '/vendor/tours',
+  PARTNER_TOUR_CREATE: '/vendor/tours/new',
+  PARTNER_TOUR_EDIT: '/vendor/tours/:id/edit',
+  PARTNER_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  PARTNER_BLOG_CREATE: '/vendor/blog/create',
+  PARTNER_CHAT: '/vendor/chat',
 
   // Admin — Blog moderation
   ADMIN_BLOGS: '/admin/blogs',
@@ -115,13 +127,16 @@ export type AppPath = (typeof PATHS)[keyof typeof PATHS];
 export const getGroupDetailPath = (groupId: string) =>
   PATHS.GROUPS_DETAIL.replace(':groupId', groupId);
 export const getGroupJoinPath = (groupId: string) => PATHS.GROUPS_JOIN.replace(':groupId', groupId);
+export const getVendorTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
 export const getVendorManagerTourEditPath = (id: string) =>
-  PATHS.VENDOR_MANAGER_TOUR_EDIT.replace(':id', id);
-export const getPartnerTourEditPath = (id: string) => PATHS.PARTNER_TOUR_EDIT.replace(':id', id);
+  PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getPartnerTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getVendorTourSchedulesPath = (id: string) =>
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getVendorManagerTourSchedulesPath = (id: string) =>
-  PATHS.VENDOR_MANAGER_TOUR_SCHEDULES.replace(':id', id);
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getPartnerTourSchedulesPath = (id: string) =>
-  PATHS.PARTNER_TOUR_SCHEDULES.replace(':id', id);
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
 export const getUserProfilePath = (userId: string) => PATHS.USER_PROFILE.replace(':userId', userId);
 export const getTrekkerBlogEditPath = (blogId: string) =>

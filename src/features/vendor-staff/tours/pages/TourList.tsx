@@ -1,4 +1,3 @@
-import { Filter } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPartnerTourEditPath, getPartnerTourSchedulesPath, PATHS } from '@/constants';
@@ -14,6 +13,7 @@ import { useVendorTourMutations } from '@/features/vendor-tours/hooks/useVendorT
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import type { ApiDifficulty, ApiStatus, VendorTourListItem } from '@/features/vendor-tours/types';
 import { useDebounce } from '@/shared/hooks';
+import { AppButton, PortalFilterBar, PortalFilterSelect, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
@@ -25,19 +25,10 @@ const PAGE_SIZE = 10;
 const CLIENT_FILTER_SAMPLE_SIZE = 200;
 
 const DIFFICULTY_OPTIONS: Array<{ value: ApiDifficulty | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
+  { value: '', label: 'Tất cả độ khó' },
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-];
-
-const STATUS_OPTIONS: Array<{ value: ApiStatus | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
-  { value: 'DRAFT', label: 'Bản nháp' },
-  { value: 'PENDING_APPROVAL', label: 'Đang chờ duyệt' },
-  { value: 'APPROVED', label: 'Đã duyệt' },
-  { value: 'REJECTED', label: 'Bị từ chối' },
-  { value: 'HIDDEN', label: 'Đã ẩn' },
 ];
 
 export default function TourList() {
@@ -79,6 +70,18 @@ export default function TourList() {
     ? filteredTours.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
     : filteredTours;
 
+  const statusTabs = useMemo(
+    () => [
+      { key: '', label: 'Tất cả', count: stats?.total },
+      { key: 'DRAFT', label: 'Bản nháp' },
+      { key: 'PENDING_APPROVAL', label: 'Chờ duyệt', count: stats?.pendingApproval },
+      { key: 'APPROVED', label: 'Đã duyệt', count: stats?.approved },
+      { key: 'REJECTED', label: 'Bị từ chối', count: stats?.rejected },
+      { key: 'HIDDEN', label: 'Đã ẩn' },
+    ],
+    [stats]
+  );
+
   const handleSubmitApprovalConfirm = () => {
     if (!submitApprovalTarget) return;
     submitTourForApproval.mutate(submitApprovalTarget.id, {
@@ -105,86 +108,36 @@ export default function TourList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2
-            className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-            style={{ color: '#06261D' }}
+      <PortalPageHeader
+        title="Danh sách Tour"
+        description="Quản lý các chương trình tour khám phá, kiểm duyệt và cập nhật lịch trình"
+        actions={
+          <AppButton
+            onClick={() => navigate(PATHS.PARTNER_TOUR_CREATE)}
+            className="rounded-full px-5 py-2.5 text-sm font-semibold text-white bg-[#06261D] hover:bg-[#08241C] shadow-sm"
           >
-            Danh sách Tour
-          </h2>
-        </div>
+            + Thêm tour mới
+          </AppButton>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={() => navigate(PATHS.PARTNER_TOUR_CREATE)}
-          className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
-          style={{ backgroundColor: '#06261D' }}
-        >
-          + Thêm tour mới
-        </button>
-      </div>
-
-      <div
-        className="flex flex-col md:flex-row md:items-center gap-4 rounded-3xl px-6 py-4"
-        style={{ backgroundColor: '#F0EEE6' }}
-      >
-        <div className="relative flex-1">
-          <span
-            className="absolute inset-y-0 left-4 flex items-center"
-            style={{ color: '#6F7B75' }}
-          >
-            <Filter className="h-4 w-4" />
-          </span>
-          <input
-            type="text"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Lọc theo tên tour..."
-            aria-label="Lọc theo tên tour"
-            className="w-full rounded-full border-none py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-1"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          />
-        </div>
-
-        <label
-          className="flex items-center gap-2 text-xs font-bold uppercase"
-          style={{ color: '#6F7B75' }}
-        >
-          Độ khó:
-          <select
+      <PortalFilterBar
+        tabs={statusTabs}
+        activeTab={status}
+        onTabChange={(tab) => setStatus(tab as ApiStatus | '')}
+        searchPlaceholder="Lọc theo tên tour..."
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        onSearchClear={() => setNameFilter('')}
+        filters={
+          <PortalFilterSelect
+            label="Độ khó"
             value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as ApiDifficulty | '')}
-            className="rounded-full border-none px-4 py-2 text-sm font-semibold focus:outline-none"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          >
-            {DIFFICULTY_OPTIONS.map((opt) => (
-              <option key={opt.value || 'all'} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label
-          className="flex items-center gap-2 text-xs font-bold uppercase"
-          style={{ color: '#6F7B75' }}
-        >
-          Trạng thái:
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ApiStatus | '')}
-            className="rounded-full border-none px-4 py-2 text-sm font-semibold focus:outline-none"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value || 'all'} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+            onChange={(val) => setDifficulty(val as ApiDifficulty | '')}
+            options={DIFFICULTY_OPTIONS}
+          />
+        }
+      />
 
       <div
         className="overflow-hidden rounded-3xl bg-white shadow-sm"
