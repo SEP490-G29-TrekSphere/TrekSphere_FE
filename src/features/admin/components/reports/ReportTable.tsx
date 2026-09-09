@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { PortalStatusBadge } from '@/shared/ui';
 import type { ReportResponse, ReportTargetType } from '../../services/adminReportService';
-import { ReportFilterTabs } from './ReportFilterTabs';
 
 export interface ReportTableProps {
   reports: ReportResponse[];
@@ -12,8 +11,8 @@ export interface ReportTableProps {
   page: number;
   totalPages: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  activeTab: 'all' | 'pending' | 'resolved' | 'dismissed';
-  setActiveTab: (tab: 'all' | 'pending' | 'resolved' | 'dismissed') => void;
+  activeTab?: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED';
+  setActiveTab?: (tab: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED') => void;
   isFetching?: boolean;
 }
 
@@ -23,8 +22,6 @@ export function ReportTable({
   page,
   totalPages,
   setPage,
-  activeTab,
-  setActiveTab,
   isFetching = false,
 }: ReportTableProps) {
   const getItemIcon = (type: ReportTargetType) => {
@@ -55,22 +52,6 @@ export function ReportTable({
 
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl shadow-sm overflow-hidden">
-      {/* Table Toolbar */}
-      <div className="p-5 border-b border-[#E5E4DE] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold tracking-wide uppercase text-zinc-700">
-            DANH SÁCH BÁO CÁO
-          </h2>
-          <span className="px-2 py-0.5 text-xs font-semibold bg-zinc-200 text-zinc-700 rounded-full">
-            {totalElements}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <ReportFilterTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-      </div>
-
       {/* Table Content */}
       <div className="overflow-x-auto relative min-h-[200px]">
         {/* Loading Overlay */}

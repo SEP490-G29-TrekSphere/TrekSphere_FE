@@ -13,6 +13,7 @@
 export const ROLES = {
   GUEST: 'guest',
   TREKKER: 'trekker',
+  VENDOR: 'vendor',
   VENDOR_STAFF: 'vendor_staff',
   VENDOR_MANAGER: 'vendor_manager',
   ADMIN: 'admin',
@@ -30,8 +31,9 @@ import { PATHS } from './paths';
 export const ROLE_PROTECTED_ROUTES: Record<Role, readonly string[]> = {
   [ROLES.GUEST]: [],
   [ROLES.TREKKER]: ['/trekker', '/dashboard', '/blog'],
-  [ROLES.VENDOR_STAFF]: ['/partner'],
-  [ROLES.VENDOR_MANAGER]: ['/vendor-manager'],
+  [ROLES.VENDOR]: ['/vendor', '/vendor-manager', '/partner'],
+  [ROLES.VENDOR_STAFF]: ['/vendor', '/partner'],
+  [ROLES.VENDOR_MANAGER]: ['/vendor', '/vendor-manager'],
   [ROLES.ADMIN]: ['/admin'],
   [ROLES.COORDINATOR]: [],
 };
@@ -48,12 +50,8 @@ export function canAccessPath(role: Role | null, pathname: string): boolean {
 /**
  * Chuẩn hoá role string từ BE về lowercase để so khớp với `ROLES`.
  *
- * BE `POST /auth/login` trả `roles: ["ADMIN"]` — uppercase. `RequireRole`
- * và `ROLES` đều lowercase (`ROLES.ADMIN = 'admin'`), nên cần lowercase trước
- * khi so sánh.
- *
- * Trả về `[]` (không fallback) nếu không đọc được `roles` array — để caller
- * tự quyết định, tránh mask bug "BE thiếu role".
+ * BE `POST /auth/login` trả `roles: ["ADMIN"]` hoặc `["VENDOR"]` hoặc `["ROLE_VENDOR"]`.
+ * Loại bỏ prefix `role_` nếu có và map các role cũ `vendor_manager`/`vendor_staff` về `vendor`.
  */
 export function extractRoles(input: unknown): string[] {
   if (!input || typeof input !== 'object') return [];
@@ -71,17 +69,26 @@ export function normalizeRoleList(roles: unknown): string[] {
 
   return roles
     .filter((r): r is string => typeof r === 'string' && r.trim().length > 0)
-    .map((r) => r.trim().toLowerCase());
+    .map((r) => {
+      let clean = r.trim().toLowerCase();
+      if (clean.startsWith('role_')) {
+        clean = clean.replace('role_', '');
+      }
+      if (clean === 'vendor_manager' || clean === 'vendor_staff') {
+        return ROLES.VENDOR;
+      }
+      return clean;
+    });
 }
 
 /**
  * Thứ tự ưu tiên role khi 1 user có nhiều role cùng lúc (vd: vừa là trekker
- * vừa được cấp thêm vendor_manager). Dùng chung cho `getPostLoginRoute` và
- * `RequireRole` để đảm bảo nhất quán — KHÔNG được suy ra role chính từ
- * `roles[0]` vì thứ tự mảng do BE trả về không đảm bảo.
+ * vừa là vendor). Dùng chung cho `getPostLoginRoute` và
+ * `RequireRole` để đảm bảo nhất quán.
  */
 const ROLE_PRIORITY: readonly Role[] = [
   ROLES.ADMIN,
+  ROLES.VENDOR,
   ROLES.VENDOR_MANAGER,
   ROLES.VENDOR_STAFF,
   ROLES.COORDINATOR,
@@ -106,10 +113,10 @@ export function getRoleDashboardPath(roles: string[] | undefined | null): string
   switch (getPrimaryRole(roles)) {
     case ROLES.ADMIN:
       return PATHS.ADMIN_ACCOUNTS;
+    case ROLES.VENDOR:
     case ROLES.VENDOR_MANAGER:
-      return PATHS.VENDOR_MANAGER;
     case ROLES.VENDOR_STAFF:
-      return PATHS.PARTNER;
+      return PATHS.VENDOR;
     case ROLES.TREKKER:
       return PATHS.TREKKER;
     default:
@@ -120,13 +127,10 @@ export function getRoleDashboardPath(roles: string[] | undefined | null): string
 /**
  * Trả về trang đích sau login dựa trên role của user.
  *
- * Ưu tiên theo thứ tự: admin → vendor_manager → vendor_staff → coordinator →
- * trekker. Nếu không nhận diện được role nào, fallback về trang chủ.
+ * Ưu tiên theo thứ tự: admin → vendor → coordinator → trekker.
+ * Nếu không nhận diện được role nào, fallback về trang chủ.
  *
- * Riêng TREKKER: về thẳng trang chủ chứ KHÔNG vào `/trekker`. Trekker là người
- * dùng cuối — sau khi đăng nhập họ cần duyệt tour/nhóm/bài viết ở trang public
- * trước. Portal `/trekker` vẫn truy cập được qua mục "Bảng điều khiển" trong
- * menu avatar (`getRoleDashboardPath`).
+ * Riêng TREKKER: về thẳng trang chủ chứ KHÔNG vào `/trekker`.
  */
 export function getPostLoginRoute(roles: string[]): string {
   if (getPrimaryRole(roles) === ROLES.TREKKER) return PATHS.HOME;
@@ -140,10 +144,10 @@ export function getRoleChatPath(roles: string[] | undefined | null): string {
   switch (getPrimaryRole(roles)) {
     case ROLES.ADMIN:
       return PATHS.ADMIN_CHAT;
+    case ROLES.VENDOR:
     case ROLES.VENDOR_MANAGER:
-      return PATHS.VENDOR_MANAGER_CHAT;
     case ROLES.VENDOR_STAFF:
-      return PATHS.PARTNER_CHAT;
+      return PATHS.VENDOR_CHAT;
     default:
       return PATHS.TREKKER_CHAT;
   }

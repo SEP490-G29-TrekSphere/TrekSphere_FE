@@ -13,6 +13,7 @@ import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
+import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
@@ -53,7 +54,7 @@ const navItems = [
 export default function TrekkerLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
   const isChatPage = location.pathname === PATHS.TREKKER_CHAT;
 
   const userName = user?.name || 'Trekker';
@@ -72,18 +73,14 @@ export default function TrekkerLayout() {
       fullBleed={isChatPage}
       brand={({ collapsed }) =>
         collapsed ? (
-          <Link
+          <AppLogo
+            variant="mark"
+            tone="dark"
+            height={36}
             to={PATHS.HOME}
-            className="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
-            title="TrekSphere - Khách Du Lịch"
-          >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-base font-black shadow-xs tracking-tight"
-              style={{ backgroundColor: '#06261D', color: '#A2EBD2' }}
-            >
-              TS
-            </div>
-          </Link>
+            ariaLabel="TrekSphere - Khách Du Lịch"
+            wrapperClassName="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
+          />
         ) : (
           <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
             <h1

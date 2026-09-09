@@ -4,6 +4,7 @@ import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
+import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 /**
@@ -20,7 +21,7 @@ const navItems = [
 export default function VendorStaffLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
 
   const staffName = user?.name || 'Vendor Staff';
   const staffInitial = staffName.charAt(0).toUpperCase();
@@ -34,18 +35,14 @@ export default function VendorStaffLayout() {
       fullBleed={isChatPage}
       brand={({ collapsed }) =>
         collapsed ? (
-          <Link
+          <AppLogo
+            variant="mark"
+            tone="dark"
+            height={36}
             to={PATHS.HOME}
-            className="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
-            title="TrekSphere - Nhân Viên Nhà Cung Cấp"
-          >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-base font-black shadow-xs tracking-tight"
-              style={{ backgroundColor: '#06261D', color: '#A2EBD2' }}
-            >
-              VS
-            </div>
-          </Link>
+            ariaLabel="TrekSphere - Nhân Viên Nhà Cung Cấp"
+            wrapperClassName="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
+          />
         ) : (
           <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
             <h1

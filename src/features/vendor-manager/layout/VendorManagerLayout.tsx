@@ -4,43 +4,40 @@ import {
   LogOut,
   Map as MapIcon,
   MessageSquare,
-  Siren,
-  UserRound,
-  Users,
+  PenSquare,
 } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
+import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
-  { name: 'Tổng quan', path: PATHS.VENDOR_MANAGER_PROFILE, icon: LayoutGrid, disabled: false },
-  { name: 'Nhân viên', path: PATHS.VENDOR_MANAGER_STAFF, icon: Users, disabled: false },
-  { name: 'Tour', path: PATHS.VENDOR_MANAGER_TOURS, icon: MapIcon, disabled: false },
+  { name: 'Tổng quan', path: PATHS.VENDOR_PROFILE, icon: LayoutGrid, disabled: false },
+  { name: 'Tour', path: PATHS.VENDOR_TOURS, icon: MapIcon, disabled: false },
   {
     name: 'Duyệt tour',
-    path: PATHS.VENDOR_MANAGER_TOUR_APPROVALS,
+    path: PATHS.VENDOR_TOUR_APPROVALS,
     icon: ClipboardCheck,
     disabled: false,
   },
-  { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
-  { name: 'Khẩn cấp (SOS)', path: PATHS.VENDOR_MANAGER_EMERGENCY, icon: Siren, disabled: false },
-  { name: 'Trò chuyện', path: PATHS.VENDOR_MANAGER_CHAT, icon: MessageSquare, disabled: false },
+  { name: 'Viết Blog', path: PATHS.VENDOR_BLOG_CREATE, icon: PenSquare, disabled: false },
+  { name: 'Trò chuyện', path: PATHS.VENDOR_CHAT, icon: MessageSquare, disabled: false },
 ];
 
 export default function VendorManagerLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
-  const isChatPage = location.pathname === PATHS.VENDOR_MANAGER_CHAT;
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
+  const isChatPage = location.pathname === PATHS.VENDOR_CHAT;
 
-  const vendorName = user?.name || 'Vendor Manager';
+  const vendorName = user?.name || 'Nhà Cung Cấp';
   const vendorInitial = vendorName.charAt(0).toUpperCase();
 
   // Nhiều mục có thể cùng khớp prefix (vd "Tour" và "Duyệt tour" đều bắt đầu bằng
-  // "/vendor-manager/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
+  // "/vendor/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
   const activeItem = navItems
     .filter((item) => !item.disabled && location.pathname.startsWith(item.path))
     .sort((a, b) => b.path.length - a.path.length)[0];
@@ -53,18 +50,14 @@ export default function VendorManagerLayout() {
       fullBleed={isChatPage}
       brand={({ collapsed }) =>
         collapsed ? (
-          <Link
+          <AppLogo
+            variant="mark"
+            tone="dark"
+            height={36}
             to={PATHS.HOME}
-            className="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
-            title="TrekSphere - Quản Lý Nhà Cung Cấp"
-          >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-base font-black shadow-xs tracking-tight"
-              style={{ backgroundColor: '#06261D', color: '#A2EBD2' }}
-            >
-              VM
-            </div>
-          </Link>
+            ariaLabel="TrekSphere - Nhà Cung Cấp"
+            wrapperClassName="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
+          />
         ) : (
           <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
             <h1
@@ -74,7 +67,7 @@ export default function VendorManagerLayout() {
               TrekSphere
             </h1>
             <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
-              QUẢN LÝ NHÀ CUNG CẤP
+              NHÀ CUNG CẤP
             </span>
           </Link>
         )
@@ -133,7 +126,7 @@ export default function VendorManagerLayout() {
                 >
                   {vendorName}
                 </span>
-                <span className="text-xs text-[#6F7B75]">Quản Lý Nhà Cung Cấp</span>
+                <span className="text-xs text-[#6F7B75]">Nhà Cung Cấp</span>
               </div>
             </div>
 
