@@ -59,7 +59,7 @@ export default function VendorProfileEdit() {
       {
         onSuccess: () => {
           toast.success('Cập nhật hồ sơ thành công!');
-          navigate(PATHS.VENDOR_MANAGER_PROFILE);
+          navigate(PATHS.VENDOR_PROFILE);
         },
         onError: (err) => {
           toast.error(err instanceof Error ? err.message : 'Cập nhật thất bại. Vui lòng thử lại.');
@@ -115,7 +115,7 @@ export default function VendorProfileEdit() {
       <div className="flex items-center justify-end gap-3 pb-6">
         <button
           type="button"
-          onClick={() => navigate(PATHS.VENDOR_MANAGER_PROFILE)}
+          onClick={() => navigate(PATHS.VENDOR_PROFILE)}
           className="rounded-full px-6 py-2.5 text-sm font-semibold transition-colors"
           style={{ backgroundColor: '#FFFFFF', border: '1px solid #C5C0B0', color: '#6F7B75' }}
         >

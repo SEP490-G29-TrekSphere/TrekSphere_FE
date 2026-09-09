@@ -20,7 +20,6 @@ import type { ApplicationStatus } from '../services/vendorApplicationService';
 export default function Applications() {
   const [activeTab, setActiveTab] = useState<ApplicationStatus | 'ALL'>('ALL');
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [appliedKeyword, setAppliedKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(0); // 0-based page number cho BE API
   const pageSize = 10;
 
@@ -33,7 +32,7 @@ export default function Applications() {
     refetch,
   } = useVendorApplications({
     status: activeTab,
-    keyword: appliedKeyword,
+    keyword: searchKeyword,
     page: currentPage,
     size: pageSize,
     sortBy: 'createdAt',
@@ -42,12 +41,6 @@ export default function Applications() {
 
   // Lấy dữ liệu thống kê
   const { data: statsData } = useVendorApplicationStats();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAppliedKeyword(searchKeyword);
-    setCurrentPage(0);
-  };
 
   const handleTabChange = (status: ApplicationStatus | 'ALL') => {
     setActiveTab(status);
@@ -96,11 +89,12 @@ export default function Applications() {
         onTabChange={handleTabChange}
         searchPlaceholder="Tìm tên công ty, email..."
         searchValue={searchKeyword}
-        onSearchChange={setSearchKeyword}
-        onSearchSubmit={handleSearch}
+        onSearchChange={(val) => {
+          setSearchKeyword(val);
+          setCurrentPage(0);
+        }}
         onSearchClear={() => {
           setSearchKeyword('');
-          setAppliedKeyword('');
           setCurrentPage(0);
         }}
       />

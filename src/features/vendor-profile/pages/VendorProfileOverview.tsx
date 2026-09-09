@@ -14,7 +14,8 @@ import { useVendorProfile } from '../hooks/useVendorProfile';
  */
 export default function VendorProfileOverview() {
   const user = useAppStore((state) => state.user);
-  const isManager = getPrimaryRole(user?.roles) === ROLES.VENDOR_MANAGER;
+  const primaryRole = getPrimaryRole(user?.roles);
+  const canManage = primaryRole === ROLES.VENDOR || primaryRole === ROLES.VENDOR_MANAGER;
 
   const { data: profile, isLoading, isError, error } = useVendorProfile();
   const { data: tourStats } = useVendorTourStats();
@@ -40,8 +41,8 @@ export default function VendorProfileOverview() {
     <div className="space-y-5">
       <VendorProfileHeroCard
         profile={profile}
-        isManager={isManager}
-        editPath={PATHS.VENDOR_MANAGER_PROFILE_EDIT}
+        isManager={canManage}
+        editPath={PATHS.VENDOR_PROFILE_EDIT}
       />
 
       {/* KPI */}
@@ -54,7 +55,7 @@ export default function VendorProfileOverview() {
       </div>
 
       {/* Chính sách hủy tour — full width vì có danh sách điều khoản + thao tác CRUD */}
-      <VendorCancellationPolicyCard canManage={isManager} />
+      <VendorCancellationPolicyCard canManage={canManage} />
     </div>
   );
 }

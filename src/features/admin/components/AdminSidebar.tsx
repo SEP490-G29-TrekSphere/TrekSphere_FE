@@ -33,7 +33,7 @@ export default function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
-  const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
