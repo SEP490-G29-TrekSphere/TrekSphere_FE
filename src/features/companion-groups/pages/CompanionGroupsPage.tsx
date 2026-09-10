@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getGroupDetailPath, getGroupJoinPath, PATHS } from '@/constants';
+import {
+  getGroupDetailPath,
+  getGroupJoinPath,
+  getTrekkerGroupDetailPath,
+  PATHS,
+} from '@/constants';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAppStore } from '@/store/useAppStore';
@@ -42,6 +47,9 @@ export default function CompanionGroupsPage() {
   const [availableSlotsOnly, setAvailableSlotsOnly] = useState(
     () => searchParams.get('slots') === 'true'
   );
+  const [hideJoinedGroups, setHideJoinedGroups] = useState(
+    () => searchParams.get('hideJoined') === 'true'
+  );
   const [sortKey, setSortKey] = useState(
     () => searchParams.get('sort') || MATCHING_GROUP_DEFAULT_SORT
   );
@@ -57,6 +65,7 @@ export default function CompanionGroupsPage() {
     if (selectedDate) params.set('date', selectedDate);
     if (statusFilter && statusFilter !== 'ALL') params.set('status', statusFilter);
     if (availableSlotsOnly) params.set('slots', 'true');
+    if (hideJoinedGroups) params.set('hideJoined', 'true');
     if (sortKey && sortKey !== MATCHING_GROUP_DEFAULT_SORT) params.set('sort', sortKey);
     if (page > 0) params.set('page', String(page));
 
@@ -67,6 +76,7 @@ export default function CompanionGroupsPage() {
     selectedDate,
     statusFilter,
     availableSlotsOnly,
+    hideJoinedGroups,
     sortKey,
     page,
     setSearchParams,
@@ -103,13 +113,26 @@ export default function CompanionGroupsPage() {
   });
   const { tours } = useTours({ size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE });
   const matchingGroups = data?.content ?? [];
-  const filteredGroups = useMemo(
-    () =>
+  const filteredGroups = useMemo(() => {
+    let result =
       statusFilter === 'ALL'
         ? matchingGroups
-        : matchingGroups.filter((group) => group.status === statusFilter),
-    [matchingGroups, statusFilter]
-  );
+        : matchingGroups.filter((group) => group.status === statusFilter);
+
+    if (hideJoinedGroups && !isGuest) {
+      result = result.filter((group) => {
+        const isLeader = Boolean(
+          user && (group.ownerId === user.id || group.isOwner || group.myRole === 'LEADER')
+        );
+        const isMember = Boolean(
+          group.myRole === 'MEMBER' || joinedGroupIds.has(group.matchingGroupId)
+        );
+        return !isLeader && !isMember;
+      });
+    }
+
+    return result;
+  }, [matchingGroups, statusFilter, hideJoinedGroups, isGuest, user, joinedGroupIds]);
 
   function resetFilters() {
     setSearchQuery('');
@@ -117,6 +140,7 @@ export default function CompanionGroupsPage() {
     setSelectedDate('');
     setStatusFilter('ALL');
     setAvailableSlotsOnly(false);
+    setHideJoinedGroups(false);
     setSortKey(MATCHING_GROUP_DEFAULT_SORT);
     setPage(0);
   }
@@ -149,6 +173,8 @@ export default function CompanionGroupsPage() {
               selectedDate={selectedDate}
               statusFilter={statusFilter}
               availableSlotsOnly={availableSlotsOnly}
+              hideJoinedGroups={hideJoinedGroups}
+              isGuest={isGuest}
               onTourChange={(value) => {
                 setSelectedTourId(value);
                 setPage(0);
@@ -163,6 +189,10 @@ export default function CompanionGroupsPage() {
               }}
               onAvailableSlotsChange={(value) => {
                 setAvailableSlotsOnly(value);
+                setPage(0);
+              }}
+              onHideJoinedGroupsChange={(value) => {
+                setHideJoinedGroups(value);
                 setPage(0);
               }}
               onReset={resetFilters}
@@ -190,7 +220,18 @@ export default function CompanionGroupsPage() {
               onReset={resetFilters}
               onLogin={() => navigate(PATHS.LOGIN)}
               onJoinGroup={(group) => navigate(getGroupJoinPath(getGroupId(group)))}
-              onViewDetail={(group) => navigate(getGroupDetailPath(getGroupId(group)))}
+              onViewDetail={(group) => {
+                const vm = toMatchingGroupCardViewModel(group);
+                const isLeader = Boolean(
+                  user && (vm.ownerId === user.id || vm.isOwner || vm.myRole === 'LEADER')
+                );
+                const isMember = Boolean(vm.myRole === 'MEMBER' || joinedGroupIds.has(vm.groupId));
+                if (isLeader || isMember) {
+                  navigate(getTrekkerGroupDetailPath(vm.groupId));
+                } else {
+                  navigate(getGroupDetailPath(vm.groupId));
+                }
+              }}
             />
           </div>
         </div>

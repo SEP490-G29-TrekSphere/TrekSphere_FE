@@ -162,6 +162,11 @@ export default function CompanionGroupDetailPage({
               onCancelRequest={() => actions.setActiveModal('leave')}
               onCreateGroupChat={actions.openGroupChat}
               onEditGroup={() => setIsEditModalOpen(true)}
+              onHideGroup={actions.hideGroup}
+              onShowGroup={actions.showGroup}
+              onCloseGroup={actions.closeGroup}
+              onOpenGroup={actions.openGroup}
+              isLifecyclePending={actions.isLifecyclePending}
               acceptedMembersCount={
                 group.members.filter((member) => member.status === 'ACCEPTED').length
               }

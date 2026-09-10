@@ -1,6 +1,7 @@
-import { AlertTriangle, LogOut, UserCheck } from 'lucide-react';
+import { LogOut, UserCheck } from 'lucide-react';
 import { ConfirmActionDialog } from '@/shared/ui';
 import type { UserRoleInGroup } from '../../types';
+import { ReviewJoinRequestModal } from '../modals/ReviewJoinRequestModal';
 import type { JoinRequestAction } from './JoinRequestsCard';
 
 type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
@@ -20,7 +21,7 @@ interface GroupModalsProps {
 
   // Action Handlers
   onConfirmApprove: () => void;
-  onConfirmReject: () => void;
+  onConfirmReject: (reason?: string) => void;
   onConfirmLeaveGroup: () => void;
   onConfirmCancelJoinRequest: () => void;
   onConfirmAddBackToChat?: () => void;
@@ -28,7 +29,6 @@ interface GroupModalsProps {
 
 /**
  * Nhóm modal xác nhận của trang chi tiết nhóm ghép.
- * Tất cả dùng chung `ConfirmActionDialog` nên có sẵn click ra ngoài / Esc để đóng.
  */
 export function GroupModals({
   activeModal,
@@ -49,44 +49,19 @@ export function GroupModals({
   const closeModal = () => setActiveModal(null);
   const isPendingRequest = currentUserRole === 'pending';
 
+  const isReviewDecisionModalOpen = activeModal === 'approve' || activeModal === 'reject';
+
   return (
     <>
-      {activeModal === 'approve' && selectedRequest && (
-        <ConfirmActionDialog
-          icon={<UserCheck className="h-5 w-5" />}
-          title="Duyệt thành viên gia nhập"
-          description={
-            <>
-              Bạn có chắc chắn muốn duyệt <strong>{selectedRequest.userName}</strong> tham gia vào
-              nhóm ghép này?
-            </>
-          }
-          confirmLabel="Xác nhận duyệt"
-          pendingLabel="Đang duyệt..."
-          isPending={isApprovePending}
-          onConfirm={onConfirmApprove}
-          onCancel={closeModal}
-        />
-      )}
-
-      {activeModal === 'reject' && selectedRequest && (
-        <ConfirmActionDialog
-          variant="destructive"
-          icon={<AlertTriangle className="h-5 w-5" />}
-          title="Từ chối yêu cầu"
-          description={
-            <>
-              Từ chối <strong>{selectedRequest.userName}</strong> gia nhập nhóm? Hành động này không
-              thể hoàn tác.
-            </>
-          }
-          confirmLabel="Xác nhận từ chối"
-          pendingLabel="Đang từ chối..."
-          isPending={isRejectPending}
-          onConfirm={onConfirmReject}
-          onCancel={closeModal}
-        />
-      )}
+      <ReviewJoinRequestModal
+        isOpen={isReviewDecisionModalOpen}
+        onClose={closeModal}
+        action={activeModal === 'approve' || activeModal === 'reject' ? activeModal : null}
+        request={selectedRequest}
+        isPending={activeModal === 'approve' ? isApprovePending : isRejectPending}
+        onConfirmApprove={onConfirmApprove}
+        onConfirmReject={onConfirmReject}
+      />
 
       {activeModal === 'leave' && (
         <ConfirmActionDialog

@@ -18,6 +18,8 @@ export interface MatchingGroupCardViewModel {
   ownerAvatarUrl?: string;
   matchingDeadline?: string;
   coverImageUrl?: string;
+  isOwner?: boolean;
+  myRole?: import('../types/matchingGroup').MatchingMemberRole | null;
 }
 
 export function isMatchingGroupItem(group: MatchingGroupCardData): group is MatchingGroupItem {
@@ -42,6 +44,8 @@ export function toMatchingGroupCardViewModel(
       ownerAvatarUrl: group.ownerAvatarUrl ?? undefined,
       matchingDeadline: group.matchingDeadline,
       coverImageUrl: group.tourImageUrl ?? undefined,
+      isOwner: group.isOwner ?? false,
+      myRole: group.myRole ?? null,
     };
   }
 
@@ -61,24 +65,47 @@ export function toMatchingGroupCardViewModel(
   };
 }
 
-export function toTourMatchingGroupCreateRequest(
+export function toMatchingGroupCreateRequest(
   values: CreateTourMatchingGroupFormValues
 ): MatchingGroupCreateRequest {
   const matchingDeadline = values.matchingDeadline.includes('T')
     ? `${values.matchingDeadline}:00`
     : `${values.matchingDeadline}T00:00:00`;
 
+  const scheduledStartAt = `${values.targetDate}T08:00:00`;
+
+  if (values.sourceType === 'TOUR' && values.tourId) {
+    return {
+      sourceType: 'TOUR',
+      tourId: values.tourId,
+      groupName: values.groupName,
+      description: values.description || undefined,
+      maxSize: values.maxSize,
+      targetDate: values.targetDate,
+      matchingDeadline,
+      scheduledStartAt,
+    };
+  }
+
   return {
-    sourceType: 'TOUR',
-    tourId: values.tourId,
+    sourceType: 'CUSTOM_JOURNEY',
     groupName: values.groupName,
-    description: values.description,
+    description: values.description || undefined,
     maxSize: values.maxSize,
     targetDate: values.targetDate,
     matchingDeadline,
-    scheduledStartAt: `${values.targetDate}T08:00:00`,
+    scheduledStartAt,
+    customJourney: {
+      title: values.groupName,
+      description: values.description || undefined,
+      difficulty: values.difficulty,
+      startDate: values.targetDate,
+      endDate: values.endDate || values.targetDate,
+    },
   };
 }
+
+export const toTourMatchingGroupCreateRequest = toMatchingGroupCreateRequest;
 
 export function resolveGroupUserRole(
   group: import('../types/matchingGroup').MatchingGroupDetailResponse | undefined,

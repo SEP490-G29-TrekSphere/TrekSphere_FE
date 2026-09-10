@@ -16,10 +16,13 @@ interface MatchingGroupDiscoveryFiltersProps {
   selectedDate: string;
   statusFilter: MatchingGroupStatusFilter;
   availableSlotsOnly?: boolean;
+  hideJoinedGroups?: boolean;
+  isGuest?: boolean;
   onTourChange: (value: string) => void;
   onDateChange: (value: string) => void;
   onStatusChange: (value: MatchingGroupStatusFilter) => void;
   onAvailableSlotsChange?: (value: boolean) => void;
+  onHideJoinedGroupsChange?: (value: boolean) => void;
   onReset: () => void;
 }
 
@@ -34,10 +37,13 @@ export function MatchingGroupDiscoveryFilters({
   selectedDate,
   statusFilter,
   availableSlotsOnly = false,
+  hideJoinedGroups = false,
+  isGuest = false,
   onTourChange,
   onDateChange,
   onStatusChange,
   onAvailableSlotsChange,
+  onHideJoinedGroupsChange,
   onReset,
 }: MatchingGroupDiscoveryFiltersProps) {
   return (
@@ -83,17 +89,30 @@ export function MatchingGroupDiscoveryFilters({
           <>
             <div className="mb-6">
               <span className="mb-3 block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-                Chỗ trống
+                Tùy chọn hiển thị
               </span>
-              <label className="flex cursor-pointer items-center gap-2.5 text-xs text-foreground">
-                <input
-                  type="checkbox"
-                  checked={availableSlotsOnly}
-                  onChange={(e) => onAvailableSlotsChange(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                />
-                <span>Chỉ hiện nhóm còn chỗ trống</span>
-              </label>
+              <div className="flex flex-col gap-2.5">
+                <label className="flex cursor-pointer items-center gap-2.5 text-xs text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={availableSlotsOnly}
+                    onChange={(e) => onAvailableSlotsChange(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span>Chỉ hiện nhóm còn chỗ trống</span>
+                </label>
+                {!isGuest && onHideJoinedGroupsChange && (
+                  <label className="flex cursor-pointer items-center gap-2.5 text-xs text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={hideJoinedGroups}
+                      onChange={(e) => onHideJoinedGroupsChange(e.target.checked)}
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span>Ẩn nhóm đã tham gia / sở hữu</span>
+                  </label>
+                )}
+              </div>
             </div>
             <hr className="my-5 border-border" />
           </>

@@ -1,4 +1,4 @@
-import { Calendar, Clock, Eye, MapPin, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Eye, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -32,15 +32,22 @@ export function CompanionGroupCard({
   const user = useAppStore((state) => state.user);
   const viewModel = toMatchingGroupCardViewModel(group);
   const groupId = viewModel.groupId;
-  const detailPath = getDetailPath?.(groupId) ?? `/groups/${groupId}`;
+  const isLeader = Boolean(
+    user && (viewModel.ownerId === user.id || viewModel.isOwner || viewModel.myRole === 'LEADER')
+  );
+  const isMember = Boolean(viewModel.myRole === 'MEMBER' || hasJoined);
+  const isMemberOrLeader = isLeader || isMember;
+  const detailPath =
+    getDetailPath?.(groupId) ??
+    (isMemberOrLeader ? `/trekker/my-groups/${groupId}` : `/groups/${groupId}`);
   const neededMembers = Math.max(0, viewModel.maxSize - viewModel.currentSize);
-  const isOwner = user && viewModel.ownerId === user.id;
 
   if (layout === 'list') {
     return (
       <article
         className={cn(
-          'group flex flex-col gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-border transition-all hover:shadow-md sm:flex-row sm:items-stretch sm:gap-5 sm:p-4'
+          'group flex flex-col gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-border transition-all hover:shadow-md sm:flex-row sm:items-stretch sm:gap-5 sm:p-4',
+          isMemberOrLeader && 'ring-primary/40 bg-primary/[0.02]'
         )}
       >
         {/* Thumbnail */}
@@ -60,8 +67,17 @@ export function CompanionGroupCard({
         {/* Left: status + info */}
         <div className="flex flex-1 flex-col justify-between gap-3">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <MatchingGroupStatusBadge status={viewModel.status} />
+              {isLeader ? (
+                <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-500/20">
+                  Nhóm của bạn
+                </span>
+              ) : isMember ? (
+                <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20">
+                  Đã tham gia
+                </span>
+              ) : null}
             </div>
             <Link to={detailPath}>
               <h3 className="line-clamp-1 text-base font-bold text-primary transition-colors group-hover:text-primary/80 sm:text-lg">
@@ -109,28 +125,38 @@ export function CompanionGroupCard({
 
         {/* Right: action buttons */}
         <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:py-1">
-          <button
-            type="button"
-            onClick={() => onViewDetail?.(group)}
-            className="inline-flex items-center gap-1 rounded-full border border-primary px-3.5 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary hover:text-white"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            Chi tiết
-          </button>
-          {!isOwner && !hasJoined && (
-            <button
-              type="button"
-              disabled={viewModel.status !== 'OPEN'}
-              onClick={() => onJoinGroup?.(group)}
-              className={cn(
-                'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
-                viewModel.status === 'OPEN'
-                  ? 'bg-primary text-white hover:bg-primary/90'
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'
-              )}
+          {isMemberOrLeader ? (
+            <Link
+              to={detailPath}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 font-bold text-white text-xs shadow-sm transition-all hover:bg-primary/90 hover:scale-105 active:scale-95"
             >
-              {viewModel.status === 'OPEN' ? 'Xin tham gia' : 'Đã đủ'}
-            </button>
+              <span>Vào nhóm</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => onViewDetail?.(group)}
+                className="inline-flex items-center gap-1 rounded-full border border-primary px-3.5 py-1.5 font-semibold text-primary text-xs transition-all hover:bg-primary hover:text-white"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Chi tiết
+              </button>
+              <button
+                type="button"
+                disabled={viewModel.status !== 'OPEN'}
+                onClick={() => onJoinGroup?.(group)}
+                className={cn(
+                  'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
+                  viewModel.status === 'OPEN'
+                    ? 'bg-primary text-white hover:bg-primary/90'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed'
+                )}
+              >
+                {viewModel.status === 'OPEN' ? 'Xin tham gia' : 'Đã đủ'}
+              </button>
+            </>
           )}
         </div>
       </article>
@@ -139,7 +165,12 @@ export function CompanionGroupCard({
 
   // Grid layout
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-border transition-all hover:shadow-md">
+    <article
+      className={cn(
+        'group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-border transition-all hover:shadow-md',
+        isMemberOrLeader && 'ring-primary/40'
+      )}
+    >
       {/* Cover image */}
       {viewModel.coverImageUrl && (
         <Link to={detailPath} className="block aspect-video w-full overflow-hidden bg-muted">
@@ -152,8 +183,19 @@ export function CompanionGroupCard({
       )}
 
       {/* Card header strip */}
-      <div className="flex items-center justify-between gap-2 bg-muted/40 px-4 pt-4 pb-3">
-        <MatchingGroupStatusBadge status={viewModel.status} />
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/40 px-4 pt-4 pb-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <MatchingGroupStatusBadge status={viewModel.status} />
+          {isLeader ? (
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-500/20">
+              Nhóm của bạn
+            </span>
+          ) : isMember ? (
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20">
+              Đã tham gia
+            </span>
+          ) : null}
+        </div>
         <div className="flex items-center gap-1.5">
           <MatchingGroupOwnerAvatar
             name={viewModel.ownerName}
@@ -200,29 +242,39 @@ export function CompanionGroupCard({
 
       {/* Card footer */}
       <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
-        <button
-          type="button"
-          onClick={() => onViewDetail?.(group)}
-          className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary"
-        >
-          <Eye className="h-3.5 w-3.5" />
-          Chi tiết
-        </button>
-
-        {!isOwner && !hasJoined && (
-          <button
-            type="button"
-            disabled={viewModel.status !== 'OPEN'}
-            onClick={() => onJoinGroup?.(group)}
-            className={cn(
-              'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
-              viewModel.status === 'OPEN'
-                ? 'bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-95'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
-            )}
+        {isMemberOrLeader ? (
+          <Link
+            to={detailPath}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 font-bold text-white text-xs shadow-sm transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-98"
           >
-            {viewModel.status === 'OPEN' ? 'Xin tham gia' : 'Đã đủ'}
-          </button>
+            <span>Vào nhóm</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onViewDetail?.(group)}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Chi tiết
+            </button>
+
+            <button
+              type="button"
+              disabled={viewModel.status !== 'OPEN'}
+              onClick={() => onJoinGroup?.(group)}
+              className={cn(
+                'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
+                viewModel.status === 'OPEN'
+                  ? 'bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-95'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+              )}
+            >
+              {viewModel.status === 'OPEN' ? 'Xin tham gia' : 'Đã đủ'}
+            </button>
+          </>
         )}
       </div>
     </article>

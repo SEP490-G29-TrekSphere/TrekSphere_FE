@@ -12,6 +12,7 @@ import { useCancelJoinRequest } from './useCancelJoinRequest';
 import { useCompanionGroupChatActions } from './useCompanionGroupChatActions';
 import { useJoinMatchingGroup } from './useJoinMatchingGroup';
 import { useLeaveMatchingGroup } from './useLeaveMatchingGroup';
+import { useMatchingGroupLifecycle } from './useMatchingGroupLifecycle';
 import { useRejectMember } from './useRejectMember';
 
 export type ActiveGroupModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
@@ -37,6 +38,7 @@ export function useCompanionGroupDetailActions({
   const joinMutation = useJoinMatchingGroup();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
+  const lifecycleMutation = useMatchingGroupLifecycle();
 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<ActiveGroupModal>(null);
@@ -95,10 +97,10 @@ export function useCompanionGroupDetailActions({
     );
   }
 
-  function confirmReject() {
+  function confirmReject(reason?: string) {
     if (!selectedRequest || !groupId) return;
     rejectMutation.mutate(
-      { groupId, applicationId: selectedRequest.id },
+      { groupId, applicationId: selectedRequest.id, reviewNote: reason },
       {
         onSuccess: () => {
           setActiveModal(null);
@@ -150,6 +152,21 @@ export function useCompanionGroupDetailActions({
     });
   }
 
+  function handleLifecycleAction(
+    action: 'hide' | 'show' | 'close' | 'open',
+    successMsg: string,
+    errorMsg: string
+  ) {
+    if (!groupId) return;
+    lifecycleMutation.mutate(
+      { groupId, action },
+      {
+        onSuccess: () => showFeedback(successMsg),
+        onError: (error) => showFeedback(error instanceof Error ? error.message : errorMsg),
+      }
+    );
+  }
+
   return {
     feedback,
     activeModal,
@@ -163,6 +180,31 @@ export function useCompanionGroupDetailActions({
     isLeavePending:
       currentUserRole === 'pending' ? withdrawMutation.isPending : leaveMutation.isPending,
     isAddBackPending: chatActions.isAddBackPending,
+    isLifecyclePending: lifecycleMutation.isPending,
+    hideGroup: () =>
+      handleLifecycleAction(
+        'hide',
+        'Đã tạm ẩn nhóm ghép khỏi kết quả tìm kiếm.',
+        'Không thể ẩn nhóm ghép.'
+      ),
+    showGroup: () =>
+      handleLifecycleAction(
+        'show',
+        'Đã hiển thị lại nhóm ghép ra công khai.',
+        'Không thể hiển thị nhóm ghép.'
+      ),
+    closeGroup: () =>
+      handleLifecycleAction(
+        'close',
+        'Đã đóng tuyển thành viên mới cho nhóm.',
+        'Không thể đóng tuyển thành viên.'
+      ),
+    openGroup: () =>
+      handleLifecycleAction(
+        'open',
+        'Đã mở lại tuyển thành viên cho nhóm.',
+        'Không thể mở lại tuyển thành viên.'
+      ),
     openRequestModal,
     openAddMemberModal,
     openGroupChat: chatActions.openGroupChat,
