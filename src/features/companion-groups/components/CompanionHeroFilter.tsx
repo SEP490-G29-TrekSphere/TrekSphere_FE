@@ -2,6 +2,7 @@ import { Calendar, Compass, MapPin, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { AppInput } from '@/shared/ui';
+import { MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE } from '../constants';
 
 interface CompanionHeroFilterProps {
   searchQuery: string;
@@ -23,7 +24,7 @@ export function CompanionHeroFilter({
   const [showFilters, setShowFilters] = useState(false);
 
   // Fetch list of active tours for filtering
-  const { tours } = useTours({ size: 50 });
+  const { tours } = useTours({ size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE });
 
   const selectedTour = tours.find((t) => t.id === selectedTourId);
 
