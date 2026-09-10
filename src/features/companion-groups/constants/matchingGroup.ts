@@ -1,5 +1,6 @@
 import type {
   JoinApplicationStatus,
+  JourneyDifficulty,
   MatchingGroupStatus,
   MatchingMemberRole,
 } from '../types/matchingGroup';
@@ -19,6 +20,13 @@ export const MATCHING_GROUP_MIN_SIZE = 2;
 export const MATCHING_GROUP_MAX_SIZE = 100;
 export const MATCHING_GROUP_DEFAULT_SIZE = 4;
 export const MATCHING_GROUP_DEFAULT_SORT = 'createdAt-desc';
+
+export const JOURNEY_DIFFICULTY_OPTIONS = [
+  { value: 'EASY', label: 'Dễ (Đi bộ nhẹ nhàng, thư giãn)' },
+  { value: 'MODERATE', label: 'Trung bình (Cần thể lực vừa)' },
+  { value: 'HARD', label: 'Thử thách (Địa hình đèo dốc)' },
+  { value: 'EXTREME', label: 'Cực hạn (Kinh nghiệm cao)' },
+] as const satisfies ReadonlyArray<{ value: JourneyDifficulty; label: string }>;
 
 export type MatchingGroupLayout = 'list' | 'grid';
 export type MatchingGroupStatusFilter = MatchingGroupStatus | 'ALL';

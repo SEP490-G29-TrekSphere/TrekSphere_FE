@@ -199,10 +199,15 @@ export const companionGroupService = {
     return unwrapResponse(response);
   },
 
-  async rejectApplication(groupId: string, applicationId: string): Promise<MatchingMemberItem> {
+  async rejectApplication(
+    groupId: string,
+    applicationId: string,
+    payload?: { reviewNote?: string }
+  ): Promise<MatchingMemberItem> {
     const response = await ApiService<MatchingMemberItem>(
       `/matching-groups/${groupId}/applications/${applicationId}/reject`,
-      'POST'
+      'POST',
+      payload
     );
     return unwrapResponse(response);
   },

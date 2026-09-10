@@ -5,9 +5,16 @@ import { CreateMatchingGroupForm } from './create/CreateMatchingGroupForm';
 interface CreateCompanionGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialSourceType?: 'CUSTOM_JOURNEY' | 'TOUR';
+  initialTourId?: string;
 }
 
-export function CreateCompanionGroupModal({ isOpen, onClose }: CreateCompanionGroupModalProps) {
+export function CreateCompanionGroupModal({
+  isOpen,
+  onClose,
+  initialSourceType = 'CUSTOM_JOURNEY',
+  initialTourId,
+}: CreateCompanionGroupModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -33,7 +40,11 @@ export function CreateCompanionGroupModal({ isOpen, onClose }: CreateCompanionGr
         </p>
       </div>
 
-      <CreateMatchingGroupForm onCancel={onClose} />
+      <CreateMatchingGroupForm
+        onCancel={onClose}
+        initialSourceType={initialSourceType}
+        initialTourId={initialTourId}
+      />
     </AppModalShell>
   );
 }

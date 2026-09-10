@@ -6,8 +6,20 @@ export function useRejectMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ groupId, applicationId }: { groupId: string; applicationId: string }) =>
-      companionGroupService.rejectApplication(groupId, applicationId),
+    mutationFn: ({
+      groupId,
+      applicationId,
+      reviewNote,
+    }: {
+      groupId: string;
+      applicationId: string;
+      reviewNote?: string;
+    }) =>
+      companionGroupService.rejectApplication(
+        groupId,
+        applicationId,
+        reviewNote ? { reviewNote } : undefined
+      ),
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.lists() });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(groupId) });

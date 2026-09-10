@@ -7,38 +7,44 @@ import { useTours } from '@/features/tours/hooks/useTours';
 import { toast } from '@/store/useToastStore';
 import { MATCHING_GROUP_LOOKUP_PAGE_SIZE } from '../../constants';
 import { useCreateMatchingGroup } from '../../hooks/useCreateMatchingGroup';
-import { toTourMatchingGroupCreateRequest } from '../../mappers';
+import { toMatchingGroupCreateRequest } from '../../mappers';
 import {
-  CREATE_TOUR_MATCHING_GROUP_DEFAULT_VALUES,
-  type CreateTourMatchingGroupFormInput,
-  type CreateTourMatchingGroupFormValues,
-  createTourMatchingGroupSchema,
+  CREATE_MATCHING_GROUP_DEFAULT_VALUES,
+  type CreateMatchingGroupFormInput,
+  type CreateMatchingGroupFormValues,
+  createMatchingGroupSchema,
 } from '../../validations';
 import { CreateMatchingGroupFields } from './CreateMatchingGroupFields';
 
 interface CreateMatchingGroupFormProps {
   onCancel: () => void;
+  initialSourceType?: 'CUSTOM_JOURNEY' | 'TOUR';
+  initialTourId?: string;
 }
 
-export function CreateMatchingGroupForm({ onCancel }: CreateMatchingGroupFormProps) {
+export function CreateMatchingGroupForm({
+  onCancel,
+  initialSourceType = 'CUSTOM_JOURNEY',
+  initialTourId,
+}: CreateMatchingGroupFormProps) {
   const navigate = useNavigate();
   const createMutation = useCreateMatchingGroup();
   const { tours, isLoading: isToursLoading } = useTours({
     page: 0,
     size: MATCHING_GROUP_LOOKUP_PAGE_SIZE,
   });
-  const form = useForm<
-    CreateTourMatchingGroupFormInput,
-    undefined,
-    CreateTourMatchingGroupFormValues
-  >({
-    resolver: zodResolver(createTourMatchingGroupSchema),
-    defaultValues: CREATE_TOUR_MATCHING_GROUP_DEFAULT_VALUES,
+  const form = useForm<CreateMatchingGroupFormInput, undefined, CreateMatchingGroupFormValues>({
+    resolver: zodResolver(createMatchingGroupSchema),
+    defaultValues: {
+      ...CREATE_MATCHING_GROUP_DEFAULT_VALUES,
+      sourceType: initialSourceType,
+      tourId: initialTourId || '',
+    },
   });
 
-  async function handleSubmit(values: CreateTourMatchingGroupFormValues) {
+  async function handleSubmit(values: CreateMatchingGroupFormValues) {
     try {
-      const group = await createMutation.mutateAsync(toTourMatchingGroupCreateRequest(values));
+      const group = await createMutation.mutateAsync(toMatchingGroupCreateRequest(values));
       toast.success('Tạo nhóm đồng hành thành công! Nhóm của bạn đã được đăng công khai.');
       form.reset();
       onCancel();

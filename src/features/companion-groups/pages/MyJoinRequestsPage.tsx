@@ -5,13 +5,17 @@ import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import { MyApplicationList } from '../components/applications/MyApplicationList';
+import { ReapplyModal, WithdrawRequestConfirmModal } from '../components/modals';
 import {
   MATCHING_GROUP_APPLICATION_PAGE_SIZE,
   MATCHING_GROUP_APPLICATION_STATUS_TABS,
   type MatchingGroupApplicationStatusFilter,
 } from '../constants';
 import { useCancelJoinRequest } from '../hooks/useCancelJoinRequest';
+import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMyJoinRequests } from '../hooks/useMyJoinRequests';
+import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
+import type { MyMatchingJoinRequestItem } from '../types/matchingGroup';
 
 export default function MyJoinRequestsPage() {
   const navigate = useNavigate();
@@ -20,12 +24,27 @@ export default function MyJoinRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<MatchingGroupApplicationStatusFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
+
+  const [selectedWithdrawApp, setSelectedWithdrawApp] = useState<MyMatchingJoinRequestItem | null>(
+    null
+  );
+  const [selectedReapplyApp, setSelectedReapplyApp] = useState<MyMatchingJoinRequestItem | null>(
+    null
+  );
+
   const { data, isLoading, isError, refetch } = useMyJoinRequests({
     status: statusFilter === 'ALL' ? undefined : statusFilter,
     page,
     size: MATCHING_GROUP_APPLICATION_PAGE_SIZE,
   });
+
+  const { data: myGroupsData } = useMyMatchingGroups();
+  const joinedGroupIds = useMemo(() => {
+    return new Set((myGroupsData?.content ?? []).map((group) => group.matchingGroupId));
+  }, [myGroupsData]);
+
   const withdrawMutation = useCancelJoinRequest();
+  const joinMutation = useJoinMatchingGroup();
 
   useEffect(() => {
     if (isGuest) navigate(PATHS.LOGIN);
@@ -46,17 +65,35 @@ export default function MyJoinRequestsPage() {
     );
   }, [data, searchQuery]);
 
-  function withdrawApplication(groupId: string) {
-    if (!window.confirm('Bạn có chắc chắn muốn rút yêu cầu tham gia nhóm ghép này?')) return;
-    withdrawMutation.mutate(groupId, {
+  function handleConfirmWithdraw() {
+    if (!selectedWithdrawApp) return;
+    withdrawMutation.mutate(selectedWithdrawApp.matchingGroupId, {
       onSuccess: () => {
         toast.success('Rút yêu cầu tham gia thành công.');
+        setSelectedWithdrawApp(null);
         void refetch();
       },
       onError: (error) => {
         toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi rút yêu cầu.');
       },
     });
+  }
+
+  function handleConfirmReapply(message?: string) {
+    if (!selectedReapplyApp) return;
+    joinMutation.mutate(
+      { matchingGroupId: selectedReapplyApp.matchingGroupId, message },
+      {
+        onSuccess: () => {
+          toast.success('Nộp lại đơn tham gia thành công!');
+          setSelectedReapplyApp(null);
+          void refetch();
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi nộp lại đơn.');
+        },
+      }
+    );
   }
 
   if (isGuest) return null;
@@ -91,6 +128,7 @@ export default function MyJoinRequestsPage() {
         </h2>
         <MyApplicationList
           applications={applications}
+          joinedGroupIds={joinedGroupIds}
           isLoading={isLoading}
           isError={isError}
           isWithdrawing={withdrawMutation.isPending}
@@ -98,11 +136,31 @@ export default function MyJoinRequestsPage() {
           totalPages={data?.totalPages ?? 0}
           isFiltered={statusFilter !== 'ALL'}
           onRetry={() => void refetch()}
-          onWithdraw={withdrawApplication}
+          onWithdraw={(app) => setSelectedWithdrawApp(app)}
+          onReapply={(app) => setSelectedReapplyApp(app)}
           onViewDetail={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
+          onViewWorkspace={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
           onPageChange={setPage}
         />
       </section>
+
+      {/* Withdraw Modal */}
+      <WithdrawRequestConfirmModal
+        isOpen={Boolean(selectedWithdrawApp)}
+        onClose={() => setSelectedWithdrawApp(null)}
+        groupName={selectedWithdrawApp?.groupName ?? ''}
+        isPending={withdrawMutation.isPending}
+        onConfirm={handleConfirmWithdraw}
+      />
+
+      {/* Reapply Modal */}
+      <ReapplyModal
+        isOpen={Boolean(selectedReapplyApp)}
+        onClose={() => setSelectedReapplyApp(null)}
+        groupName={selectedReapplyApp?.groupName ?? ''}
+        isPending={joinMutation.isPending}
+        onConfirm={handleConfirmReapply}
+      />
     </div>
   );
 }

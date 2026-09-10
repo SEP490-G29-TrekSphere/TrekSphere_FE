@@ -10,6 +10,12 @@ export {
 } from './components/detail/JoinRequestsCard';
 export { MemberAvatar } from './components/detail/MemberAvatar';
 export { MembersCard } from './components/detail/MembersCard';
+export {
+  type JoinRequestDecisionAction,
+  ReapplyModal,
+  ReviewJoinRequestModal,
+  WithdrawRequestConfirmModal,
+} from './components/modals';
 export { useApproveMember } from './hooks/useApproveMember';
 export { useCancelJoinRequest } from './hooks/useCancelJoinRequest';
 export { useCreateMatchingGroup } from './hooks/useCreateMatchingGroup';
