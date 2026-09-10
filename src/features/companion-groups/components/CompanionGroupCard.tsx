@@ -1,9 +1,10 @@
-import { ArrowRight, Calendar, Clock, Eye, MapPin, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, Eye, MapPin, RotateCcw, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { formatDate } from '@/utils/format';
 import { type MatchingGroupCardData, toMatchingGroupCardViewModel } from '../mappers/matchingGroup';
+import type { JoinApplicationStatus } from '../types/matchingGroup';
 import {
   MatchingGroupOwnerAvatar,
   MatchingGroupStatusBadge,
@@ -19,6 +20,7 @@ interface CompanionGroupCardProps {
   /** Func tạo link chi tiết nhóm — dùng khi cần trỏ sang portal khác (vd trekker). */
   getDetailPath?: (groupId: string) => string;
   hasJoined?: boolean;
+  applicationStatus?: JoinApplicationStatus | null;
 }
 
 export function CompanionGroupCard({
@@ -28,6 +30,7 @@ export function CompanionGroupCard({
   layout = 'grid',
   getDetailPath,
   hasJoined = false,
+  applicationStatus,
 }: CompanionGroupCardProps) {
   const user = useAppStore((state) => state.user);
   const viewModel = toMatchingGroupCardViewModel(group);
@@ -35,7 +38,14 @@ export function CompanionGroupCard({
   const isLeader = Boolean(
     user && (viewModel.ownerId === user.id || viewModel.isOwner || viewModel.myRole === 'LEADER')
   );
-  const isMember = Boolean(viewModel.myRole === 'MEMBER' || hasJoined);
+  const isMember = Boolean(
+    viewModel.myRole === 'MEMBER' ||
+      (hasJoined && applicationStatus !== 'PENDING') ||
+      applicationStatus === 'ACCEPTED'
+  );
+  const isPending = applicationStatus === 'PENDING';
+  const isRejectedOrWithdrawn =
+    applicationStatus === 'REJECTED' || applicationStatus === 'WITHDRAWN';
   const isMemberOrLeader = isLeader || isMember;
   const detailPath =
     getDetailPath?.(groupId) ??
@@ -76,6 +86,10 @@ export function CompanionGroupCard({
               ) : isMember ? (
                 <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20">
                   Đã tham gia
+                </span>
+              ) : isPending ? (
+                <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20">
+                  Đang chờ duyệt
                 </span>
               ) : null}
             </div>
@@ -133,12 +147,56 @@ export function CompanionGroupCard({
               <span>Vào nhóm</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          ) : (
-            <>
+          ) : isPending ? (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => onViewDetail?.(group)}
-                className="inline-flex items-center gap-1 rounded-full border border-primary px-3.5 py-1.5 font-semibold text-primary text-xs transition-all hover:bg-primary hover:text-white"
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3.5 py-1.5 font-semibold text-foreground text-xs transition-all hover:border-primary hover:text-primary cursor-pointer"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Chi tiết
+              </button>
+              <button
+                type="button"
+                onClick={() => onViewDetail?.(group)}
+                className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer"
+              >
+                <Clock className="h-3.5 w-3.5" />
+                <span>Đang chờ duyệt</span>
+              </button>
+            </div>
+          ) : isRejectedOrWithdrawn ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onViewDetail?.(group)}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3.5 py-1.5 font-semibold text-foreground text-xs transition-all hover:border-primary hover:text-primary cursor-pointer"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Chi tiết
+              </button>
+              <button
+                type="button"
+                disabled={viewModel.status !== 'OPEN'}
+                onClick={() => onJoinGroup?.(group)}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
+                  viewModel.status === 'OPEN'
+                    ? 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white hover:scale-105 active:scale-95 cursor-pointer'
+                    : 'bg-muted text-muted-foreground cursor-not-allowed'
+                )}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>{viewModel.status === 'OPEN' ? 'Nộp lại đơn' : 'Đã đủ'}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onViewDetail?.(group)}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3.5 py-1.5 font-semibold text-foreground text-xs transition-all hover:border-primary hover:text-primary cursor-pointer"
               >
                 <Eye className="h-3.5 w-3.5" />
                 Chi tiết
@@ -150,13 +208,13 @@ export function CompanionGroupCard({
                 className={cn(
                   'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
                   viewModel.status === 'OPEN'
-                    ? 'bg-primary text-white hover:bg-primary/90'
+                    ? 'bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-95 cursor-pointer'
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
                 )}
               >
                 {viewModel.status === 'OPEN' ? 'Xin tham gia' : 'Đã đủ'}
               </button>
-            </>
+            </div>
           )}
         </div>
       </article>
@@ -187,12 +245,16 @@ export function CompanionGroupCard({
         <div className="flex flex-wrap items-center gap-1.5">
           <MatchingGroupStatusBadge status={viewModel.status} />
           {isLeader ? (
-            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-500/20">
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-500/20">
               Nhóm của bạn
             </span>
           ) : isMember ? (
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20">
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-500/20">
               Đã tham gia
+            </span>
+          ) : isPending ? (
+            <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20">
+              Đang chờ duyệt
             </span>
           ) : null}
         </div>
@@ -250,12 +312,56 @@ export function CompanionGroupCard({
             <span>Vào nhóm</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
+        ) : isPending ? (
+          <>
+            <button
+              type="button"
+              onClick={() => onViewDetail?.(group)}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary cursor-pointer"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Chi tiết
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewDetail?.(group)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer"
+            >
+              <Clock className="h-3.5 w-3.5" />
+              <span>Đang chờ duyệt</span>
+            </button>
+          </>
+        ) : isRejectedOrWithdrawn ? (
+          <>
+            <button
+              type="button"
+              onClick={() => onViewDetail?.(group)}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary cursor-pointer"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Chi tiết
+            </button>
+            <button
+              type="button"
+              disabled={viewModel.status !== 'OPEN'}
+              onClick={() => onJoinGroup?.(group)}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
+                viewModel.status === 'OPEN'
+                  ? 'bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white hover:scale-105 active:scale-95 cursor-pointer'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+              )}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>{viewModel.status === 'OPEN' ? 'Nộp lại đơn' : 'Đã đủ'}</span>
+            </button>
+          </>
         ) : (
           <>
             <button
               type="button"
               onClick={() => onViewDetail?.(group)}
-              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary cursor-pointer"
             >
               <Eye className="h-3.5 w-3.5" />
               Chi tiết
@@ -268,7 +374,7 @@ export function CompanionGroupCard({
               className={cn(
                 'rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-sm',
                 viewModel.status === 'OPEN'
-                  ? 'bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-95'
+                  ? 'bg-primary text-white hover:bg-primary/90 hover:scale-105 active:scale-95 cursor-pointer'
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
               )}
             >

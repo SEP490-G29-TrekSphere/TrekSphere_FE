@@ -9,7 +9,6 @@ import {
   Settings,
   Unlock,
 } from 'lucide-react';
-import { useState } from 'react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
@@ -52,7 +51,6 @@ export function GroupActionPanel({
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
-  const [applyMessage, setApplyMessage] = useState('');
   const isMemberOrLeader = role === 'leader' || role === 'member';
 
   const isHidden = groupStatus === 'HIDDEN';
@@ -229,42 +227,21 @@ export function GroupActionPanel({
         <div className="rounded-2xl bg-card border border-border p-5 space-y-3.5 shadow-xs">
           <div>
             <h3 className="text-sm font-bold text-foreground">Gửi Đơn Tham Gia Nhóm</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Giới thiệu ngắn gọn để Trưởng nhóm dễ dàng xét duyệt đơn của bạn.
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              Hãy gửi lời giới thiệu về thể lực và kinh nghiệm để Trưởng nhóm xét duyệt.
             </p>
-          </div>
-
-          <div className="space-y-1">
-            <label
-              htmlFor="apply-intro-message"
-              className="block text-xs font-semibold text-foreground"
-            >
-              Lời nhắn gửi Trưởng nhóm
-            </label>
-            <textarea
-              id="apply-intro-message"
-              value={applyMessage}
-              onChange={(e) => setApplyMessage(e.target.value)}
-              placeholder="VD: Mình đã từng trekking nhiều lần, thể lực tốt, muốn gia nhập nhóm..."
-              maxLength={500}
-              rows={3}
-              className="w-full rounded-xl border border-input bg-background p-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 resize-none leading-relaxed"
-            />
-            <div className="flex justify-end text-[10px] text-muted-foreground">
-              {applyMessage.length}/500 ký tự
-            </div>
           </div>
 
           <button
             type="button"
             disabled={isJoining || groupStatus !== 'OPEN'}
-            onClick={() => onJoin(applyMessage.trim() || undefined)}
+            onClick={() => onJoin()}
             className="w-full rounded-full bg-primary py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
           >
             {isJoining ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang gửi đơn...</span>
+                <span>Đang xử lý...</span>
               </>
             ) : groupStatus === 'OPEN' ? (
               <>

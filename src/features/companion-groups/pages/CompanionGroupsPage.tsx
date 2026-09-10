@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  getGroupDetailPath,
-  getGroupJoinPath,
-  getTrekkerGroupDetailPath,
-  PATHS,
-} from '@/constants';
+import { getGroupDetailPath, getTrekkerGroupDetailPath, PATHS } from '@/constants';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAppStore } from '@/store/useAppStore';
@@ -14,6 +9,7 @@ import { MatchingGroupDiscoveryFilters } from '../components/discovery/MatchingG
 import { MatchingGroupDiscoveryHero } from '../components/discovery/MatchingGroupDiscoveryHero';
 import { MatchingGroupDiscoveryResults } from '../components/discovery/MatchingGroupDiscoveryResults';
 import { MatchingGroupDiscoverySearchBar } from '../components/discovery/MatchingGroupDiscoverySearchBar';
+import { JoinGroupModal, type JoinGroupModalData } from '../components/modals/JoinGroupModal';
 import {
   MATCHING_GROUP_DEFAULT_SORT,
   MATCHING_GROUP_LOOKUP_PAGE_SIZE,
@@ -23,10 +19,12 @@ import {
   type MatchingGroupLayout,
   type MatchingGroupStatusFilter,
 } from '../constants';
+import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMatchingGroups } from '../hooks/useMatchingGroups';
 import { useMyJoinRequests } from '../hooks/useMyJoinRequests';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
 import { toMatchingGroupCardViewModel } from '../mappers';
+import type { JoinApplicationStatus } from '../types/matchingGroup';
 
 export default function CompanionGroupsPage() {
   const navigate = useNavigate();
@@ -82,6 +80,9 @@ export default function CompanionGroupsPage() {
     setSearchParams,
   ]);
 
+  const [selectedJoinGroup, setSelectedJoinGroup] = useState<JoinGroupModalData | null>(null);
+  const joinGroupMutation = useJoinMatchingGroup();
+
   const { data: myGroupsData } = useMyMatchingGroups(
     { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
     { enabled: !isGuest }
@@ -91,14 +92,37 @@ export default function CompanionGroupsPage() {
     { enabled: !isGuest }
   );
   const joinedGroupIds = useMemo(() => {
-    const ids = new Set(myGroupsData?.content.map((group) => group.matchingGroupId) ?? []);
+    const ids = new Set<string>();
+    for (const group of myGroupsData?.content ?? []) {
+      if (group.matchingGroupId) {
+        ids.add(String(group.matchingGroupId));
+        ids.add(String(group.matchingGroupId).toLowerCase());
+      }
+    }
     for (const application of myApplicationsData?.content ?? []) {
-      if (application.status === 'PENDING' || application.status === 'ACCEPTED') {
-        ids.add(application.matchingGroupId);
+      if (application.status === 'ACCEPTED' && application.matchingGroupId) {
+        ids.add(String(application.matchingGroupId));
+        ids.add(String(application.matchingGroupId).toLowerCase());
       }
     }
     return ids;
   }, [myApplicationsData, myGroupsData]);
+
+  const applicationStatusMap = useMemo(() => {
+    const map = new Map<string, JoinApplicationStatus>();
+    for (const app of myApplicationsData?.content ?? []) {
+      if (!app.matchingGroupId) continue;
+      const rawId = String(app.matchingGroupId);
+      const lowerId = rawId.toLowerCase();
+      const existing = map.get(lowerId);
+      // Ưu tiên trạng thái: PENDING > REJECTED > WITHDRAWN > ACCEPTED
+      if (!existing || app.status === 'PENDING') {
+        map.set(rawId, app.status as JoinApplicationStatus);
+        map.set(lowerId, app.status as JoinApplicationStatus);
+      }
+    }
+    return map;
+  }, [myApplicationsData]);
 
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
   const { data, isLoading, isError, refetch } = useMatchingGroups({
@@ -145,13 +169,45 @@ export default function CompanionGroupsPage() {
     setPage(0);
   }
 
-  function getGroupId(group: GroupCardData) {
-    return toMatchingGroupCardViewModel(group).groupId;
-  }
-
   function changePage(nextPage: number) {
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleOpenJoinModal(group: GroupCardData) {
+    const vm = toMatchingGroupCardViewModel(group);
+    const rawId = vm.groupId;
+    const lowerId = rawId.toLowerCase();
+    const appStatus = applicationStatusMap.get(lowerId) ?? applicationStatusMap.get(rawId);
+
+    // Không mở modal gửi đơn nếu đơn đang chờ duyệt
+    if (appStatus === 'PENDING') {
+      return;
+    }
+
+    setSelectedJoinGroup({
+      id: vm.groupId,
+      title: vm.groupName,
+      leaderName: vm.ownerName,
+      leaderAvatar: vm.ownerAvatarUrl,
+      coverImageUrl: vm.coverImageUrl,
+      departureDate: vm.targetDate,
+      maxMembers: vm.maxSize,
+      currentMembers: vm.currentSize,
+    });
+  }
+
+  async function handleConfirmJoinGroup(message?: string) {
+    if (!selectedJoinGroup) return;
+    try {
+      await joinGroupMutation.mutateAsync({
+        matchingGroupId: selectedJoinGroup.id,
+        message,
+      });
+      setSelectedJoinGroup(null);
+    } catch {
+      // Error handled by mutation or global query error
+    }
   }
 
   return (
@@ -210,6 +266,7 @@ export default function CompanionGroupsPage() {
               isError={isError}
               isGuest={isGuest}
               joinedGroupIds={joinedGroupIds}
+              applicationStatusMap={applicationStatusMap}
               onLayoutChange={setLayout}
               onSortChange={(value) => {
                 setSortKey(value);
@@ -219,7 +276,7 @@ export default function CompanionGroupsPage() {
               onRetry={() => void refetch()}
               onReset={resetFilters}
               onLogin={() => navigate(PATHS.LOGIN)}
-              onJoinGroup={(group) => navigate(getGroupJoinPath(getGroupId(group)))}
+              onJoinGroup={handleOpenJoinModal}
               onViewDetail={(group) => {
                 const vm = toMatchingGroupCardViewModel(group);
                 const isLeader = Boolean(
@@ -237,6 +294,17 @@ export default function CompanionGroupsPage() {
         </div>
         <div className="h-16 sm:h-24" />
       </div>
+
+      {/* Unified Join Group Modal */}
+      {selectedJoinGroup && (
+        <JoinGroupModal
+          isOpen={Boolean(selectedJoinGroup)}
+          onClose={() => setSelectedJoinGroup(null)}
+          group={selectedJoinGroup}
+          onSubmit={handleConfirmJoinGroup}
+          isPending={joinGroupMutation.isPending}
+        />
+      )}
     </div>
   );
 }

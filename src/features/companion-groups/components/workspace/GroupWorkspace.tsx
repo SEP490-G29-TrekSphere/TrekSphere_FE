@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { GroupBudgetTab } from '../detail/GroupBudgetTab';
-import { GroupItineraryTab } from '../detail/GroupItineraryTab';
 import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
+import { GroupJourneyTab } from './journey/GroupJourneyTab';
 
 export type WorkspaceTabKey =
   | 'overview'
@@ -148,7 +148,9 @@ export function GroupWorkspace({
       {activeTab === 'requests' && isLeader && <div className="space-y-6">{joinRequestsSlot}</div>}
 
       {/* TAB 4: ITINERARY */}
-      {activeTab === 'itinerary' && <GroupItineraryTab group={group} />}
+      {activeTab === 'itinerary' && (
+        <GroupJourneyTab groupId={group.matchingGroupId} isLeader={isLeader} />
+      )}
 
       {/* TAB 5: BUDGET */}
       {activeTab === 'budget' && <GroupBudgetTab group={group} />}

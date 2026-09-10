@@ -128,12 +128,15 @@ export function useCompanionGroupDetailActions({
     });
   }
 
-  function joinGroup(message?: string) {
+  function joinGroup(message?: string, onSuccessCallback?: () => void) {
     if (!groupId) return;
     joinMutation.mutate(
       { matchingGroupId: groupId, message },
       {
-        onSuccess: () => showFeedback('Đã gửi yêu cầu tham gia nhóm ghép.'),
+        onSuccess: () => {
+          showFeedback('Đã gửi yêu cầu tham gia nhóm ghép.');
+          onSuccessCallback?.();
+        },
         onError: (error) =>
           showFeedback(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xin tham gia.'),
       }
