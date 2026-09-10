@@ -25,10 +25,7 @@ import {
   useGroupFeed,
   useToggleFeedPostLike,
 } from '../../../hooks/future/useGroupFeed';
-import type {
-  GroupLifecyclePhase,
-  TrailCheckpointItem,
-} from '../../../services/groupWorkspaceService';
+import type { GroupLifecyclePhase } from '../../../services/groupWorkspaceService';
 import { GroupSOSModal } from './GroupSOSModal';
 
 interface GroupWorkspaceOverviewTabProps {
@@ -116,7 +113,7 @@ export function GroupWorkspaceOverviewTab({
           </div>
 
           <div className="space-y-3 pt-2">
-            {checkpoints.map((cpItem: TrailCheckpointItem, idx: number) => {
+            {checkpoints.map((cpItem: any, idx: number) => {
               const cp = cpItem as any;
               const isDone = cp.status === 'COMPLETED' || cp.status === 'PASSED';
               const isSkipped = cp.status === 'SKIPPED';

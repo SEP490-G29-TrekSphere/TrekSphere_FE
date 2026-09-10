@@ -303,7 +303,7 @@ export function GroupItineraryWorkspaceTab({ groupId, isLeader }: GroupItinerary
                 <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => setViewingCheckpoint(cp)}
+                    onClick={() => setViewingCheckpoint(cp as any)}
                     className="rounded-full bg-background/80 backdrop-blur-xs p-1.5 text-muted-foreground hover:text-primary shadow-2xs transition cursor-pointer"
                     title="Xem chi tiết"
                   >
@@ -313,7 +313,9 @@ export function GroupItineraryWorkspaceTab({ groupId, isLeader }: GroupItinerary
                     <button
                       type="button"
                       disabled={deleteCheckpoint.isPending}
-                      onClick={() => deleteCheckpoint.mutate(cp.id)}
+                      onClick={() =>
+                        deleteCheckpoint.mutate(cp.id || cp.customJourneyCheckpointId || '')
+                      }
                       className="rounded-full bg-background/80 backdrop-blur-xs p-1.5 text-muted-foreground hover:text-destructive shadow-2xs transition disabled:opacity-50 cursor-pointer"
                       title="Xoá checkpoint"
                     >
@@ -930,7 +932,9 @@ export function GroupItineraryWorkspaceTab({ groupId, isLeader }: GroupItinerary
                     TIME_SLOT_BADGE_CLASS
                   )}
                 >
-                  {CHECKPOINT_STATUS_LABELS[viewingCheckpoint.status]}
+                  {CHECKPOINT_STATUS_LABELS[
+                    (viewingCheckpoint.status as CheckpointStatus) || 'UPCOMING'
+                  ] || viewingCheckpoint.status}
                 </span>
               </div>
 

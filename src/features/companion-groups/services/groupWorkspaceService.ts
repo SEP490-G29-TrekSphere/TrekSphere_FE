@@ -1,597 +1,608 @@
-import { type ApiResponse, ApiService, ApiUpload } from '@/config/apiClient';
+import { type ApiResponse, ApiService } from '@/config/apiClient';
+import type { PaginationResponse } from '../types/matchingGroup';
+import type {
+  CustomJourneyActivityCreateRequest,
+  CustomJourneyActivityResponse,
+  CustomJourneyActivityUpdateRequest,
+  CustomJourneyCheckpointCreateRequest,
+  CustomJourneyCheckpointResponse,
+  CustomJourneyCheckpointUpdateRequest,
+  CustomJourneyDetailResponse,
+  CustomJourneyUpdateRequest,
+  GroupChecklistFilterRequest,
+  GroupChecklistItemCreateRequest,
+  GroupChecklistItemResponse,
+  GroupChecklistItemStatusUpdateRequest,
+  GroupChecklistItemUpdateRequest,
+  GroupChecklistStatus,
+  GroupChecklistSummaryResponse,
+  GroupPostCommentCreateRequest,
+  GroupPostCommentResponse,
+  GroupPostCommentUpdateRequest,
+  GroupPostCreateRequest,
+  GroupPostDetailResponse,
+  GroupPostResponse,
+  GroupPostUpdateRequest,
+} from '../types/workspace';
 
-/**
- * Service cho "Workspace nhóm" (dành cho thành viên/trưởng nhóm đã tham gia) — tái hiện
- * luồng/UI của WorkspacePreview + 4 sub-workspace (Itinerary/Budget/Members/Equipment) trong
- * `/groups/overview` (story-flow review), nối với dữ liệu thật thay vì dữ liệu tĩnh minh hoạ.
- *
- * Namespace endpoint riêng `/matching-groups/:groupId/workspace/*` để tách khỏi
- * `companionGroupService.ts` (CRUD nhóm/thành viên cốt lõi đã ổn định).
- */
-
-function unwrapResponse<T>(response: ApiResponse<T>): T {
-  if (response.error) throw new Error(response.error);
-  return response.data as T;
+export interface PeerReviewPayload {
+  revieweeId?: string;
+  targetMemberId?: string;
+  rating?: number;
+  punctualityScore?: number;
+  preparednessScore?: number;
+  teamworkScore?: number;
+  safetyScore?: number;
+  comment?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-// ---------- Lifecycle phase ----------
+export interface WorkspaceMemberItem {
+  id: string;
+  userId: string;
+  name: string;
+  fullName: string;
+  avatarUrl?: string;
+  role?: string;
+  roleLabel?: string;
+  status?: string;
+  isLeader?: boolean;
+  trustScore?: number;
+  completedTrips?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  medicalInfo?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  skills?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
 
 export type GroupLifecyclePhase = 1 | 2 | 3 | 4 | 5;
 
-export interface GroupLifecycleResponse {
-  phase: GroupLifecyclePhase;
-  tripStatus: 'ONGOING' | 'COMPLETED';
-}
-
-// ---------- Feed ----------
-
-export interface FeedPostItem {
-  id: string;
-  authorId: string;
-  authorName: string;
-  authorRole: string;
-  authorAvatarUrl?: string;
-  createdAt: string;
-  content: string;
-  isAnnouncement: boolean;
-  likeCount: number;
-  likedByMe: boolean;
-  commentsCount: number;
-}
-
-// ---------- Tracking / Checkpoints ----------
-
-export type CheckpointStatus = 'COMPLETED' | 'IN_PROGRESS' | 'UPCOMING' | 'SKIPPED';
-
-export interface TrailCheckpointItem {
-  id: string;
-  order: number;
-  name: string;
-  category: string;
-  distanceAltitude: string;
-  gps: string;
-  imageUrl?: string;
-  description?: string;
-  status: CheckpointStatus;
-  checkedInByName?: string;
-  checkedInAt?: string;
-}
-
-// ---------- Itinerary timetable ----------
-
-export type TimeSlot = 'morning' | 'noon' | 'afternoon' | 'evening';
-
-export interface ItineraryDayColumn {
-  id: string;
-  title: string;
-  subtitle: string;
-}
-
-export interface ItineraryActivityItem {
-  id: string;
-  dayId: string;
-  timeSlot: TimeSlot;
-  timeRange: string;
-  title: string;
-  location: string;
-  assignee: string;
-  description?: string;
-  imageUrl?: string;
-}
-
-// ---------- Budget workspace ----------
-
-export type BudgetCategory = 'trans' | 'food' | 'gear' | 'other';
-
-export interface BudgetPlanItem {
-  id: string;
-  category: BudgetCategory;
-  title: string;
-  amount: number;
-  note?: string;
-}
+export type BudgetCategory = 'trans' | 'food' | 'stay' | 'gear' | 'service' | 'other' | string;
 
 export interface ActualExpenseItem {
   id: string;
   title: string;
-  payerId: string;
-  payerName: string;
   amount: number;
-  /** Những thành viên được chi khoản này (chia đều giữa họ) — không nhất thiết là cả nhóm. */
+  payerId: string;
+  payerName?: string;
+  category?: BudgetCategory;
   beneficiaryIds: string[];
-  beneficiaryNames: string[];
-  /** Ảnh chụp hoá đơn/biên lai, nếu có. */
   receiptImageUrl?: string;
+  createdAt?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export interface DebtSettlementItem {
   id: string;
-  debtorId: string;
-  debtorName: string;
-  creditorId: string;
-  creditorName: string;
+  fromMemberId: string;
+  fromMemberName?: string;
+  toMemberId: string;
+  toMemberName?: string;
   amount: number;
-  status: 'PENDING' | 'CONFIRMED';
+  isConfirmed: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-export interface GroupBudgetResponse {
-  planItems: BudgetPlanItem[];
-  actualExpenses: ActualExpenseItem[];
-  settlements: DebtSettlementItem[];
+export type CheckpointStatus = 'COMPLETED' | 'IN_PROGRESS' | 'UPCOMING' | 'SKIPPED' | string;
+
+export type TimeSlot = 'morning' | 'noon' | 'afternoon' | 'evening' | string;
+
+export interface ItineraryDayColumn {
+  dayNo: number;
+  date?: string;
+  title?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  slots?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  activities?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-// ---------- Equipment ----------
+export interface TrailCheckpointItem {
+  id?: string;
+  customJourneyCheckpointId?: string;
+  order?: number;
+  checkpointOrder?: number;
+  name?: string;
+  title?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  status?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
+
+export interface BudgetPlanItem {
+  id: string;
+  title: string;
+  amount: number;
+  payerId: string;
+  category: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
 
 export interface EquipmentItemDto {
   id: string;
   name: string;
-  category: 'personal' | 'shared';
-  type: string;
-  isEssential: boolean;
-  assignedToUserId?: string;
-  assignedToName?: string;
+  quantity: number;
+  assignedMemberId?: string;
   isPrepared: boolean;
-  notes?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-// ---------- Members workspace (extended profile + peer review) ----------
-
-export interface MemberSkill {
-  name: string;
-}
-
-export interface MemberMedicalInfo {
-  bloodType?: string;
-  allergies?: string;
-  certifications?: string;
-  emergencyPhone?: string;
-  emergencyRelation?: string;
-  note?: string;
-}
-
-export interface WorkspaceMemberItem {
-  userId: string;
-  fullName: string;
-  avatarUrl?: string;
-  roleLabel: string;
-  isLeader: boolean;
-  isCoLeader: boolean;
-  trustScore: number;
-  completedTrips: number;
-  skills: MemberSkill[];
-  medicalInfo: MemberMedicalInfo;
-}
-
-export interface PeerReviewPayload {
-  revieweeId: string;
-  punctualityScore: number;
-  fitnessScore: number;
-  financeScore: number;
-  tags: string[];
-  comment?: string;
-}
-
-export interface PeerReviewItem extends PeerReviewPayload {
-  reviewerId: string;
-  createdAt: string;
-}
-
-// ---------- Leader succession ----------
-
-export interface SuccessionVote {
-  userId: string;
-  vote: 'YES' | 'NO';
-}
-
-/**
- * `DIRECT` = Trường hợp A (chỉ định trực tiếp, không cần bầu) — `POLL` = Trường hợp B (mở bình
- * chọn 24h, cần >50% phiếu YES) theo đúng MODULE 4 — Leader Succession Protocol.
- */
-export type SuccessionMode = 'DIRECT' | 'POLL';
-
-export interface SuccessionRequestItem {
+export interface ItineraryActivityItem {
   id: string;
-  mode: SuccessionMode;
-  requestedById: string;
-  reason: string;
-  nomineeId: string;
-  nomineeName: string;
-  votes: SuccessionVote[];
-  status: 'OPEN' | 'APPROVED' | 'CANCELLED' | 'EXPIRED';
-  /** Hạn 24h — chỉ có ở mode POLL (BR-LEAD: quá 24h không đủ phiếu → nhóm tự động bị huỷ). */
-  deadline?: string;
-  createdAt: string;
+  dayNo: number;
+  time: string;
+  activity: string;
+  location?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
-// ---------- Group dissolve (cần toàn bộ thành viên đồng thuận) ----------
+function unwrapResponse<T>(response: ApiResponse<T>): T {
+  if (response.error) throw new Error(response.error);
+  if (response.data === undefined || response.data === null) {
+    throw new Error(response.message ?? 'Phản hồi từ máy chủ không có dữ liệu.');
+  }
+  return response.data;
+}
 
-export interface DissolveRequestItem {
-  id: string;
-  requestedById: string;
-  reason: string;
-  votes: SuccessionVote[];
-  /** Số phiếu YES cần có để giải tán = tổng số thành viên đã tham gia (đồng thuận tuyệt đối). */
-  requiredVotes: number;
-  status: 'OPEN' | 'APPROVED' | 'CANCELLED';
+function toQueryParams(params: object): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(params)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : String(value)])
+  );
 }
 
 export const groupWorkspaceService = {
-  async getLifecycle(groupId: string): Promise<GroupLifecycleResponse> {
-    return unwrapResponse(
-      await ApiService<GroupLifecycleResponse>(
-        `/matching-groups/${groupId}/workspace/lifecycle`,
-        'GET'
-      )
+  // ==================== 1. CUSTOM JOURNEY & CHECKPOINTS ====================
+
+  /**
+   * Lấy chi tiết lộ trình Custom Journey của nhóm ghép.
+   */
+  async getJourney(groupId: string): Promise<CustomJourneyDetailResponse> {
+    const response = await ApiService<CustomJourneyDetailResponse>(
+      `/matching-groups/${groupId}/journey`,
+      'GET'
     );
-  },
-  async advanceLifecyclePhase(
-    groupId: string,
-    phase: GroupLifecyclePhase
-  ): Promise<GroupLifecycleResponse> {
-    return unwrapResponse(
-      await ApiService<GroupLifecycleResponse>(
-        `/matching-groups/${groupId}/workspace/lifecycle`,
-        'PUT',
-        { phase }
-      )
-    );
-  },
-  async setTripStatus(
-    groupId: string,
-    tripStatus: 'ONGOING' | 'COMPLETED'
-  ): Promise<GroupLifecycleResponse> {
-    return unwrapResponse(
-      await ApiService<GroupLifecycleResponse>(
-        `/matching-groups/${groupId}/workspace/trip-status`,
-        'PUT',
-        { tripStatus }
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getFeed(groupId: string): Promise<FeedPostItem[]> {
-    return unwrapResponse(
-      await ApiService<FeedPostItem[]>(`/matching-groups/${groupId}/workspace/feed`, 'GET')
-    );
-  },
-  async createFeedPost(groupId: string, content: string): Promise<FeedPostItem> {
-    return unwrapResponse(
-      await ApiService<FeedPostItem>(`/matching-groups/${groupId}/workspace/feed`, 'POST', {
-        content,
-      })
-    );
-  },
-  async toggleFeedPostLike(groupId: string, postId: string): Promise<FeedPostItem> {
-    return unwrapResponse(
-      await ApiService<FeedPostItem>(
-        `/matching-groups/${groupId}/workspace/feed/${postId}/like`,
-        'POST'
-      )
-    );
-  },
-
-  async getCheckpoints(groupId: string): Promise<TrailCheckpointItem[]> {
-    return unwrapResponse(
-      await ApiService<TrailCheckpointItem[]>(
-        `/matching-groups/${groupId}/workspace/checkpoints`,
-        'GET'
-      )
-    );
-  },
-  async addCheckpoint(
+  /**
+   * Cập nhật thông tin tổng quan Custom Journey (chỉ Leader khi chưa khóa).
+   */
+  async updateJourney(
     groupId: string,
-    data: {
-      name: string;
-      category: string;
-      distanceAltitude: string;
-      gps: string;
-      description?: string;
-      image?: File | null;
-    }
-  ): Promise<TrailCheckpointItem> {
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('category', data.category);
-    formData.append('distanceAltitude', data.distanceAltitude);
-    formData.append('gps', data.gps);
-    if (data.description) formData.append('description', data.description);
-    if (data.image) formData.append('image', data.image);
-
-    return unwrapResponse(
-      await ApiUpload<TrailCheckpointItem>(
-        `/matching-groups/${groupId}/workspace/checkpoints`,
-        formData,
-        'POST'
-      )
+    payload: CustomJourneyUpdateRequest
+  ): Promise<CustomJourneyDetailResponse> {
+    const response = await ApiService<CustomJourneyDetailResponse>(
+      `/matching-groups/${groupId}/journey`,
+      'PUT',
+      payload
     );
+    return unwrapResponse(response);
   },
+
+  /**
+   * Lấy danh sách điểm dừng / hoạt động theo ngày.
+   */
+  async getCheckpoints(groupId: string): Promise<CustomJourneyCheckpointResponse[]> {
+    const response = await ApiService<CustomJourneyCheckpointResponse[]>(
+      `/matching-groups/${groupId}/journey/checkpoints`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Thêm điểm dừng mới vào hành trình (chỉ Leader khi chưa khóa).
+   */
+  async createCheckpoint(
+    groupId: string,
+    payload: CustomJourneyCheckpointCreateRequest
+  ): Promise<CustomJourneyCheckpointResponse> {
+    const response = await ApiService<CustomJourneyCheckpointResponse>(
+      `/matching-groups/${groupId}/journey/checkpoints`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Cập nhật điểm dừng trong hành trình (chỉ Leader khi chưa khóa).
+   */
+  async updateCheckpoint(
+    groupId: string,
+    checkpointId: string,
+    payload: CustomJourneyCheckpointUpdateRequest
+  ): Promise<CustomJourneyCheckpointResponse> {
+    const response = await ApiService<CustomJourneyCheckpointResponse>(
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}`,
+      'PUT',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Xóa điểm dừng khỏi hành trình (chỉ Leader khi chưa khóa).
+   */
   async deleteCheckpoint(groupId: string, checkpointId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(
-        `/matching-groups/${groupId}/workspace/checkpoints/${checkpointId}`,
-        'DELETE'
-      )
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}`,
+      'DELETE'
     );
-  },
-  async checkInCheckpoint(groupId: string, checkpointId: string): Promise<TrailCheckpointItem> {
-    return unwrapResponse(
-      await ApiService<TrailCheckpointItem>(
-        `/matching-groups/${groupId}/workspace/checkpoints/${checkpointId}/checkin`,
-        'PUT'
-      )
-    );
-  },
-  /** Bỏ qua checkpoint (thực tế đi lệch kế hoạch) — vẫn chuyển sang checkpoint kế tiếp. */
-  async skipCheckpoint(groupId: string, checkpointId: string): Promise<TrailCheckpointItem> {
-    return unwrapResponse(
-      await ApiService<TrailCheckpointItem>(
-        `/matching-groups/${groupId}/workspace/checkpoints/${checkpointId}/skip`,
-        'PUT'
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getItinerary(
-    groupId: string
-  ): Promise<{ days: ItineraryDayColumn[]; activities: ItineraryActivityItem[] }> {
-    return unwrapResponse(
-      await ApiService<{ days: ItineraryDayColumn[]; activities: ItineraryActivityItem[] }>(
-        `/matching-groups/${groupId}/workspace/itinerary`,
-        'GET'
-      )
+  /**
+   * Lấy danh sách các hoạt động trong thời khóa biểu lộ trình của nhóm ghép.
+   */
+  async getJourneyActivities(groupId: string): Promise<CustomJourneyActivityResponse[]> {
+    const response = await ApiService<CustomJourneyActivityResponse[]>(
+      `/matching-groups/${groupId}/journey/activities`,
+      'GET'
     );
+    return unwrapResponse(response);
   },
-  async addItineraryDay(groupId: string): Promise<ItineraryDayColumn> {
-    return unwrapResponse(
-      await ApiService<ItineraryDayColumn>(
-        `/matching-groups/${groupId}/workspace/itinerary/days`,
-        'POST'
-      )
-    );
-  },
-  async addItineraryActivity(
+
+  /**
+   * Thêm hoạt động mới vào thời khóa biểu (chỉ Leader khi chưa khóa).
+   */
+  async createJourneyActivity(
     groupId: string,
-    data: Omit<ItineraryActivityItem, 'id' | 'imageUrl'> & { image?: File | null }
-  ): Promise<ItineraryActivityItem> {
-    const formData = new FormData();
-    formData.append('dayId', data.dayId);
-    formData.append('timeSlot', data.timeSlot);
-    formData.append('timeRange', data.timeRange);
-    formData.append('title', data.title);
-    formData.append('location', data.location);
-    formData.append('assignee', data.assignee);
-    if (data.description) formData.append('description', data.description);
-    if (data.image) formData.append('image', data.image);
-
-    return unwrapResponse(
-      await ApiUpload<ItineraryActivityItem>(
-        `/matching-groups/${groupId}/workspace/itinerary/activities`,
-        formData,
-        'POST'
-      )
+    payload: CustomJourneyActivityCreateRequest
+  ): Promise<CustomJourneyActivityResponse> {
+    const response = await ApiService<CustomJourneyActivityResponse>(
+      `/matching-groups/${groupId}/journey/activities`,
+      'POST',
+      payload
     );
-  },
-  async deleteItineraryActivity(groupId: string, activityId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(
-        `/matching-groups/${groupId}/workspace/itinerary/activities/${activityId}`,
-        'DELETE'
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getBudget(groupId: string): Promise<GroupBudgetResponse> {
-    return unwrapResponse(
-      await ApiService<GroupBudgetResponse>(`/matching-groups/${groupId}/workspace/budget`, 'GET')
-    );
-  },
-  async savePlanItem(
+  /**
+   * Cập nhật hoạt động trong thời khóa biểu (chỉ Leader khi chưa khóa).
+   */
+  async updateJourneyActivity(
     groupId: string,
-    data: Omit<BudgetPlanItem, 'id'> & { id?: string }
-  ): Promise<BudgetPlanItem> {
-    return unwrapResponse(
-      await ApiService<BudgetPlanItem>(
-        `/matching-groups/${groupId}/workspace/budget/plan-items`,
-        'POST',
-        data
-      )
+    activityId: string,
+    payload: CustomJourneyActivityUpdateRequest
+  ): Promise<CustomJourneyActivityResponse> {
+    const response = await ApiService<CustomJourneyActivityResponse>(
+      `/matching-groups/${groupId}/journey/activities/${activityId}`,
+      'PUT',
+      payload
     );
+    return unwrapResponse(response);
   },
-  async deletePlanItem(groupId: string, itemId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(
-        `/matching-groups/${groupId}/workspace/budget/plan-items/${itemId}`,
-        'DELETE'
-      )
+
+  /**
+   * Xóa hoạt động khỏi thời khóa biểu (chỉ Leader khi chưa khóa).
+   */
+  async deleteJourneyActivity(groupId: string, activityId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/journey/activities/${activityId}`,
+      'DELETE'
     );
+    return unwrapResponse(response);
   },
-  async saveExpense(
+
+  // ==================== 2. GROUP CHECKLIST ====================
+
+  /**
+   * Lấy danh sách và thống kê tiến độ checklist của nhóm ghép.
+   */
+  async getChecklistSummary(
     groupId: string,
-    data: {
-      id?: string;
-      title: string;
-      payerId: string;
-      amount: number;
-      beneficiaryIds: string[];
-      receiptImage?: File | null;
-      /** true = xoá ảnh hoá đơn đã lưu trước đó (khi sửa mà không chọn ảnh mới). */
-      removeReceiptImage?: boolean;
-    }
-  ): Promise<ActualExpenseItem> {
-    const formData = new FormData();
-    if (data.id) formData.append('id', data.id);
-    formData.append('title', data.title);
-    formData.append('payerId', data.payerId);
-    formData.append('amount', String(data.amount));
-    for (const beneficiaryId of data.beneficiaryIds) {
-      formData.append('beneficiaryIds', beneficiaryId);
-    }
-    if (data.receiptImage) formData.append('receiptImage', data.receiptImage);
-    if (data.removeReceiptImage) formData.append('removeReceiptImage', 'true');
-
-    return unwrapResponse(
-      await ApiUpload<ActualExpenseItem>(
-        `/matching-groups/${groupId}/workspace/budget/expenses`,
-        formData,
-        'POST'
-      )
+    filter: GroupChecklistFilterRequest = {}
+  ): Promise<GroupChecklistSummaryResponse> {
+    const response = await ApiService<GroupChecklistSummaryResponse>(
+      `/matching-groups/${groupId}/checklist-items`,
+      'GET',
+      undefined,
+      toQueryParams(filter)
     );
-  },
-  async deleteExpense(groupId: string, expenseId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(
-        `/matching-groups/${groupId}/workspace/budget/expenses/${expenseId}`,
-        'DELETE'
-      )
-    );
-  },
-  async confirmSettlement(groupId: string, settlementId: string): Promise<DebtSettlementItem> {
-    return unwrapResponse(
-      await ApiService<DebtSettlementItem>(
-        `/matching-groups/${groupId}/workspace/budget/settlements/${settlementId}/confirm`,
-        'PUT'
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getEquipment(groupId: string): Promise<EquipmentItemDto[]> {
-    return unwrapResponse(
-      await ApiService<EquipmentItemDto[]>(`/matching-groups/${groupId}/workspace/equipment`, 'GET')
-    );
-  },
-  async addEquipmentItem(
+  /**
+   * Tạo mới mục checklist trong nhóm ghép.
+   */
+  async createChecklistItem(
     groupId: string,
-    data: Omit<EquipmentItemDto, 'id' | 'isPrepared'>
-  ): Promise<EquipmentItemDto> {
-    return unwrapResponse(
-      await ApiService<EquipmentItemDto>(
-        `/matching-groups/${groupId}/workspace/equipment`,
-        'POST',
-        data
-      )
+    payload: GroupChecklistItemCreateRequest
+  ): Promise<GroupChecklistItemResponse> {
+    const response = await ApiService<GroupChecklistItemResponse>(
+      `/matching-groups/${groupId}/checklist-items`,
+      'POST',
+      payload
     );
-  },
-  async toggleEquipmentPrepared(groupId: string, itemId: string): Promise<EquipmentItemDto> {
-    return unwrapResponse(
-      await ApiService<EquipmentItemDto>(
-        `/matching-groups/${groupId}/workspace/equipment/${itemId}/toggle`,
-        'PUT'
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getWorkspaceMembers(groupId: string): Promise<WorkspaceMemberItem[]> {
-    return unwrapResponse(
-      await ApiService<WorkspaceMemberItem[]>(
-        `/matching-groups/${groupId}/workspace/members`,
-        'GET'
-      )
+  /**
+   * Cập nhật thông tin mục checklist.
+   */
+  async updateChecklistItem(
+    groupId: string,
+    itemId: string,
+    payload: GroupChecklistItemUpdateRequest
+  ): Promise<GroupChecklistItemResponse> {
+    const response = await ApiService<GroupChecklistItemResponse>(
+      `/matching-groups/${groupId}/checklist-items/${itemId}`,
+      'PUT',
+      payload
     );
-  },
-  async getPeerReviews(groupId: string): Promise<PeerReviewItem[]> {
-    return unwrapResponse(
-      await ApiService<PeerReviewItem[]>(
-        `/matching-groups/${groupId}/workspace/peer-reviews`,
-        'GET'
-      )
-    );
-  },
-  async submitPeerReview(groupId: string, payload: PeerReviewPayload): Promise<PeerReviewItem> {
-    return unwrapResponse(
-      await ApiService<PeerReviewItem>(
-        `/matching-groups/${groupId}/workspace/peer-reviews`,
-        'POST',
-        payload
-      )
-    );
+    return unwrapResponse(response);
   },
 
-  async getSuccessionRequest(groupId: string): Promise<SuccessionRequestItem | null> {
-    return unwrapResponse(
-      await ApiService<SuccessionRequestItem | null>(
-        `/matching-groups/${groupId}/workspace/succession-request`,
-        'GET'
-      )
+  /**
+   * Cập nhật trạng thái mục checklist (PENDING <-> DONE).
+   */
+  async updateItemStatus(
+    groupId: string,
+    itemId: string,
+    status: GroupChecklistStatus
+  ): Promise<GroupChecklistItemResponse> {
+    const payload: GroupChecklistItemStatusUpdateRequest = { status };
+    const response = await ApiService<GroupChecklistItemResponse>(
+      `/matching-groups/${groupId}/checklist-items/${itemId}/status`,
+      'PATCH',
+      payload
     );
+    return unwrapResponse(response);
   },
-  /** Trường hợp B (BR-LEAD): mở Poll bình chọn 24h — mọi thành viên bầu, cần >50% phiếu YES. */
+
+  /**
+   * Xóa mềm mục checklist.
+   */
+  async deleteChecklistItem(groupId: string, itemId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/checklist-items/${itemId}`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  // ==================== 3. GROUP FEED & POSTS ====================
+
+  /**
+   * Lấy danh sách bài đăng bảng tin của nhóm (phân trang).
+   */
+  async getGroupPosts(
+    groupId: string,
+    params: { page?: number; size?: number; sort?: string } = {}
+  ): Promise<PaginationResponse<GroupPostResponse>> {
+    const response = await ApiService<PaginationResponse<GroupPostResponse>>(
+      `/matching-groups/${groupId}/posts`,
+      'GET',
+      undefined,
+      toQueryParams(params)
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Lấy chi tiết bài đăng cùng danh sách bình luận.
+   */
+  async getGroupPostDetail(groupId: string, postId: string): Promise<GroupPostDetailResponse> {
+    const response = await ApiService<GroupPostDetailResponse>(
+      `/matching-groups/${groupId}/posts/${postId}`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Đăng bài viết mới trong nhóm ghép.
+   */
+  async createGroupPost(
+    groupId: string,
+    payload: GroupPostCreateRequest
+  ): Promise<GroupPostResponse> {
+    const response = await ApiService<GroupPostResponse>(
+      `/matching-groups/${groupId}/posts`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Chỉnh sửa bài viết (chỉ tác giả).
+   */
+  async updateGroupPost(
+    groupId: string,
+    postId: string,
+    payload: GroupPostUpdateRequest
+  ): Promise<GroupPostResponse> {
+    const response = await ApiService<GroupPostResponse>(
+      `/matching-groups/${groupId}/posts/${postId}`,
+      'PUT',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Xóa mềm bài viết (tác giả hoặc Leader).
+   */
+  async deleteGroupPost(groupId: string, postId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/posts/${postId}`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Ẩn/Hiện bài viết (kiểm duyệt - chỉ Leader).
+   */
+  async toggleHideGroupPost(groupId: string, postId: string): Promise<GroupPostResponse> {
+    const response = await ApiService<GroupPostResponse>(
+      `/matching-groups/${groupId}/posts/${postId}/toggle-hide`,
+      'PATCH'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Gửi bình luận vào bài viết.
+   */
+  async createComment(
+    groupId: string,
+    postId: string,
+    payload: GroupPostCommentCreateRequest
+  ): Promise<GroupPostCommentResponse> {
+    const response = await ApiService<GroupPostCommentResponse>(
+      `/matching-groups/${groupId}/posts/${postId}/comments`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Chỉnh sửa bình luận (chỉ tác giả).
+   */
+  async updateComment(
+    groupId: string,
+    postId: string,
+    commentId: string,
+    payload: GroupPostCommentUpdateRequest
+  ): Promise<GroupPostCommentResponse> {
+    const response = await ApiService<GroupPostCommentResponse>(
+      `/matching-groups/${groupId}/posts/${postId}/comments/${commentId}`,
+      'PUT',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Xóa mềm bình luận (tác giả hoặc Leader).
+   */
+  async deleteComment(groupId: string, postId: string, commentId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/posts/${postId}/comments/${commentId}`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  // ==================== FUTURE EXTENSIONS (Phase 4 / 6 / 7 / 8) STUBS ====================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getBudget(_groupId: string): Promise<any> {
+    return {
+      plannedItems: [],
+      actualExpenses: [],
+      totalPlanned: 0,
+      totalActual: 0,
+      settlements: [],
+    };
+  },
+  async savePlanItem(_groupId: string, _data: unknown): Promise<void> {},
+  async deletePlanItem(_groupId: string, _itemId: string): Promise<void> {},
+  async saveExpense(_groupId: string, _data: unknown): Promise<void> {},
+  async deleteExpense(_groupId: string, _expenseId: string): Promise<void> {},
+  async confirmSettlement(_groupId: string, _settlementId: string): Promise<void> {},
+
+  async addCheckpoint(_groupId: string, _data: unknown): Promise<void> {},
+  async checkInCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
+  async skipCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getDissolveRequest(_groupId: string): Promise<any> {
+    return null;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async createDissolveRequest(_groupId: string, _reason: string): Promise<any> {
+    return null;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async voteDissolveRequest(_groupId: string, _requestId: string, _vote: string): Promise<any> {
+    return null;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async cancelDissolveRequest(_groupId: string): Promise<any> {
+    return null;
+  },
+
+  async getEquipment(_groupId: string): Promise<EquipmentItemDto[]> {
+    return [];
+  },
+  async addEquipmentItem(_groupId: string, _data: unknown): Promise<void> {},
+  async toggleEquipmentPrepared(_groupId: string, _itemId: string): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getFeed(_groupId: string): Promise<any[]> {
+    return [];
+  },
+  async createFeedPost(_groupId: string, _data: unknown): Promise<void> {},
+  async toggleFeedPostLike(_groupId: string, _postId: string): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getItinerary(_groupId: string): Promise<any> {
+    return { days: [] };
+  },
+  async addItineraryDay(_groupId: string): Promise<void> {},
+  async addItineraryActivity(_groupId: string, _data: unknown): Promise<void> {},
+  async deleteItineraryActivity(_groupId: string, _activityId: string): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getLifecycle(_groupId: string): Promise<any> {
+    return { currentPhase: 1, tripStatus: 'UPCOMING' };
+  },
+  async advanceLifecyclePhase(_groupId: string, _phase: number): Promise<void> {},
+  async setTripStatus(_groupId: string, _status: string): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getWorkspaceMembers(_groupId: string): Promise<any[]> {
+    return [];
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getPeerReviews(_groupId: string): Promise<any[]> {
+    return [];
+  },
+  async submitPeerReview(_groupId: string, _payload: PeerReviewPayload): Promise<void> {},
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getSuccessionRequest(_groupId: string): Promise<any> {
+    return null;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async createSuccessionRequest(
-    groupId: string,
-    data: { reason: string; nomineeId: string }
-  ): Promise<SuccessionRequestItem> {
-    return unwrapResponse(
-      await ApiService<SuccessionRequestItem>(
-        `/matching-groups/${groupId}/workspace/succession-request`,
-        'POST',
-        data
-      )
-    );
+    _groupId: string,
+    _data: { reason: string; nomineeId: string }
+  ): Promise<any> {
+    return null;
   },
-  /** Trường hợp A (BR-LEAD): Leader chỉ định trực tiếp — chuyển giao ngay, không cần bầu. */
-  async appointLeaderDirect(
-    groupId: string,
-    data: { nomineeId: string }
-  ): Promise<SuccessionRequestItem> {
-    return unwrapResponse(
-      await ApiService<SuccessionRequestItem>(
-        `/matching-groups/${groupId}/workspace/succession-request/appoint`,
-        'POST',
-        data
-      )
-    );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async appointLeaderDirect(_groupId: string, _data: { nomineeId: string }): Promise<any> {
+    return null;
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async voteSuccessionRequest(
-    groupId: string,
-    requestId: string,
-    vote: 'YES' | 'NO'
-  ): Promise<SuccessionRequestItem> {
-    return unwrapResponse(
-      await ApiService<SuccessionRequestItem>(
-        `/matching-groups/${groupId}/workspace/succession-request/${requestId}/vote`,
-        'POST',
-        { vote }
-      )
-    );
+    _groupId: string,
+    _requestId: string,
+    _vote: 'YES' | 'NO'
+  ): Promise<any> {
+    return null;
   },
-  async cancelSuccessionRequest(groupId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(`/matching-groups/${groupId}/workspace/succession-request`, 'DELETE')
-    );
-  },
-
-  async getDissolveRequest(groupId: string): Promise<DissolveRequestItem | null> {
-    return unwrapResponse(
-      await ApiService<DissolveRequestItem | null>(
-        `/matching-groups/${groupId}/workspace/dissolve-request`,
-        'GET'
-      )
-    );
-  },
-  async createDissolveRequest(groupId: string, reason: string): Promise<DissolveRequestItem> {
-    return unwrapResponse(
-      await ApiService<DissolveRequestItem>(
-        `/matching-groups/${groupId}/workspace/dissolve-request`,
-        'POST',
-        { reason }
-      )
-    );
-  },
-  async voteDissolveRequest(
-    groupId: string,
-    requestId: string,
-    vote: 'YES' | 'NO'
-  ): Promise<DissolveRequestItem> {
-    return unwrapResponse(
-      await ApiService<DissolveRequestItem>(
-        `/matching-groups/${groupId}/workspace/dissolve-request/${requestId}/vote`,
-        'POST',
-        { vote }
-      )
-    );
-  },
-  async cancelDissolveRequest(groupId: string): Promise<void> {
-    unwrapResponse(
-      await ApiService<void>(`/matching-groups/${groupId}/workspace/dissolve-request`, 'DELETE')
-    );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async cancelSuccessionRequest(_groupId: string): Promise<any> {
+    return null;
   },
 };

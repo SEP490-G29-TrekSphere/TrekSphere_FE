@@ -112,8 +112,16 @@ export function resolveGroupUserRole(
   userId: string | undefined
 ): import('../types').UserRoleInGroup {
   if (!group || !userId) return 'guest';
-  if (String(group.ownerId) === String(userId)) return 'leader';
-  const membership = group.members.find((member) => String(member.userId) === String(userId));
+  if (String(group.ownerId) === String(userId) || group.isOwner || group.myRole === 'LEADER') {
+    return 'leader';
+  }
+  if (group.myMembershipStatus === 'ACCEPTED' || group.myRole === 'MEMBER') {
+    return 'member';
+  }
+  if (group.myMembershipStatus === 'PENDING') {
+    return 'pending';
+  }
+  const membership = group.members?.find((member) => String(member.userId) === String(userId));
   if (membership?.status === 'ACCEPTED') return 'member';
   if (membership?.status === 'PENDING') return 'pending';
   return 'guest';

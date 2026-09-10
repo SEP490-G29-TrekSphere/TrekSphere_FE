@@ -206,9 +206,9 @@ export function GroupMembersWorkspace({
                   </div>
 
                   {/* SKILL TAGS */}
-                  {member.skills.length > 0 && (
+                  {Boolean(member.skills?.length) && (
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {member.skills.map((skill: { name: string; level?: string }) => (
+                      {member.skills?.map((skill: any) => (
                         <span
                           key={skill.name}
                           className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground border border-border"

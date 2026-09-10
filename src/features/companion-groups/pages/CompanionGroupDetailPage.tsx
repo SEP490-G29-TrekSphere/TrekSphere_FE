@@ -14,6 +14,7 @@ import { GroupModals } from '../components/detail/GroupModals';
 import { GroupOverviewTab } from '../components/detail/GroupOverviewTab';
 import { GroupRulesTab } from '../components/detail/GroupRulesTab';
 import { JoinRequestsCard } from '../components/detail/JoinRequestsCard';
+import { JoinGroupModal } from '../components/modals/JoinGroupModal';
 import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
@@ -39,6 +40,7 @@ export default function CompanionGroupDetailPage({
   const [activeTab, setActiveTab] = useState<GroupDetailTabKey>('overview');
   const [applicationPage, setApplicationPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   const applications = useJoinRequests(isOwner ? groupId : undefined, {
     status: 'PENDING',
@@ -177,7 +179,7 @@ export default function CompanionGroupDetailPage({
               groupStatus={group.status}
               isJoining={actions.isJoining}
               onOpenChat={actions.openGroupChat}
-              onJoin={actions.joinGroup}
+              onJoin={() => setIsJoinModalOpen(true)}
               onLeave={() => actions.setActiveModal('leave')}
               onCancelRequest={() => actions.setActiveModal('leave')}
               onCreateGroupChat={actions.openGroupChat}
@@ -213,6 +215,26 @@ export default function CompanionGroupDetailPage({
         onConfirmLeaveGroup={actions.confirmLeave}
         onConfirmCancelJoinRequest={actions.confirmWithdraw}
         onConfirmAddBackToChat={actions.confirmAddMemberToChat}
+      />
+
+      {/* Join Group Modal */}
+      <JoinGroupModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+        group={{
+          id: group.matchingGroupId,
+          title: group.groupName,
+          leaderName: group.ownerName,
+          leaderAvatar: group.ownerAvatarUrl ?? undefined,
+          coverImageUrl: group.tourImageUrl ?? undefined,
+          departureDate: group.targetDate,
+          maxMembers: group.maxSize,
+          currentMembers: group.currentSize,
+        }}
+        onSubmit={async (message) => {
+          await actions.joinGroup(message, () => setIsJoinModalOpen(false));
+        }}
+        isPending={actions.isJoining}
       />
 
       {/* Leader Edit Group Modal */}

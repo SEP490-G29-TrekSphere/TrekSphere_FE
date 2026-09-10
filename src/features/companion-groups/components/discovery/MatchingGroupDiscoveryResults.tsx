@@ -8,7 +8,8 @@ import {
   type MatchingGroupLayout,
   type MatchingGroupStatusFilter,
 } from '../../constants';
-import type { MatchingGroupItem } from '../../types/matchingGroup';
+import { toMatchingGroupCardViewModel } from '../../mappers/matchingGroup';
+import type { JoinApplicationStatus, MatchingGroupItem } from '../../types/matchingGroup';
 import { CompanionGroupCard, type GroupCardData } from '../CompanionGroupCard';
 
 const MATCHING_GROUP_SKELETON_IDS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
@@ -26,6 +27,7 @@ interface MatchingGroupDiscoveryResultsProps {
   isError: boolean;
   isGuest: boolean;
   joinedGroupIds: Set<string>;
+  applicationStatusMap?: Map<string, JoinApplicationStatus> | Record<string, JoinApplicationStatus>;
   onLayoutChange: (layout: MatchingGroupLayout) => void;
   onSortChange: (sort: string) => void;
   onPageChange: (page: number) => void;
@@ -49,6 +51,7 @@ export function MatchingGroupDiscoveryResults({
   isError,
   isGuest,
   joinedGroupIds,
+  applicationStatusMap,
   onLayoutChange,
   onSortChange,
   onPageChange,
@@ -129,16 +132,29 @@ export function MatchingGroupDiscoveryResults({
             layout === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col gap-5'
           }
         >
-          {groups.map((group) => (
-            <CompanionGroupCard
-              key={group.matchingGroupId}
-              group={group}
-              layout={layout}
-              onJoinGroup={onJoinGroup}
-              onViewDetail={onViewDetail}
-              hasJoined={joinedGroupIds.has(group.matchingGroupId)}
-            />
-          ))}
+          {groups.map((group) => {
+            const vm = toMatchingGroupCardViewModel(group);
+            const rawId = vm.groupId;
+            const lowerId = rawId.toLowerCase();
+            const appStatus =
+              applicationStatusMap instanceof Map
+                ? (applicationStatusMap.get(lowerId) ?? applicationStatusMap.get(rawId))
+                : (applicationStatusMap?.[lowerId] ?? applicationStatusMap?.[rawId]);
+
+            const isJoined = joinedGroupIds.has(rawId) || joinedGroupIds.has(lowerId);
+
+            return (
+              <CompanionGroupCard
+                key={vm.groupId}
+                group={group}
+                layout={layout}
+                onJoinGroup={onJoinGroup}
+                onViewDetail={onViewDetail}
+                hasJoined={isJoined}
+                applicationStatus={appStatus}
+              />
+            );
+          })}
         </div>
       )}
 
