@@ -3,14 +3,13 @@ import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { MemberAvatar } from './MemberAvatar';
 import { MembersAccessRestricted } from './MembersAccessRestricted';
-import { MembersCard } from './MembersCard';
 
 interface GroupOverviewTabProps {
   group: MatchingGroupDetailResponse;
   currentUserId?: string;
   role: UserRoleInGroup;
   onDirectChat: (memberId: string, memberName: string, memberAvatar?: string) => void;
-  onAddMemberToChat: (memberId: string, memberName: string) => void;
+  onAddMemberToChat?: (memberId: string, memberName: string) => void;
 }
 
 export function GroupOverviewTab({
@@ -18,10 +17,8 @@ export function GroupOverviewTab({
   currentUserId,
   role,
   onDirectChat,
-  onAddMemberToChat,
 }: GroupOverviewTabProps) {
   const isLeader = currentUserId && String(group.ownerId) === String(currentUserId);
-  const isMemberOrLeader = role === 'leader' || role === 'member';
   const descriptionText =
     group.description ||
     group.tourDescription ||
@@ -42,9 +39,6 @@ export function GroupOverviewTab({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-extrabold text-foreground">{group.ownerName}</h3>
-                {/* <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                  <ShieldCheck className="h-3 w-3" /> Đã xác minh
-                </span> */}
               </div>
               <p className="text-xs text-muted-foreground">Trưởng nhóm khởi xướng (Group Leader)</p>
             </div>
@@ -76,21 +70,8 @@ export function GroupOverviewTab({
         </div>
       </div>
 
-      {/* 2. Members Section: MembersCard for members, MembersAccessRestricted for outsiders */}
-      {isMemberOrLeader ? (
-        <MembersCard
-          members={group.members}
-          maxSize={group.maxSize}
-          ownerName={group.ownerName}
-          currentUserId={currentUserId}
-          role={role}
-          hasConversation={group.hasConversation}
-          onDirectChat={onDirectChat}
-          onAddMemberToChat={onAddMemberToChat}
-        />
-      ) : (
-        <MembersAccessRestricted isPending={role === 'pending'} />
-      )}
+      {/* 2. Members Section Restricted for public viewers */}
+      <MembersAccessRestricted isPending={role === 'pending'} />
     </div>
   );
 }

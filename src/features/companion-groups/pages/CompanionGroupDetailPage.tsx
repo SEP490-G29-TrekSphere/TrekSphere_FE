@@ -14,6 +14,7 @@ import { GroupModals } from '../components/detail/GroupModals';
 import { GroupOverviewTab } from '../components/detail/GroupOverviewTab';
 import { GroupRulesTab } from '../components/detail/GroupRulesTab';
 import { JoinRequestsCard } from '../components/detail/JoinRequestsCard';
+import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
 import { useJoinRequests } from '../hooks/useJoinRequests';
@@ -52,6 +53,9 @@ export default function CompanionGroupDetailPage({
     backPath,
     chatPath,
   });
+
+  const isMemberOrLeader =
+    actions.currentUserRole === 'leader' || actions.currentUserRole === 'member';
 
   const shellClassName = embedded
     ? 'text-foreground'
@@ -107,46 +111,62 @@ export default function CompanionGroupDetailPage({
         <div className="grid grid-cols-1 gap-7 lg:grid-cols-12">
           {/* Main Left Column */}
           <div className="space-y-6 lg:col-span-8">
-            <GroupDetailTabs
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              checkpointCount={group.checkpoints?.length}
-              costItemCount={group.costItems?.length}
-            />
-
-            {/* Tab Panels */}
-            {activeTab === 'overview' && (
-              <GroupOverviewTab
+            {isMemberOrLeader ? (
+              <GroupWorkspace
                 group={group}
                 currentUserId={user?.id?.toString()}
+                isLeader={actions.currentUserRole === 'leader'}
                 role={actions.currentUserRole}
+                pendingJoinRequestsCount={
+                  actions.currentUserRole === 'leader' ? (applications.data?.totalElements ?? 0) : 0
+                }
+                joinRequestsSlot={
+                  actions.currentUserRole === 'leader' ? (
+                    <JoinRequestsCard
+                      requests={applications.data?.content ?? []}
+                      isLoading={applications.isLoading}
+                      isError={applications.isError}
+                      onRetry={() => void applications.refetch()}
+                      onApprove={(request) => actions.openRequestModal('approve', request)}
+                      onReject={(request) => actions.openRequestModal('reject', request)}
+                      page={applicationPage}
+                      totalPages={applications.data?.totalPages ?? 0}
+                      totalElements={applications.data?.totalElements ?? 0}
+                      isLast={applications.data?.last ?? true}
+                      onPrevPage={() => setApplicationPage((page) => page - 1)}
+                      onNextPage={() => setApplicationPage((page) => page + 1)}
+                    />
+                  ) : undefined
+                }
                 onDirectChat={actions.openDirectChat}
                 onAddMemberToChat={actions.openAddMemberModal}
               />
-            )}
+            ) : (
+              <>
+                <GroupDetailTabs
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  checkpointCount={group.checkpoints?.length}
+                  costItemCount={group.costItems?.length}
+                />
 
-            {activeTab === 'itinerary' && <GroupItineraryTab group={group} />}
+                {/* Public Tab Panels */}
+                {activeTab === 'overview' && (
+                  <GroupOverviewTab
+                    group={group}
+                    currentUserId={user?.id?.toString()}
+                    role={actions.currentUserRole}
+                    onDirectChat={actions.openDirectChat}
+                    onAddMemberToChat={actions.openAddMemberModal}
+                  />
+                )}
 
-            {activeTab === 'budget' && <GroupBudgetTab group={group} />}
+                {activeTab === 'itinerary' && <GroupItineraryTab group={group} />}
 
-            {activeTab === 'rules' && <GroupRulesTab group={group} />}
+                {activeTab === 'budget' && <GroupBudgetTab group={group} />}
 
-            {/* Leader Incoming Join Requests Review Section */}
-            {actions.currentUserRole === 'leader' && (
-              <JoinRequestsCard
-                requests={applications.data?.content ?? []}
-                isLoading={applications.isLoading}
-                isError={applications.isError}
-                onRetry={() => void applications.refetch()}
-                onApprove={(request) => actions.openRequestModal('approve', request)}
-                onReject={(request) => actions.openRequestModal('reject', request)}
-                page={applicationPage}
-                totalPages={applications.data?.totalPages ?? 0}
-                totalElements={applications.data?.totalElements ?? 0}
-                isLast={applications.data?.last ?? true}
-                onPrevPage={() => setApplicationPage((page) => page - 1)}
-                onNextPage={() => setApplicationPage((page) => page + 1)}
-              />
+                {activeTab === 'rules' && <GroupRulesTab group={group} />}
+              </>
             )}
           </div>
 
