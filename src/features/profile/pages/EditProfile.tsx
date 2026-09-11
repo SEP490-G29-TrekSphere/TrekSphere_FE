@@ -9,7 +9,7 @@ import {
   type UpdateProfileFormValues,
   updateProfileSchema,
 } from '@/features/auth/validations/auth.schema';
-import { AppButton, AppDatePicker, AppSpinner } from '@/shared/ui';
+import { AppButton, AppDatePicker, AppSpinner, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import ProfileSidebar from '../components/ProfileSidebar';
@@ -165,12 +165,12 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 pb-8">
-      {/* Page title */}
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-primary md:text-3xl">Chỉnh sửa hồ sơ</h1>
-        <p className="text-sm text-muted-foreground">Cập nhật thông tin cá nhân của bạn</p>
-      </header>
+    <div className="w-full space-y-6 pb-8">
+      <PortalPageHeader
+        title="Chỉnh sửa hồ sơ"
+        description="Cập nhật thông tin cá nhân của bạn"
+        backButton={{ to: returnPath ?? PATHS.PROFILE, label: 'Quay lại' }}
+      />
 
       {/* 2-column layout: sidebar (30%) + form (70%) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-10">

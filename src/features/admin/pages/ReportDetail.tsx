@@ -59,7 +59,7 @@ export default function ReportDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full pb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ReportDetailHeader id={reportData.id} status={reportData.status} />
 
       {/* Main Grid Layout */}

@@ -11,7 +11,15 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { PATHS, ROLES } from '@/constants';
-import { AppBadge, AppButton, AppCard, AppSpinner, ConfirmActionDialog } from '@/shared/ui';
+import {
+  AppBadge,
+  AppButton,
+  AppCard,
+  AppSpinner,
+  ConfirmActionDialog,
+  PortalPageHeader,
+  PortalStatusBadge,
+} from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import { ACCOUNT_ROLE_LABELS, type AccountRole } from '../accounts/types';
@@ -104,41 +112,6 @@ export default function ApplicationDetails() {
     }
   };
 
-  const getStatusBadge = (status: ApplicationStatus) => {
-    switch (status) {
-      case 'DRAFT':
-        return (
-          <AppBadge
-            variant="secondary"
-            className="bg-zinc-100 text-zinc-700 font-bold border-zinc-200"
-          >
-            NHÁP
-          </AppBadge>
-        );
-      case 'PENDING':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#D97706] bg-[#FEF3C7]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D97706] animate-pulse" />
-            ĐANG CHỜ DUYỆT
-          </span>
-        );
-      case 'APPROVED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#059669] bg-[#D1FAE5]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#059669]" />
-            ĐÃ DUYỆT
-          </span>
-        );
-      case 'REJECTED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-[#DC2626] bg-[#FEE2E2]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#DC2626]" />
-            ĐÃ TỪ CHỐI
-          </span>
-        );
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-16 text-zinc-500 gap-3">
@@ -206,27 +179,27 @@ export default function ApplicationDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Back Button / Navigation Header */}
-      <Link
-        to={isAdmin ? PATHS.ADMIN_APPLICATIONS : PATHS.HOME}
-        className="inline-flex items-center gap-2 text-zinc-800 hover:text-[#0B3025] font-extrabold text-lg transition-colors"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        Chi tiết Đơn đăng ký Vendor
-      </Link>
-
-      {/* Top Banner Card with Status */}
-      <AppCard className="border-[#E5E4DE] shadow-sm rounded-2xl bg-white p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-xl font-extrabold text-zinc-900">{application.companyName}</h2>
-            <div className="flex items-center gap-3 mt-1">
-              {getStatusBadge(application.applicationStatus)}
-            </div>
+      <PortalPageHeader
+        breadcrumbs={[
+          { label: 'Duyệt Nhà Cung Cấp', href: isAdmin ? PATHS.ADMIN_APPLICATIONS : PATHS.HOME },
+          { label: 'Chi tiết hồ sơ' },
+        ]}
+        backButton={{
+          to: isAdmin ? PATHS.ADMIN_APPLICATIONS : PATHS.HOME,
+          label: 'Quay lại danh sách',
+        }}
+        title={
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#06261D]">
+              {application.companyName}
+            </h1>
+            <PortalStatusBadge status={application.applicationStatus} />
           </div>
-
-          {isAdmin && application.applicationStatus === 'PENDING' && (
-            <div className="flex flex-wrap items-center gap-3 self-start sm:self-center">
+        }
+        description={`Hồ sơ đăng ký đối tác gửi ngày ${formatDate(application.createdAt)}`}
+        actions={
+          isAdmin && application.applicationStatus === 'PENDING' ? (
+            <div className="flex flex-wrap items-center gap-3">
               <AppButton
                 onClick={() => setConfirmApproveOpen(true)}
                 disabled={isReviewing}
@@ -247,15 +220,14 @@ export default function ApplicationDetails() {
                 Từ chối
               </AppButton>
             </div>
-          )}
+          ) : undefined
+        }
+      />
+      {application.rejectionReason && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+          <strong>Lý do từ chối:</strong> {application.rejectionReason}
         </div>
-        {application.rejectionReason && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
-            <strong>Lý do từ chối:</strong> {application.rejectionReason}
-          </div>
-        )}
-      </AppCard>
-
+      )}
       {/* Grid Layout of details */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Columns - Applicant & Company Details */}

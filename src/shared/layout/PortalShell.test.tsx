@@ -81,3 +81,16 @@ test('khoá scroll nền khi drawer mở và trả lại khi đóng', () => {
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(document.body.style.overflow).not.toBe('hidden');
 });
+
+test('bấm toggle desktop thì thu gọn và mở rộng sidebar', () => {
+  const { aside } = renderShell();
+  const toggleBtn = screen.getByLabelText('Thu gọn sidebar');
+  expect(aside.className).toContain('md:w-72');
+
+  fireEvent.click(toggleBtn);
+  expect(aside.className).toContain('md:w-20');
+  expect(screen.getByLabelText('Mở rộng sidebar')).toBeDefined();
+
+  fireEvent.click(screen.getByLabelText('Mở rộng sidebar'));
+  expect(aside.className).toContain('md:w-72');
+});

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PortalPageHeader } from '@/shared/ui';
 import { ReportTable } from '../components/reports/ReportTable';
 import { useAdminReports } from '../hooks/useAdminReports';
 import type { ReportStatus } from '../services/adminReportService';
@@ -31,19 +32,11 @@ export default function Reports() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-10 px-4 sm:px-6 lg:px-8">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0B3025]">
-              Danh sách Báo cáo Vi phạm
-            </h1>
-          </div>
-        </div>
-
-        {/* Filter Tabs (All / Pending / Resolved) */}
-      </div>
+    <div className="w-full space-y-6 pb-10">
+      <PortalPageHeader
+        title="Danh sách Báo cáo Vi phạm"
+        description="Kiểm tra và xử lý các nội dung vi phạm được người dùng báo cáo trong cộng đồng"
+      />
 
       {/* Main Table Container */}
       {isLoading ? (

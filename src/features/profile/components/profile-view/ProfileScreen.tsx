@@ -20,6 +20,10 @@ interface ProfileScreenProps {
   userId?: string;
   /** Đường dẫn trang chỉnh sửa — khác nhau giữa MainLayout và TrekkerLayout. */
   editPath?: string;
+  /** Đường dẫn trang đổi mật khẩu — khác nhau giữa MainLayout và TrekkerLayout. */
+  changePasswordPath?: string;
+  /** Trải rộng 100% full-width và căn sát lề (dùng trong portal có sidebar). */
+  fluid?: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -38,7 +42,13 @@ const ROLE_LABELS: Record<string, string> = {
  * Hồ sơ người khác CHỈ hiển thị tên, ảnh đại diện và nội dung công khai.
  * Email / số điện thoại / ngày sinh chỉ xuất hiện ở hồ sơ của chính mình.
  */
-export function ProfileScreen({ mode, userId, editPath = PATHS.EDIT_PROFILE }: ProfileScreenProps) {
+export function ProfileScreen({
+  mode,
+  userId,
+  editPath = PATHS.EDIT_PROFILE,
+  changePasswordPath = PATHS.CHANGE_PASSWORD,
+  fluid = false,
+}: ProfileScreenProps) {
   const currentUser = useAppStore((state) => state.user);
 
   const meQuery = useProfile();
@@ -146,10 +156,20 @@ export function ProfileScreen({ mode, userId, editPath = PATHS.EDIT_PROFILE }: P
   };
 
   return (
-    // `pt-8` khớp với `lg:top-24` của card sticky bên trái (64px header + 32px),
-    // để hai cột bắt đầu ngang nhau thay vì thanh tab dính sát header.
-    <div className="mx-auto grid w-full max-w-[1100px] gap-8 px-4 pb-16 pt-6 sm:px-6 sm:pt-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-      <div className="lg:sticky lg:top-24 lg:self-start">
+    // Ở chế độ thường, `pt-8` khớp với `lg:top-24` của card sticky bên trái
+    // (64px header + 32px) để hai cột bắt đầu ngang nhau thay vì thanh tab
+    // dính sát header. Ở chế độ `fluid` (portal có sidebar) không có header
+    // nổi nên card sticky bám `lg:top-0`.
+    <div
+      className={
+        fluid
+          ? 'grid w-full gap-8 pb-16 lg:grid-cols-[320px_minmax(0,1fr)]'
+          : 'mx-auto grid w-full max-w-[1100px] gap-8 px-4 pb-16 pt-6 sm:px-6 sm:pt-8 lg:grid-cols-[320px_minmax(0,1fr)]'
+      }
+    >
+      <div
+        className={fluid ? 'lg:sticky lg:top-0 lg:self-start' : 'lg:sticky lg:top-24 lg:self-start'}
+      >
         <ProfileIdentityCard
           name={name}
           avatarUrl={avatarUrl}
@@ -158,6 +178,7 @@ export function ProfileScreen({ mode, userId, editPath = PATHS.EDIT_PROFILE }: P
           blogCount={blogCount}
           isOwnProfile={isOwnProfile}
           editPath={editPath}
+          changePasswordPath={changePasswordPath}
           userId={resolvedUserId}
         />
       </div>
