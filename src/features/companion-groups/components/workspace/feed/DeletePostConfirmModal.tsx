@@ -1,45 +1,46 @@
 import { AlertTriangle, Loader2, Trash2, X } from 'lucide-react';
 import { AppModalShell } from '@/shared/ui';
-import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
+import type { GroupPostResponse } from '../../../types/workspace';
 
-interface DeleteCheckpointConfirmModalProps {
+interface DeletePostConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
-  checkpoint: CustomJourneyCheckpointResponse | null;
+  post: GroupPostResponse | null;
   isPending: boolean;
-  onConfirmDelete: (checkpointId: string) => void;
+  onConfirmDelete: (postId: string) => void;
 }
 
-export function DeleteCheckpointConfirmModal({
+export function DeletePostConfirmModal({
   isOpen,
   onClose,
-  checkpoint,
+  post,
   isPending,
   onConfirmDelete,
-}: DeleteCheckpointConfirmModalProps) {
-  if (!isOpen || !checkpoint) return null;
+}: DeletePostConfirmModalProps) {
+  if (!isOpen || !post) return null;
 
-  const checkpointId = checkpoint.customJourneyCheckpointId || checkpoint.id || '';
+  const postId = post.groupPostId || post.postId || post.id || '';
+  const postTitle = post.title || 'Bài viết không tiêu đề';
 
   function handleConfirm() {
-    if (!checkpointId) return;
-    onConfirmDelete(checkpointId);
+    if (!postId) return;
+    onConfirmDelete(postId);
   }
 
   return (
     <AppModalShell
       open
       onClose={onClose}
-      aria-label="Xác nhận xóa điểm dừng"
+      aria-label="Xác nhận xóa bài viết"
       className="flex max-w-md flex-col overflow-hidden border border-border p-0"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/10">
+        <div className="flex items-center gap-2 text-destructive">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-4 w-4" />
           </div>
-          <h3 className="text-base font-bold text-foreground">Xóa điểm dừng</h3>
+          <h3 className="text-base font-bold text-foreground">Xóa bài viết</h3>
         </div>
         <button
           type="button"
@@ -54,17 +55,15 @@ export function DeleteCheckpointConfirmModal({
       {/* Body */}
       <div className="space-y-3 px-5 py-4 text-xs leading-relaxed text-muted-foreground">
         <p>
-          Bạn có chắc chắn muốn xóa điểm dừng{' '}
-          <strong className="text-foreground">
-            Chặng {checkpoint.checkpointOrder}: {checkpoint.title}
-          </strong>{' '}
-          khỏi hành trình của nhóm không?
+          Bạn có chắc chắn muốn xóa bài viết{' '}
+          <strong className="text-foreground">"{postTitle}"</strong> cùng toàn bộ bình luận liên
+          quan không?
         </p>
 
         <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-destructive">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <div>
-            <strong>Lưu ý:</strong> Hành động này sẽ xóa điểm dừng này và không thể hoàn tác.
+            <strong>Lưu ý:</strong> Hành động này không thể hoàn tác.
           </div>
         </div>
       </div>
@@ -83,8 +82,8 @@ export function DeleteCheckpointConfirmModal({
         <button
           type="button"
           onClick={handleConfirm}
-          disabled={isPending || !checkpointId}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+          disabled={isPending || !postId}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-xs font-bold text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-50 cursor-pointer"
         >
           {isPending ? (
             <>

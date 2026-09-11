@@ -195,18 +195,27 @@ export type UpdateItemStatusPayload = GroupChecklistStatus;
 export type GroupPostType = 'ANNOUNCEMENT' | 'DISCUSSION' | 'QUESTION' | 'GENERAL';
 
 export interface GroupPostResponse {
-  postId: string;
+  postId?: string;
+  groupPostId?: string;
+  id?: string;
   matchingGroupId: string;
-  authorMemberId: string;
-  authorUserId: string;
-  authorName: string;
-  authorAvatarUrl: string | null;
-  authorRole: 'LEADER' | 'MEMBER';
-  postType: GroupPostType;
-  title: string;
+  authorMemberId?: string;
+  postedByMatchingMemberId?: string;
+  authorUserId?: string;
+  postedByUserId?: string;
+  authorName?: string;
+  postedByFullName?: string;
+  authorAvatarUrl?: string | null;
+  postedByAvatarUrl?: string | null;
+  authorRole?: 'LEADER' | 'MEMBER';
+  postedByRole?: 'LEADER' | 'MEMBER';
+  postType?: GroupPostType;
+  title?: string;
   content: string;
-  isPinned: boolean;
-  isHidden: boolean;
+  imageUrls?: string[];
+  status?: string;
+  isPinned?: boolean;
+  isHidden?: boolean;
   commentCount: number;
   createdAt: string;
   updatedAt: string;
@@ -215,22 +224,55 @@ export interface GroupPostResponse {
 }
 
 export interface GroupPostCommentResponse {
-  commentId: string;
-  postId: string;
-  authorMemberId: string;
-  authorUserId: string;
-  authorName: string;
-  authorAvatarUrl: string | null;
-  authorRole: 'LEADER' | 'MEMBER';
+  commentId?: string;
+  groupPostCommentId?: string;
+  id?: string;
+  postId?: string;
+  groupPostId?: string;
+  parentCommentId?: string;
+  replyToCommentId?: string;
+  replyToUserId?: string;
+  replyToFullName?: string;
+  authorMemberId?: string;
+  answeredByMatchingMemberId?: string;
+  authorUserId?: string;
+  answeredByUserId?: string;
+  authorName?: string;
+  answeredByFullName?: string;
+  authorAvatarUrl?: string | null;
+  answeredByAvatarUrl?: string | null;
+  authorRole?: 'LEADER' | 'MEMBER';
+  answeredByRole?: 'LEADER' | 'MEMBER';
   content: string;
+  status?: string;
+  replies?: GroupPostCommentResponse[];
   createdAt: string;
   updatedAt: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
-export interface GroupPostDetailResponse extends GroupPostResponse {
+export interface GroupPostDetailResponse {
+  post?: GroupPostResponse;
   comments: GroupPostCommentResponse[];
+  postId?: string;
+  groupPostId?: string;
+  matchingGroupId?: string;
+  authorMemberId?: string;
+  authorUserId?: string;
+  authorName?: string;
+  authorAvatarUrl?: string | null;
+  authorRole?: 'LEADER' | 'MEMBER';
+  postType?: GroupPostType;
+  title?: string;
+  content?: string;
+  isPinned?: boolean;
+  isHidden?: boolean;
+  commentCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 export interface GroupPostFilterRequest {
@@ -243,6 +285,7 @@ export interface GroupPostCreateRequest {
   postType: GroupPostType;
   title: string;
   content: string;
+  imageUrls?: string[];
   isPinned?: boolean;
 }
 
@@ -250,10 +293,12 @@ export interface GroupPostUpdateRequest {
   postType?: GroupPostType;
   title?: string;
   content?: string;
+  imageUrls?: string[];
 }
 
 export interface GroupPostCommentCreateRequest {
   content: string;
+  replyToCommentId?: string;
 }
 
 export interface GroupPostCommentUpdateRequest {

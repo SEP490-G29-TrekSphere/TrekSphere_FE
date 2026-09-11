@@ -16,6 +16,16 @@ export {
   ReviewJoinRequestModal,
   WithdrawRequestConfirmModal,
 } from './components/modals';
+export {
+  CommentItem,
+  CommentSection,
+  CreatePostCard,
+  DeleteCommentConfirmModal,
+  DeletePostConfirmModal,
+  EditPostModal,
+  GroupFeedTab,
+  GroupPostCard,
+} from './components/workspace/feed';
 export * from './constants';
 // Phase 5 Hooks & Keys
 export { groupWorkspaceKeys } from './hooks/groupWorkspaceKeys';
@@ -37,6 +47,7 @@ export {
   useDeleteGroupPost,
   useGroupPostDetail,
   useGroupPosts,
+  useToggleHideGroupComment,
   useToggleHideGroupPost,
   useUpdateGroupComment,
   useUpdateGroupPost,

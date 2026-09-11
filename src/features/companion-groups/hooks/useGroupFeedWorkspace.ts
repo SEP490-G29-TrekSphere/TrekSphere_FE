@@ -129,3 +129,17 @@ export function useDeleteGroupComment(groupId: string, postId: string) {
     },
   });
 }
+
+/** Hook ẩn/hiện comment (Kiểm duyệt - chỉ Leader) */
+export function useToggleHideGroupComment(groupId: string, postId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) =>
+      groupWorkspaceService.toggleHideComment(groupId, postId, commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.postDetail(groupId, postId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.posts(groupId) });
+    },
+  });
+}
