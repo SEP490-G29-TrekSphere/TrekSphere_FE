@@ -1,500 +1,309 @@
-import { LayoutGrid, List, RotateCcw, Search, SearchX } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { PATHS } from '@/constants';
-import { TourPagination } from '@/features/tours';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { getGroupDetailPath, getTrekkerGroupDetailPath, PATHS } from '@/constants';
 import { useTours } from '@/features/tours/hooks/useTours';
-import { cn } from '@/lib/utils';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { AppButton, AppDatePicker } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
-import { CompanionGroupCard, type GroupCardData } from '../components/CompanionGroupCard';
-import { CreateCompanionGroupModal } from '../components/CreateCompanionGroupModal';
+import type { GroupCardData } from '../components/CompanionGroupCard';
+import { MatchingGroupDiscoveryFilters } from '../components/discovery/MatchingGroupDiscoveryFilters';
+import { MatchingGroupDiscoveryHero } from '../components/discovery/MatchingGroupDiscoveryHero';
+import { MatchingGroupDiscoveryResults } from '../components/discovery/MatchingGroupDiscoveryResults';
+import { MatchingGroupDiscoverySearchBar } from '../components/discovery/MatchingGroupDiscoverySearchBar';
+import { JoinGroupModal, type JoinGroupModalData } from '../components/modals/JoinGroupModal';
+import {
+  MATCHING_GROUP_DEFAULT_SORT,
+  MATCHING_GROUP_LOOKUP_PAGE_SIZE,
+  MATCHING_GROUP_PAGE_SIZE,
+  MATCHING_GROUP_SEARCH_DEBOUNCE_MS,
+  MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE,
+  type MatchingGroupLayout,
+  type MatchingGroupStatusFilter,
+} from '../constants';
+import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMatchingGroups } from '../hooks/useMatchingGroups';
 import { useMyJoinRequests } from '../hooks/useMyJoinRequests';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
-
-const PAGE_SIZE = 9;
-
-const sortOptions = [
-  { value: 'createdAt-desc', label: 'Mới nhất' },
-  { value: 'targetDate-asc', label: 'Ngày đi: Sớm nhất' },
-  { value: 'targetDate-desc', label: 'Ngày đi: Muộn nhất' },
-  { value: 'currentSize-desc', label: 'Nhiều thành viên nhất' },
-];
-
-const statusFilterOptions = [
-  { value: 'ALL', label: 'Tất cả trạng thái' },
-  { value: 'OPEN', label: 'Đang mở' },
-  { value: 'FULL', label: 'Đã đủ' },
-  { value: 'CLOSED', label: 'Đã đóng' },
-];
+import { toMatchingGroupCardViewModel } from '../mappers';
+import type { JoinApplicationStatus } from '../types/matchingGroup';
 
 export default function CompanionGroupsPage() {
   const navigate = useNavigate();
-  const user = useAppStore((s) => s.user);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const user = useAppStore((state) => state.user);
   const isGuest = !user;
 
-  // --- Fetch my joined groups ---
-  const { data: myGroupsData } = useMyMatchingGroups({ size: 100 }, { enabled: !isGuest });
-  const { data: myJoinRequestsData } = useMyJoinRequests({ size: 100 }, { enabled: !isGuest });
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get('q') || searchParams.get('keyword') || ''
+  );
+  const [selectedTourId, setSelectedTourId] = useState(() => searchParams.get('tourId') || '');
+  const [selectedDate, setSelectedDate] = useState(
+    () => searchParams.get('date') || searchParams.get('targetDate') || ''
+  );
+  const [statusFilter, setStatusFilter] = useState<MatchingGroupStatusFilter>(
+    () => (searchParams.get('status') as MatchingGroupStatusFilter) || 'ALL'
+  );
+  const [availableSlotsOnly, setAvailableSlotsOnly] = useState(
+    () => searchParams.get('slots') === 'true'
+  );
+  const [hideJoinedGroups, setHideJoinedGroups] = useState(
+    () => searchParams.get('hideJoined') === 'true'
+  );
+  const [sortKey, setSortKey] = useState(
+    () => searchParams.get('sort') || MATCHING_GROUP_DEFAULT_SORT
+  );
+  const [page, setPage] = useState(() => Math.max(0, Number(searchParams.get('page')) || 0));
+  const [layout, setLayout] = useState<MatchingGroupLayout>('grid');
+  const debouncedSearchQuery = useDebounce(searchQuery, MATCHING_GROUP_SEARCH_DEBOUNCE_MS);
 
-  const joinedGroupIds = useMemo(() => {
-    const set = new Set<string>();
-    if (myGroupsData?.content) {
-      myGroupsData.content.forEach((g) => {
-        set.add(g.matchingGroupId);
-      });
-    }
-    if (myJoinRequestsData?.content) {
-      myJoinRequestsData.content.forEach((req) => {
-        if (req.status === 'PENDING' || req.status === 'ACCEPTED') {
-          set.add(req.matchingGroupId);
-        }
-      });
-    }
-    return set;
-  }, [myGroupsData, myJoinRequestsData]);
-
-  // --- Filter state ---
-  const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
-  const [selectedTourId, setSelectedTourId] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [sortKey, setSortKey] = useState('createdAt-desc');
-  const [page, setPage] = useState(0);
-  const [layout, setLayout] = useState<'list' | 'grid'>('grid');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setPage is a stable useState setter
+  // Sync state to URL search parameters
   useEffect(() => {
-    setPage(0);
-  }, [debouncedSearchQuery, selectedTourId, selectedDate, statusFilter, sortKey]);
+    const params = new URLSearchParams();
+    if (debouncedSearchQuery.trim()) params.set('q', debouncedSearchQuery.trim());
+    if (selectedTourId) params.set('tourId', selectedTourId);
+    if (selectedDate) params.set('date', selectedDate);
+    if (statusFilter && statusFilter !== 'ALL') params.set('status', statusFilter);
+    if (availableSlotsOnly) params.set('slots', 'true');
+    if (hideJoinedGroups) params.set('hideJoined', 'true');
+    if (sortKey && sortKey !== MATCHING_GROUP_DEFAULT_SORT) params.set('sort', sortKey);
+    if (page > 0) params.set('page', String(page));
+
+    setSearchParams(params, { replace: true });
+  }, [
+    debouncedSearchQuery,
+    selectedTourId,
+    selectedDate,
+    statusFilter,
+    availableSlotsOnly,
+    hideJoinedGroups,
+    sortKey,
+    page,
+    setSearchParams,
+  ]);
+
+  const [selectedJoinGroup, setSelectedJoinGroup] = useState<JoinGroupModalData | null>(null);
+  const joinGroupMutation = useJoinMatchingGroup();
+
+  const { data: myGroupsData } = useMyMatchingGroups(
+    { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
+    { enabled: !isGuest }
+  );
+  const { data: myApplicationsData } = useMyJoinRequests(
+    { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
+    { enabled: !isGuest }
+  );
+  const joinedGroupIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const group of myGroupsData?.content ?? []) {
+      if (group.matchingGroupId) {
+        ids.add(String(group.matchingGroupId));
+        ids.add(String(group.matchingGroupId).toLowerCase());
+      }
+    }
+    for (const application of myApplicationsData?.content ?? []) {
+      if (application.status === 'ACCEPTED' && application.matchingGroupId) {
+        ids.add(String(application.matchingGroupId));
+        ids.add(String(application.matchingGroupId).toLowerCase());
+      }
+    }
+    return ids;
+  }, [myApplicationsData, myGroupsData]);
+
+  const applicationStatusMap = useMemo(() => {
+    const map = new Map<string, JoinApplicationStatus>();
+    for (const app of myApplicationsData?.content ?? []) {
+      if (!app.matchingGroupId) continue;
+      const rawId = String(app.matchingGroupId);
+      const lowerId = rawId.toLowerCase();
+      const existing = map.get(lowerId);
+      // Ưu tiên trạng thái: PENDING > REJECTED > WITHDRAWN > ACCEPTED
+      if (!existing || app.status === 'PENDING') {
+        map.set(rawId, app.status as JoinApplicationStatus);
+        map.set(lowerId, app.status as JoinApplicationStatus);
+      }
+    }
+    return map;
+  }, [myApplicationsData]);
 
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
-
-  // --- Data ---
-  const { data, isLoading, isError } = useMatchingGroups({
+  const { data, isLoading, isError, refetch } = useMatchingGroups({
     keyword: debouncedSearchQuery || undefined,
     tourId: selectedTourId || undefined,
     targetDate: selectedDate || undefined,
+    availableSlotsOnly: availableSlotsOnly || undefined,
     page,
-    size: PAGE_SIZE,
+    size: MATCHING_GROUP_PAGE_SIZE,
     sortBy,
     sortDir,
   });
-
+  const { tours } = useTours({ size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE });
   const matchingGroups = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
-  const totalElements = data?.totalElements ?? 0;
-  const pageNumber = data?.pageNumber ?? 0;
-
-  // Tours for sidebar filter dropdown
-  const { tours: allTours } = useTours({ size: 50 });
-
-  // Client-side status filter (API doesn't support it directly)
   const filteredGroups = useMemo(() => {
-    if (statusFilter === 'ALL') return matchingGroups;
-    return matchingGroups.filter((g) => g.status === statusFilter);
-  }, [matchingGroups, statusFilter]);
+    let result =
+      statusFilter === 'ALL'
+        ? matchingGroups
+        : matchingGroups.filter((group) => group.status === statusFilter);
 
-  const handleResetFilters = () => {
+    if (hideJoinedGroups && !isGuest) {
+      result = result.filter((group) => {
+        const isLeader = Boolean(
+          user && (group.ownerId === user.id || group.isOwner || group.myRole === 'LEADER')
+        );
+        const isMember = Boolean(
+          group.myRole === 'MEMBER' || joinedGroupIds.has(group.matchingGroupId)
+        );
+        return !isLeader && !isMember;
+      });
+    }
+
+    return result;
+  }, [matchingGroups, statusFilter, hideJoinedGroups, isGuest, user, joinedGroupIds]);
+
+  function resetFilters() {
     setSearchQuery('');
     setSelectedTourId('');
     setSelectedDate('');
     setStatusFilter('ALL');
-    setSortKey('createdAt-desc');
+    setAvailableSlotsOnly(false);
+    setHideJoinedGroups(false);
+    setSortKey(MATCHING_GROUP_DEFAULT_SORT);
     setPage(0);
-  };
+  }
 
-  const handleJoinGroup = (group: GroupCardData) => {
-    const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
-    navigate(`/groups/${groupId}/join`);
-  };
-
-  const handleViewDetail = (group: GroupCardData) => {
-    const groupId = 'matchingGroupId' in group ? group.matchingGroupId : group.id;
-    navigate(`/groups/${groupId}`);
-  };
-
-  const handlePageChange = (next: number) => {
-    setPage(next);
+  function changePage(nextPage: number) {
+    setPage(nextPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }
 
-  const currentSortLabel = sortOptions.find((o) => o.value === sortKey)?.label ?? 'Mới nhất';
-  const isStatusFiltered = statusFilter !== 'ALL';
+  function handleOpenJoinModal(group: GroupCardData) {
+    const vm = toMatchingGroupCardViewModel(group);
+    const rawId = vm.groupId;
+    const lowerId = rawId.toLowerCase();
+    const appStatus = applicationStatusMap.get(lowerId) ?? applicationStatusMap.get(rawId);
 
-  return (
-    <div className="min-h-screen bg-background pt-16">
-      {/* Hero Section */}
-      <section className="relative h-[350px] sm:h-[450px] w-full">
-        <img
-          src="/image2.jpg"
-          alt="Tìm Bạn Đồng Hành"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4">
-          <h1 className="mb-4 text-3xl font-bold sm:text-5xl lg:text-6xl text-white">
-            Tìm Bạn Đồng Hành
-          </h1>
-          <p className="max-w-2xl text-base sm:text-lg text-white/90">
-            Kết nối với những người cùng đam mê để chinh phục những cung đường huyền thoại.
-          </p>
-        </div>
-      </section>
+    // Không mở modal gửi đơn nếu đơn đang chờ duyệt
+    if (appStatus === 'PENDING') {
+      return;
+    }
 
-      <div className="relative z-20 -mt-8 sm:-mt-10">
-        {/* Centered container matching ListTours */}
-        <div className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 lg:px-8">
-          {/* ── Page header (search bar area) ── */}
-          <div className="pb-8 text-center">
-            {/* Search bar pill */}
-            <div className="mx-auto max-w-[800px] bg-card border border-border/60 rounded-full p-2 shadow-xl flex items-center gap-3">
-              <label className="flex flex-1 items-center gap-3 rounded-full bg-muted/50 px-4 py-2.5 transition-colors hover:bg-muted">
-                <Search className="h-5 w-5 text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm theo tên nhóm, tour..."
-                  className="w-full bg-transparent text-sm sm:text-base text-foreground placeholder:text-muted-foreground outline-none"
-                />
-              </label>
-            </div>
-          </div>
+    setSelectedJoinGroup({
+      id: vm.groupId,
+      title: vm.groupName,
+      leaderName: vm.ownerName,
+      leaderAvatar: vm.ownerAvatarUrl,
+      coverImageUrl: vm.coverImageUrl,
+      departureDate: vm.targetDate,
+      maxMembers: vm.maxSize,
+      currentMembers: vm.currentSize,
+    });
+  }
 
-          {/* ── Main 12-column grid (identical to ListTours) ── */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            {/* LEFT: Sidebar filters */}
-            <aside className="lg:col-span-3 flex flex-col gap-6">
-              <div className="rounded-2xl border border-border bg-white p-5 shadow-xs">
-                <h3 className="mb-5 text-lg font-bold text-primary">Bộ lọc</h3>
-
-                {/* Filter: Tour */}
-                <div className="mb-6">
-                  <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Tour
-                  </span>
-                  <select
-                    value={selectedTourId}
-                    onChange={(e) => setSelectedTourId(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="">-- Tất cả các Tour --</option>
-                    {allTours.map((tour) => (
-                      <option key={tour.id} value={tour.id}>
-                        {tour.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <hr className="my-5 border-border" />
-
-                {/* Filter: Ngày khởi hành */}
-                <div className="mb-6">
-                  <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Ngày khởi hành
-                  </span>
-                  <AppDatePicker
-                    selected={selectedDate ? new Date(selectedDate) : null}
-                    onChange={(date: Date | null) => {
-                      if (!date) {
-                        setSelectedDate('');
-                        return;
-                      }
-                      const offset = date.getTimezoneOffset();
-                      const localDate = new Date(date.getTime() - offset * 60 * 1000);
-                      setSelectedDate(localDate.toISOString().split('T')[0]);
-                    }}
-                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                    placeholderText="Chọn ngày khởi hành"
-                  />
-                </div>
-
-                <hr className="my-5 border-border" />
-
-                {/* Filter: Trạng thái */}
-                <div className="mb-6">
-                  <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Trạng thái
-                  </span>
-                  <div className="flex flex-col gap-2.5">
-                    {statusFilterOptions.map((opt) => {
-                      const isActive = statusFilter === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setStatusFilter(opt.value)}
-                          aria-pressed={isActive}
-                          className="flex items-center gap-3 text-left transition-colors hover:text-primary"
-                        >
-                          <span
-                            className={cn(
-                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all',
-                              isActive ? 'border-primary bg-primary' : 'border-input bg-transparent'
-                            )}
-                          >
-                            {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                          </span>
-                          <span
-                            className={cn(
-                              'text-sm transition-all',
-                              isActive ? 'font-semibold text-primary' : 'text-muted-foreground'
-                            )}
-                          >
-                            {opt.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Reset button */}
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="w-full rounded-xl border border-input py-2 text-center text-xs font-semibold text-primary transition-all hover:bg-muted"
-                >
-                  Làm mới bộ lọc
-                </button>
-              </div>
-            </aside>
-
-            {/* RIGHT: Results */}
-            <main className="lg:col-span-9">
-              {/* Results header row */}
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-primary">Nhóm ghép</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {isStatusFiltered
-                      ? `Hiển thị ${filteredGroups.length}/${matchingGroups.length} nhóm ở trang này`
-                      : `Hiển thị ${totalElements} nhóm`}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  {/* Sort */}
-                  <div className="flex items-center gap-2">
-                    <span className="hidden text-xs text-muted-foreground sm:inline">Sắp xếp:</span>
-                    <Select
-                      value={sortKey}
-                      onValueChange={(val) => {
-                        if (val) setSortKey(val);
-                      }}
-                    >
-                      <SelectTrigger className="h-10 rounded-full bg-white px-4 text-sm font-semibold text-primary hover:border-primary/50">
-                        <span>{currentSortLabel}</span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sortOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Layout toggle */}
-                  <div className="flex items-center gap-1 rounded-full border border-input bg-white p-1">
-                    <button
-                      type="button"
-                      onClick={() => setLayout('list')}
-                      aria-pressed={layout === 'list'}
-                      className={cn(
-                        'rounded-full p-1.5 transition-colors',
-                        layout === 'list'
-                          ? 'bg-primary text-white font-semibold'
-                          : 'text-muted-foreground hover:bg-muted'
-                      )}
-                      aria-label="Hiển thị danh sách"
-                    >
-                      <List className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLayout('grid')}
-                      aria-pressed={layout === 'grid'}
-                      className={cn(
-                        'rounded-full p-1.5 transition-colors',
-                        layout === 'grid'
-                          ? 'bg-primary text-white font-semibold'
-                          : 'text-muted-foreground hover:bg-muted'
-                      )}
-                      aria-label="Hiển thị lưới"
-                    >
-                      <LayoutGrid className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content area */}
-              {isLoading ? (
-                <GroupsSkeleton layout={layout} />
-              ) : isError ? (
-                <GroupsError onRetry={handleResetFilters} />
-              ) : filteredGroups.length === 0 ? (
-                <GroupsEmpty
-                  isGuest={isGuest}
-                  onLogin={() => navigate(PATHS.LOGIN)}
-                  onReset={handleResetFilters}
-                />
-              ) : (
-                <div
-                  className={
-                    layout === 'grid'
-                      ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
-                      : 'flex flex-col gap-5'
-                  }
-                >
-                  {filteredGroups.map((group) => (
-                    <CompanionGroupCard
-                      key={group.matchingGroupId}
-                      group={group}
-                      layout={layout}
-                      onJoinGroup={handleJoinGroup}
-                      onViewDetail={handleViewDetail}
-                      hasJoined={joinedGroupIds.has(group.matchingGroupId)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {/* Pagination */}
-              <div className="mt-8">
-                <TourPagination
-                  pageNumber={pageNumber}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            </main>
-          </div>
-        </div>
-
-        <div className="h-16 sm:h-24" />
-      </div>
-
-      {/* Create modal */}
-      <CreateCompanionGroupModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
-    </div>
-  );
-}
-
-// ── Sub-components ──────────────────────────────────────────────────────────
-
-function GroupsSkeleton({ layout }: { layout: 'list' | 'grid' }) {
-  if (layout === 'grid') {
-    return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
-            key={`group-skeleton-${i}`}
-            className="flex flex-col rounded-2xl bg-white shadow-sm ring-1 ring-border"
-          >
-            <div className="h-12 w-full animate-pulse rounded-t-2xl bg-muted" />
-            <div className="flex flex-col p-4 gap-3">
-              <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-              <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
-              <div className="h-8 w-28 animate-pulse rounded-full bg-muted mt-2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+  async function handleConfirmJoinGroup(message?: string) {
+    if (!selectedJoinGroup) return;
+    try {
+      await joinGroupMutation.mutateAsync({
+        matchingGroupId: selectedJoinGroup.id,
+        message,
+      });
+      setSelectedJoinGroup(null);
+    } catch {
+      // Error handled by mutation or global query error
+    }
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length skeleton
-          key={`group-skeleton-${i}`}
-          className="flex gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-border"
-        >
-          <div className="flex flex-1 flex-col gap-2 py-1">
-            <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
-            <div className="h-7 w-28 animate-pulse rounded-full bg-muted mt-1" />
+    <div className="min-h-screen bg-background pt-16">
+      <MatchingGroupDiscoveryHero />
+      <div className="relative z-20 -mt-8 sm:-mt-10">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <MatchingGroupDiscoverySearchBar
+            searchQuery={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
+              setPage(0);
+            }}
+          />
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <MatchingGroupDiscoveryFilters
+              tours={tours}
+              selectedTourId={selectedTourId}
+              selectedDate={selectedDate}
+              statusFilter={statusFilter}
+              availableSlotsOnly={availableSlotsOnly}
+              hideJoinedGroups={hideJoinedGroups}
+              isGuest={isGuest}
+              onTourChange={(value) => {
+                setSelectedTourId(value);
+                setPage(0);
+              }}
+              onDateChange={(value) => {
+                setSelectedDate(value);
+                setPage(0);
+              }}
+              onStatusChange={(value) => {
+                setStatusFilter(value);
+                setPage(0);
+              }}
+              onAvailableSlotsChange={(value) => {
+                setAvailableSlotsOnly(value);
+                setPage(0);
+              }}
+              onHideJoinedGroupsChange={(value) => {
+                setHideJoinedGroups(value);
+                setPage(0);
+              }}
+              onReset={resetFilters}
+            />
+            <MatchingGroupDiscoveryResults
+              groups={filteredGroups}
+              matchingGroupCount={matchingGroups.length}
+              totalElements={data?.totalElements ?? 0}
+              pageNumber={data?.pageNumber ?? 0}
+              totalPages={data?.totalPages ?? 0}
+              layout={layout}
+              sortKey={sortKey}
+              statusFilter={statusFilter}
+              isLoading={isLoading}
+              isError={isError}
+              isGuest={isGuest}
+              joinedGroupIds={joinedGroupIds}
+              applicationStatusMap={applicationStatusMap}
+              onLayoutChange={setLayout}
+              onSortChange={(value) => {
+                setSortKey(value);
+                setPage(0);
+              }}
+              onPageChange={changePage}
+              onRetry={() => void refetch()}
+              onReset={resetFilters}
+              onLogin={() => navigate(PATHS.LOGIN)}
+              onJoinGroup={handleOpenJoinModal}
+              onViewDetail={(group) => {
+                const vm = toMatchingGroupCardViewModel(group);
+                const isLeader = Boolean(
+                  user && (vm.ownerId === user.id || vm.isOwner || vm.myRole === 'LEADER')
+                );
+                const isMember = Boolean(vm.myRole === 'MEMBER' || joinedGroupIds.has(vm.groupId));
+                if (isLeader || isMember) {
+                  navigate(getTrekkerGroupDetailPath(vm.groupId));
+                } else {
+                  navigate(getGroupDetailPath(vm.groupId));
+                }
+              }}
+            />
           </div>
         </div>
-      ))}
-    </div>
-  );
-}
-
-function GroupsError({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
-        <svg
-          className="h-10 w-10 text-destructive"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-          />
-        </svg>
+        <div className="h-16 sm:h-24" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold text-primary">Không thể tải danh sách nhóm</h3>
-      <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-        Đã xảy ra lỗi kết nối. Vui lòng thử lại.
-      </p>
-      <AppButton onClick={onRetry}>
-        <RotateCcw className="mr-2 h-4 w-4" />
-        Thử lại
-      </AppButton>
-    </div>
-  );
-}
 
-function GroupsEmpty({
-  isGuest,
-  onLogin,
-  onReset,
-}: {
-  isGuest: boolean;
-  onLogin: () => void;
-  onReset: () => void;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <SearchX className="h-8 w-8" />
-      </div>
-      <h3 className="mb-2 text-lg font-semibold text-primary">
-        {isGuest ? 'Đăng nhập để xem nhóm ghép' : 'Không tìm thấy nhóm phù hợp'}
-      </h3>
-      <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-        {isGuest
-          ? 'Các nhóm ghép sẽ hiển thị sau khi bạn đăng nhập.'
-          : 'Thử thay đổi bộ lọc hoặc từ khoá để xem thêm kết quả.'}
-      </p>
-      {isGuest ? (
-        <AppButton onClick={onLogin}>Đăng nhập ngay</AppButton>
-      ) : (
-        <AppButton onClick={onReset}>Xóa tất cả bộ lọc</AppButton>
+      {/* Unified Join Group Modal */}
+      {selectedJoinGroup && (
+        <JoinGroupModal
+          isOpen={Boolean(selectedJoinGroup)}
+          onClose={() => setSelectedJoinGroup(null)}
+          group={selectedJoinGroup}
+          onSubmit={handleConfirmJoinGroup}
+          isPending={joinGroupMutation.isPending}
+        />
       )}
     </div>
   );

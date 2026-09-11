@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/dist", "!**/node_modules", "!**/.husky", "!**/*.local"]
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/.husky", "!**/*.local", "!**/.tmp*"]
   },
   "formatter": {
     "enabled": true,

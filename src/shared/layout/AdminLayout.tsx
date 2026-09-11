@@ -7,13 +7,15 @@ import {
   LogOut,
   MessageSquare,
   Newspaper,
-  Siren,
   User,
 } from 'lucide-react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
+import { useLogout } from '@/features/auth/hooks/useLogout';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
+import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 const adminNavItems = [
@@ -22,7 +24,6 @@ const adminNavItems = [
   { name: 'Quản lý Nhà cung cấp', path: PATHS.ADMIN_VENDORS, icon: Building2 },
   { name: 'Duyệt Nhà Cung Cấp', path: PATHS.ADMIN_APPLICATIONS, icon: ClipboardCheck },
   { name: 'Báo cáo Vi phạm', path: PATHS.ADMIN_REPORTS, icon: AlertTriangle },
-  { name: 'Khẩn cấp (SOS)', path: PATHS.ADMIN_EMERGENCY, icon: Siren },
   { name: 'Quản lý Bài Viết', path: PATHS.ADMIN_BLOGS, icon: Newspaper },
   { name: 'Quản lý Dữ liệu', path: PATHS.ADMIN_DATA, icon: Database, disabled: true },
   { name: 'Trò chuyện', path: PATHS.ADMIN_CHAT, icon: MessageSquare },
@@ -31,14 +32,8 @@ const adminNavItems = [
 export default function AdminLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const setUser = useAppStore((state) => state.setUser);
-  const navigate = useNavigate();
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
   const isChatPage = location.pathname === PATHS.ADMIN_CHAT;
-
-  const handleLogout = () => {
-    setUser(null);
-    navigate(PATHS.LOGIN);
-  };
 
   const adminName = user?.name || 'Admin User';
   const adminInitial = adminName.charAt(0).toUpperCase();
@@ -49,17 +44,17 @@ export default function AdminLayout() {
       sidebarClassName="bg-[#FAF9F5] border-r border-[#E5E4DE]"
       mobileTitle="TrekSphere Admin"
       fullBleed={isChatPage}
+      headerRight={<NotificationBell />}
       brand={({ collapsed }) =>
         collapsed ? (
-          <Link
+          <AppLogo
+            variant="mark"
+            tone="dark"
+            height={36}
             to={PATHS.HOME}
-            className="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
-            title="TrekSphere - Quản Trị Viên"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3025] text-white text-base font-black shadow-xs tracking-tight">
-              AD
-            </div>
-          </Link>
+            ariaLabel="TrekSphere - Quản Trị Viên"
+            wrapperClassName="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
+          />
         ) : (
           <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
             <h1 className="text-3xl font-extrabold tracking-tight text-[#0B3025] leading-none mb-1">
@@ -130,7 +125,7 @@ export default function AdminLayout() {
 
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={logout}
               className="text-zinc-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
               title="Đăng xuất"
               aria-label="Đăng xuất"
@@ -161,7 +156,7 @@ export default function AdminLayout() {
               </div>
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={logout}
                 className="text-zinc-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                 title="Đăng xuất"
                 aria-label="Đăng xuất"

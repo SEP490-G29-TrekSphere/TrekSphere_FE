@@ -22,18 +22,21 @@ const badgeSizeStyles = {
 };
 
 export function MemberAvatar({
-  fullName,
+  fullName = '',
   avatarUrl,
   isLeader = false,
   size = 'md',
   className,
 }: MemberAvatarProps) {
-  const initials = fullName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
+  const initials =
+    (fullName || '')
+      .trim()
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase() || 'T';
 
   return (
     <div className={cn('relative shrink-0', className)}>

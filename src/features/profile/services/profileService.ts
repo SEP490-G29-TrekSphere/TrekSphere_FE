@@ -59,6 +59,27 @@ export const profileService = {
       formData
     );
   },
+  /**
+   * Xóa file khỏi Cloudinary.
+   * Nhận vào Cloudinary publicId hoặc URL đầy đủ.
+   */
+  deleteFile: async (publicIdOrUrl: string) => {
+    let publicId = publicIdOrUrl;
+    if (publicIdOrUrl.includes('cloudinary.com/')) {
+      const uploadIdx = publicIdOrUrl.indexOf('/upload/');
+      if (uploadIdx !== -1) {
+        let pathAfterUpload = publicIdOrUrl.substring(uploadIdx + 8);
+        pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, '');
+        const dotIdx = pathAfterUpload.lastIndexOf('.');
+        if (dotIdx !== -1) {
+          publicId = pathAfterUpload.substring(0, dotIdx);
+        } else {
+          publicId = pathAfterUpload;
+        }
+      }
+    }
+    return ApiService<string>(`/files/delete?publicId=${encodeURIComponent(publicId)}`, 'DELETE');
+  },
 };
 
 /**

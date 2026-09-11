@@ -1,46 +1,33 @@
-import { Eye, EyeOff, FileImage, Search, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Eye, EyeOff, FileImage, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
   MyBlogPagination,
   type TrekkerBlogItem,
   useTrekkerBlogList,
   useTrekkerBlogMutations,
 } from '@/features/trekker-community';
-import { useDebounce } from '@/shared/hooks';
-import { AppSpinner, ConfirmActionDialog } from '@/shared/ui';
+import { AppSpinner, ConfirmActionDialog, PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
 
 type PendingAction = { blog: TrekkerBlogItem; type: 'hide' | 'delete' };
 
-/**
- * Trang "Quản lý Blog" — Admin xem toàn bộ bài viết trong hệ thống và
- * kiểm duyệt (ẩn bài vi phạm hoặc xóa vĩnh viễn).
- *
- * Dùng lại data layer của feature trekker-community (cùng endpoint `GET /blogs`,
- * chỉ khác không lọc theo `authorId`) — tránh viết trùng service/hook.
- *
- * Ô tìm kiếm nằm ngay trong trang, cùng hàng với bộ lọc trạng thái.
- */
 export default function BlogManagement() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [statusTab, setStatusTab] = useState<'ALL' | 'PUBLISHED' | 'HIDDEN'>('ALL');
+  const [sortValue, setSortValue] = useState('createdAt-desc');
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
-  const debouncedSearch = useDebounce(search, 400);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: debouncedSearch chỉ dùng để trigger effect
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
+  const [sortBy, sortDir] = sortValue.split('-') as [string, 'asc' | 'desc'];
 
   const { data, isLoading, isError } = useTrekkerBlogList({
-    keyword: debouncedSearch || undefined,
+    keyword: search || undefined,
     page,
     size: PAGE_SIZE,
-    sortBy: 'createdAt',
-    sortDir: 'desc',
+    sortBy,
+    sortDir,
   });
 
   const { toggleVisibility, deleteBlog } = useTrekkerBlogMutations();
@@ -49,6 +36,11 @@ export default function BlogManagement() {
   const total = data?.meta.totalElements ?? 0;
   const totalPages = Math.max(1, data?.meta.totalPages ?? 1);
   const isActionPending = toggleVisibility.isPending || deleteBlog.isPending;
+
+  const filteredBlogs = useMemo(() => {
+    if (statusTab === 'ALL') return blogs;
+    return blogs.filter((b) => b.status === statusTab);
+  }, [blogs, statusTab]);
 
   const handleConfirmAction = () => {
     if (!pendingAction) return;
@@ -82,32 +74,45 @@ export default function BlogManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B3025] tracking-tight">
-            Quản lý Blog
-          </h1>
-        </div>
+      <PortalPageHeader
+        title="Quản lý Bài Viết"
+        description="Theo dõi, duyệt và kiểm duyệt các bài viết chia sẻ từ cộng đồng Trekker"
+      />
 
-        {/* Ô tìm kiếm nằm trong trang, không đặt ở header */}
-        <div className="relative sm:w-72">
-          <span
-            className="absolute inset-y-0 left-4 flex items-center"
-            style={{ color: '#6F7B75' }}
-          >
-            <Search className="h-4 w-4" />
-          </span>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kiếm bài viết..."
-            aria-label="Tìm kiếm bài viết"
-            className="h-11 w-full rounded-full pl-11 pr-4 text-sm font-medium outline-none transition-colors"
-            style={{ backgroundColor: '#F0EEE6', color: '#06261D' }}
-          />
-        </div>
-      </div>
+      <PortalFilterBar<'ALL' | 'PUBLISHED' | 'HIDDEN'>
+        tabs={[
+          { key: 'ALL', label: 'Tất cả' },
+          { key: 'PUBLISHED', label: 'Đang hiển thị' },
+          { key: 'HIDDEN', label: 'Đã ẩn' },
+        ]}
+        activeTab={statusTab}
+        onTabChange={(tab) => {
+          setStatusTab(tab);
+          setPage(1);
+        }}
+        searchPlaceholder="Tìm kiếm bài viết..."
+        searchValue={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        onSearchClear={() => {
+          setSearch('');
+          setPage(1);
+        }}
+        sort={{
+          value: sortValue,
+          onChange: (val) => {
+            setSortValue(val);
+            setPage(1);
+          },
+          options: [
+            { value: 'createdAt-desc', label: 'Mới nhất' },
+            { value: 'createdAt-asc', label: 'Cũ nhất' },
+            { value: 'viewCount-desc', label: 'Nhiều lượt xem nhất' },
+          ],
+        }}
+      />
 
       <div
         className="overflow-hidden rounded-3xl bg-card shadow-sm"
@@ -132,7 +137,7 @@ export default function BlogManagement() {
                 </EmptyRow>
               ) : isError ? (
                 <EmptyRow color="#DC2626">Không thể tải danh sách bài viết.</EmptyRow>
-              ) : blogs.length === 0 ? (
+              ) : filteredBlogs.length === 0 ? (
                 <EmptyRow>
                   <div className="flex flex-col items-center gap-2">
                     <FileImage className="h-8 w-8 opacity-30" />
@@ -140,7 +145,7 @@ export default function BlogManagement() {
                   </div>
                 </EmptyRow>
               ) : (
-                blogs.map((blog) => (
+                filteredBlogs.map((blog: TrekkerBlogItem) => (
                   <BlogRow
                     key={blog.blogId}
                     blog={blog}

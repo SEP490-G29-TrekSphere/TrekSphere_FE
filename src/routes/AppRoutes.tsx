@@ -61,24 +61,15 @@ const VendorList = lazy(() => import('@/features/admin/vendors/pages/VendorList'
 const VendorManagerLayout = lazy(
   () => import('@/features/vendor-manager/layout/VendorManagerLayout')
 );
-const StaffList = lazy(() => import('@/features/vendor-manager/staff/pages/StaffList'));
 const TourList = lazy(() => import('@/features/vendor-manager/tours/pages/TourList'));
 const TourCreate = lazy(() => import('@/features/vendor-manager/tours/pages/TourCreate'));
 const TourEdit = lazy(() => import('@/features/vendor-manager/tours/pages/TourEdit'));
 const TourApprovals = lazy(() => import('@/features/vendor-manager/tours/pages/TourApprovals'));
 const TourSchedules = lazy(() => import('@/features/vendor-manager/tours/pages/TourSchedules'));
-const VendorStaffLayout = lazy(() => import('@/features/vendor-staff/layout/VendorStaffLayout'));
-const PartnerTourList = lazy(() => import('@/features/vendor-staff/tours/pages/TourList'));
-const PartnerTourCreate = lazy(() => import('@/features/vendor-staff/tours/pages/TourCreate'));
-const PartnerTourEdit = lazy(() => import('@/features/vendor-staff/tours/pages/TourEdit'));
-const PartnerTourSchedules = lazy(
-  () => import('@/features/vendor-staff/tours/pages/TourSchedules')
-);
 const VendorProfileOverview = lazy(
   () => import('@/features/vendor-profile/pages/VendorProfileOverview')
 );
 const VendorProfileEdit = lazy(() => import('@/features/vendor-profile/pages/VendorProfileEdit'));
-const EmergencySosPage = lazy(() => import('@/features/emergency-sos/pages/EmergencySosPage'));
 const NotFoundPage = lazy(() => import('@/shared/pages/NotFoundPage'));
 
 /**
@@ -105,10 +96,12 @@ function ChatRedirect() {
 
   if (primaryRole === ROLES.ADMIN) {
     chatPath = PATHS.ADMIN_CHAT;
-  } else if (primaryRole === ROLES.VENDOR_MANAGER) {
-    chatPath = PATHS.VENDOR_MANAGER_CHAT;
-  } else if (primaryRole === ROLES.VENDOR_STAFF) {
-    chatPath = PATHS.PARTNER_CHAT;
+  } else if (
+    primaryRole === ROLES.VENDOR ||
+    primaryRole === ROLES.VENDOR_MANAGER ||
+    primaryRole === ROLES.VENDOR_STAFF
+  ) {
+    chatPath = PATHS.VENDOR_CHAT;
   }
 
   return <Navigate to={chatPath} state={location.state} replace />;
@@ -141,7 +134,14 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path={PATHS.NOTIFICATIONS} element={<Notifications />} />
+        <Route
+          path={PATHS.NOTIFICATIONS}
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
         <Route path={PATHS.CHAT} element={<ChatRedirect />} />
 
         {/* Blog của tôi chỉ sống trong portal Trekker (TrekkerLayout có sidebar).
@@ -252,50 +252,33 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_REPORTS} element={<Reports />} />
           <Route path={PATHS.ADMIN_REPORT_DETAIL} element={<ReportDetail />} />
           <Route path={PATHS.ADMIN_BLOGS} element={<BlogManagement />} />
-          <Route path={PATHS.ADMIN_EMERGENCY} element={<EmergencySosPage />} />
           <Route path={PATHS.ADMIN_CHAT} element={<ChatList hideSidebar />} />
         </Route>
 
-        {/* Vendor Manager routes — yêu cầu role vendor_manager, dùng VendorManagerLayout riêng */}
+        {/* Vendor routes — yêu cầu role vendor (hoặc vendor_manager/vendor_staff cũ), dùng VendorManagerLayout */}
         <Route
-          path={PATHS.VENDOR_MANAGER}
+          path={PATHS.VENDOR}
           element={
-            <RequireRole allowedRoles={[ROLES.VENDOR_MANAGER]}>
+            <RequireRole allowedRoles={[ROLES.VENDOR, ROLES.VENDOR_MANAGER, ROLES.VENDOR_STAFF]}>
               <VendorManagerLayout />
             </RequireRole>
           }
         >
-          <Route index element={<Navigate to={PATHS.VENDOR_MANAGER_TOURS} replace />} />
-          <Route path={PATHS.VENDOR_MANAGER_PROFILE} element={<VendorProfileOverview />} />
-          <Route path={PATHS.VENDOR_MANAGER_PROFILE_EDIT} element={<VendorProfileEdit />} />
-          <Route path={PATHS.VENDOR_MANAGER_STAFF} element={<StaffList />} />
-          <Route path={PATHS.VENDOR_MANAGER_TOURS} element={<TourList />} />
-          <Route path={PATHS.VENDOR_MANAGER_TOUR_CREATE} element={<TourCreate />} />
-          <Route path={PATHS.VENDOR_MANAGER_TOUR_EDIT} element={<TourEdit />} />
-          <Route path={PATHS.VENDOR_MANAGER_TOUR_APPROVALS} element={<TourApprovals />} />
-          <Route path={PATHS.VENDOR_MANAGER_TOUR_SCHEDULES} element={<TourSchedules />} />
-          <Route path={PATHS.VENDOR_MANAGER_EMERGENCY} element={<EmergencySosPage />} />
-          <Route path={PATHS.VENDOR_MANAGER_CHAT} element={<ChatList hideSidebar />} />
+          <Route index element={<Navigate to={PATHS.VENDOR_PROFILE} replace />} />
+          <Route path={PATHS.VENDOR_PROFILE} element={<VendorProfileOverview />} />
+          <Route path={PATHS.VENDOR_PROFILE_EDIT} element={<VendorProfileEdit />} />
+          <Route path={PATHS.VENDOR_TOURS} element={<TourList />} />
+          <Route path={PATHS.VENDOR_TOUR_CREATE} element={<TourCreate />} />
+          <Route path={PATHS.VENDOR_TOUR_EDIT} element={<TourEdit />} />
+          <Route path={PATHS.VENDOR_TOUR_APPROVALS} element={<TourApprovals />} />
+          <Route path={PATHS.VENDOR_TOUR_SCHEDULES} element={<TourSchedules />} />
+          <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />
+          <Route path={PATHS.VENDOR_CHAT} element={<ChatList hideSidebar />} />
         </Route>
 
-        {/* Vendor Staff routes — yêu cầu role vendor_staff, dùng VendorStaffLayout riêng */}
-        <Route
-          path={PATHS.PARTNER}
-          element={
-            <RequireRole allowedRoles={[ROLES.VENDOR_STAFF]}>
-              <VendorStaffLayout />
-            </RequireRole>
-          }
-        >
-          <Route index element={<Navigate to={PATHS.PARTNER_TOURS} replace />} />
-          <Route path={PATHS.PARTNER_PROFILE} element={<VendorProfileOverview />} />
-          <Route path={PATHS.PARTNER_TOURS} element={<PartnerTourList />} />
-          <Route path={PATHS.PARTNER_TOUR_CREATE} element={<PartnerTourCreate />} />
-          <Route path={PATHS.PARTNER_TOUR_EDIT} element={<PartnerTourEdit />} />
-          <Route path={PATHS.PARTNER_TOUR_SCHEDULES} element={<PartnerTourSchedules />} />
-          <Route path={PATHS.PARTNER_BLOG_CREATE} element={<CreateBlogPost />} />
-          <Route path={PATHS.PARTNER_CHAT} element={<ChatList hideSidebar />} />
-        </Route>
+        {/* Legacy redirect: /vendor-manager/* và /partner/* trỏ về /vendor/* */}
+        <Route path="/vendor-manager/*" element={<Navigate to={PATHS.VENDOR} replace />} />
+        <Route path="/partner/*" element={<Navigate to={PATHS.VENDOR} replace />} />
 
         {/* Standalone 404 Catch-All Route */}
         <Route path="*" element={<NotFoundPage />} />

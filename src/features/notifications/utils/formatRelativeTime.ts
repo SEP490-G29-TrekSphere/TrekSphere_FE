@@ -1,12 +1,5 @@
-import type { Notification } from '../types/notification';
-
-export const mockNotifications: Notification[] = [];
-
-export function getUnreadCount(notifications: Notification[]): number {
-  return notifications.filter((n) => !n.read).length;
-}
-
-export function formatRelativeTime(date: Date): string {
+export function formatRelativeTime(input: string | Date): string {
+  const date = typeof input === 'string' ? new Date(input) : input;
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));

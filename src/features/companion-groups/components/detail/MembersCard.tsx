@@ -60,7 +60,7 @@ export function MembersCard({
       {/* Members Avatar Cards Grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {acceptedMembers.map((member) => {
-          const isLeader = member.role === 'OWNER';
+          const isLeader = member.role === 'LEADER';
 
           return (
             <div
@@ -69,7 +69,7 @@ export function MembersCard({
             >
               <MemberAvatar
                 fullName={member.fullName}
-                avatarUrl={member.avatarUrl}
+                avatarUrl={member.avatarUrl ?? undefined}
                 isLeader={isLeader}
               />
               <div className="min-w-0">
@@ -119,7 +119,11 @@ export function MembersCard({
                           <button
                             type="button"
                             onClick={() => {
-                              onDirectChat?.(member.userId, member.fullName, member.avatarUrl);
+                              onDirectChat?.(
+                                member.userId,
+                                member.fullName,
+                                member.avatarUrl ?? undefined
+                              );
                               setActiveDropdownId(null);
                             }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors text-left"
@@ -134,7 +138,11 @@ export function MembersCard({
                     <button
                       type="button"
                       onClick={() =>
-                        onDirectChat?.(member.userId, member.fullName, member.avatarUrl)
+                        onDirectChat?.(
+                          member.userId,
+                          member.fullName,
+                          member.avatarUrl ?? undefined
+                        )
                       }
                       className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/50 text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer"
                       title={`Nhắn tin cho ${member.fullName}`}

@@ -82,12 +82,12 @@ export function JoinRequestsCard({
         !isError &&
         requests.map((req) => (
           <div
-            key={req.matchingMemberId}
+            key={req.applicationId ?? req.userId}
             className="rounded-xl border border-border bg-background p-5 space-y-3"
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <MemberAvatar fullName={req.fullName} avatarUrl={req.avatarUrl} />
+                <MemberAvatar fullName={req.fullName} avatarUrl={req.avatarUrl ?? undefined} />
                 <div>
                   <h3 className="text-xs font-bold text-foreground">{req.fullName}</h3>
                   <p className="text-[11px] text-muted-foreground">
@@ -104,9 +104,9 @@ export function JoinRequestsCard({
                   type="button"
                   onClick={() =>
                     onApprove({
-                      id: req.matchingMemberId,
+                      id: req.applicationId ?? '',
                       userName: req.fullName,
-                      avatarUrl: req.avatarUrl,
+                      avatarUrl: req.avatarUrl ?? undefined,
                     })
                   }
                   className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white hover:bg-primary-hover transition-colors cursor-pointer"
@@ -117,9 +117,9 @@ export function JoinRequestsCard({
                   type="button"
                   onClick={() =>
                     onReject({
-                      id: req.matchingMemberId,
+                      id: req.applicationId ?? '',
                       userName: req.fullName,
-                      avatarUrl: req.avatarUrl,
+                      avatarUrl: req.avatarUrl ?? undefined,
                     })
                   }
                   className="rounded-full border border-border bg-background px-4 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
@@ -128,6 +128,12 @@ export function JoinRequestsCard({
                 </button>
               </div>
             </div>
+
+            {req.message && (
+              <div className="rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground italic">
+                "{req.message}"
+              </div>
+            )}
           </div>
         ))}
 

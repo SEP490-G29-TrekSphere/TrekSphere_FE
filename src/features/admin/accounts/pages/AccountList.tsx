@@ -1,9 +1,7 @@
-import { Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDebounce } from '@/shared/hooks';
+import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import { AccountFilterDropdown } from '../components/AccountFilterDropdown';
 import { AccountPagination } from '../components/AccountPagination';
 import { AccountTableRow } from '../components/AccountTableRow';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -13,35 +11,13 @@ import type { AccountRole, AdminAccount } from '../types';
 
 const PAGE_SIZE = 10;
 
-/**
- * Trang Quản lý tài khoản — màn chính của Admin.
- *
- * Layout (đồng bộ với màn Tour Approval):
- * - Page header (title + filter).
- * - Bảng dữ liệu (5 cột) trong khối bo góc 24px.
- * - Pagination footer.
- *
- * Thanh search "Tìm kiếm tài khoản..." nằm ngay trong trang, cùng hàng với
- * dropdown lọc theo loại tài khoản.
- */
 export default function AccountList() {
   const [filterRole, setFilterRole] = useState<AccountRole | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pendingLockAccount, setPendingLockAccount] = useState<AdminAccount | null>(null);
 
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Reset về trang 1 mỗi khi từ khóa tìm kiếm thay đổi.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: debouncedSearch chỉ dùng để trigger effect, không đọc giá trị trong body
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
-  const filter = useMemo(
-    () => ({ role: filterRole, search: debouncedSearch }),
-    [filterRole, debouncedSearch]
-  );
+  const filter = useMemo(() => ({ role: filterRole, search }), [filterRole, search]);
 
   const { data, isLoading, isError, error } = useAdminAccounts(filter, page, PAGE_SIZE);
   const { lock, unlock } = useAccountMutations();
@@ -84,43 +60,36 @@ export default function AccountList() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B3025] tracking-tight">
-            Quản lý tài khoản
-          </h1>
-        </div>
+      <PortalPageHeader
+        title="Quản lý tài khoản"
+        description="Quản lý thông tin và phân quyền các tài khoản người dùng trong hệ thống"
+      />
 
-        {/* Toolbar: ô tìm kiếm nằm cùng hàng với dropdown lọc loại tài khoản */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative sm:w-72">
-            <span
-              className="absolute inset-y-0 left-4 flex items-center"
-              style={{ color: '#6F7B75' }}
-            >
-              <Search className="h-4 w-4" />
-            </span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm kiếm tài khoản..."
-              aria-label="Tìm kiếm tài khoản"
-              className="h-11 w-full rounded-full pl-11 pr-4 text-sm font-medium outline-none transition-colors"
-              style={{ backgroundColor: '#F0EEE6', color: '#06261D' }}
-            />
-          </div>
-
-          <AccountFilterDropdown
-            value={filterRole}
-            onChange={(value) => {
-              setFilterRole(value);
-              setPage(1);
-            }}
-          />
-        </div>
-      </div>
+      <PortalFilterBar<AccountRole | 'ALL'>
+        tabs={[
+          { key: 'ALL', label: 'Tất cả' },
+          { key: 'trekker', label: 'Khách du lịch' },
+          { key: 'vendor_manager', label: 'Quản lý nhà cung cấp' },
+          { key: 'vendor_staff', label: 'Nhân viên nhà cung cấp' },
+          { key: 'coordinator', label: 'Hướng dẫn viên' },
+          { key: 'admin', label: 'Quản trị viên' },
+        ]}
+        activeTab={filterRole}
+        onTabChange={(role) => {
+          setFilterRole(role);
+          setPage(1);
+        }}
+        searchPlaceholder="Tìm kiếm tài khoản..."
+        searchValue={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        onSearchClear={() => {
+          setSearch('');
+          setPage(1);
+        }}
+      />
 
       {/* Data table */}
       <div

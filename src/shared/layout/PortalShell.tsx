@@ -43,6 +43,8 @@ interface PortalShellProps {
   sidebarStyle?: CSSProperties;
   /** Trang tự quản lý scroll/padding riêng (vd trang chat) — bỏ padding mặc định. */
   fullBleed?: boolean;
+  /** Nội dung hiển thị bên phải thanh topbar desktop (vd NotificationBell). Không có thì không render thanh này — topbar mobile (md:hidden ở trên) không bị ảnh hưởng. */
+  headerRight?: ReactNode;
 }
 
 /**
@@ -63,6 +65,7 @@ export default function PortalShell({
   sidebarClassName = '',
   sidebarStyle,
   fullBleed = false,
+  headerRight,
 }: PortalShellProps) {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsedState] = useState<boolean>(() => {
@@ -212,6 +215,12 @@ export default function PortalShell({
             </button>
             <span className="truncate text-base font-bold text-[#06261D]">{mobileTitle}</span>
           </header>
+
+          {headerRight && (
+            <header className="hidden h-14 shrink-0 items-center justify-end gap-3 border-b border-black/10 bg-white/80 px-6 backdrop-blur md:flex">
+              {headerRight}
+            </header>
+          )}
 
           <main
             className={`flex-1 ${fullBleed ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 sm:p-6 md:p-8'}`}

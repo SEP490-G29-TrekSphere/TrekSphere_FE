@@ -1,9 +1,10 @@
-import { AlertTriangle, LogOut, ShieldAlert, UserCheck } from 'lucide-react';
+import { LogOut, UserCheck } from 'lucide-react';
 import { ConfirmActionDialog } from '@/shared/ui';
 import type { UserRoleInGroup } from '../../types';
+import { ReviewJoinRequestModal } from '../modals/ReviewJoinRequestModal';
 import type { JoinRequestAction } from './JoinRequestsCard';
 
-type ActiveModal = 'dissolve' | 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
+type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
 
 interface GroupModalsProps {
   activeModal: ActiveModal;
@@ -15,14 +16,12 @@ interface GroupModalsProps {
   // Pending states
   isApprovePending: boolean;
   isRejectPending: boolean;
-  isDissolvePending: boolean;
   isLeaveModalPending: boolean;
   isAddBackPending?: boolean;
 
   // Action Handlers
   onConfirmApprove: () => void;
-  onConfirmReject: () => void;
-  onConfirmDissolveGroup: () => void;
+  onConfirmReject: (reason?: string) => void;
   onConfirmLeaveGroup: () => void;
   onConfirmCancelJoinRequest: () => void;
   onConfirmAddBackToChat?: () => void;
@@ -30,7 +29,6 @@ interface GroupModalsProps {
 
 /**
  * Nhóm modal xác nhận của trang chi tiết nhóm ghép.
- * Tất cả dùng chung `ConfirmActionDialog` nên có sẵn click ra ngoài / Esc để đóng.
  */
 export function GroupModals({
   activeModal,
@@ -40,12 +38,10 @@ export function GroupModals({
   currentUserRole,
   isApprovePending,
   isRejectPending,
-  isDissolvePending,
   isLeaveModalPending,
   isAddBackPending = false,
   onConfirmApprove,
   onConfirmReject,
-  onConfirmDissolveGroup,
   onConfirmLeaveGroup,
   onConfirmCancelJoinRequest,
   onConfirmAddBackToChat,
@@ -53,58 +49,19 @@ export function GroupModals({
   const closeModal = () => setActiveModal(null);
   const isPendingRequest = currentUserRole === 'pending';
 
+  const isReviewDecisionModalOpen = activeModal === 'approve' || activeModal === 'reject';
+
   return (
     <>
-      {activeModal === 'approve' && selectedRequest && (
-        <ConfirmActionDialog
-          icon={<UserCheck className="h-5 w-5" />}
-          title="Duyệt thành viên gia nhập"
-          description={
-            <>
-              Bạn có chắc chắn muốn duyệt <strong>{selectedRequest.userName}</strong> tham gia vào
-              nhóm ghép này?
-            </>
-          }
-          confirmLabel="Xác nhận duyệt"
-          pendingLabel="Đang duyệt..."
-          isPending={isApprovePending}
-          onConfirm={onConfirmApprove}
-          onCancel={closeModal}
-        />
-      )}
-
-      {activeModal === 'reject' && selectedRequest && (
-        <ConfirmActionDialog
-          variant="destructive"
-          icon={<AlertTriangle className="h-5 w-5" />}
-          title="Từ chối yêu cầu"
-          description={
-            <>
-              Từ chối <strong>{selectedRequest.userName}</strong> gia nhập nhóm? Hành động này không
-              thể hoàn tác.
-            </>
-          }
-          confirmLabel="Xác nhận từ chối"
-          pendingLabel="Đang từ chối..."
-          isPending={isRejectPending}
-          onConfirm={onConfirmReject}
-          onCancel={closeModal}
-        />
-      )}
-
-      {activeModal === 'dissolve' && (
-        <ConfirmActionDialog
-          variant="destructive"
-          icon={<ShieldAlert className="h-5 w-5" />}
-          title="Xác nhận giải tán nhóm"
-          description="Hành động này sẽ giải tán toàn bộ nhóm ghép và thông báo tới tất cả thành viên. Hành động này không thể hoàn tác."
-          confirmLabel="Giải tán ngay"
-          pendingLabel="Đang giải tán..."
-          isPending={isDissolvePending}
-          onConfirm={onConfirmDissolveGroup}
-          onCancel={closeModal}
-        />
-      )}
+      <ReviewJoinRequestModal
+        isOpen={isReviewDecisionModalOpen}
+        onClose={closeModal}
+        action={activeModal === 'approve' || activeModal === 'reject' ? activeModal : null}
+        request={selectedRequest}
+        isPending={activeModal === 'approve' ? isApprovePending : isRejectPending}
+        onConfirmApprove={onConfirmApprove}
+        onConfirmReject={onConfirmReject}
+      />
 
       {activeModal === 'leave' && (
         <ConfirmActionDialog
