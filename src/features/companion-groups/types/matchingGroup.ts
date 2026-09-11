@@ -180,6 +180,17 @@ export interface MyMatchingJoinRequestItem {
   canWithdraw: boolean;
 }
 
+/** Nguồn gốc của một lịch đã chiếm chỗ của người dùng. */
+export type ScheduleConflictKind = 'LEADER' | 'MEMBER' | 'PENDING_APPLICATION';
+
+/** Một nhóm đang chiếm ngày đi mà người dùng định đăng ký trùng vào. */
+export interface ScheduleConflict {
+  matchingGroupId: string;
+  groupName: string;
+  targetDate: string;
+  kind: ScheduleConflictKind;
+}
+
 export interface PaginationResponse<T> {
   content: T[];
   pageNumber: number;

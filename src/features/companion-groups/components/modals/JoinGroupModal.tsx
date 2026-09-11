@@ -1,7 +1,10 @@
 import { Calendar, Compass, Loader2, Send, User, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AppModalShell } from '@/shared/ui';
+import { formatDate } from '@/utils/format';
 import { MATCHING_GROUP_APPLICATION_MESSAGE_MAX_LENGTH } from '../../constants';
+import { useScheduleConflicts } from '../../hooks/useScheduleConflicts';
+import { ScheduleConflictNotice } from '../ScheduleConflictNotice';
 
 export interface JoinGroupModalGroupSummary {
   id: string;
@@ -10,6 +13,10 @@ export interface JoinGroupModalGroupSummary {
   leaderAvatar?: string;
   coverImageUrl?: string;
   departureDate?: string;
+  /** Ngày đi dự kiến dạng ISO — dùng để đối chiếu trùng lịch. */
+  targetDate?: string;
+  /** Ngày kết thúc dự kiến (hành trình tự tạo), nếu có. */
+  endDate?: string | null;
   maxMembers?: number;
   currentMembers?: number;
 }
@@ -33,6 +40,7 @@ export function JoinGroupModal({
 }: JoinGroupModalProps) {
   const [message, setMessage] = useState('');
   const [agreedToRules, setAgreedToRules] = useState(true);
+  const { findConflicts, isLoading: isCheckingSchedule } = useScheduleConflicts();
 
   // Reset form when modal opens with new group
   useEffect(() => {
@@ -42,11 +50,18 @@ export function JoinGroupModal({
     }
   }, [isOpen]);
 
+  const conflicts = group
+    ? findConflicts({ start: group.targetDate, end: group.endDate }, group.id)
+    : [];
+  const hasConflict = conflicts.length > 0;
+  // Chưa tải xong lịch cũ thì chưa kết luận được, khoá tạm nút gửi.
+  const isSubmitBlocked = hasConflict || isCheckingSchedule;
+
   if (!isOpen || !group) return null;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!agreedToRules) return;
+    if (!agreedToRules || isSubmitBlocked) return;
     onSubmit(message.trim() || undefined);
   }
 
@@ -106,7 +121,10 @@ export function JoinGroupModal({
               <div className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
                 <span className="line-clamp-1">
-                  Khởi hành: <strong className="text-foreground">{group.departureDate}</strong>
+                  Khởi hành:{' '}
+                  <strong className="text-foreground">
+                    {formatDate(group.departureDate) || group.departureDate}
+                  </strong>
                 </span>
               </div>
             )}
@@ -121,6 +139,11 @@ export function JoinGroupModal({
             )}
           </div>
         </div>
+
+        <ScheduleConflictNotice
+          conflicts={conflicts}
+          hint="Hãy rút đơn hoặc rời nhóm trùng ngày trước, rồi quay lại gửi yêu cầu này."
+        />
 
         {/* INTRO MESSAGE INPUT */}
         <div className="space-y-1.5">
@@ -177,7 +200,14 @@ export function JoinGroupModal({
           </button>
           <button
             type="submit"
-            disabled={isPending || !agreedToRules}
+            disabled={isPending || !agreedToRules || isSubmitBlocked}
+            title={
+              hasConflict
+                ? 'Ngày đi của nhóm trùng với một chuyến khác của bạn'
+                : isCheckingSchedule
+                  ? 'Đang kiểm tra lịch các chuyến bạn đã đăng ký...'
+                  : undefined
+            }
             className="flex items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2 font-bold text-primary-foreground text-xs hover:bg-primary-hover transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? (

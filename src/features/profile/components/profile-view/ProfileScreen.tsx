@@ -4,9 +4,15 @@ import { PATHS } from '@/constants';
 import { AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { useProfile } from '../../hooks/useProfile';
-import { usePublicProfile, useUserBlogs } from '../../hooks/usePublicProfile';
+import {
+  usePublicHikingSummary,
+  usePublicProfile,
+  useUserBlogs,
+} from '../../hooks/usePublicProfile';
+import type { HikingProfileView } from '../../types';
 import { ProfileBlogGrid } from './ProfileBlogGrid';
 import { ProfileComingSoon } from './ProfileComingSoon';
+import { ProfileHikingPanel } from './ProfileHikingPanel';
 import { ProfileIdentityCard } from './ProfileIdentityCard';
 import { ProfileInfoPanel } from './ProfileInfoPanel';
 import { ProfilePhotoGrid } from './ProfilePhotoGrid';
@@ -53,9 +59,13 @@ export function ProfileScreen({
 
   const meQuery = useProfile();
   const publicQuery = usePublicProfile(mode === 'public' ? userId : undefined);
+  // Hồ sơ leo núi của người khác: endpoint công khai thật, có cả tên và ảnh nên
+  // dùng luôn làm nguồn danh tính khi người đó chưa viết bài blog nào.
+  const hikingQuery = usePublicHikingSummary(mode === 'public' ? userId : undefined);
 
   const isMeMode = mode === 'me';
   const me = meQuery.data ?? null;
+  const publicHiking = hikingQuery.data ?? null;
   const other = publicQuery.data ?? null;
 
   const resolvedUserId = isMeMode ? me?.id : userId;
@@ -67,10 +77,10 @@ export function ProfileScreen({
   const blogCount = blogsQuery.data?.meta.totalElements;
 
   const tabs = isMeMode ? [...PROFILE_TABS, PROFILE_INFO_TAB] : PROFILE_TABS;
-  const [activeTab, setActiveTab] = useState<ProfileTabId>('blogs');
+  const [activeTab, setActiveTab] = useState<ProfileTabId>('hiking');
 
-  const isLoading = isMeMode ? meQuery.isLoading : publicQuery.isLoading;
-  const profileMissing = isMeMode ? meQuery.isError || !me : !publicQuery.isLoading && !other;
+  const isLoading = isMeMode ? meQuery.isLoading : publicQuery.isLoading || hikingQuery.isLoading;
+  const profileMissing = isMeMode ? meQuery.isError || !me : !isLoading && !other && !publicHiking;
 
   if (isLoading) {
     return (
@@ -104,8 +114,9 @@ export function ProfileScreen({
     );
   }
 
-  const name = (isMeMode ? me?.name : other?.fullName) || 'Người dùng';
-  const avatarUrl = isMeMode ? me?.avatar : other?.avatarUrl;
+  const name = (isMeMode ? me?.name : (publicHiking?.fullName ?? other?.fullName)) || 'Người dùng';
+  const avatarUrl = isMeMode ? me?.avatar : (publicHiking?.avatarUrl ?? other?.avatarUrl);
+  const hikingSummary: HikingProfileView | null = isMeMode ? me : publicHiking;
   const roleLabel = isMeMode && me?.roles?.[0] ? ROLE_LABELS[me.roles[0]] : undefined;
 
   const emptyBlogMessage = isOwnProfile
@@ -114,6 +125,14 @@ export function ProfileScreen({
 
   const renderTab = () => {
     switch (activeTab) {
+      case 'hiking':
+        return (
+          <ProfileHikingPanel
+            summary={hikingSummary}
+            isOwnProfile={isOwnProfile}
+            editPath={editPath}
+          />
+        );
       case 'blogs':
         return (
           <ProfileBlogGrid
@@ -180,6 +199,9 @@ export function ProfileScreen({
           editPath={editPath}
           changePasswordPath={changePasswordPath}
           userId={resolvedUserId}
+          experienceLevel={hikingSummary?.experienceLevel}
+          trustScore={hikingSummary?.trustScore}
+          trustReviewCount={hikingSummary?.trustReviewCount}
         />
       </div>
 

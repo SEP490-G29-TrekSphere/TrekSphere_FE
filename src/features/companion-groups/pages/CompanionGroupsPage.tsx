@@ -192,6 +192,7 @@ export default function CompanionGroupsPage() {
       leaderAvatar: vm.ownerAvatarUrl,
       coverImageUrl: vm.coverImageUrl,
       departureDate: vm.targetDate,
+      targetDate: vm.targetDate,
       maxMembers: vm.maxSize,
       currentMembers: vm.currentSize,
     });

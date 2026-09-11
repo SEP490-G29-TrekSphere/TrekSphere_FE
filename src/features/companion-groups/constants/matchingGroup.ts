@@ -3,6 +3,7 @@ import type {
   JourneyDifficulty,
   MatchingGroupStatus,
   MatchingMemberRole,
+  ScheduleConflictKind,
 } from '../types/matchingGroup';
 
 export const MATCHING_GROUP_PAGE_SIZE = 9;
@@ -27,6 +28,25 @@ export const JOURNEY_DIFFICULTY_OPTIONS = [
   { value: 'HARD', label: 'Thử thách (Địa hình đèo dốc)' },
   { value: 'EXTREME', label: 'Cực hạn (Kinh nghiệm cao)' },
 ] as const satisfies ReadonlyArray<{ value: JourneyDifficulty; label: string }>;
+
+/**
+ * Trạng thái nhóm được coi là đang chiếm lịch của thành viên. Nhóm đã hoàn thành
+ * hoặc đã huỷ không còn ràng buộc nên không tính là trùng ngày.
+ */
+export const MATCHING_GROUP_BUSY_STATUSES: MatchingGroupStatus[] = [
+  'OPEN',
+  'FULL',
+  'CLOSED',
+  'HIDDEN',
+  'IN_PROGRESS',
+];
+
+/** Nhãn giải thích vì sao một ngày đã bị chiếm. */
+export const SCHEDULE_CONFLICT_KIND_LABELS = {
+  LEADER: 'bạn là trưởng nhóm',
+  MEMBER: 'bạn đang là thành viên',
+  PENDING_APPLICATION: 'đơn xin tham gia đang chờ duyệt',
+} as const satisfies Record<ScheduleConflictKind, string>;
 
 export type MatchingGroupLayout = 'list' | 'grid';
 export type MatchingGroupStatusFilter = MatchingGroupStatus | 'ALL';

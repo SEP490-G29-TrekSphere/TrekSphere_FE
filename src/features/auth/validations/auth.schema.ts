@@ -1,4 +1,10 @@
 import * as z from 'zod';
+import {
+  HIKING_BIO_MAX_LENGTH,
+  HIKING_PREFERRED_AREAS_MAX,
+  HIKING_SKILLS_MAX,
+  HIKING_TAG_MAX_LENGTH,
+} from '@/constants';
 
 /**
  * Zod schemas cho form login/register.
@@ -84,7 +90,9 @@ export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 /**
  * Schema cho form chỉnh sửa hồ sơ.
  * Email bị loại ra khỏi schema vì là field readonly.
- * Chỉ có các trường BE hỗ trợ: fullName, phone, dateOfBirth, gender.
+ * Chỉ có các trường BE hỗ trợ: fullName, phone, dateOfBirth, gender và nhóm
+ * hồ sơ leo núi (bio, experienceLevel, preferredDifficulty, preferredAreas, skills).
+ * `trustScore` do BE chấm nên không nằm trong form.
  */
 export const updateProfileSchema = z.object({
   name: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự').max(100, 'Họ tên quá dài'),
@@ -98,6 +106,25 @@ export const updateProfileSchema = z.object({
     .or(z.literal('')),
   gender: z.enum(['male', 'female', 'other']).optional(),
   dateOfBirth: z.string().optional().or(z.literal('')),
+  bio: z
+    .string()
+    .max(HIKING_BIO_MAX_LENGTH, `Giới thiệu tối đa ${HIKING_BIO_MAX_LENGTH} ký tự`)
+    .optional()
+    .or(z.literal('')),
+  // Select rỗng trả về chuỗi rỗng, nghĩa là "chưa chọn" chứ không phải giá trị sai.
+  experienceLevel: z
+    .enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'])
+    .optional()
+    .or(z.literal('')),
+  preferredDifficulty: z.enum(['EASY', 'MODERATE', 'HARD', 'EXTREME']).optional().or(z.literal('')),
+  preferredAreas: z
+    .array(z.string().trim().min(1).max(HIKING_TAG_MAX_LENGTH))
+    .max(HIKING_PREFERRED_AREAS_MAX, `Tối đa ${HIKING_PREFERRED_AREAS_MAX} khu vực`)
+    .optional(),
+  skills: z
+    .array(z.string().trim().min(1).max(HIKING_TAG_MAX_LENGTH))
+    .max(HIKING_SKILLS_MAX, `Tối đa ${HIKING_SKILLS_MAX} kỹ năng`)
+    .optional(),
 });
 
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;

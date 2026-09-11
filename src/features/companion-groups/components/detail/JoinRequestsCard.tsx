@@ -1,11 +1,20 @@
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { AppEmptyState } from '@/shared/ui';
 import type { MatchingMemberItem } from '../../services/companionGroupService';
+import { ApplicantProfileModal } from '../modals/ApplicantProfileModal';
 import { MemberAvatar } from './MemberAvatar';
 
 export interface JoinRequestAction {
   id: string;
   userName: string;
+  avatarUrl?: string;
+}
+
+/** Ứng viên đang được leader mở xem hồ sơ nâng cao. */
+interface ViewingApplicant {
+  userId: string;
+  fullName: string;
   avatarUrl?: string;
 }
 
@@ -38,6 +47,8 @@ export function JoinRequestsCard({
   onPrevPage,
   onNextPage,
 }: JoinRequestsCardProps) {
+  const [viewingApplicant, setViewingApplicant] = useState<ViewingApplicant | null>(null);
+
   return (
     <div className="rounded-2xl bg-card p-6 md:p-8 border border-border space-y-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -103,6 +114,21 @@ export function JoinRequestsCard({
                 <button
                   type="button"
                   onClick={() =>
+                    setViewingApplicant({
+                      userId: req.userId,
+                      fullName: req.fullName,
+                      avatarUrl: req.avatarUrl ?? undefined,
+                    })
+                  }
+                  title="Xem thông tin nâng cao"
+                  aria-label={`Xem thông tin nâng cao của ${req.fullName}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
                     onApprove({
                       id: req.applicationId ?? '',
                       userName: req.fullName,
@@ -163,6 +189,13 @@ export function JoinRequestsCard({
           </div>
         </div>
       )}
+
+      <ApplicantProfileModal
+        userId={viewingApplicant?.userId ?? null}
+        fallbackName={viewingApplicant?.fullName ?? ''}
+        fallbackAvatarUrl={viewingApplicant?.avatarUrl}
+        onClose={() => setViewingApplicant(null)}
+      />
     </div>
   );
 }
