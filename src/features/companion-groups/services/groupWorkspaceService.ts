@@ -1,5 +1,17 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
+import type {
+  GroupExpenseCreateRequest,
+  GroupExpenseResponse,
+  GroupExpenseSummaryResponse,
+  GroupExpenseUpdateRequest,
+} from '../types/expense';
 import type { PaginationResponse } from '../types/matchingGroup';
+import type {
+  GroupSettlementProofRequest,
+  GroupSettlementRejectRequest,
+  GroupSettlementResponse,
+  GroupSettlementSummaryResponse,
+} from '../types/settlement';
 import type {
   CustomJourneyActivityCreateRequest,
   CustomJourneyActivityResponse,
@@ -7,6 +19,10 @@ import type {
   CustomJourneyCheckpointCreateRequest,
   CustomJourneyCheckpointResponse,
   CustomJourneyCheckpointUpdateRequest,
+  CustomJourneyCostItemCreateRequest,
+  CustomJourneyCostItemResponse,
+  CustomJourneyCostItemUpdateRequest,
+  CustomJourneyCostSummaryResponse,
   CustomJourneyDetailResponse,
   CustomJourneyUpdateRequest,
   GroupChecklistFilterRequest,
@@ -294,6 +310,72 @@ export const groupWorkspaceService = {
   async deleteJourneyActivity(groupId: string, activityId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/journey/activities/${activityId}`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  // ==================== CUSTOM JOURNEY COST ITEMS (BUDGET) ====================
+
+  /**
+   * Lấy tổng quan dự toán chi phí và danh sách khoản chi của hành trình.
+   */
+  async getCostSummary(groupId: string): Promise<CustomJourneyCostSummaryResponse> {
+    const response = await ApiService<CustomJourneyCostSummaryResponse>(
+      `/matching-groups/${groupId}/journey/cost-items/summary`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Lấy danh sách các khoản chi dự kiến của hành trình.
+   */
+  async getCostItems(groupId: string): Promise<CustomJourneyCostItemResponse[]> {
+    const response = await ApiService<CustomJourneyCostItemResponse[]>(
+      `/matching-groups/${groupId}/journey/cost-items`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Thêm khoản chi dự kiến mới vào hành trình (chỉ Leader khi chưa khóa).
+   */
+  async createCostItem(
+    groupId: string,
+    payload: CustomJourneyCostItemCreateRequest
+  ): Promise<CustomJourneyCostItemResponse> {
+    const response = await ApiService<CustomJourneyCostItemResponse>(
+      `/matching-groups/${groupId}/journey/cost-items`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Cập nhật khoản chi dự kiến trong hành trình (chỉ Leader khi chưa khóa).
+   */
+  async updateCostItem(
+    groupId: string,
+    costItemId: string,
+    payload: CustomJourneyCostItemUpdateRequest
+  ): Promise<CustomJourneyCostItemResponse> {
+    const response = await ApiService<CustomJourneyCostItemResponse>(
+      `/matching-groups/${groupId}/journey/cost-items/${costItemId}`,
+      'PUT',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Xoá khoản chi dự kiến khỏi hành trình (chỉ Leader khi chưa khóa).
+   */
+  async deleteCostItem(groupId: string, costItemId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/journey/cost-items/${costItemId}`,
       'DELETE'
     );
     return unwrapResponse(response);
@@ -619,5 +701,149 @@ export const groupWorkspaceService = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async cancelSuccessionRequest(_groupId: string): Promise<any> {
     return null;
+  },
+
+  // ==========================================
+  // STAGE P6-S2: GROUP EXPENSE & SHARES
+  // ==========================================
+
+  /** Lấy danh sách các khoản chi tiêu của nhóm (phân trang) */
+  async getGroupExpenses(
+    groupId: string,
+    page = 0,
+    size = 20
+  ): Promise<PaginationResponse<GroupExpenseResponse>> {
+    const response = await ApiService<PaginationResponse<GroupExpenseResponse>>(
+      `/matching-groups/${groupId}/expenses`,
+      'GET',
+      undefined,
+      { page: String(page), size: String(size) }
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Lấy tổng kết chi tiêu thực tế của nhóm */
+  async getExpenseSummary(groupId: string): Promise<GroupExpenseSummaryResponse> {
+    const response = await ApiService<GroupExpenseSummaryResponse>(
+      `/matching-groups/${groupId}/expenses/summary`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Lấy chi tiết một khoản chi tiêu */
+  async getExpenseDetail(groupId: string, expenseId: string): Promise<GroupExpenseResponse> {
+    const response = await ApiService<GroupExpenseResponse>(
+      `/matching-groups/${groupId}/expenses/${expenseId}`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Tạo mới một khoản chi tiêu (Leader Only) */
+  async createExpense(
+    groupId: string,
+    payload: GroupExpenseCreateRequest
+  ): Promise<GroupExpenseResponse> {
+    const response = await ApiService<GroupExpenseResponse>(
+      `/matching-groups/${groupId}/expenses`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Cập nhật khoản chi tiêu (Leader Only) */
+  async updateExpense(
+    groupId: string,
+    expenseId: string,
+    payload: GroupExpenseUpdateRequest
+  ): Promise<GroupExpenseResponse> {
+    const response = await ApiService<GroupExpenseResponse>(
+      `/matching-groups/${groupId}/expenses/${expenseId}`,
+      'PUT',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Hủy / Xóa mềm khoản chi tiêu (Leader Only) */
+  async voidExpense(groupId: string, expenseId: string): Promise<void> {
+    const response = await ApiService<void>(
+      `/matching-groups/${groupId}/expenses/${expenseId}`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  // ==========================================
+  // STAGE P6-S4: GROUP SETTLEMENT & WORKFLOW
+  // ==========================================
+
+  /** Lấy tổng kết công nợ & gợi ý quyết toán (Netting) */
+  async getSettlementSummary(groupId: string): Promise<GroupSettlementSummaryResponse> {
+    const response = await ApiService<GroupSettlementSummaryResponse>(
+      `/matching-groups/${groupId}/settlements/summary`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Lấy danh sách lệnh quyết toán đã lưu */
+  async getSettlements(groupId: string): Promise<GroupSettlementResponse[]> {
+    const response = await ApiService<GroupSettlementResponse[]>(
+      `/matching-groups/${groupId}/settlements`,
+      'GET'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Khởi tạo các lệnh quyết toán từ gợi ý tối giản (Leader Only) */
+  async generateSettlements(groupId: string): Promise<GroupSettlementResponse[]> {
+    const response = await ApiService<GroupSettlementResponse[]>(
+      `/matching-groups/${groupId}/settlements/generate`,
+      'POST'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Debtor nộp chứng từ chuyển tiền */
+  async submitSettlementProof(
+    groupId: string,
+    settlementId: string,
+    payload: GroupSettlementProofRequest
+  ): Promise<GroupSettlementResponse> {
+    const response = await ApiService<GroupSettlementResponse>(
+      `/matching-groups/${groupId}/settlements/${settlementId}/submit-proof`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Payee xác nhận đã nhận tiền */
+  async confirmSettlementPayment(
+    groupId: string,
+    settlementId: string
+  ): Promise<GroupSettlementResponse> {
+    const response = await ApiService<GroupSettlementResponse>(
+      `/matching-groups/${groupId}/settlements/${settlementId}/confirm`,
+      'POST'
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Payee từ chối chứng từ chuyển tiền */
+  async rejectSettlementPayment(
+    groupId: string,
+    settlementId: string,
+    payload: GroupSettlementRejectRequest
+  ): Promise<GroupSettlementResponse> {
+    const response = await ApiService<GroupSettlementResponse>(
+      `/matching-groups/${groupId}/settlements/${settlementId}/reject`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
   },
 };

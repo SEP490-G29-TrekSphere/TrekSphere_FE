@@ -8,10 +8,20 @@ export const groupWorkspaceKeys = {
   journey: (groupId: string) => [...groupWorkspaceKeys.all, 'journey', groupId] as const,
   checkpoints: (groupId: string) => [...groupWorkspaceKeys.all, 'checkpoints', groupId] as const,
   activities: (groupId: string) => [...groupWorkspaceKeys.all, 'activities', groupId] as const,
+  costSummary: (groupId: string) => [...groupWorkspaceKeys.all, 'cost-summary', groupId] as const,
+  costItems: (groupId: string) => [...groupWorkspaceKeys.all, 'cost-items', groupId] as const,
   checklist: (groupId: string) => [...groupWorkspaceKeys.all, 'checklist', groupId] as const,
   posts: (groupId: string) => [...groupWorkspaceKeys.all, 'posts', groupId] as const,
   postDetail: (groupId: string, postId: string) =>
     [...groupWorkspaceKeys.all, 'post', groupId, postId] as const,
+
+  // Phase 6 Keys (Expense & Shares)
+  expenses: (groupId: string, page?: number, size?: number) =>
+    [...groupWorkspaceKeys.all, 'expenses', groupId, { page, size }] as const,
+  expenseSummary: (groupId: string) =>
+    [...groupWorkspaceKeys.all, 'expense-summary', groupId] as const,
+  expenseDetail: (groupId: string, expenseId: string) =>
+    [...groupWorkspaceKeys.all, 'expense-detail', groupId, expenseId] as const,
 
   // Legacy & other tabs support
   lifecycle: (groupId: string) => [...groupWorkspaceKeys.all, 'lifecycle', groupId] as const,
