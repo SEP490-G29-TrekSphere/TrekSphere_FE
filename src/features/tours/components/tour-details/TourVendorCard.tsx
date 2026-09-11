@@ -2,7 +2,7 @@ import { Mail, MessageCircle, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '@/config/apiClient';
-import { getPrimaryRole, PATHS, ROLES } from '@/constants';
+import { getRoleChatPath } from '@/constants';
 import type { ConversationResponse } from '@/features/chat/types/types';
 import type { TourDetailFromApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -10,16 +10,6 @@ import { toast } from '@/store/useToastStore';
 
 interface TourVendorCardProps {
   tour: TourDetailFromApi;
-}
-
-/** Mỗi role có route chat riêng trong portal của mình. */
-function resolveChatPath(roles: string[] | undefined): string {
-  const role = getPrimaryRole(roles ?? []);
-  if (role === ROLES.ADMIN) return PATHS.ADMIN_CHAT;
-  if (role === ROLES.VENDOR_MANAGER) return PATHS.VENDOR_MANAGER_CHAT;
-  if (role === ROLES.VENDOR_STAFF) return PATHS.PARTNER_CHAT;
-  if (role === ROLES.TREKKER) return PATHS.TREKKER_CHAT;
-  return PATHS.CHAT;
 }
 
 /**
@@ -48,12 +38,12 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
       });
 
       if (response.data?.conversationId) {
-        navigate(resolveChatPath(user.roles), {
+        navigate(getRoleChatPath(user.roles), {
           state: { conversationId: response.data.conversationId },
         });
       } else {
         const vendorName = tour.vendorName || tour.creatorName || 'Nhà tổ chức';
-        navigate(resolveChatPath(user.roles), {
+        navigate(getRoleChatPath(user.roles), {
           state: {
             virtualConversation: {
               type: 'DIRECT',

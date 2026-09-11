@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { getTrekkerBlogEditPath, getTrekkerGroupDetailPath, PATHS, ROLES } from '@/constants';
-import { getPrimaryRole } from '@/constants/roles';
+import { getRoleChatPath } from '@/constants/roles';
 import { AccountDetail, AccountList, AdminDashboard, BlogManagement } from '@/features/admin';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import RequireRole from '@/routes/RequireRole';
@@ -91,20 +91,7 @@ function ChatRedirect() {
     return <Navigate to={PATHS.LOGIN} state={{ from: location }} replace />;
   }
 
-  const primaryRole = getPrimaryRole(user.roles);
-  let chatPath: string = PATHS.TREKKER_CHAT;
-
-  if (primaryRole === ROLES.ADMIN) {
-    chatPath = PATHS.ADMIN_CHAT;
-  } else if (
-    primaryRole === ROLES.VENDOR ||
-    primaryRole === ROLES.VENDOR_MANAGER ||
-    primaryRole === ROLES.VENDOR_STAFF
-  ) {
-    chatPath = PATHS.VENDOR_CHAT;
-  }
-
-  return <Navigate to={chatPath} state={location.state} replace />;
+  return <Navigate to={getRoleChatPath(user.roles)} state={location.state} replace />;
 }
 
 function PageLoader() {
@@ -255,11 +242,11 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_CHAT} element={<ChatList hideSidebar />} />
         </Route>
 
-        {/* Vendor routes — yêu cầu role vendor (hoặc vendor_manager/vendor_staff cũ), dùng VendorManagerLayout */}
+        {/* Vendor routes — yêu cầu role vendor, dùng VendorManagerLayout */}
         <Route
           path={PATHS.VENDOR}
           element={
-            <RequireRole allowedRoles={[ROLES.VENDOR, ROLES.VENDOR_MANAGER, ROLES.VENDOR_STAFF]}>
+            <RequireRole allowedRoles={[ROLES.VENDOR]}>
               <VendorManagerLayout />
             </RequireRole>
           }

@@ -15,7 +15,7 @@ import { useVendorProfile } from '../hooks/useVendorProfile';
 export default function VendorProfileOverview() {
   const user = useAppStore((state) => state.user);
   const primaryRole = getPrimaryRole(user?.roles);
-  const canManage = primaryRole === ROLES.VENDOR || primaryRole === ROLES.VENDOR_MANAGER;
+  const canManage = primaryRole === ROLES.VENDOR;
 
   const { data: profile, isLoading, isError, error } = useVendorProfile();
   const { data: tourStats } = useVendorTourStats();
