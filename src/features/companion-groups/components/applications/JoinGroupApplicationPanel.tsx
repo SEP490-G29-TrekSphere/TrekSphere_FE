@@ -2,15 +2,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { MATCHING_GROUP_APPLICATION_MESSAGE_MAX_LENGTH } from '../../constants';
+import { useScheduleConflicts } from '../../hooks/useScheduleConflicts';
 import type { MatchingMemberStatus } from '../../types/matchingGroup';
 import {
   JOIN_GROUP_APPLICATION_DEFAULT_VALUES,
   type JoinGroupApplicationFormValues,
   joinGroupApplicationSchema,
 } from '../../validations';
+import { ScheduleConflictNotice } from '../ScheduleConflictNotice';
 
 interface JoinGroupApplicationPanelProps {
   existingStatus?: MatchingMemberStatus;
+  /** Nhóm đang xin tham gia — cần để đối chiếu trùng ngày với lịch hiện có. */
+  matchingGroupId: string;
+  targetDate?: string;
+  endDate?: string | null;
   isPending: boolean;
   onCancel: () => void;
   onViewDetail: () => void;
@@ -19,6 +25,9 @@ interface JoinGroupApplicationPanelProps {
 
 export function JoinGroupApplicationPanel({
   existingStatus,
+  matchingGroupId,
+  targetDate,
+  endDate,
   isPending,
   onCancel,
   onViewDetail,
@@ -28,6 +37,11 @@ export function JoinGroupApplicationPanel({
     resolver: zodResolver(joinGroupApplicationSchema),
     defaultValues: JOIN_GROUP_APPLICATION_DEFAULT_VALUES,
   });
+  const { findConflicts, isLoading: isCheckingSchedule } = useScheduleConflicts();
+  const conflicts = findConflicts({ start: targetDate, end: endDate }, matchingGroupId);
+  const hasConflict = conflicts.length > 0;
+  // Chưa tải xong lịch cũ thì chưa kết luận được, khoá tạm nút gửi.
+  const isSubmitBlocked = hasConflict || isCheckingSchedule;
 
   if (existingStatus === 'PENDING' || existingStatus === 'ACCEPTED') {
     const isApplicationPending = existingStatus === 'PENDING';
@@ -76,6 +90,11 @@ export function JoinGroupApplicationPanel({
         </p>
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <ScheduleConflictNotice
+          conflicts={conflicts}
+          hint="Hãy rút đơn hoặc rời nhóm trùng ngày trước, rồi quay lại gửi yêu cầu này."
+        />
+
         <div>
           <label
             htmlFor="application-message"
@@ -114,7 +133,14 @@ export function JoinGroupApplicationPanel({
           </button>
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isPending || isSubmitBlocked}
+            title={
+              hasConflict
+                ? 'Ngày đi của nhóm trùng với một chuyến khác của bạn'
+                : isCheckingSchedule
+                  ? 'Đang kiểm tra lịch các chuyến bạn đã đăng ký...'
+                  : undefined
+            }
             className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground text-sm shadow-md transition-all hover:bg-primary/90 disabled:opacity-55"
           >
             {isPending ? (

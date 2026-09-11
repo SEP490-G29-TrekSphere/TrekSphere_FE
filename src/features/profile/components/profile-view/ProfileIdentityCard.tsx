@@ -1,6 +1,6 @@
-import { KeyRound, MoreHorizontal, NotebookPen, PencilLine } from 'lucide-react';
+import { KeyRound, MoreHorizontal, NotebookPen, PencilLine, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PATHS } from '@/constants';
+import { HIKING_EXPERIENCE_LEVEL_META, type HikingExperienceLevel, PATHS } from '@/constants';
 import { useToggleFollow } from '@/features/news';
 import { getSafeImageUrl } from '@/utils/sanitize';
 
@@ -20,6 +20,11 @@ interface ProfileIdentityCardProps {
   changePasswordPath?: string;
   /** Id người dùng — cần cho nút Theo dõi ở hồ sơ người khác. */
   userId?: string;
+  /** Cấp độ kinh nghiệm leo núi — hiện thành badge cạnh nhãn vai trò. */
+  experienceLevel?: HikingExperienceLevel;
+  /** Điểm uy tín do BE chấm; bỏ qua cả cụm khi BE chưa có dữ liệu. */
+  trustScore?: number;
+  trustReviewCount?: number;
 }
 
 const footerLinks = [
@@ -59,10 +64,14 @@ export function ProfileIdentityCard({
   editPath,
   changePasswordPath = PATHS.CHANGE_PASSWORD,
   userId,
+  experienceLevel,
+  trustScore,
+  trustReviewCount,
 }: ProfileIdentityCardProps) {
   const followMutation = useToggleFollow();
   const socialEnabled = followMutation.isAvailable;
 
+  const experience = experienceLevel ? HIKING_EXPERIENCE_LEVEL_META[experienceLevel] : null;
   const safeAvatar = getSafeImageUrl(avatarUrl);
   const initial = name?.trim()?.[0]?.toUpperCase() || '?';
 
@@ -90,10 +99,21 @@ export function ProfileIdentityCard({
           )}
         </div>
 
-        {roleLabel ? (
-          <span className="mt-4 inline-flex items-center rounded-full bg-accent px-3 py-1 text-xs font-semibold text-primary">
-            {roleLabel}
-          </span>
+        {roleLabel || experience ? (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+            {roleLabel ? (
+              <span className="inline-flex items-center rounded-full bg-accent px-3 py-1 text-xs font-semibold text-primary">
+                {roleLabel}
+              </span>
+            ) : null}
+            {experience ? (
+              <span
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${experience.className}`}
+              >
+                {experience.label}
+              </span>
+            ) : null}
+          </div>
         ) : null}
 
         <h1 className="mt-3 text-center text-2xl font-bold leading-tight text-primary">{name}</h1>
@@ -112,6 +132,21 @@ export function ProfileIdentityCard({
           <Stat label="Người theo dõi" value="—" />
           <Stat label="Đang theo dõi" value="—" />
         </div>
+
+        {typeof trustScore === 'number' ? (
+          <div className="mt-4 flex w-full items-center justify-between rounded-2xl bg-muted px-4 py-2.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <ShieldCheck className="size-4 text-primary" />
+              Điểm uy tín
+            </span>
+            <span className="text-sm font-bold text-primary">
+              {trustScore}
+              <span className="ml-1 text-xs font-medium text-muted-foreground">
+                · {trustReviewCount ?? 0} đánh giá
+              </span>
+            </span>
+          </div>
+        ) : null}
 
         {/* Hành động chính */}
         {isOwnProfile ? (

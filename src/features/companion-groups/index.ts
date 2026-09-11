@@ -16,6 +16,7 @@ export {
   ReviewJoinRequestModal,
   WithdrawRequestConfirmModal,
 } from './components/modals';
+export { ScheduleConflictNotice } from './components/ScheduleConflictNotice';
 export {
   CommentItem,
   CommentSection,
@@ -68,6 +69,7 @@ export { useMatchingGroups } from './hooks/useMatchingGroups';
 export { useMyJoinRequests } from './hooks/useMyJoinRequests';
 export { useMyMatchingGroups } from './hooks/useMyMatchingGroups';
 export { useRejectMember } from './hooks/useRejectMember';
+export { type ScheduleRange, useScheduleConflicts } from './hooks/useScheduleConflicts';
 export { useUpdateMatchingGroup } from './hooks/useUpdateMatchingGroup';
 // Pages
 export { default as CompanionGroupDetailPage } from './pages/CompanionGroupDetailPage';

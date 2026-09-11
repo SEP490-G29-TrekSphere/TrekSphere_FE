@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { type BlogListItem, type BlogListMeta, blogService } from '@/features/news';
 import { type PublicUserProfile, publicProfileService } from '../services/publicProfileService';
+import type { PublicHikingSummary } from '../types';
 import { profileKeys } from './useProfile';
 
 /** Số bài viết lấy mỗi lần cho tab "Bài viết" / "Ảnh" của trang hồ sơ. */
@@ -39,5 +40,20 @@ export function useUserBlogs(userId: string | undefined, page = 1) {
     enabled: Boolean(userId),
     staleTime: 60 * 1000,
     placeholderData: (previous) => previous,
+  });
+}
+
+/**
+ * Hook lấy hồ sơ leo núi công khai (thông tin nâng cao) của một người dùng.
+ * Dùng cho các màn hình cần xem nhanh năng lực của một Trekker — ví dụ leader
+ * duyệt đơn xin gia nhập nhóm ghép.
+ */
+export function usePublicHikingSummary(userId: string | undefined) {
+  return useQuery<PublicHikingSummary | null>({
+    queryKey: [...profileKeys.detail(userId ?? ''), 'hiking-summary'] as const,
+    queryFn: () => publicProfileService.getHikingSummary(userId as string),
+    enabled: Boolean(userId),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }

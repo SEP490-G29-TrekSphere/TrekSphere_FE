@@ -100,6 +100,9 @@ export default function JoinGroupRequestPage({
           <JoinGroupSummary group={group} />
           <JoinGroupApplicationPanel
             existingStatus={currentApplication?.status}
+            matchingGroupId={group.matchingGroupId}
+            targetDate={group.targetDate}
+            endDate={group.customJourneyEndDate}
             isPending={joinMutation.isPending}
             onCancel={() => navigate(-1)}
             onViewDetail={() => navigate(detailPath)}

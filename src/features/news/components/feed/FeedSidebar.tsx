@@ -1,4 +1,3 @@
-import { PenLine } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useSuggestedUsers, useToggleFollow } from '../../hooks/useSocial';
@@ -6,7 +5,6 @@ import type { SuggestedUser } from '../../types';
 import { SuggestedUserRow } from './SuggestedUserRow';
 
 interface FeedSidebarProps {
-  isLoggedIn: boolean;
   /** Tag phổ biến rút từ các bài đang hiển thị trong feed. */
   topics: string[];
   /** Bấm một chủ đề sẽ đưa tag đó vào ô tìm kiếm. */
@@ -21,11 +19,11 @@ const footerLinks = [
 ];
 
 /**
- * Cột phải của community feed: nút viết bài, khối gợi ý theo dõi
- * (phụ thuộc `FEATURES.SOCIAL`), chủ đề nổi bật và footer links.
+ * Cột phải của community feed: khối gợi ý theo dõi (phụ thuộc `FEATURES.SOCIAL`),
+ * chủ đề nổi bật và footer links.
  * Chỉ hiển thị từ breakpoint `lg` trở lên.
  */
-export function FeedSidebar({ isLoggedIn, topics, onTopicSelect }: FeedSidebarProps) {
+export function FeedSidebar({ topics, onTopicSelect }: FeedSidebarProps) {
   const { users, isLoading, isAvailable } = useSuggestedUsers(8);
   const followMutation = useToggleFollow();
 
@@ -35,15 +33,6 @@ export function FeedSidebar({ isLoggedIn, topics, onTopicSelect }: FeedSidebarPr
 
   return (
     <aside className="flex flex-col gap-4">
-      {/* Viết bài */}
-      <Link
-        to={isLoggedIn ? PATHS.BLOG_CREATE : PATHS.LOGIN}
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
-      >
-        <PenLine className="size-4" />
-        Viết bài mới
-      </Link>
-
       {/* Gợi ý theo dõi */}
       <section className="rounded-2xl bg-card p-4 shadow-sm">
         <h2 className="text-sm font-bold text-primary">Gợi ý theo dõi</h2>

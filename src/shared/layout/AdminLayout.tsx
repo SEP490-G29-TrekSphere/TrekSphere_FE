@@ -12,6 +12,7 @@ import {
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
 import { AppLogo } from '@/shared/ui';
@@ -43,6 +44,7 @@ export default function AdminLayout() {
       sidebarClassName="bg-[#FAF9F5] border-r border-[#E5E4DE]"
       mobileTitle="TrekSphere Admin"
       fullBleed={isChatPage}
+      headerRight={<NotificationBell />}
       brand={({ collapsed }) =>
         collapsed ? (
           <AppLogo

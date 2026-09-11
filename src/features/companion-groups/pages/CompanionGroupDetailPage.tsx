@@ -228,6 +228,8 @@ export default function CompanionGroupDetailPage({
           leaderAvatar: group.ownerAvatarUrl ?? undefined,
           coverImageUrl: group.tourImageUrl ?? undefined,
           departureDate: group.targetDate,
+          targetDate: group.targetDate,
+          endDate: group.customJourneyEndDate,
           maxMembers: group.maxSize,
           currentMembers: group.currentSize,
         }}
