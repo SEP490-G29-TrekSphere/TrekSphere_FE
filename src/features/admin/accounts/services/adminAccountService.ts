@@ -1,4 +1,5 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
+import { normalizeRoleList } from '@/constants/roles';
 import type {
   AccountRole,
   AccountStatus,
@@ -51,23 +52,10 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 /** Thứ tự ưu tiên khi 1 user có nhiều role — hiển thị role "cao" nhất. */
-const ROLE_PRIORITY: AccountRole[] = [
-  'admin',
-  'vendor',
-  'vendor_manager',
-  'vendor_staff',
-  'coordinator',
-  'trekker',
-];
+const ROLE_PRIORITY: AccountRole[] = ['admin', 'vendor', 'trekker'];
 
 function pickPrimaryRole(roles: string[]): AccountRole {
-  const owned = new Set(
-    roles.map((r) => {
-      const lower = r.toLowerCase().replace(/^role_/, '');
-      if (lower === 'vendor_manager' || lower === 'vendor_staff') return 'vendor';
-      return lower;
-    })
-  );
+  const owned = new Set(normalizeRoleList(roles));
   return ROLE_PRIORITY.find((role) => owned.has(role)) ?? 'trekker';
 }
 

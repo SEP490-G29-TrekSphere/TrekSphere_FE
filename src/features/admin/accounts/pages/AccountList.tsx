@@ -69,9 +69,7 @@ export default function AccountList() {
         tabs={[
           { key: 'ALL', label: 'Tất cả' },
           { key: 'trekker', label: 'Khách du lịch' },
-          { key: 'vendor_manager', label: 'Quản lý nhà cung cấp' },
-          { key: 'vendor_staff', label: 'Nhân viên nhà cung cấp' },
-          { key: 'coordinator', label: 'Hướng dẫn viên' },
+          { key: 'vendor', label: 'Nhà cung cấp' },
           { key: 'admin', label: 'Quản trị viên' },
         ]}
         activeTab={filterRole}

@@ -37,10 +37,9 @@ export default function RequireRole({ children, allowedRoles = [ROLES.ADMIN] }: 
     return <Navigate to={PATHS.LOGIN} state={{ from: location }} replace />;
   }
 
-  // Role "chính" theo độ ưu tiên (admin > vendor_manager > vendor_staff >
-  // trekker) — KHÔNG dùng roles[0] vì thứ tự mảng từ BE không đảm bảo (vd:
-  // user vốn là trekker được cấp thêm vendor_manager thì role mới có thể
-  // nằm cuối mảng).
+  // Role "chính" theo độ ưu tiên (admin > vendor > trekker) — KHÔNG dùng
+  // roles[0] vì thứ tự mảng từ BE không đảm bảo (vd: user vốn là trekker được
+  // cấp thêm vendor thì role mới có thể nằm cuối mảng).
   const primaryRole = getPrimaryRole(user.roles);
 
   // Nếu user có role nằm trong allowedRoles → cho vào
@@ -55,10 +54,10 @@ export default function RequireRole({ children, allowedRoles = [ROLES.ADMIN] }: 
     const redirectPath =
       primaryRole === ROLES.TREKKER
         ? PATHS.TREKKER
-        : primaryRole === ROLES.VENDOR_STAFF
-          ? '/partner'
-          : primaryRole === ROLES.VENDOR_MANAGER
-            ? '/vendor-manager'
+        : primaryRole === ROLES.VENDOR
+          ? PATHS.VENDOR
+          : primaryRole === ROLES.ADMIN
+            ? PATHS.ADMIN
             : PATHS.LOGIN;
 
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
