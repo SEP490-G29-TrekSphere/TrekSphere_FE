@@ -104,7 +104,7 @@ export const groupPostFormSchema = z.object({
     .trim()
     .min(1, 'Nội dung bài viết không được để trống')
     .max(POST_CONTENT_MAX_LENGTH, `Nội dung tối đa ${POST_CONTENT_MAX_LENGTH} ký tự`),
-  isPinned: z.boolean().default(false),
+  isPinned: z.boolean(),
 });
 
 export type GroupPostFormValues = z.infer<typeof groupPostFormSchema>;
