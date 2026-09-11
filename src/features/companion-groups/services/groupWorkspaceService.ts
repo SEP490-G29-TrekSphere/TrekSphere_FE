@@ -502,6 +502,21 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
+  /**
+   * Ẩn/Hiện bình luận (kiểm duyệt - chỉ Leader).
+   */
+  async toggleHideComment(
+    groupId: string,
+    postId: string,
+    commentId: string
+  ): Promise<GroupPostCommentResponse> {
+    const response = await ApiService<GroupPostCommentResponse>(
+      `/matching-groups/${groupId}/posts/${postId}/comments/${commentId}/toggle-hide`,
+      'PATCH'
+    );
+    return unwrapResponse(response);
+  },
+
   // ==================== FUTURE EXTENSIONS (Phase 4 / 6 / 7 / 8) STUBS ====================
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getBudget(_groupId: string): Promise<any> {

@@ -1,4 +1,13 @@
-import { FileText, Layers, Radio, ShieldCheck, UserCheck, Users, Wallet } from 'lucide-react';
+import {
+  FileText,
+  Layers,
+  MessageSquare,
+  Radio,
+  ShieldCheck,
+  UserCheck,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -8,13 +17,15 @@ import { GroupBudgetTab } from '../detail/GroupBudgetTab';
 import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
+import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
 
 export type WorkspaceTabKey =
   | 'overview'
+  | 'feed'
+  | 'itinerary'
   | 'members'
   | 'requests'
-  | 'itinerary'
   | 'budget'
   | 'rules';
 
@@ -31,9 +42,10 @@ interface GroupWorkspaceProps {
 
 const TABS: { id: WorkspaceTabKey; label: string; icon: typeof Layers; leaderOnly?: boolean }[] = [
   { id: 'overview', label: 'Tổng quan', icon: Radio },
+  { id: 'feed', label: 'Bảng tin & Thảo luận', icon: MessageSquare },
+  { id: 'itinerary', label: 'Lộ trình', icon: Layers },
   { id: 'members', label: 'Thành viên', icon: Users },
   { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
-  { id: 'itinerary', label: 'Lộ trình', icon: Layers },
   { id: 'budget', label: 'Dự toán chi phí', icon: Wallet },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
 ];
@@ -130,7 +142,16 @@ export function GroupWorkspace({
         </div>
       )}
 
-      {/* TAB 2: MEMBERS */}
+      {/* TAB: FEED & DISCUSSION */}
+      {activeTab === 'feed' && (
+        <GroupFeedTab
+          groupId={group.matchingGroupId}
+          isLeader={isLeader}
+          currentUserId={currentUserId}
+        />
+      )}
+
+      {/* TAB: MEMBERS */}
       {activeTab === 'members' && (
         <MembersCard
           members={group.members}
