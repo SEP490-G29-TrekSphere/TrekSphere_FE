@@ -1,10 +1,6 @@
-import { PenLine } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { PATHS } from '@/constants';
 import { useDebounce } from '@/shared/hooks';
 import { AppSpinner } from '@/shared/ui';
-import { useAppStore } from '@/store/useAppStore';
 import { FeedHeader, type FeedTab } from '../components/feed/FeedHeader';
 import { FeedPostCard } from '../components/feed/FeedPostCard';
 import { FeedPostSkeleton } from '../components/feed/FeedPostSkeleton';
@@ -20,15 +16,12 @@ const MAX_TOPICS = 8;
 /**
  * Màn hình 1: Community feed (`/news`).
  * - Cột trái: tabs + tiêu đề + tìm kiếm, rồi feed 1 cột cuộn vô tận.
- * - Cột phải (từ `lg`): viết bài, gợi ý theo dõi, chủ đề nổi bật, footer.
+ * - Cột phải (từ `lg`): gợi ý theo dõi, chủ đề nổi bật, footer.
  *
  * Phân trang dùng `useInfiniteBlogList` + `IntersectionObserver` thay cho
  * phân trang số — bám thiết kế community feed.
  */
 export default function BlogList() {
-  const user = useAppStore((state) => state.user);
-  const isLoggedIn = Boolean(user);
-
   const [activeTab, setActiveTab] = useState<FeedTab>('discover');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
@@ -180,26 +173,13 @@ export default function BlogList() {
             onSortChange={handleSortChange}
           />
 
-          {/* Dưới lg sidebar bị ẩn → đưa lối viết bài lên đầu feed */}
-          <Link
-            to={isLoggedIn ? PATHS.BLOG_CREATE : PATHS.LOGIN}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-hover lg:hidden"
-          >
-            <PenLine className="size-4" />
-            Viết bài mới
-          </Link>
-
           <div className="mt-6">{renderFeed()}</div>
         </div>
 
         {/* Cột phải — chỉ hiện từ lg trở lên */}
         <div className="hidden lg:block">
           <div className="sticky top-24 pt-6 sm:pt-8">
-            <FeedSidebar
-              isLoggedIn={isLoggedIn}
-              topics={topics}
-              onTopicSelect={handleTopicSelect}
-            />
+            <FeedSidebar topics={topics} onTopicSelect={handleTopicSelect} />
           </div>
         </div>
       </div>

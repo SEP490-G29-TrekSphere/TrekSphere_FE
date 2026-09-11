@@ -69,6 +69,7 @@ export {
   AppPasswordInput,
   type AppPasswordInputProps,
 } from './form/AppFormPasswordInput';
+export { AppTagInput, type AppTagInputProps } from './form/AppTagInput';
 // Primitives
 export { AppBadge, type AppBadgeProps, type AppBadgeVariant } from './primitives/AppBadge';
 export {

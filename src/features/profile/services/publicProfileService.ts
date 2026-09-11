@@ -1,4 +1,6 @@
+import { ApiService } from '@/config/apiClient';
 import { blogService } from '@/features/news';
+import type { PublicHikingSummary } from '../types';
 
 /**
  * Thông tin công khai của một người dùng khác.
@@ -40,5 +42,21 @@ export const publicProfileService = {
       fullName: first.authorName,
       avatarUrl: first.authorAvatarUrl || undefined,
     };
+  },
+
+  /**
+   * Hồ sơ leo núi công khai của một Trekker — `GET /users/{userId}/hiking-summary`.
+   *
+   * Endpoint công khai, BE đã lọc sẵn nên không trả email / số điện thoại / ngày
+   * sinh / thông tin y tế. Trả `null` khi BE không có dữ liệu cho user đó, để UI
+   * hiện empty state thay vì dựng hồ sơ rỗng.
+   */
+  async getHikingSummary(userId: string): Promise<PublicHikingSummary | null> {
+    const response = await ApiService<PublicHikingSummary>(
+      `/users/${userId}/hiking-summary`,
+      'GET'
+    );
+    if (response.error) throw new Error(response.error);
+    return response.data ?? null;
   },
 };

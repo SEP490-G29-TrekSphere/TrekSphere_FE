@@ -34,6 +34,7 @@ const mockMe = {
 let mockMeQuery: Record<string, unknown> = {};
 let mockPublicQuery: Record<string, unknown> = {};
 let mockBlogsQuery: Record<string, unknown> = {};
+let mockHikingQuery: Record<string, unknown> = {};
 
 jest.mock('../../hooks/useProfile', () => ({
   useProfile: () => mockMeQuery,
@@ -43,6 +44,7 @@ jest.mock('../../hooks/useProfile', () => ({
 jest.mock('../../hooks/usePublicProfile', () => ({
   usePublicProfile: () => mockPublicQuery,
   useUserBlogs: () => mockBlogsQuery,
+  usePublicHikingSummary: () => mockHikingQuery,
 }));
 
 const post: BlogListItem = {
@@ -63,6 +65,7 @@ describe('ProfileScreen', () => {
   beforeEach(() => {
     mockMeQuery = { data: mockMe, isLoading: false, isError: false, refetch: jest.fn() };
     mockPublicQuery = { data: null, isLoading: false };
+    mockHikingQuery = { data: null, isLoading: false };
     mockBlogsQuery = {
       data: {
         items: [post],
@@ -97,6 +100,7 @@ describe('ProfileScreen', () => {
       data: { userId: 'u2', fullName: 'Joseph Kemp', avatarUrl: '' },
       isLoading: false,
     };
+    mockHikingQuery = { data: null, isLoading: false };
 
     render(<ProfileScreen mode="public" userId="u2" />);
 
@@ -123,5 +127,37 @@ describe('ProfileScreen', () => {
 
     expect(screen.getByText('0 đánh giá')).toBeTruthy();
     expect(screen.getByText('Tính năng đánh giá người dùng đang được phát triển.')).toBeTruthy();
+  });
+
+  it('tab Hồ sơ leo núi: hiện kinh nghiệm, kỹ năng và khu vực từ API', () => {
+    mockMeQuery = {
+      data: {
+        ...mockMe,
+        experienceLevel: 'ADVANCED',
+        preferredDifficulty: 'HARD',
+        preferredAreas: ['Tây Bắc'],
+        skills: ['Sơ cứu'],
+        trustScore: 82,
+        trustReviewCount: 5,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    };
+
+    render(<ProfileScreen mode="me" />);
+
+    expect(screen.getAllByText('Nâng cao').length).toBeGreaterThan(0);
+    expect(screen.getByText('Thử thách')).toBeTruthy();
+    expect(screen.getByText('Tây Bắc')).toBeTruthy();
+    expect(screen.getByText('Sơ cứu')).toBeTruthy();
+    expect(screen.getAllByText('82').length).toBeGreaterThan(0);
+  });
+
+  it('chưa khai hồ sơ leo núi: hiện lời mời cập nhật thay vì khối rỗng', () => {
+    render(<ProfileScreen mode="me" />);
+
+    expect(screen.getByText('Chưa có hồ sơ leo núi')).toBeTruthy();
+    expect(screen.getByText('Cập nhật hồ sơ leo núi')).toBeTruthy();
   });
 });

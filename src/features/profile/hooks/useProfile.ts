@@ -16,6 +16,12 @@ export const profileKeys = {
   detail: (userId: string) => [...profileKeys.all, 'detail', userId] as const,
 };
 
+/** Ép về mảng chuỗi đã bỏ giá trị rỗng; trả `undefined` khi BE không gửi field. */
+function toStringList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
 /**
  * Shape thô mà BE `GET /users/me` trả về trong `data`:
  * {
@@ -67,6 +73,16 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
     dateOfBirth: (raw.dateOfBirth as string | null | undefined) ?? undefined,
     roles,
     role: roles[0] ?? '',
+    // Phần hồ sơ leo núi — BE trả cùng `UserProfileResponse`, có thể null khi
+    // người dùng chưa khai báo.
+    bio: (raw.bio as string | null | undefined) ?? undefined,
+    experienceLevel: (raw.experienceLevel as UserProfile['experienceLevel']) ?? undefined,
+    preferredDifficulty:
+      (raw.preferredDifficulty as UserProfile['preferredDifficulty']) ?? undefined,
+    preferredAreas: toStringList(raw.preferredAreas),
+    skills: toStringList(raw.skills),
+    trustScore: typeof raw.trustScore === 'number' ? raw.trustScore : undefined,
+    trustReviewCount: typeof raw.trustReviewCount === 'number' ? raw.trustReviewCount : undefined,
   };
 }
 
