@@ -57,7 +57,7 @@ function toQueryParams(params: object): Record<string, string> {
 
 async function mutateGroup(
   groupId: string,
-  action: 'hide' | 'show' | 'close' | 'open'
+  action: 'hide' | 'show' | 'close' | 'open' | 'start-trip' | 'complete-trip'
 ): Promise<MatchingGroupDetailResponse> {
   const response = await ApiService<MatchingGroupDetailResponse>(
     `/matching-groups/${groupId}/${action}`,
@@ -136,6 +136,14 @@ export const companionGroupService = {
 
   openMatchingGroup(groupId: string): Promise<MatchingGroupDetailResponse> {
     return mutateGroup(groupId, 'open');
+  },
+
+  startTrip(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'start-trip');
+  },
+
+  completeTrip(groupId: string): Promise<MatchingGroupDetailResponse> {
+    return mutateGroup(groupId, 'complete-trip');
   },
 
   async submitApplication(

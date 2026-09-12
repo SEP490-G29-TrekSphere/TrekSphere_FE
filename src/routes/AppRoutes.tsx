@@ -153,6 +153,7 @@ export default function AppRoutes() {
           <Route path={PATHS.NEWS} element={<BlogList />} />
           <Route path={PATHS.NEWS_DETAIL} element={<BlogDetails />} />
           <Route path={PATHS.USER_PROFILE} element={<PublicProfile />} />
+          <Route path={PATHS.PUBLIC_PROFILE} element={<PublicProfile />} />
         </Route>
 
         {/* Protected routes — yêu cầu đăng nhập, dùng MainLayout có Header/Sidebar */}

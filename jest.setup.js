@@ -29,3 +29,14 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
     dispatchEvent: () => false,
   });
 }
+
+// jsdom không implement `window.URL.createObjectURL` mà `@vietmap/vietmap-gl-js`
+// gọi ngay khi import module. Polyfill tối thiểu để test load module thành công.
+if (typeof window !== 'undefined') {
+  if (!window.URL.createObjectURL) {
+    window.URL.createObjectURL = () => 'blob:mock';
+  }
+  if (!window.URL.revokeObjectURL) {
+    window.URL.revokeObjectURL = () => {};
+  }
+}

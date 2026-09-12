@@ -2,9 +2,11 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  Flag,
   Loader2,
   Lock,
   MessageSquare,
+  Play,
   Send,
   Settings,
   Unlock,
@@ -15,6 +17,9 @@ import type { UserRoleInGroup } from '../../types';
 interface GroupActionPanelProps {
   role: UserRoleInGroup;
   groupStatus: MatchingGroupStatus;
+  matchingDeadline?: string | null;
+  targetDate?: string | null;
+  endDate?: string | null;
   isJoining: boolean;
   onOpenChat: () => void;
   onJoin: (message?: string) => void;
@@ -26,6 +31,8 @@ interface GroupActionPanelProps {
   onShowGroup?: () => void;
   onCloseGroup?: () => void;
   onOpenGroup?: () => void;
+  onStartTrip?: () => void;
+  onCompleteTrip?: () => void;
   isLifecyclePending?: boolean;
   acceptedMembersCount: number;
   hasConversation?: boolean;
@@ -35,6 +42,9 @@ interface GroupActionPanelProps {
 export function GroupActionPanel({
   role,
   groupStatus,
+  matchingDeadline,
+  targetDate,
+  endDate,
   isJoining,
   onOpenChat,
   onJoin,
@@ -46,6 +56,8 @@ export function GroupActionPanel({
   onShowGroup,
   onCloseGroup,
   onOpenGroup,
+  onStartTrip,
+  onCompleteTrip,
   isLifecyclePending = false,
   acceptedMembersCount,
   hasConversation,
@@ -56,12 +68,24 @@ export function GroupActionPanel({
   const isHidden = groupStatus === 'HIDDEN';
   const isClosed = groupStatus === 'CLOSED';
   const isOpen = groupStatus === 'OPEN';
+
+  const isDeadlinePassed = matchingDeadline
+    ? new Date(matchingDeadline).getTime() <= Date.now()
+    : false;
+  const isTargetDatePassed = targetDate
+    ? new Date(targetDate).getTime() < new Date().setHours(0, 0, 0, 0)
+    : false;
+  const isWithinAllowedRecruitment = !isDeadlinePassed && !isTargetDatePassed;
+
+  const isTripEndDatePassed = endDate
+    ? new Date(endDate).getTime() < new Date().setHours(0, 0, 0, 0)
+    : isTargetDatePassed;
+
   const canToggleVisibility =
     groupStatus === 'OPEN' ||
     groupStatus === 'FULL' ||
     groupStatus === 'CLOSED' ||
     groupStatus === 'HIDDEN';
-  const canToggleRecruitment = groupStatus === 'OPEN' || groupStatus === 'CLOSED';
 
   return (
     <div className="space-y-4">
@@ -146,31 +170,27 @@ export function GroupActionPanel({
             )}
 
             {/* Lifecycle: Open / Close recruitment */}
-            {canToggleRecruitment && (
-              <>
-                {isOpen && onCloseGroup && (
-                  <button
-                    type="button"
-                    onClick={onCloseGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>Đóng tuyển thành viên</span>
-                  </button>
-                )}
-                {isClosed && onOpenGroup && (
-                  <button
-                    type="button"
-                    onClick={onOpenGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Unlock className="h-3.5 w-3.5" />
-                    <span>Mở lại tuyển thành viên</span>
-                  </button>
-                )}
-              </>
+            {(isOpen || groupStatus === 'FULL') && onCloseGroup && (
+              <button
+                type="button"
+                onClick={onCloseGroup}
+                disabled={isLifecyclePending}
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span>Tạm dừng tuyển thành viên</span>
+              </button>
+            )}
+            {isClosed && onOpenGroup && isWithinAllowedRecruitment && (
+              <button
+                type="button"
+                onClick={onOpenGroup}
+                disabled={isLifecyclePending}
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <Unlock className="h-3.5 w-3.5" />
+                <span>Mở lại tuyển thành viên</span>
+              </button>
             )}
 
             {/* Lifecycle: Hide / Show group */}
@@ -199,6 +219,35 @@ export function GroupActionPanel({
                   </button>
                 )}
               </>
+            )}
+
+            {/* Trip Lifecycle: Start / Complete Trip */}
+            {groupStatus !== 'COMPLETED' && groupStatus !== 'CANCELLED' && (
+              <div className="pt-2 border-t border-border/60 space-y-2">
+                {groupStatus !== 'IN_PROGRESS' && onStartTrip && !isTripEndDatePassed && (
+                  <button
+                    type="button"
+                    onClick={onStartTrip}
+                    disabled={isLifecyclePending}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <span>Bắt đầu chuyến đi</span>
+                  </button>
+                )}
+
+                {groupStatus === 'IN_PROGRESS' && onCompleteTrip && (
+                  <button
+                    type="button"
+                    onClick={onCompleteTrip}
+                    disabled={isLifecyclePending}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                    <span>Hoàn thành chuyến đi</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

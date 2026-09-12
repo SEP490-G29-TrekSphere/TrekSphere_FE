@@ -1,20 +1,17 @@
-import { CheckCircle2, ChevronRight, ShieldCheck, Star, UserCheck, X } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Lock, ShieldCheck, Star, UserCheck, X } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useClickOutside } from '@/shared/hooks';
-import type {
-  PeerReviewPayload,
-  WorkspaceMemberItem,
-} from '../../../services/groupWorkspaceService';
+import { AppButton, AppModalShell } from '@/shared/ui';
+import type { PeerReviewCandidate, PeerReviewPayload } from '../../../services/peerReviewService';
 
 interface GroupPeerReviewModalProps {
-  member: WorkspaceMemberItem;
-  allMembers: WorkspaceMemberItem[];
-  reviewedIds: Set<string>;
+  open: boolean;
   onClose: () => void;
+  candidate: PeerReviewCandidate;
+  allCandidates: PeerReviewCandidate[];
   onSubmit: (payload: PeerReviewPayload) => void;
   isSubmitting: boolean;
-  onSelectMember: (member: WorkspaceMemberItem) => void;
+  onSelectCandidate: (candidate: PeerReviewCandidate) => void;
 }
 
 const SCORE_LABELS: Record<number, string> = {
@@ -25,71 +22,66 @@ const SCORE_LABELS: Record<number, string> = {
   1: 'Kém',
 };
 
-const AVATAR_FALLBACK_CLASS = 'bg-secondary text-secondary-foreground';
-
-function getInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || '?';
-}
-
 export function GroupPeerReviewModal({
-  member,
-  allMembers,
-  reviewedIds,
+  open,
   onClose,
+  candidate,
+  allCandidates,
   onSubmit,
   isSubmitting,
-  onSelectMember,
+  onSelectCandidate,
 }: GroupPeerReviewModalProps) {
+  const [endurance, setEndurance] = useState(5);
   const [punctuality, setPunctuality] = useState(5);
-  const [fitness, setFitness] = useState(5);
   const [finance, setFinance] = useState(5);
   const [comment, setComment] = useState('');
 
-  const modalRef = useClickOutside<HTMLDivElement>(onClose);
-
-  const peerList = allMembers;
-  const reviewedCount = peerList.filter((m) => reviewedIds.has(m.userId)).length;
-
-  const nextUnreviewedMember = peerList.find(
-    (m) => m.userId !== member.userId && !reviewedIds.has(m.userId)
+  const reviewedCount = allCandidates.filter((c) => c.isReviewed).length;
+  const nextUnreviewed = allCandidates.find(
+    (c) => c.matchingMemberId !== candidate.matchingMemberId && !c.isReviewed
   );
 
-  function calculateTrustBonus() {
-    const avg = (punctuality + fitness + finance) / 3;
+  const calculateTrustBonus = () => {
+    const avg = (endurance + punctuality + finance) / 3;
     if (avg >= 4.5) return '+2.5 điểm';
     if (avg >= 3.5) return '+1.5 điểm';
     if (avg >= 2.5) return '+0.5 điểm';
     return '0 điểm';
-  }
+  };
 
-  function buildPayload(): PeerReviewPayload {
+  const buildPayload = (): PeerReviewPayload => {
     return {
-      revieweeId: member.userId,
-      punctualityScore: punctuality,
-      fitnessScore: fitness,
-      financeScore: finance,
-      tags: [],
+      revieweeMemberId: candidate.matchingMemberId,
+      revieweeUserId: candidate.userId,
+      actualEnduranceRating: endurance,
+      punctualityResponsibilityRating: punctuality,
+      financialFairnessRating: finance,
       comment: comment.trim() || undefined,
     };
-  }
+  };
 
-  function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(buildPayload());
     onClose();
-  }
+  };
 
-  function handleSubmitAndNext(e: React.MouseEvent) {
+  const handleSubmitAndNext = (e: React.MouseEvent) => {
     e.preventDefault();
     onSubmit(buildPayload());
-    if (nextUnreviewedMember) {
-      onSelectMember(nextUnreviewedMember);
+    if (nextUnreviewed) {
+      onSelectCandidate(nextUnreviewed);
+      // Reset form for next candidate
+      setEndurance(5);
+      setPunctuality(5);
+      setFinance(5);
+      setComment('');
     } else {
       onClose();
     }
-  }
+  };
 
-  function renderStarRating(score: number, setScore: (val: number) => void) {
+  const renderStarRating = (score: number, setScore: (val: number) => void) => {
     return (
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
@@ -98,12 +90,13 @@ export function GroupPeerReviewModal({
               key={star}
               type="button"
               onClick={() => setScore(star)}
-              className="p-0.5 transition hover:scale-110 cursor-pointer"
+              className="p-0.5 transition hover:scale-110 cursor-pointer border-0 bg-transparent"
+              aria-label={`${star} sao`}
             >
               <Star
                 className={cn(
                   'h-5 w-5 transition-colors',
-                  star <= score ? 'text-primary fill-primary' : 'text-muted-foreground/30'
+                  star <= score ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/30'
                 )}
               />
             </button>
@@ -114,16 +107,18 @@ export function GroupPeerReviewModal({
         </span>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div
-        ref={modalRef}
-        className="w-full max-w-xl rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8"
-      >
-        {/* TOP BAR: PEER NAVIGATOR */}
-        {peerList.length > 1 && (
+    <AppModalShell
+      open={open}
+      onClose={onClose}
+      className="max-w-xl"
+      aria-label={`Đánh giá bạn đồng hành: ${candidate.fullName}`}
+    >
+      <div className="space-y-5">
+        {/* CANDIDATE NAVIGATOR BAR */}
+        {allCandidates.length > 1 && (
           <div className="rounded-xl border border-border/80 bg-muted/30 p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-foreground flex items-center gap-1.5">
@@ -131,46 +126,48 @@ export function GroupPeerReviewModal({
                 Danh sách đánh giá thành viên
               </span>
               <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 py-0.5 rounded-full border border-border">
-                Đã hoàn thành {reviewedCount}/{peerList.length}
+                Đã hoàn thành {reviewedCount}/{allCandidates.length}
               </span>
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-              {peerList.map((m) => {
-                const isCurrent = m.userId === member.userId;
-                const isDone = reviewedIds.has(m.userId);
+              {allCandidates.map((c) => {
+                const isCurrent = c.matchingMemberId === candidate.matchingMemberId;
                 return (
                   <button
-                    key={m.userId}
+                    key={c.matchingMemberId}
                     type="button"
-                    onClick={() => onSelectMember(m)}
+                    onClick={() => {
+                      onSelectCandidate(c);
+                      setEndurance(5);
+                      setPunctuality(5);
+                      setFinance(5);
+                      setComment('');
+                    }}
                     className={cn(
                       'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs transition cursor-pointer shrink-0 border',
                       isCurrent
                         ? 'border-primary bg-primary/10 text-primary font-bold shadow-2xs'
-                        : isDone
+                        : c.isReviewed
                           ? 'border-border bg-muted text-foreground font-medium'
                           : 'border-border bg-background text-muted-foreground hover:bg-muted'
                     )}
                   >
-                    {m.avatarUrl ? (
+                    {c.avatarUrl ? (
                       <img
-                        src={m.avatarUrl}
-                        alt={m.fullName}
+                        src={c.avatarUrl}
+                        alt={c.fullName}
                         className="h-5 w-5 rounded-full object-cover"
                       />
                     ) : (
-                      <div
-                        className={cn(
-                          'flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold',
-                          AVATAR_FALLBACK_CLASS
-                        )}
-                      >
-                        {getInitial(m.fullName)}
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold bg-secondary text-secondary-foreground">
+                        {c.fullName.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span>{m.fullName}</span>
-                    {isDone && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+                    <span>{c.fullName}</span>
+                    {c.isReviewed && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    )}
                   </button>
                 );
               })}
@@ -178,36 +175,34 @@ export function GroupPeerReviewModal({
           </div>
         )}
 
-        {/* MODAL MAIN HEADER */}
+        {/* HEADER */}
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-3">
-            {member.avatarUrl ? (
+            {candidate.avatarUrl ? (
               <img
-                src={member.avatarUrl}
-                alt={member.fullName}
+                src={candidate.avatarUrl}
+                alt={candidate.fullName}
                 className="h-11 w-11 rounded-xl object-cover shadow-sm"
               />
             ) : (
-              <div
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-xl font-bold text-base shadow-sm',
-                  AVATAR_FALLBACK_CLASS
-                )}
-              >
-                {getInitial(member.fullName)}
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl font-bold text-base shadow-sm bg-secondary text-secondary-foreground">
+                {candidate.fullName.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-foreground">
-                  Đánh giá thành viên: {member.fullName}
+                  Đánh giá thành viên: {candidate.fullName}
                 </h3>
                 <span className="text-[11px] font-semibold bg-muted px-2 py-0.5 rounded-md text-muted-foreground border border-border">
-                  {member.roleLabel}
+                  {candidate.roleLabel}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <Lock className="h-2.5 w-2.5" /> Ẩn danh 100%
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Đánh giá khách quan để tính điểm uy tín (Trust Score) cho chuyến đi
+                Đánh giá được ẩn danh hoàn toàn để đảm bảo tính khách quan và bảo vệ quyền riêng tư.
               </p>
             </div>
           </div>
@@ -215,25 +210,37 @@ export function GroupPeerReviewModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Đóng"
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition cursor-pointer"
+            aria-label="Đóng cửa sổ"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition cursor-pointer border-0 bg-transparent"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* 3 CORE BUSINESS CRITERIA SECTION */}
+          {/* 3 CRITERIA SECTION */}
           <div className="space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4">
             <h4 className="text-xs font-bold text-foreground uppercase tracking-wider text-muted-foreground">
-              Tiêu chí đánh giá bắt buộc
+              Tiêu chí đánh giá bắt buộc (1 - 5 sao)
             </h4>
 
-            {/* 1. Punctuality */}
+            {/* 1. Endurance */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="space-y-0.5">
+                <span className="text-xs font-bold text-foreground block">1. Thể lực thực tế</span>
+                <span className="text-[11px] text-muted-foreground block">
+                  Theo kịp tốc độ đoàn & khả năng tự tải đồ / hỗ trợ
+                </span>
+              </div>
+              {renderStarRating(endurance, setEndurance)}
+            </div>
+
+            {/* 2. Punctuality & Responsibility */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border/40 pt-3">
+              <div className="space-y-0.5">
                 <span className="text-xs font-bold text-foreground block">
-                  1. Đúng giờ & Trách nhiệm
+                  2. Đúng giờ & Trách nhiệm
                 </span>
                 <span className="text-[11px] text-muted-foreground block">
                   Tuân thủ thời gian tập trung & lịch trình chung
@@ -242,18 +249,7 @@ export function GroupPeerReviewModal({
               {renderStarRating(punctuality, setPunctuality)}
             </div>
 
-            {/* 2. Fitness */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border/40 pt-3">
-              <div className="space-y-0.5">
-                <span className="text-xs font-bold text-foreground block">2. Thể lực thực tế</span>
-                <span className="text-[11px] text-muted-foreground block">
-                  Theo kịp tốc độ đoàn & khả năng tự tải đồ / hỗ trợ
-                </span>
-              </div>
-              {renderStarRating(fitness, setFitness)}
-            </div>
-
-            {/* 3. Financial Settlement */}
+            {/* 3. Financial Fairness */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border/40 pt-3">
               <div className="space-y-0.5">
                 <span className="text-xs font-bold text-foreground block">
@@ -269,7 +265,9 @@ export function GroupPeerReviewModal({
 
           {/* COMMENT TEXTAREA */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Nhận xét chi tiết</label>
+            <label className="text-xs font-bold text-foreground block">
+              Nhận xét chi tiết (tùy chọn)
+            </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -288,7 +286,7 @@ export function GroupPeerReviewModal({
                   Dự kiến tác động Trust Score: {calculateTrustBonus()}
                 </span>
                 <span className="text-[11px] text-muted-foreground block">
-                  Đánh giá từ bạn góp phần cập nhật chỉ số uy tín cộng đồng cho {member.fullName}
+                  Đánh giá từ bạn góp phần cập nhật chỉ số uy tín cộng đồng cho {candidate.fullName}
                 </span>
               </div>
             </div>
@@ -296,38 +294,31 @@ export function GroupPeerReviewModal({
 
           {/* ACTION BUTTONS */}
           <div className="flex items-center justify-between pt-3 border-t border-border gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted transition cursor-pointer"
-            >
+            <AppButton variant="outline" size="sm" type="button" onClick={onClose}>
               Hủy
-            </button>
+            </AppButton>
 
             <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl border border-primary text-primary hover:bg-primary/10 px-4 py-2 text-xs font-bold transition cursor-pointer disabled:opacity-50"
-              >
+              <AppButton variant="outline" size="sm" type="submit" disabled={isSubmitting}>
                 Lưu đánh giá này
-              </button>
+              </AppButton>
 
-              {nextUnreviewedMember && (
-                <button
+              {nextUnreviewed && (
+                <AppButton
+                  size="sm"
                   type="button"
                   disabled={isSubmitting}
                   onClick={handleSubmitAndNext}
-                  className="rounded-xl bg-primary text-primary-foreground px-4 py-2 text-xs font-bold hover:opacity-90 transition cursor-pointer flex items-center gap-1 shadow-xs disabled:opacity-50"
+                  className="flex items-center gap-1"
                 >
-                  <span>Chấm tiếp {nextUnreviewedMember.fullName}</span>
+                  <span>Chấm tiếp {nextUnreviewed.fullName}</span>
                   <ChevronRight className="h-4 w-4" />
-                </button>
+                </AppButton>
               )}
             </div>
           </div>
         </form>
       </div>
-    </div>
+    </AppModalShell>
   );
 }
