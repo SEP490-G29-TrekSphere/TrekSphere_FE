@@ -8,6 +8,7 @@ import {
   type MapStyleType,
   VIETMAP_CONFIGURATION_MESSAGE,
 } from '@/shared/map/vietmapSetup';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { MomentItem, MomentMapMarker, MomentMediaItem } from '../../../services/momentService';
 
 interface GroupMomentsMapPanelProps {
@@ -89,125 +90,149 @@ export function GroupMomentsMapPanel({
         const mediaList: MomentMediaItem[] = matchedMoment?.mediaList || [];
         const hasMultiple = mediaList.length > 1;
 
-        // Create Custom Marker DOM Element
+        // Create Custom Marker DOM Element safely without innerHTML
         const el = document.createElement('div');
         el.className = 'treksphere-map-marker-anchor';
         el.style.width = '44px';
         el.style.height = '48px';
         el.style.cursor = 'pointer';
 
-        el.innerHTML = `
-        <div class="marker-card relative flex flex-col items-center select-none">
-          <div class="w-10 h-10 rounded-2xl border-2 border-white shadow-xl overflow-hidden bg-zinc-900 transition-transform duration-200 pointer-events-none ${
-            selectedMarkerId === m.momentId ? 'ring-3 ring-emerald-500 scale-110' : ''
-          }">
-            ${
-              m.thumbnailUrl
-                ? `<img src="${m.thumbnailUrl}" class="w-full h-full object-cover pointer-events-none" alt="Marker thumbnail" />`
-                : `<div class="w-full h-full flex items-center justify-center bg-emerald-600 text-white text-xs font-bold pointer-events-none">📍</div>`
-            }
-          </div>
-          ${
-            hasMultiple
-              ? `<div class="absolute -top-1 -right-1 bg-zinc-900/90 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full border border-white/60 shadow pointer-events-none">
-                  +${mediaList.length}
-                </div>`
-              : ''
-          }
-          <div class="w-2.5 h-2.5 bg-emerald-600 rotate-45 -mt-1 rounded-xs border-r border-b border-white pointer-events-none"></div>
-        </div>
-      `;
+        const card = document.createElement('div');
+        card.className = 'marker-card relative flex flex-col items-center select-none';
 
-        // Create Rich Popup DOM Element
+        const imgWrap = document.createElement('div');
+        imgWrap.className = cn(
+          'w-10 h-10 rounded-2xl border-2 border-white shadow-xl overflow-hidden bg-zinc-900 transition-transform duration-200 pointer-events-none',
+          selectedMarkerId === m.momentId ? 'ring-3 ring-emerald-500 scale-110' : ''
+        );
+
+        const safeThumb = getSafeImageUrl(m.thumbnailUrl);
+        if (safeThumb) {
+          const thumbImg = document.createElement('img');
+          thumbImg.src = safeThumb;
+          thumbImg.className = 'w-full h-full object-cover pointer-events-none';
+          thumbImg.alt = 'Marker thumbnail';
+          imgWrap.appendChild(thumbImg);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className =
+            'w-full h-full flex items-center justify-center bg-emerald-600 text-white text-xs font-bold pointer-events-none';
+          placeholder.textContent = '📍';
+          imgWrap.appendChild(placeholder);
+        }
+        card.appendChild(imgWrap);
+
+        if (hasMultiple) {
+          const countBadge = document.createElement('div');
+          countBadge.className =
+            'absolute -top-1 -right-1 bg-zinc-900/90 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full border border-white/60 shadow pointer-events-none';
+          countBadge.textContent = `+${mediaList.length}`;
+          card.appendChild(countBadge);
+        }
+
+        const pinTip = document.createElement('div');
+        pinTip.className =
+          'w-2.5 h-2.5 bg-emerald-600 rotate-45 -mt-1 rounded-xs border-r border-b border-white pointer-events-none';
+        card.appendChild(pinTip);
+        el.appendChild(card);
+
+        // Create Rich Popup DOM Element safely without innerHTML
         const popupDiv = document.createElement('div');
         popupDiv.className =
           'p-3 max-w-[280px] sm:max-w-[320px] rounded-2xl bg-white text-zinc-900 shadow-2xl space-y-2 select-text font-sans';
 
-        // Render thumbnails row if multiple photos
-        let multiPhotosHtml = '';
+        const container = document.createElement('div');
+        container.className = 'space-y-2';
+
+        if (safeThumb) {
+          const mainPhotoWrap = document.createElement('div');
+          mainPhotoWrap.className =
+            'relative w-full aspect-16/10 rounded-xl overflow-hidden bg-zinc-100 group cursor-pointer';
+          const mainImg = document.createElement('img');
+          mainImg.src = safeThumb;
+          mainImg.className =
+            'main-popup-img w-full h-full object-cover hover:scale-105 transition duration-300';
+          mainImg.alt = 'Main photo';
+          if (onPreviewImage) {
+            mainPhotoWrap.addEventListener('click', () => onPreviewImage(safeThumb));
+          }
+          mainPhotoWrap.appendChild(mainImg);
+
+          if (hasMultiple) {
+            const badge = document.createElement('div');
+            badge.className =
+              'absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs';
+            badge.textContent = `${mediaList.length} ảnh`;
+            mainPhotoWrap.appendChild(badge);
+          }
+          container.appendChild(mainPhotoWrap);
+        }
+
         if (hasMultiple) {
-          multiPhotosHtml = `
-          <div class="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
-            ${mediaList
-              .map((med, idx) => {
-                const imgUrl = med.imageUrl || med.mediaUrl || '';
-                return `
-                <div class="relative shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 cursor-pointer hover:opacity-80 transition" data-idx="${idx}">
-                  <img src="${imgUrl}" class="w-full h-full object-cover" alt="Ảnh ${idx + 1}" data-img-url="${imgUrl}" />
-                </div>
-              `;
-              })
-              .join('')}
-          </div>
-        `;
-        }
-
-        popupDiv.innerHTML = `
-        <div class="space-y-2">
-          ${
-            m.thumbnailUrl
-              ? `<div class="relative w-full aspect-16/10 rounded-xl overflow-hidden bg-zinc-100 group cursor-pointer">
-                  <img src="${m.thumbnailUrl}" class="main-popup-img w-full h-full object-cover hover:scale-105 transition duration-300" alt="Main photo" />
-                  ${
-                    hasMultiple
-                      ? `<div class="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
-                          ${mediaList.length} ảnh
-                        </div>`
-                      : ''
-                  }
-                </div>`
-              : ''
-          }
-          ${multiPhotosHtml}
-          <div>
-            <h4 class="font-extrabold text-sm text-zinc-900 line-clamp-1 leading-snug">
-              📍 ${m.placeName || m.locationName || 'Tọa độ hành trình'}
-            </h4>
-            ${
-              m.altitude
-                ? `<p class="text-[10px] font-bold text-emerald-600 font-mono mt-0.5">🏔 Độ cao: ${m.altitude}</p>`
-                : ''
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none';
+          mediaList.forEach((med, idx) => {
+            const safeUrl = getSafeImageUrl(med.imageUrl || med.mediaUrl);
+            if (!safeUrl) return;
+            const thumbWrap = document.createElement('div');
+            thumbWrap.className =
+              'relative shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 cursor-pointer hover:opacity-80 transition';
+            const subImg = document.createElement('img');
+            subImg.src = safeUrl;
+            subImg.className = 'w-full h-full object-cover';
+            subImg.alt = `Ảnh ${idx + 1}`;
+            if (onPreviewImage) {
+              thumbWrap.addEventListener('click', () => onPreviewImage(safeUrl));
             }
-            ${
-              m.caption
-                ? `<p class="text-[11px] text-zinc-600 line-clamp-2 mt-1 italic">"${m.caption}"</p>`
-                : ''
-            }
-          </div>
-          <div class="flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-zinc-200">
-            <span>👤 ${m.authorName}</span>
-            <span>📍 ${m.latitude.toFixed(3)}°, ${m.longitude.toFixed(3)}°</span>
-          </div>
-          ${
-            matchedMoment && onSelectMoment
-              ? `<button type="button" class="view-detail-btn w-full mt-1.5 py-1 text-center text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition cursor-pointer border border-emerald-200">
-                  Xem chi tiết bài viết & bình luận
-                </button>`
-              : ''
-          }
-        </div>
-      `;
-
-        // Handle preview clicking on main or mini thumbnails
-        if (onPreviewImage) {
-          const allThumbImgs = popupDiv.querySelectorAll<HTMLImageElement>('img');
-          allThumbImgs.forEach((img) => {
-            img.addEventListener('click', () => {
-              const url = img.getAttribute('data-img-url') || img.src;
-              if (url) onPreviewImage(url);
-            });
+            thumbWrap.appendChild(subImg);
+            row.appendChild(thumbWrap);
           });
+          container.appendChild(row);
         }
 
-        // Handle click "Xem chi tiết bài viết"
-        if (matchedMoment && onSelectMoment) {
-          const detailBtn = popupDiv.querySelector('.view-detail-btn');
-          if (detailBtn) {
-            detailBtn.addEventListener('click', () => {
-              onSelectMoment(matchedMoment);
-            });
-          }
+        const infoDiv = document.createElement('div');
+        const title = document.createElement('h4');
+        title.className = 'font-extrabold text-sm text-zinc-900 line-clamp-1 leading-snug';
+        title.textContent = `📍 ${m.placeName || m.locationName || 'Tọa độ hành trình'}`;
+        infoDiv.appendChild(title);
+
+        if (m.altitude) {
+          const alt = document.createElement('p');
+          alt.className = 'text-[10px] font-bold text-emerald-600 font-mono mt-0.5';
+          alt.textContent = `🏔 Độ cao: ${m.altitude}`;
+          infoDiv.appendChild(alt);
         }
+
+        if (m.caption) {
+          const cap = document.createElement('p');
+          cap.className = 'text-[11px] text-zinc-600 line-clamp-2 mt-1 italic';
+          cap.textContent = `"${m.caption}"`;
+          infoDiv.appendChild(cap);
+        }
+        container.appendChild(infoDiv);
+
+        const metaDiv = document.createElement('div');
+        metaDiv.className =
+          'flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-zinc-200';
+        const authorSpan = document.createElement('span');
+        authorSpan.textContent = `👤 ${m.authorName || 'Trekker'}`;
+        const coordSpan = document.createElement('span');
+        coordSpan.textContent = `📍 ${m.latitude.toFixed(3)}°, ${m.longitude.toFixed(3)}°`;
+        metaDiv.appendChild(authorSpan);
+        metaDiv.appendChild(coordSpan);
+        container.appendChild(metaDiv);
+
+        if (matchedMoment && onSelectMoment) {
+          const detailBtn = document.createElement('button');
+          detailBtn.type = 'button';
+          detailBtn.className =
+            'view-detail-btn w-full mt-1.5 py-1 text-center text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition cursor-pointer border border-emerald-200';
+          detailBtn.textContent = 'Xem chi tiết bài viết & bình luận';
+          detailBtn.addEventListener('click', () => onSelectMoment(matchedMoment));
+          container.appendChild(detailBtn);
+        }
+
+        popupDiv.appendChild(container);
 
         const popup = new vietmapgl.Popup({
           offset: 26,

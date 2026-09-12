@@ -19,6 +19,7 @@ import { profileService } from '@/features/profile/services/profileService';
 import { cn } from '@/lib/utils';
 import { AppButton, AppInput, AppModalShell, AppSpinner } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import {
   useCreateMoment,
   useDeleteMoment,
@@ -807,7 +808,7 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
         >
           <div className="relative flex flex-col items-center justify-center p-2">
             <img
-              src={previewImageUrl}
+              src={getSafeImageUrl(previewImageUrl) || ''}
               alt="Preview full"
               className="max-h-[80vh] w-auto object-contain rounded-lg"
             />

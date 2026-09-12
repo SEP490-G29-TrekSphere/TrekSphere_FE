@@ -23,6 +23,7 @@ import type {
 import { cn } from '@/lib/utils';
 import { AppButton, AppInput, AppModalShell, AppSpinner } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import {
   useCreatePersonalMoment,
   useDeletePersonalMoment,
@@ -672,7 +673,7 @@ export function ProfileMomentsPanel({
             <X className="h-5 w-5" />
           </button>
           <img
-            src={previewImageUrl}
+            src={getSafeImageUrl(previewImageUrl) || ''}
             alt="Chi tiết khoảnh khắc"
             className="relative z-10 max-h-[85vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
           />

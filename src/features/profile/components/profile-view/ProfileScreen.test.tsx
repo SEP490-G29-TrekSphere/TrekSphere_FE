@@ -55,6 +55,10 @@ jest.mock('../../hooks/useUserMoments', () => ({
   useDeletePersonalMoment: () => ({ mutate: jest.fn(), isPending: false }),
 }));
 
+jest.mock('@/features/companion-groups/hooks/useGroupPeerReviews', () => ({
+  useUserPeerReviews: () => ({ data: [], isLoading: false }),
+}));
+
 const post: BlogListItem = {
   blogId: 'b1',
   title: 'Cung đường Tà Xùa mùa săn mây',
@@ -128,13 +132,12 @@ describe('ProfileScreen', () => {
     expect(screen.getByText('Không hiển thị được hồ sơ')).toBeTruthy();
   });
 
-  it('tab Đánh giá dựng khung nhưng không bịa điểm', () => {
+  it('tab Đánh giá hiển thị tổng quan điểm uy tín và thông báo rỗng', () => {
     render(<ProfileScreen mode="me" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Đánh giá' }));
 
-    expect(screen.getByText('0 đánh giá')).toBeTruthy();
-    expect(screen.getByText('Tính năng đánh giá người dùng đang được phát triển.')).toBeTruthy();
+    expect(screen.getByText('Chưa có đánh giá nào')).toBeTruthy();
   });
 
   it('tab Hồ sơ leo núi: hiện kinh nghiệm, kỹ năng và khu vực từ API', () => {
