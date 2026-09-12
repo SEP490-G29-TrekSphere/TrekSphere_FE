@@ -38,6 +38,7 @@ interface RawMomentItem {
   latitude?: number;
   longitude?: number;
   altitude?: string;
+  status?: 'VISIBLE' | 'HIDDEN' | 'ACTIVE';
   visibility?: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
   likesCount?: number;
   commentsCount?: number;
@@ -88,6 +89,7 @@ function mapRawToMomentItem(m: RawMomentItem): MomentItem {
     latitude: m.latitude,
     longitude: m.longitude,
     altitude: m.altitude,
+    status: m.status || 'VISIBLE',
     visibility: m.visibility || 'PUBLIC_PROFILE',
     likesCount: m.likesCount ?? 0,
     commentsCount: m.commentsCount ?? 0,

@@ -159,7 +159,7 @@ export function ProfileScreen({
           />
         );
       case 'reviews':
-        return <ProfileRatingSummary />;
+        return <ProfileRatingSummary userId={resolvedUserId} />;
       case 'activities':
         return (
           <ProfileComingSoon

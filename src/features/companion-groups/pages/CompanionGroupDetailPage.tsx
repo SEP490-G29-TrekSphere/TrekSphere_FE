@@ -183,6 +183,9 @@ export default function CompanionGroupDetailPage({
             <GroupActionPanel
               role={actions.currentUserRole}
               groupStatus={group.status}
+              matchingDeadline={group.matchingDeadline}
+              targetDate={group.targetDate}
+              endDate={group.customJourneyEndDate}
               isJoining={actions.isJoining}
               onOpenChat={actions.openGroupChat}
               onJoin={() => setIsJoinModalOpen(true)}
@@ -194,6 +197,8 @@ export default function CompanionGroupDetailPage({
               onShowGroup={actions.showGroup}
               onCloseGroup={actions.closeGroup}
               onOpenGroup={actions.openGroup}
+              onStartTrip={actions.startTrip}
+              onCompleteTrip={actions.completeTrip}
               isLifecyclePending={actions.isLifecyclePending}
               acceptedMembersCount={
                 group.members.filter((member) => member.status === 'ACCEPTED').length
