@@ -27,6 +27,7 @@ export {
   GroupFeedTab,
   GroupPostCard,
 } from './components/workspace/feed';
+export { GroupSettlementTab } from './components/workspace/settlement';
 export * from './constants';
 // Phase 5 Hooks & Keys
 export { groupWorkspaceKeys } from './hooks/groupWorkspaceKeys';
@@ -41,6 +42,14 @@ export {
   useUpdateGroupChecklistItem,
   useUpdateGroupChecklistItemStatus,
 } from './hooks/useGroupChecklistWorkspace';
+export {
+  useCreateGroupExpense,
+  useGroupExpenseDetail,
+  useGroupExpenseSummary,
+  useGroupExpenses,
+  useUpdateGroupExpense,
+  useVoidGroupExpense,
+} from './hooks/useGroupExpenseWorkspace';
 export {
   useCreateGroupComment,
   useCreateGroupPost,
@@ -61,6 +70,7 @@ export {
   useUpdateGroupCheckpoint,
   useUpdateGroupJourney,
 } from './hooks/useGroupJourneyWorkspace';
+export { useGroupSettlement } from './hooks/useGroupSettlement';
 export { useJoinMatchingGroup } from './hooks/useJoinMatchingGroup';
 export { useLeaveMatchingGroup } from './hooks/useLeaveMatchingGroup';
 export { useMatchingGroupDetail } from './hooks/useMatchingGroupDetail';

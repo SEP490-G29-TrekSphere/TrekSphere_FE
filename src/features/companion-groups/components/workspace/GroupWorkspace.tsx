@@ -3,6 +3,8 @@ import {
   Layers,
   MessageSquare,
   Radio,
+  Receipt,
+  Scale,
   ShieldCheck,
   UserCheck,
   Users,
@@ -17,8 +19,10 @@ import { GroupBudgetTab } from '../detail/GroupBudgetTab';
 import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
+import { GroupExpenseTab } from './expense';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
+import { GroupSettlementTab } from './settlement';
 
 export type WorkspaceTabKey =
   | 'overview'
@@ -27,6 +31,8 @@ export type WorkspaceTabKey =
   | 'members'
   | 'requests'
   | 'budget'
+  | 'expenses'
+  | 'settlement'
   | 'rules';
 
 interface GroupWorkspaceProps {
@@ -47,6 +53,8 @@ const TABS: { id: WorkspaceTabKey; label: string; icon: typeof Layers; leaderOnl
   { id: 'members', label: 'Thành viên', icon: Users },
   { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
   { id: 'budget', label: 'Dự toán chi phí', icon: Wallet },
+  { id: 'expenses', label: 'Chi tiêu thực tế', icon: Receipt },
+  { id: 'settlement', label: 'Quyết toán', icon: Scale },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
 ];
 
@@ -174,7 +182,19 @@ export function GroupWorkspace({
       )}
 
       {/* TAB 5: BUDGET */}
-      {activeTab === 'budget' && <GroupBudgetTab group={group} />}
+      {activeTab === 'budget' && (
+        <GroupBudgetTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
+      )}
+
+      {/* TAB: ACTUAL EXPENSES */}
+      {activeTab === 'expenses' && (
+        <GroupExpenseTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
+      )}
+
+      {/* TAB: SETTLEMENT & DEBT NETTING */}
+      {activeTab === 'settlement' && (
+        <GroupSettlementTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
+      )}
 
       {/* TAB 6: RULES */}
       {activeTab === 'rules' && <GroupRulesTab group={group} />}

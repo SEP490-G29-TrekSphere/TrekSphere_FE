@@ -108,6 +108,7 @@ export function useCreateGroupJourneyActivity(groupId: string) {
       groupWorkspaceService.createJourneyActivity(groupId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.activities(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
     },
   });
 }
@@ -121,6 +122,7 @@ export function useUpdateGroupJourneyActivity(groupId: string) {
       groupWorkspaceService.updateJourneyActivity(groupId, activityId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.activities(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
     },
   });
 }
@@ -134,6 +136,7 @@ export function useDeleteGroupJourneyActivity(groupId: string) {
       groupWorkspaceService.deleteJourneyActivity(groupId, activityId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.activities(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
     },
   });
 }

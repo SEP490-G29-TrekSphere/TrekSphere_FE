@@ -1,4 +1,4 @@
-import type { JourneyDifficulty } from './matchingGroup';
+import type { CostItemCategory, JourneyDifficulty } from './matchingGroup';
 
 // ==================== CUSTOM JOURNEY & CHECKPOINTS ====================
 export interface CustomJourneyCheckpointResponse {
@@ -311,3 +311,37 @@ export type CreateGroupPostPayload = GroupPostCreateRequest;
 export type UpdateGroupPostPayload = GroupPostUpdateRequest;
 export type CreateGroupPostCommentPayload = GroupPostCommentCreateRequest;
 export type UpdateGroupPostCommentPayload = GroupPostCommentUpdateRequest;
+
+// ==================== CUSTOM JOURNEY COST ITEMS ====================
+
+export interface CustomJourneyCostItemResponse {
+  customJourneyCostItemId: string;
+  itemName: string;
+  category: CostItemCategory;
+  estimatedAmount: number;
+  note?: string | null;
+}
+
+export interface CustomJourneyCostSummaryResponse {
+  customJourneyId: string;
+  matchingGroupId: string;
+  totalEstimatedCost: number;
+  estimatedCostPerMember: number;
+  activeMemberCount: number;
+  maxSize: number;
+  costItems: CustomJourneyCostItemResponse[];
+}
+
+export interface CustomJourneyCostItemCreateRequest {
+  itemName: string;
+  category: CostItemCategory;
+  estimatedAmount: number;
+  note?: string | null;
+}
+
+export interface CustomJourneyCostItemUpdateRequest {
+  itemName?: string;
+  category?: CostItemCategory;
+  estimatedAmount?: number;
+  note?: string | null;
+}
