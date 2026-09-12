@@ -3,8 +3,6 @@ import {
   Layers,
   MessageSquare,
   Radio,
-  Receipt,
-  Scale,
   ShieldCheck,
   UserCheck,
   Users,
@@ -13,16 +11,15 @@ import {
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { AppScrollableTabs } from '@/shared/ui';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { GroupBudgetTab } from '../detail/GroupBudgetTab';
 import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
-import { GroupExpenseTab } from './expense';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
-import { GroupSettlementTab } from './settlement';
 
 export type WorkspaceTabKey =
   | 'overview'
@@ -31,8 +28,6 @@ export type WorkspaceTabKey =
   | 'members'
   | 'requests'
   | 'budget'
-  | 'expenses'
-  | 'settlement'
   | 'rules';
 
 interface GroupWorkspaceProps {
@@ -53,8 +48,6 @@ const TABS: { id: WorkspaceTabKey; label: string; icon: typeof Layers; leaderOnl
   { id: 'members', label: 'Thành viên', icon: Users },
   { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
   { id: 'budget', label: 'Dự toán chi phí', icon: Wallet },
-  { id: 'expenses', label: 'Chi tiêu thực tế', icon: Receipt },
-  { id: 'settlement', label: 'Quyết toán', icon: Scale },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
 ];
 
@@ -79,7 +72,7 @@ export function GroupWorkspace({
   return (
     <div className="space-y-6">
       {/* WORKSPACE SUB-NAV TABS */}
-      <div className="scrollbar-none flex overflow-x-auto rounded-2xl border border-border bg-card p-1.5 shadow-xs">
+      <AppScrollableTabs>
         {TABS.map((tab) => {
           const Icon = tab.icon;
           if (tab.leaderOnly && !isLeader) return null;
@@ -110,7 +103,7 @@ export function GroupWorkspace({
             </button>
           );
         })}
-      </div>
+      </AppScrollableTabs>
 
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
@@ -184,16 +177,6 @@ export function GroupWorkspace({
       {/* TAB 5: BUDGET */}
       {activeTab === 'budget' && (
         <GroupBudgetTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
-      )}
-
-      {/* TAB: ACTUAL EXPENSES */}
-      {activeTab === 'expenses' && (
-        <GroupExpenseTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
-      )}
-
-      {/* TAB: SETTLEMENT & DEBT NETTING */}
-      {activeTab === 'settlement' && (
-        <GroupSettlementTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
       )}
 
       {/* TAB 6: RULES */}

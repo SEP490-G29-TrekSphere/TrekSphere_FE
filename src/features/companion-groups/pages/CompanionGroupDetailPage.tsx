@@ -165,7 +165,13 @@ export default function CompanionGroupDetailPage({
 
                 {activeTab === 'itinerary' && <GroupItineraryTab group={group} />}
 
-                {activeTab === 'budget' && <GroupBudgetTab group={group} />}
+                {activeTab === 'budget' && (
+                  <GroupBudgetTab
+                    group={group}
+                    isOutsider={!isMemberOrLeader}
+                    currentUserId={user?.id?.toString()}
+                  />
+                )}
 
                 {activeTab === 'rules' && <GroupRulesTab group={group} />}
               </>

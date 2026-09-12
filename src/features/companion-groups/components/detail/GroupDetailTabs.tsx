@@ -1,6 +1,8 @@
 import { Compass, Route, ShieldCheck, WalletCards } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { AppScrollableTabs } from '@/shared/ui';
+
 export type GroupDetailTabKey = 'overview' | 'itinerary' | 'budget' | 'rules';
 
 interface GroupDetailTabsProps {
@@ -24,7 +26,7 @@ export function GroupDetailTabs({
   costItemCount = 0,
 }: GroupDetailTabsProps) {
   return (
-    <div className="flex overflow-x-auto rounded-2xl border border-border bg-card p-1.5 shadow-xs scrollbar-none">
+    <AppScrollableTabs>
       {TABS.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -62,6 +64,6 @@ export function GroupDetailTabs({
           </button>
         );
       })}
-    </div>
+    </AppScrollableTabs>
   );
 }
