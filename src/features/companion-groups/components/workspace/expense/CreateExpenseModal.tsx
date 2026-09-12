@@ -6,15 +6,15 @@ import {
   CheckCircle2,
   DollarSign,
   FileText,
-  Image as ImageIcon,
   Loader2,
   Plus,
   Scale,
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { profileService } from '@/features/profile/services/profileService';
 import { AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useCreateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
@@ -29,6 +29,7 @@ import {
   groupExpenseCreateSchema,
 } from '../../../validations/expenseValidation';
 import { MemberAvatar } from '../../detail/MemberAvatar';
+import { ExpenseReceiptUploader } from './ExpenseReceiptUploader';
 
 interface CreateExpenseModalProps {
   isOpen: boolean;
@@ -57,6 +58,7 @@ export function CreateExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
+  const newlyUploadedUrlRef = useRef<string | null>(null);
 
   const defaultLeaderMember = activeMembers.find(
     (m) => m.role === 'LEADER' || m.userId === currentUserId
@@ -85,6 +87,7 @@ export function CreateExpenseModal({
   });
 
   const enteredAmount = useWatch({ control, name: 'amount' }) || 0;
+  const receiptUrl = useWatch({ control, name: 'receiptUrl' });
 
   // Beneficiary members list
   const currentBeneficiaryMembers = useMemo(() => {
@@ -132,6 +135,7 @@ export function CreateExpenseModal({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset modal state when opened
   useEffect(() => {
     if (isOpen) {
+      newlyUploadedUrlRef.current = null;
       setScope('ALL_MEMBERS');
       setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
       setSplitMethod('EQUAL');
@@ -242,6 +246,7 @@ export function CreateExpenseModal({
         await createExpenseMutation.mutateAsync(payload);
       }
 
+      newlyUploadedUrlRef.current = null;
       toast.success('Ghi nhận khoản chi tiêu thực tế thành công!');
       onClose();
     } catch (err: unknown) {
@@ -251,10 +256,18 @@ export function CreateExpenseModal({
     }
   };
 
+  const handleClose = () => {
+    if (newlyUploadedUrlRef.current) {
+      profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
+      newlyUploadedUrlRef.current = null;
+    }
+    onClose();
+  };
+
   return (
     <AppModalShell
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       aria-label="Thêm khoản chi tiêu mới"
       className="flex max-w-xl flex-col overflow-hidden border border-border p-0"
     >
@@ -273,7 +286,7 @@ export function CreateExpenseModal({
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           disabled={createExpenseMutation.isPending}
           className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50 cursor-pointer"
         >
@@ -557,36 +570,26 @@ export function CreateExpenseModal({
           )}
         </div>
 
-        {/* Spent At & Receipt URL */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> Thời điểm chi tiền
-            </label>
-            <input
-              type="datetime-local"
-              {...register('spentAt')}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
-            </label>
-            <input
-              type="url"
-              placeholder="https://... (nếu có)"
-              {...register('receiptUrl')}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
-            />
-            {errors.receiptUrl && (
-              <p className="text-[11px] text-destructive font-medium">
-                {errors.receiptUrl.message}
-              </p>
-            )}
-          </div>
+        {/* Spent At */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> Thời điểm chi tiền
+          </label>
+          <input
+            type="datetime-local"
+            {...register('spentAt')}
+            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+          />
         </div>
+
+        {/* Receipt Image Upload & URL */}
+        <ExpenseReceiptUploader
+          value={receiptUrl}
+          onChange={(url) => setValue('receiptUrl', url, { shouldValidate: true })}
+          newlyUploadedUrlRef={newlyUploadedUrlRef}
+          errorMessage={errors.receiptUrl?.message}
+          disabled={createExpenseMutation.isPending}
+        />
 
         {/* Note */}
         <div className="space-y-1.5">
@@ -605,7 +608,7 @@ export function CreateExpenseModal({
         <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={createExpenseMutation.isPending}
             className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
           >
