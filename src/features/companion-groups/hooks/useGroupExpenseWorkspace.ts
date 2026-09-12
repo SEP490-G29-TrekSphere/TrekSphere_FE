@@ -4,11 +4,16 @@ import type { GroupExpenseCreateRequest, GroupExpenseUpdateRequest } from '../ty
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
 /** Hook lấy danh sách các khoản chi tiêu của nhóm */
-export function useGroupExpenses(groupId: string, page = 0, size = 20) {
+export function useGroupExpenses(
+  groupId: string,
+  page = 0,
+  size = 20,
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: groupWorkspaceKeys.expenses(groupId, page, size),
     queryFn: () => groupWorkspaceService.getGroupExpenses(groupId, page, size),
-    enabled: Boolean(groupId),
+    enabled: Boolean(groupId) && (options?.enabled ?? true),
     staleTime: 30 * 1000,
   });
 }

@@ -18,6 +18,10 @@
 export * from '../components/portal';
 export { AppModalShell, type AppModalShellProps } from './components/AppModalShell';
 export {
+  AppScrollableTabs,
+  type AppScrollableTabsProps,
+} from './components/AppScrollableTabs';
+export {
   ConfirmActionDialog,
   type ConfirmActionDialogProps,
 } from './components/ConfirmActionDialog';
