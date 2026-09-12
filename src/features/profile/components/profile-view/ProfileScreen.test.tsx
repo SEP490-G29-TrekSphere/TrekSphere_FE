@@ -47,6 +47,14 @@ jest.mock('../../hooks/usePublicProfile', () => ({
   usePublicHikingSummary: () => mockHikingQuery,
 }));
 
+jest.mock('../../hooks/useUserMoments', () => ({
+  useUserMoments: () => ({ data: { items: [] }, isLoading: false }),
+  useUserMomentsMap: () => ({ data: [], isLoading: false }),
+  useCreatePersonalMoment: () => ({ mutate: jest.fn(), isPending: false }),
+  useUpdatePersonalMomentVisibility: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeletePersonalMoment: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
 const post: BlogListItem = {
   blogId: 'b1',
   title: 'Cung đường Tà Xùa mùa săn mây',

@@ -15,6 +15,7 @@ import { ProfileComingSoon } from './ProfileComingSoon';
 import { ProfileHikingPanel } from './ProfileHikingPanel';
 import { ProfileIdentityCard } from './ProfileIdentityCard';
 import { ProfileInfoPanel } from './ProfileInfoPanel';
+import { ProfileMomentsPanel } from './ProfileMomentsPanel';
 import { ProfilePhotoGrid } from './ProfilePhotoGrid';
 import { ProfileRatingSummary } from './ProfileRatingSummary';
 import { PROFILE_INFO_TAB, PROFILE_TABS, type ProfileTabId, ProfileTabs } from './ProfileTabs';
@@ -131,6 +132,14 @@ export function ProfileScreen({
             summary={hikingSummary}
             isOwnProfile={isOwnProfile}
             editPath={editPath}
+          />
+        );
+      case 'moments':
+        return (
+          <ProfileMomentsPanel
+            userId={resolvedUserId}
+            isOwnProfile={isOwnProfile}
+            currentUserId={currentUser?.id}
           />
         );
       case 'blogs':
