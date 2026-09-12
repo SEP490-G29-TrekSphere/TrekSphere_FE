@@ -17,9 +17,9 @@ import type { UserRoleInGroup } from '../../types';
 interface GroupActionPanelProps {
   role: UserRoleInGroup;
   groupStatus: MatchingGroupStatus;
-  matchingDeadline?: string;
-  targetDate?: string;
-  endDate?: string;
+  matchingDeadline?: string | null;
+  targetDate?: string | null;
+  endDate?: string | null;
   isJoining: boolean;
   onOpenChat: () => void;
   onJoin: (message?: string) => void;
@@ -86,8 +86,6 @@ export function GroupActionPanel({
     groupStatus === 'FULL' ||
     groupStatus === 'CLOSED' ||
     groupStatus === 'HIDDEN';
-  const canToggleRecruitment =
-    (groupStatus === 'OPEN' || groupStatus === 'CLOSED') && isWithinAllowedRecruitment;
 
   return (
     <div className="space-y-4">

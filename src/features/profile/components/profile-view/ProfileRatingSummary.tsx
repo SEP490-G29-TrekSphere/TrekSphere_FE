@@ -20,7 +20,7 @@ export function ProfileRatingSummary({ userId }: ProfileRatingSummaryProps) {
   if (isLoading) {
     return (
       <div className="flex min-h-[240px] items-center justify-center rounded-2xl bg-card p-10 shadow-sm">
-        <AppSpinner size="md" className="text-primary" />
+        <AppSpinner size="default" className="text-primary" />
       </div>
     );
   }
