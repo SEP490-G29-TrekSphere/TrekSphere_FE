@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'sos';
 
 export interface ToastOptions {
   title?: string;
@@ -24,6 +24,7 @@ interface ToastState {
   error: (message: string, options?: ToastOptions) => void;
   info: (message: string, options?: ToastOptions) => void;
   warning: (message: string, options?: ToastOptions) => void;
+  sos: (message: string, options?: ToastOptions) => void;
 }
 
 export const useToastStore = create<ToastState>((set, get) => ({
@@ -51,6 +52,7 @@ export const useToastStore = create<ToastState>((set, get) => ({
   error: (message, options) => get().addToast(message, 'error', options),
   info: (message, options) => get().addToast(message, 'info', options),
   warning: (message, options) => get().addToast(message, 'warning', options),
+  sos: (message, options) => get().addToast(message, 'sos', options),
 }));
 
 // Export a singleton helper for usage outside React components (e.g. inside API interceptors)
@@ -63,4 +65,5 @@ export const toast = {
     useToastStore.getState().info(message, options),
   warning: (message: string, options?: ToastOptions) =>
     useToastStore.getState().warning(message, options),
+  sos: (message: string, options?: ToastOptions) => useToastStore.getState().sos(message, options),
 };

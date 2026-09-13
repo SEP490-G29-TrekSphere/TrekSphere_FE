@@ -26,7 +26,7 @@ import {
   useToggleFeedPostLike,
 } from '../../../hooks/future/useGroupFeed';
 import type { GroupLifecyclePhase } from '../../../services/groupWorkspaceService';
-import { GroupSOSModal } from './GroupSOSModal';
+import { GroupSOSModal } from '../GroupSOSModal';
 
 interface GroupWorkspaceOverviewTabProps {
   groupId: string;
@@ -423,7 +423,6 @@ export function GroupWorkspaceOverviewTab({
       <GroupSOSModal
         groupId={groupId}
         isOpen={isSosModalOpen}
-        isLeader={isLeader}
         onClose={() => setIsSosModalOpen(false)}
       />
     </div>

@@ -4,6 +4,7 @@ import {
   MessageSquare,
   Radio,
   ShieldCheck,
+  Siren,
   UserCheck,
   Users,
   Wallet,
@@ -12,6 +13,8 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AppScrollableTabs } from '@/shared/ui';
+import { useActiveSosAlerts } from '../../hooks/sos/useActiveSosAlerts';
+import { useSosSocket } from '../../hooks/sos/useSosSocket';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { GroupBudgetTab } from '../detail/GroupBudgetTab';
@@ -20,6 +23,8 @@ import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
+import { GroupSosTab } from './sos/GroupSosTab';
+import { SosLocationMap } from './sos/SosLocationMap';
 
 export type WorkspaceTabKey =
   | 'overview'
@@ -28,7 +33,8 @@ export type WorkspaceTabKey =
   | 'members'
   | 'requests'
   | 'budget'
-  | 'rules';
+  | 'rules'
+  | 'sos';
 
 interface GroupWorkspaceProps {
   group: MatchingGroupDetailResponse;
@@ -49,6 +55,7 @@ const TABS: { id: WorkspaceTabKey; label: string; icon: typeof Layers; leaderOnl
   { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
   { id: 'budget', label: 'Dự toán chi phí', icon: Wallet },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
+  { id: 'sos', label: 'SOS', icon: Siren },
 ];
 
 export function GroupWorkspace({
@@ -62,6 +69,9 @@ export function GroupWorkspace({
   onAddMemberToChat,
 }: GroupWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('overview');
+
+  useSosSocket(group.matchingGroupId);
+  const { data: activeSosAlerts = [] } = useActiveSosAlerts(group.matchingGroupId);
 
   const descriptionText =
     group.description ||
@@ -100,10 +110,47 @@ export function GroupWorkspace({
                   {group.members.filter((m) => m.status === 'ACCEPTED').length}
                 </span>
               )}
+              {tab.id === 'sos' && activeSosAlerts.length > 0 && (
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-black text-destructive-foreground animate-pulse">
+                  {activeSosAlerts.length}
+                </span>
+              )}
             </button>
           );
         })}
       </AppScrollableTabs>
+
+      {/* STICKY BANNER: TÍN HIỆU SOS ĐANG MỞ (hiển thị ở mọi tab) */}
+      {activeSosAlerts.length > 0 && (
+        <div className="rounded-2xl border-2 border-destructive/60 bg-destructive/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2 text-destructive font-extrabold text-xs uppercase">
+            <Siren className="h-4 w-4 animate-pulse" />
+            <span>
+              {activeSosAlerts.length} tín hiệu SOS đang mở trong nhóm — cần hỗ trợ khẩn cấp!
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {activeSosAlerts.map((alert) => (
+              <div
+                key={alert.sosAlertId}
+                className="flex items-center justify-between gap-2 rounded-xl bg-background/80 px-3 py-2 text-xs"
+              >
+                <span className="font-bold text-foreground">
+                  {alert.senderName} • {new Date(alert.createdAt).toLocaleTimeString('vi-VN')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sos')}
+                  className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition cursor-pointer"
+                >
+                  Xem chi tiết
+                </button>
+              </div>
+            ))}
+          </div>
+          <SosLocationMap alerts={activeSosAlerts} heightClassName="h-[200px]" />
+        </div>
+      )}
 
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
@@ -181,6 +228,15 @@ export function GroupWorkspace({
 
       {/* TAB 6: RULES */}
       {activeTab === 'rules' && <GroupRulesTab group={group} />}
+
+      {/* TAB 7: SOS */}
+      {activeTab === 'sos' && (
+        <GroupSosTab
+          groupId={group.matchingGroupId}
+          currentUserId={currentUserId}
+          isLeader={isLeader}
+        />
+      )}
     </div>
   );
 }

@@ -1,30 +1,28 @@
 import {
   AlertTriangle,
-  Edit2,
-  Flame,
-  HelpCircle,
-  LifeBuoy,
+  Loader2,
   MapPin,
   Megaphone,
   PhoneCall,
-  Plus,
   ShieldAlert,
   Siren,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useClickOutside } from '@/shared/hooks';
-import { useCreateFeedPost } from '../../../hooks/future/useGroupFeed';
+import { getCurrentPosition } from '@/utils/geolocation';
+import { INCIDENT_TYPE_OPTIONS } from '../../constants/sos';
+import { useSendSosAlert } from '../../hooks/sos/useSendSosAlert';
+import type { IncidentType } from '../../types/sos';
+import { SosLocationMap } from './sos/SosLocationMap';
 
 interface GroupSOSModalProps {
   groupId: string;
   isOpen: boolean;
   onClose: () => void;
-  isLeader?: boolean;
-  leaderPhone?: string;
   leaderName?: string;
-  currentGps?: string;
+  leaderPhone?: string;
 }
 
 // 112 & 115 are ALWAYS guaranteed national fallback hotlines
@@ -43,66 +41,66 @@ const NATIONAL_HOTLINES = [
   },
 ];
 
-const INCIDENT_TYPES = [
-  { id: 'injury', label: 'Chấn thương / Sự cố sức khỏe', icon: LifeBuoy },
-  { id: 'lost', label: 'Lạc đường / Lệch tuyến trekking', icon: MapPin },
-  { id: 'weather', label: 'Thời tiết xấu / Sạt lở / Mưa lớn', icon: Flame },
-  { id: 'supplies', label: 'Cần hỗ trợ nước & nhu yếu phẩm', icon: AlertTriangle },
-  { id: 'other', label: 'Sự cố Khác (Mô tả chi tiết)', icon: HelpCircle },
-];
+type GpsState =
+  | { status: 'loading' }
+  | { status: 'success'; latitude: number; longitude: number }
+  | { status: 'error'; message: string };
 
 export function GroupSOSModal({
   groupId,
   isOpen,
   onClose,
-  isLeader = false,
-  leaderPhone = '0987.654.321',
   leaderName = 'Trưởng nhóm',
-  currentGps = '21.2612° N, 104.6291° E',
+  leaderPhone,
 }: GroupSOSModalProps) {
-  const createPost = useCreateFeedPost(groupId);
-  const [selectedIncident, setSelectedIncident] = useState('injury');
+  const sendSosAlert = useSendSosAlert(groupId);
+  const [selectedIncident, setSelectedIncident] = useState<IncidentType>('INJURY');
   const [customNote, setCustomNote] = useState('');
   const [isSuccessSent, setIsSuccessSent] = useState(false);
-
-  // Mechanism 2: Custom Local Contact added by Leader
-  const [localContactName, setLocalContactName] = useState('BQL Rừng & Porter Tà Xùa (Anh Tuấn)');
-  const [localContactPhone, setLocalContactPhone] = useState('0988.123.456');
-  const [isEditingLocalContact, setIsEditingLocalContact] = useState(false);
-  const [inputName, setInputName] = useState(localContactName);
-  const [inputPhone, setInputPhone] = useState(localContactPhone);
+  const [gps, setGps] = useState<GpsState>({ status: 'loading' });
+  const idempotencyKeyRef = useRef<string>('');
 
   const modalRef = useClickOutside<HTMLDivElement>(onClose, isOpen);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const handleSaveLocalContact = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocalContactName(inputName.trim());
-    setLocalContactPhone(inputPhone.trim());
-    setIsEditingLocalContact(false);
+    // Sinh idempotencyKey 1 lần khi modal mở, giữ nguyên qua các lần bấm gửi lại.
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
+
+    setGps({ status: 'loading' });
+    getCurrentPosition()
+      .then(({ latitude, longitude }) => setGps({ status: 'success', latitude, longitude }))
+      .catch((err: Error) => setGps({ status: 'error', message: err.message }));
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setIsSuccessSent(false);
+    setCustomNote('');
+    idempotencyKeyRef.current = '';
+    sendSosAlert.reset();
+    onClose();
   };
+
+  if (!isOpen) return null;
 
   const handleBroadcastSOS = (e: React.FormEvent) => {
     e.preventDefault();
-    const incidentLabel =
-      INCIDENT_TYPES.find((t) => t.id === selectedIncident)?.label ?? 'Sự cố khẩn cấp';
 
-    const sosMessage = `🚨 [CẢNH BÁO SOS KHẨN CẤP DỌC ĐƯỜNG] 🚨
-• Loại sự cố: ${incidentLabel}
-• Tọa độ vị trí (GPS): ${currentGps}
-• Ghi chú chi tiết: ${customNote.trim() || 'Thành viên cần hỗ trợ khẩn cấp trên tuyến di chuyển!'}
-👉 Đề nghị các thành viên gần nhất và Trưởng nhóm kiểm tra vị trí & liên hệ ngay!`;
-
-    createPost.mutate(sosMessage, {
-      onSuccess: () => {
-        setIsSuccessSent(true);
-        setTimeout(() => {
-          setIsSuccessSent(false);
-          onClose();
-        }, 2000);
+    sendSosAlert.mutate(
+      {
+        incidentTypeCode: selectedIncident,
+        message: customNote.trim() || undefined,
+        latitude: gps.status === 'success' ? gps.latitude : null,
+        longitude: gps.status === 'success' ? gps.longitude : null,
+        idempotencyKey: idempotencyKeyRef.current,
       },
-    });
+      {
+        onSuccess: () => setIsSuccessSent(true),
+      }
+    );
   };
 
   return (
@@ -128,7 +126,7 @@ export function GroupSOSModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -142,12 +140,19 @@ export function GroupSOSModal({
               ✓
             </div>
             <h4 className="font-extrabold text-foreground text-sm">
-              Tín hiệu SOS đã được phát tới toàn bộ thành viên!
+              Tín hiệu SOS đã được gửi tới toàn bộ thành viên!
             </h4>
             <p className="text-xs text-muted-foreground">
-              Thông báo ghim khẩn cấp đã xuất hiện trên bảng tin nhóm. Vui lòng giữ liên lạc và bình
+              Thông báo khẩn cấp đã gửi tới mọi thành viên trong nhóm. Vui lòng giữ liên lạc và bình
               tĩnh.
             </p>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="mt-1 rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-600 transition"
+            >
+              Đóng
+            </button>
           </div>
         ) : (
           <>
@@ -158,7 +163,7 @@ export function GroupSOSModal({
             >
               <div className="flex items-center gap-2 text-destructive font-extrabold text-xs">
                 <Megaphone className="h-4 w-4" />
-                <span>1. PHÁT TÍN HIỆU SOS TỚI BẢNG TIN NHÓM</span>
+                <span>1. PHÁT TÍN HIỆU SOS TỚI TOÀN NHÓM</span>
               </div>
 
               <div className="space-y-1.5">
@@ -166,7 +171,7 @@ export function GroupSOSModal({
                   Loại sự cố đang gặp phải:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {INCIDENT_TYPES.map((type) => {
+                  {INCIDENT_TYPE_OPTIONS.map((type) => {
                     const Icon = type.icon;
                     return (
                       <button
@@ -188,11 +193,44 @@ export function GroupSOSModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 rounded-lg bg-background p-2.5 border border-border text-[11px]">
-                <MapPin className="h-4 w-4 text-destructive shrink-0" />
-                <span className="text-muted-foreground font-medium">Toạ độ GPS hiện tại:</span>
-                <span className="font-mono font-bold text-foreground">{currentGps}</span>
-              </div>
+              {/* GPS state */}
+              {gps.status === 'loading' && (
+                <div className="flex items-center gap-2 rounded-lg bg-background p-2.5 border border-border text-[11px] text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Đang lấy vị trí GPS hiện tại...
+                </div>
+              )}
+              {gps.status === 'success' && (
+                <SosLocationMap
+                  alerts={[
+                    {
+                      sosAlertId: 'preview',
+                      groupTripId: '',
+                      matchingGroupId: groupId,
+                      senderId: '',
+                      senderName: 'Vị trí của bạn',
+                      incidentTypeCode: selectedIncident,
+                      message: null,
+                      latitude: gps.latitude,
+                      longitude: gps.longitude,
+                      status: 'OPEN',
+                      resolvedById: null,
+                      resolvedByName: null,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    },
+                  ]}
+                  heightClassName="h-[160px]"
+                />
+              )}
+              {gps.status === 'error' && (
+                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5 border border-amber-500/30 text-[11px] text-amber-700 dark:text-amber-400">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                  <span>
+                    Không lấy được vị trí — SOS vẫn gửi được, hãy mô tả rõ vị trí trong ghi chú.
+                  </span>
+                </div>
+              )}
 
               <textarea
                 rows={2}
@@ -202,125 +240,56 @@ export function GroupSOSModal({
                 className="w-full rounded-xl border border-input bg-background p-2.5 text-xs outline-none focus:ring-2 focus:ring-destructive"
               />
 
+              {sendSosAlert.isError && (
+                <p className="text-[11px] font-semibold text-destructive">
+                  {sendSosAlert.error instanceof Error
+                    ? sendSosAlert.error.message
+                    : 'Gửi thất bại, vui lòng thử lại.'}
+                </p>
+              )}
+
               <button
                 type="submit"
-                disabled={createPost.isPending}
+                disabled={sendSosAlert.isPending}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-destructive py-3 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition disabled:opacity-50 cursor-pointer"
               >
-                <ShieldAlert className="h-4 w-4" />
+                {sendSosAlert.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ShieldAlert className="h-4 w-4" />
+                )}
                 PHÁT TÍN HIỆU SOS CHO CẢ NHÓM
               </button>
             </form>
 
-            {/* Section 2: Hotlines (Fallback 112/115 + Custom Leader Phone) */}
+            {/* Section 2: Hotlines */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <PhoneCall className="h-3.5 w-3.5 text-primary" />
                   2. SỐ ĐIỆN THOẠI KHẨN CẤP & CỨU HỘ
                 </span>
-                {isLeader && !isEditingLocalContact && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInputName(localContactName);
-                      setInputPhone(localContactPhone);
-                      setIsEditingLocalContact(true);
-                    }}
-                    className="inline-flex items-center gap-1 text-[10.5px] font-bold text-primary hover:underline cursor-pointer"
-                  >
-                    <Edit2 className="h-3 w-3" />
-                    {localContactPhone ? 'Sửa Hotline địa phương' : 'Thêm Hotline địa phương'}
-                  </button>
-                )}
               </div>
 
-              {/* Leader Edit Custom Contact Form */}
-              {isEditingLocalContact && (
-                <form
-                  onSubmit={handleSaveLocalContact}
-                  className="space-y-2 rounded-xl border border-primary/40 bg-primary/5 p-3 text-xs"
-                >
-                  <span className="font-extrabold text-primary text-[11px] flex items-center gap-1">
-                    <Plus className="h-3.5 w-3.5" /> Điền hotline Cứu hộ / Porter địa phương cho
-                    nhóm:
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Tên đơn vị / Đội porter (vd: Đội cứu hộ Tà Xùa)"
-                    value={inputName}
-                    onChange={(e) => setInputName(e.target.value)}
-                    className="w-full rounded-lg border border-input bg-background p-2 text-xs"
-                  />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Số điện thoại (vd: 0988.xxx.xxx)"
-                    value={inputPhone}
-                    onChange={(e) => setInputPhone(e.target.value)}
-                    className="w-full rounded-lg border border-input bg-background p-2 text-xs font-mono"
-                  />
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingLocalContact(false)}
-                      className="rounded-lg px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-muted cursor-pointer"
-                    >
-                      Hủy
-                    </button>
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-xs cursor-pointer"
-                    >
-                      Lưu hotline
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Leader Call */}
-              <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-3">
-                <div>
-                  <span className="text-[10px] font-extrabold text-primary uppercase">
-                    Trưởng Nhóm Đoàn
-                  </span>
-                  <p className="text-xs font-bold text-foreground">
-                    {leaderName} • {leaderPhone}
-                  </p>
-                </div>
-                <a
-                  href={`tel:${leaderPhone.replace(/\./g, '')}`}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-extrabold text-primary-foreground shadow-xs hover:bg-primary/90 transition"
-                >
-                  <PhoneCall className="h-3.5 w-3.5" /> Gọi Leader
-                </a>
-              </div>
-
-              {/* Custom Local Contact (if added by Leader) */}
-              {localContactPhone && (
-                <div className="flex items-center justify-between rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-2.5 text-xs">
+              {leaderPhone && (
+                <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-3">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-foreground">{localContactName}</span>
-                      <span className="rounded-md bg-emerald-500/20 px-1.5 py-0.2 text-[9.5px] font-extrabold text-emerald-700 dark:text-emerald-400">
-                        Leader điền
-                      </span>
-                    </div>
-                    <p className="text-[10.5px] text-muted-foreground">
-                      Đã bổ sung bởi Trưởng nhóm trước chuyến đi
+                    <span className="text-[10px] font-extrabold text-primary uppercase">
+                      Trưởng Nhóm Đoàn
+                    </span>
+                    <p className="text-xs font-bold text-foreground">
+                      {leaderName} • {leaderPhone}
                     </p>
                   </div>
                   <a
-                    href={`tel:${localContactPhone.replace(/\./g, '')}`}
-                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 transition shrink-0 font-mono"
+                    href={`tel:${leaderPhone.replace(/\./g, '')}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-extrabold text-primary-foreground shadow-xs hover:bg-primary/90 transition"
                   >
-                    <PhoneCall className="h-3 w-3" /> {localContactPhone}
+                    <PhoneCall className="h-3.5 w-3.5" /> Gọi Leader
                   </a>
                 </div>
               )}
 
-              {/* National Fallback Hotlines (112 & 115 - Always Available) */}
               <div className="space-y-2">
                 {NATIONAL_HOTLINES.map((h) => (
                   <div

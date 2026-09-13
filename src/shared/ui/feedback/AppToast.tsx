@@ -1,4 +1,4 @@
-import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, Siren, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ToastMessage, useToastStore } from '@/store/useToastStore';
 
@@ -44,6 +44,14 @@ const toastConfig: Record<
     progressBarColor: 'bg-sky-500',
     borderColor: 'border-sky-200/80 dark:border-sky-800/50',
     defaultTitle: 'Thông tin',
+  },
+  sos: {
+    icon: Siren,
+    iconBg: 'bg-destructive/10 text-destructive dark:bg-destructive/20',
+    iconColor: 'text-destructive',
+    progressBarColor: 'bg-destructive',
+    borderColor: 'border-destructive/60',
+    defaultTitle: 'Tín hiệu SOS khẩn cấp',
   },
 };
 

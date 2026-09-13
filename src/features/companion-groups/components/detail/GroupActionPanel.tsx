@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Send,
   Settings,
+  Siren,
   Unlock,
 } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
@@ -26,6 +27,7 @@ interface GroupActionPanelProps {
   onShowGroup?: () => void;
   onCloseGroup?: () => void;
   onOpenGroup?: () => void;
+  onOpenSos?: () => void;
   isLifecyclePending?: boolean;
   acceptedMembersCount: number;
   hasConversation?: boolean;
@@ -46,12 +48,14 @@ export function GroupActionPanel({
   onShowGroup,
   onCloseGroup,
   onOpenGroup,
+  onOpenSos,
   isLifecyclePending = false,
   acceptedMembersCount,
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
   const isMemberOrLeader = role === 'leader' || role === 'member';
+  const canSendSos = isMemberOrLeader && groupStatus === 'IN_PROGRESS' && Boolean(onOpenSos);
 
   const isHidden = groupStatus === 'HIDDEN';
   const isClosed = groupStatus === 'CLOSED';
@@ -132,6 +136,17 @@ export function GroupActionPanel({
           <p className="text-xs text-muted-foreground leading-relaxed">
             Điều chỉnh cài đặt nhóm, trạng thái tuyển thành viên và hiển thị công khai.
           </p>
+
+          {canSendSos && (
+            <button
+              type="button"
+              onClick={onOpenSos}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-2.5 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
+            >
+              <Siren className="h-4 w-4" />
+              <span>Gửi tín hiệu SOS</span>
+            </button>
+          )}
 
           <div className="space-y-2 pt-1">
             {onEditGroup && (
@@ -268,6 +283,16 @@ export function GroupActionPanel({
               </p>
             </div>
           </div>
+          {canSendSos && (
+            <button
+              type="button"
+              onClick={onOpenSos}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-2.5 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
+            >
+              <Siren className="h-4 w-4" />
+              <span>Gửi tín hiệu SOS</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onLeave}
