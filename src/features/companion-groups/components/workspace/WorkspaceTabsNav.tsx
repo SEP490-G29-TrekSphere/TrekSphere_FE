@@ -10,6 +10,7 @@ import {
   Star,
   UserCheck,
   Users,
+  Vote,
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ export type WorkspaceTabKey =
   | 'budget'
   | 'rules'
   | 'sos'
+  | 'votes'
   | 'management';
 
 interface WorkspaceTabDef {
@@ -46,6 +48,7 @@ export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
   { id: 'sos', label: 'SOS', icon: Siren },
+  { id: 'votes', label: 'Bình chọn', icon: Vote },
   { id: 'management', label: 'Quản lý nhóm', icon: Settings, leaderOnly: true },
 ];
 
