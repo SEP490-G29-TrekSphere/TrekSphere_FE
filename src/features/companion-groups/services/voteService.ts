@@ -5,6 +5,7 @@ import type {
   CreateGroupVotePayload,
   GetGroupVotesParams,
   GroupVoteResponse,
+  OpenDissolutionVotePayload,
   OpenLeaderElectionPayload,
 } from '../types/vote';
 
@@ -45,6 +46,19 @@ export const voteService = {
   ): Promise<GroupVoteResponse> {
     const response = await ApiService<GroupVoteResponse>(
       `/matching-groups/${groupId}/votes/leader-election`,
+      'POST',
+      payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /** Mở biểu quyết giải tán nhóm (voteType luôn là GROUP_DISSOLUTION). */
+  async openDissolutionVote(
+    groupId: string,
+    payload: OpenDissolutionVotePayload
+  ): Promise<GroupVoteResponse> {
+    const response = await ApiService<GroupVoteResponse>(
+      `/matching-groups/${groupId}/votes/dissolution`,
       'POST',
       payload
     );

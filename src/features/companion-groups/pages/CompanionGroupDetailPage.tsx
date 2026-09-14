@@ -18,6 +18,7 @@ import { JoinGroupModal } from '../components/modals/JoinGroupModal';
 import { GroupSOSModal } from '../components/workspace/GroupSOSModal';
 import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
 import { GroupManagementPanel } from '../components/workspace/management/GroupManagementPanel';
+import { OpenDissolutionVoteModal } from '../components/workspace/votes/OpenDissolutionVoteModal';
 import { OpenLeaderElectionModal } from '../components/workspace/votes/OpenLeaderElectionModal';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
@@ -46,6 +47,7 @@ export default function CompanionGroupDetailPage({
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
   const [isElectionModalOpen, setIsElectionModalOpen] = useState(false);
+  const [isDissolutionModalOpen, setIsDissolutionModalOpen] = useState(false);
 
   const applications = useJoinRequests(isOwner ? groupId : undefined, {
     status: 'PENDING',
@@ -164,6 +166,7 @@ export default function CompanionGroupDetailPage({
                       onStartTrip={actions.startTrip}
                       onCompleteTrip={actions.completeTrip}
                       onOpenLeaderElection={() => setIsElectionModalOpen(true)}
+                      onOpenDissolutionVote={() => setIsDissolutionModalOpen(true)}
                     />
                   ) : undefined
                 }
@@ -296,6 +299,16 @@ export default function CompanionGroupDetailPage({
           onClose={() => setIsElectionModalOpen(false)}
           members={group.members}
           onSuccess={() => setIsElectionModalOpen(false)}
+        />
+      )}
+
+      {/* Dissolution Vote Modal */}
+      {actions.currentUserRole === 'leader' && (
+        <OpenDissolutionVoteModal
+          groupId={group.matchingGroupId}
+          isOpen={isDissolutionModalOpen}
+          onClose={() => setIsDissolutionModalOpen(false)}
+          onSuccess={() => setIsDissolutionModalOpen(false)}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Flag, Lock, Play, Settings, Unlock, Vote } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff, Flag, Lock, Play, Settings, Unlock, Vote } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../../services/companionGroupService';
 
 interface GroupManagementPanelProps {
@@ -15,6 +15,7 @@ interface GroupManagementPanelProps {
   onStartTrip?: () => void;
   onCompleteTrip?: () => void;
   onOpenLeaderElection?: () => void;
+  onOpenDissolutionVote?: () => void;
 }
 
 const STATUS_LABELS: Partial<Record<MatchingGroupStatus, string>> = {
@@ -51,6 +52,7 @@ export function GroupManagementPanel({
   onStartTrip,
   onCompleteTrip,
   onOpenLeaderElection,
+  onOpenDissolutionVote,
 }: GroupManagementPanelProps) {
   const isHidden = groupStatus === 'HIDDEN';
   const isClosed = groupStatus === 'CLOSED';
@@ -202,24 +204,39 @@ export function GroupManagementPanel({
         </div>
       </div>
 
-      {onOpenLeaderElection && (
+      {(onOpenLeaderElection || onOpenDissolutionVote) && (
         <div className="space-y-2.5 border-border border-t pt-5">
           <h4 className="font-bold text-muted-foreground text-xs uppercase tracking-wider">
             Bầu cử & Giải tán nhóm
           </h4>
           <p className="text-muted-foreground text-xs leading-relaxed">
-            Đổi Trưởng nhóm chỉ thực hiện được qua bầu cử — toàn bộ thành viên bỏ phiếu, người nhiều
-            phiếu nhất thắng.
+            Đổi Trưởng nhóm hoặc giải tán nhóm chỉ thực hiện được qua biểu quyết — toàn bộ thành
+            viên bỏ phiếu, kết quả theo đa số.
           </p>
-          <button
-            type="button"
-            onClick={onOpenLeaderElection}
-            disabled={isLifecyclePending}
-            className={`${ACTION_BASE} border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 md:w-auto md:px-5`}
-          >
-            <Vote className="h-3.5 w-3.5" />
-            <span>Mở bầu Trưởng nhóm mới</span>
-          </button>
+          <div className="flex flex-col gap-2.5 sm:flex-row">
+            {onOpenLeaderElection && (
+              <button
+                type="button"
+                onClick={onOpenLeaderElection}
+                disabled={isLifecyclePending}
+                className={`${ACTION_BASE} border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 sm:w-auto sm:px-5`}
+              >
+                <Vote className="h-3.5 w-3.5" />
+                <span>Mở bầu Trưởng nhóm mới</span>
+              </button>
+            )}
+            {onOpenDissolutionVote && (
+              <button
+                type="button"
+                onClick={onOpenDissolutionVote}
+                disabled={isLifecyclePending}
+                className={`${ACTION_BASE} border border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10 sm:w-auto sm:px-5`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Mở biểu quyết giải tán nhóm</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
     </section>

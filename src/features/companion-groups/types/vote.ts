@@ -57,6 +57,15 @@ export interface OpenLeaderElectionPayload {
   candidateMemberIds: string[];
 }
 
+/**
+ * Mở biểu quyết giải tán nhóm (voteType luôn là GROUP_DISSOLUTION). Server tự dựng title cố
+ * định + đúng 2 option ("Đồng ý"/"Không đồng ý") theo thứ tự cố định — chỉ nhập lý do + hạn.
+ */
+export interface OpenDissolutionVotePayload {
+  reason: string;
+  closesAt: string;
+}
+
 export interface GetGroupVotesParams {
   voteType?: GroupVoteType;
   status?: GroupVoteStatus;
