@@ -109,65 +109,127 @@ function MessageGroupRow({
   const lastMessage = group.messages.at(-1);
   const showSeen = group.isOwn && lastMessage?.isSeen;
 
-  return (
-    <div
-      className={cn(
-        'flex gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted/40',
-        group.isOwn && 'border-l-2 border-primary/50 bg-secondary/20 hover:bg-secondary/30'
-      )}
-    >
-      <Avatar className="mt-0.5 h-9 w-9 shrink-0 bg-primary/10 text-xs font-bold text-primary">
-        {group.avatarUrl ? <AvatarImage src={group.avatarUrl} alt={group.senderName} /> : null}
-        <AvatarFallback>{getInitials(group.senderName)}</AvatarFallback>
-      </Avatar>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-sm font-bold text-foreground">{group.senderName}</span>
-          {group.isOwn && (
-            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-primary uppercase">
-              Bạn
-            </span>
-          )}
-          <span className="text-[11px] text-muted-foreground">
-            {formatMessageTime(group.createdAt)}
-          </span>
-        </div>
-
-        <div className="mt-0.5 space-y-1">
-          {group.messages.map((message) => {
+  if (group.isOwn) {
+    return (
+      <div className="flex flex-col items-end px-1 py-1">
+        <div className="flex max-w-[85%] flex-col items-end gap-0.5 sm:max-w-[75%] md:max-w-[65%]">
+          {group.messages.map((message, index) => {
             const imageUrl = getMessageImageUrl(message.text);
+            const isFirst = index === 0;
+            const isLast = index === group.messages.length - 1;
+            const timeStr = formatMessageTime(message.createdAt);
 
             if (imageUrl) {
               return (
-                <button
-                  key={message.id}
-                  type="button"
-                  onClick={() => onOpenImage(imageUrl)}
-                  className="block cursor-zoom-in overflow-hidden rounded-xl ring-1 ring-border transition-opacity hover:opacity-90"
-                >
-                  <img
-                    src={imageUrl}
-                    alt="Ảnh đã gửi"
-                    loading="lazy"
-                    className="max-h-72 max-w-xs object-cover"
-                  />
-                </button>
+                <div key={message.id} className="relative py-0.5" title={timeStr}>
+                  <button
+                    type="button"
+                    onClick={() => onOpenImage(imageUrl)}
+                    className="block cursor-zoom-in overflow-hidden rounded-2xl ring-1 ring-border/50 transition-opacity hover:opacity-95 shadow-xs"
+                  >
+                    <img
+                      src={imageUrl}
+                      alt="Ảnh đã gửi"
+                      loading="lazy"
+                      className="max-h-72 max-w-xs object-cover"
+                    />
+                  </button>
+                </div>
               );
             }
 
             return (
-              <p
+              <div
                 key={message.id}
-                className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground"
+                title={timeStr}
+                className={cn(
+                  'bg-primary text-primary-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
+                  'rounded-2xl',
+                  // Hiệu ứng bo góc Messenger: các tin nhắn liên tiếp ép sát nhau
+                  group.messages.length > 1 && [
+                    isFirst && 'rounded-br-sm',
+                    !isFirst && !isLast && 'rounded-r-sm',
+                    isLast && 'rounded-tr-sm',
+                  ]
+                )}
               >
                 {message.text}
-              </p>
+              </div>
             );
           })}
         </div>
 
-        {showSeen && <p className="mt-1 text-[11px] font-medium text-muted-foreground">Đã xem</p>}
+        <div className="flex items-center gap-1.5 px-1 mt-0.5">
+          <span className="text-[10px] text-muted-foreground">
+            {formatMessageTime(group.createdAt)}
+          </span>
+          {showSeen && (
+            <span className="text-[10px] font-medium text-muted-foreground">· Đã xem</span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-2.5 px-1 py-1">
+      <Avatar className="mt-0.5 h-8 w-8 shrink-0 bg-primary/10 text-xs font-bold text-primary">
+        {group.avatarUrl ? <AvatarImage src={group.avatarUrl} alt={group.senderName} /> : null}
+        <AvatarFallback>{getInitials(group.senderName)}</AvatarFallback>
+      </Avatar>
+
+      <div className="flex max-w-[85%] flex-col items-start gap-0.5 sm:max-w-[75%] md:max-w-[65%]">
+        <div className="flex items-baseline gap-2 px-1 mb-0.5">
+          <span className="text-xs font-semibold text-foreground/90">{group.senderName}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {formatMessageTime(group.createdAt)}
+          </span>
+        </div>
+
+        {group.messages.map((message, index) => {
+          const imageUrl = getMessageImageUrl(message.text);
+          const isFirst = index === 0;
+          const isLast = index === group.messages.length - 1;
+          const timeStr = formatMessageTime(message.createdAt);
+
+          if (imageUrl) {
+            return (
+              <div key={message.id} className="relative py-0.5" title={timeStr}>
+                <button
+                  type="button"
+                  onClick={() => onOpenImage(imageUrl)}
+                  className="block cursor-zoom-in overflow-hidden rounded-2xl ring-1 ring-border/50 transition-opacity hover:opacity-95 shadow-xs"
+                >
+                  <img
+                    src={imageUrl}
+                    alt="Ảnh đã nhận"
+                    loading="lazy"
+                    className="max-h-72 max-w-xs object-cover"
+                  />
+                </button>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={message.id}
+              title={timeStr}
+              className={cn(
+                'bg-muted/80 text-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
+                'rounded-2xl',
+                // Hiệu ứng bo góc Messenger cho chuỗi tin nhắn bên trái
+                group.messages.length > 1 && [
+                  isFirst && 'rounded-bl-sm',
+                  !isFirst && !isLast && 'rounded-l-sm',
+                  isLast && 'rounded-tl-sm',
+                ]
+              )}
+            >
+              {message.text}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

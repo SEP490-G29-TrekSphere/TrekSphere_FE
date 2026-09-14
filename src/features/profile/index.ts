@@ -9,6 +9,7 @@ export { ProfileComingSoon } from './components/profile-view/ProfileComingSoon';
 export { ProfileHikingPanel } from './components/profile-view/ProfileHikingPanel';
 export { ProfileIdentityCard } from './components/profile-view/ProfileIdentityCard';
 export { ProfileInfoPanel } from './components/profile-view/ProfileInfoPanel';
+export { ProfileMomentsPanel } from './components/profile-view/ProfileMomentsPanel';
 export { ProfilePhotoGrid } from './components/profile-view/ProfilePhotoGrid';
 export { ProfileRatingSummary } from './components/profile-view/ProfileRatingSummary';
 export { ProfileScreen } from './components/profile-view/ProfileScreen';
@@ -26,6 +27,7 @@ export {
   usePublicProfile,
   useUserBlogs,
 } from './hooks/usePublicProfile';
+export * from './hooks/useUserMoments';
 export { default as EditProfile } from './pages/EditProfile';
 export { default as PublicProfile } from './pages/PublicProfile';
 export { default as ViewProfile } from './pages/ViewProfile';
