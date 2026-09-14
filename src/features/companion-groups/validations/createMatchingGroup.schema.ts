@@ -24,6 +24,7 @@ export const createMatchingGroupSchema = z
         `Tên nhóm tối đa ${MATCHING_GROUP_NAME_MAX_LENGTH} ký tự`
       ),
     difficulty: z.enum(['EASY', 'MODERATE', 'HARD', 'EXTREME']).default('MODERATE'),
+    coverImageUrl: z.string().url('URL ảnh không hợp lệ').optional().or(z.literal('')),
     description: z
       .string()
       .max(
@@ -87,6 +88,7 @@ export const CREATE_MATCHING_GROUP_DEFAULT_VALUES: CreateMatchingGroupFormInput 
   sourceType: 'CUSTOM_JOURNEY',
   tourId: '',
   groupName: '',
+  coverImageUrl: '',
   difficulty: 'MODERATE',
   description: '',
   maxSize: MATCHING_GROUP_DEFAULT_SIZE,

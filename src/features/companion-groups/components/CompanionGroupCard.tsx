@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { formatDate } from '@/utils/format';
+import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../constants';
 import { type MatchingGroupCardData, toMatchingGroupCardViewModel } from '../mappers/matchingGroup';
 import type { JoinApplicationStatus } from '../types/matchingGroup';
 import {
@@ -61,18 +62,19 @@ export function CompanionGroupCard({
         )}
       >
         {/* Thumbnail */}
-        {viewModel.coverImageUrl && (
-          <Link
-            to={detailPath}
-            className="block h-40 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-40"
-          >
-            <img
-              src={viewModel.coverImageUrl}
-              alt={viewModel.groupName}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          </Link>
-        )}
+        <Link
+          to={detailPath}
+          className="block h-40 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:h-auto sm:w-40"
+        >
+          <img
+            src={viewModel.coverImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE}
+            alt={viewModel.groupName}
+            onError={(e) => {
+              e.currentTarget.src = MATCHING_GROUP_FALLBACK_COVER_IMAGE;
+            }}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        </Link>
 
         {/* Left: status + info */}
         <div className="flex flex-1 flex-col justify-between gap-3">
@@ -230,15 +232,16 @@ export function CompanionGroupCard({
       )}
     >
       {/* Cover image */}
-      {viewModel.coverImageUrl && (
-        <Link to={detailPath} className="block aspect-video w-full overflow-hidden bg-muted">
-          <img
-            src={viewModel.coverImageUrl}
-            alt={viewModel.groupName}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        </Link>
-      )}
+      <Link to={detailPath} className="block aspect-video w-full overflow-hidden bg-muted">
+        <img
+          src={viewModel.coverImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE}
+          alt={viewModel.groupName}
+          onError={(e) => {
+            e.currentTarget.src = MATCHING_GROUP_FALLBACK_COVER_IMAGE;
+          }}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+      </Link>
 
       {/* Card header strip */}
       <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/40 px-4 pt-4 pb-3">
