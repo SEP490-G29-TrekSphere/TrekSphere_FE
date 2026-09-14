@@ -16,6 +16,7 @@ import { GroupRulesTab } from '../components/detail/GroupRulesTab';
 import { JoinRequestsCard } from '../components/detail/JoinRequestsCard';
 import { JoinGroupModal } from '../components/modals/JoinGroupModal';
 import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
+import { GroupManagementPanel } from '../components/workspace/management/GroupManagementPanel';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
 import { useJoinRequests } from '../hooks/useJoinRequests';
@@ -87,7 +88,10 @@ export default function CompanionGroupDetailPage({
   return (
     <div className={shellClassName}>
       {actions.feedback && (
-        <div className="fade-in slide-in-from-top-4 fixed top-6 right-6 z-50 animate-in rounded-xl bg-primary px-6 py-3 font-semibold text-sm text-white shadow-lg">
+        // z-[100]: cùng lớp với AppGlobalToast để nổi trên backdrop `z-50` của
+        // AppModalShell. Để z-50 thì banner bằng điểm với backdrop, portal của
+        // modal nằm sau #root nên vẽ đè lên và banner bị kéo vào vùng blur.
+        <div className="fade-in slide-in-from-top-4 fixed top-6 right-6 z-[100] animate-in rounded-xl bg-primary px-6 py-3 font-semibold text-sm text-white shadow-lg">
           {actions.feedback}
         </div>
       )}
@@ -140,6 +144,24 @@ export default function CompanionGroupDetailPage({
                     />
                   ) : undefined
                 }
+                managementSlot={
+                  actions.currentUserRole === 'leader' ? (
+                    <GroupManagementPanel
+                      groupStatus={group.status}
+                      matchingDeadline={group.matchingDeadline}
+                      targetDate={group.targetDate}
+                      endDate={group.customJourneyEndDate}
+                      isLifecyclePending={actions.isLifecyclePending}
+                      onEditGroup={() => setIsEditModalOpen(true)}
+                      onHideGroup={actions.hideGroup}
+                      onShowGroup={actions.showGroup}
+                      onCloseGroup={actions.closeGroup}
+                      onOpenGroup={actions.openGroup}
+                      onStartTrip={actions.startTrip}
+                      onCompleteTrip={actions.completeTrip}
+                    />
+                  ) : undefined
+                }
                 onDirectChat={actions.openDirectChat}
                 onAddMemberToChat={actions.openAddMemberModal}
               />
@@ -183,23 +205,12 @@ export default function CompanionGroupDetailPage({
             <GroupActionPanel
               role={actions.currentUserRole}
               groupStatus={group.status}
-              matchingDeadline={group.matchingDeadline}
-              targetDate={group.targetDate}
-              endDate={group.customJourneyEndDate}
               isJoining={actions.isJoining}
               onOpenChat={actions.openGroupChat}
               onJoin={() => setIsJoinModalOpen(true)}
               onLeave={() => actions.setActiveModal('leave')}
               onCancelRequest={() => actions.setActiveModal('leave')}
               onCreateGroupChat={actions.openGroupChat}
-              onEditGroup={() => setIsEditModalOpen(true)}
-              onHideGroup={actions.hideGroup}
-              onShowGroup={actions.showGroup}
-              onCloseGroup={actions.closeGroup}
-              onOpenGroup={actions.openGroup}
-              onStartTrip={actions.startTrip}
-              onCompleteTrip={actions.completeTrip}
-              isLifecyclePending={actions.isLifecyclePending}
               acceptedMembersCount={
                 group.members.filter((member) => member.status === 'ACCEPTED').length
               }

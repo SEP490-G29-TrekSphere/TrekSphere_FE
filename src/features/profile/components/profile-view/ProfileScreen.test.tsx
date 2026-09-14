@@ -90,18 +90,17 @@ describe('ProfileScreen', () => {
   it('hồ sơ của tôi: hiện email, số bài viết thật và tab Thông tin', () => {
     render(<ProfileScreen mode="me" />);
 
-    expect(screen.getByText('Minh Tuấn')).toBeTruthy();
-    expect(screen.getByText('tuan@example.com')).toBeTruthy();
+    // Tab "Thông tin" mở sẵn nên tên và email xuất hiện ở cả card định danh lẫn panel.
+    expect(screen.getAllByText('Minh Tuấn').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('tuan@example.com').length).toBeGreaterThan(0);
     expect(screen.getByText('Trekker')).toBeTruthy();
     expect(screen.getByText('3')).toBeTruthy(); // blogCount từ meta.totalElements
     expect(screen.getByRole('button', { name: 'Thông tin' })).toBeTruthy();
     expect(screen.getByText('Chỉnh sửa hồ sơ')).toBeTruthy();
   });
 
-  it('hồ sơ của tôi: tab Thông tin hiển thị dữ liệu cá nhân', () => {
+  it('hồ sơ của tôi: mở sẵn tab Thông tin với dữ liệu cá nhân', () => {
     render(<ProfileScreen mode="me" />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Thông tin' }));
 
     expect(screen.getByText('Thông tin cá nhân')).toBeTruthy();
     expect(screen.getByText('0900000000')).toBeTruthy();
@@ -158,6 +157,8 @@ describe('ProfileScreen', () => {
 
     render(<ProfileScreen mode="me" />);
 
+    fireEvent.click(screen.getByRole('button', { name: 'Hồ sơ leo núi' }));
+
     expect(screen.getAllByText('Nâng cao').length).toBeGreaterThan(0);
     expect(screen.getByText('Thử thách')).toBeTruthy();
     expect(screen.getByText('Tây Bắc')).toBeTruthy();
@@ -167,6 +168,8 @@ describe('ProfileScreen', () => {
 
   it('chưa khai hồ sơ leo núi: hiện lời mời cập nhật thay vì khối rỗng', () => {
     render(<ProfileScreen mode="me" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hồ sơ leo núi' }));
 
     expect(screen.getByText('Chưa có hồ sơ leo núi')).toBeTruthy();
     expect(screen.getByText('Cập nhật hồ sơ leo núi')).toBeTruthy();

@@ -1,91 +1,42 @@
-import {
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  Flag,
-  Loader2,
-  Lock,
-  MessageSquare,
-  Play,
-  Send,
-  Settings,
-  Unlock,
-} from 'lucide-react';
+import { CheckCircle2, Loader2, MessageSquare, Send } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
 interface GroupActionPanelProps {
   role: UserRoleInGroup;
   groupStatus: MatchingGroupStatus;
-  matchingDeadline?: string | null;
-  targetDate?: string | null;
-  endDate?: string | null;
   isJoining: boolean;
   onOpenChat: () => void;
   onJoin: (message?: string) => void;
   onLeave: () => void;
   onCancelRequest: () => void;
   onCreateGroupChat: () => void;
-  onEditGroup?: () => void;
-  onHideGroup?: () => void;
-  onShowGroup?: () => void;
-  onCloseGroup?: () => void;
-  onOpenGroup?: () => void;
-  onStartTrip?: () => void;
-  onCompleteTrip?: () => void;
-  isLifecyclePending?: boolean;
   acceptedMembersCount: number;
   hasConversation?: boolean;
   isInConversation?: boolean;
 }
 
+/**
+ * Cột hành động bên phải trang chi tiết nhóm: chat nhóm và hành động theo vai trò.
+ *
+ * Các thao tác quản lý vòng đời của Trưởng nhóm đã chuyển sang tab "Quản lý nhóm"
+ * trong workspace (`GroupManagementPanel`) để không nằm lẫn với nội dung đọc hằng ngày.
+ */
+
 export function GroupActionPanel({
   role,
   groupStatus,
-  matchingDeadline,
-  targetDate,
-  endDate,
   isJoining,
   onOpenChat,
   onJoin,
   onLeave,
   onCancelRequest,
   onCreateGroupChat,
-  onEditGroup,
-  onHideGroup,
-  onShowGroup,
-  onCloseGroup,
-  onOpenGroup,
-  onStartTrip,
-  onCompleteTrip,
-  isLifecyclePending = false,
   acceptedMembersCount,
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
   const isMemberOrLeader = role === 'leader' || role === 'member';
-
-  const isHidden = groupStatus === 'HIDDEN';
-  const isClosed = groupStatus === 'CLOSED';
-  const isOpen = groupStatus === 'OPEN';
-
-  const isDeadlinePassed = matchingDeadline
-    ? new Date(matchingDeadline).getTime() <= Date.now()
-    : false;
-  const isTargetDatePassed = targetDate
-    ? new Date(targetDate).getTime() < new Date().setHours(0, 0, 0, 0)
-    : false;
-  const isWithinAllowedRecruitment = !isDeadlinePassed && !isTargetDatePassed;
-
-  const isTripEndDatePassed = endDate
-    ? new Date(endDate).getTime() < new Date().setHours(0, 0, 0, 0)
-    : isTargetDatePassed;
-
-  const canToggleVisibility =
-    groupStatus === 'OPEN' ||
-    groupStatus === 'FULL' ||
-    groupStatus === 'CLOSED' ||
-    groupStatus === 'HIDDEN';
 
   return (
     <div className="space-y-4">
@@ -141,115 +92,6 @@ export function GroupActionPanel({
               Trưởng nhóm chưa tạo nhóm chat
             </div>
           )}
-        </div>
-      )}
-
-      {/* Leader management actions card */}
-      {role === 'leader' && (
-        <div className="rounded-2xl bg-card border border-border p-5 space-y-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Quản Lý Nhóm Ghép
-            </h3>
-          </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Điều chỉnh cài đặt nhóm, trạng thái tuyển thành viên và hiển thị công khai.
-          </p>
-
-          <div className="space-y-2 pt-1">
-            {onEditGroup && (
-              <button
-                type="button"
-                onClick={onEditGroup}
-                disabled={isLifecyclePending}
-                className="w-full rounded-full border border-border bg-background py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                Chỉnh sửa thông tin nhóm
-              </button>
-            )}
-
-            {/* Lifecycle: Open / Close recruitment */}
-            {(isOpen || groupStatus === 'FULL') && onCloseGroup && (
-              <button
-                type="button"
-                onClick={onCloseGroup}
-                disabled={isLifecyclePending}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <Lock className="h-3.5 w-3.5" />
-                <span>Tạm dừng tuyển thành viên</span>
-              </button>
-            )}
-            {isClosed && onOpenGroup && isWithinAllowedRecruitment && (
-              <button
-                type="button"
-                onClick={onOpenGroup}
-                disabled={isLifecyclePending}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <Unlock className="h-3.5 w-3.5" />
-                <span>Mở lại tuyển thành viên</span>
-              </button>
-            )}
-
-            {/* Lifecycle: Hide / Show group */}
-            {canToggleVisibility && (
-              <>
-                {!isHidden && onHideGroup && (
-                  <button
-                    type="button"
-                    onClick={onHideGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-background py-2 text-xs font-bold text-muted-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <EyeOff className="h-3.5 w-3.5" />
-                    <span>Tạm ẩn nhóm khỏi tìm kiếm</span>
-                  </button>
-                )}
-                {isHidden && onShowGroup && (
-                  <button
-                    type="button"
-                    onClick={onShowGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 py-2 text-xs font-bold text-primary hover:bg-primary/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    <span>Hiển thị nhóm ra công khai</span>
-                  </button>
-                )}
-              </>
-            )}
-
-            {/* Trip Lifecycle: Start / Complete Trip */}
-            {groupStatus !== 'COMPLETED' && groupStatus !== 'CANCELLED' && (
-              <div className="pt-2 border-t border-border/60 space-y-2">
-                {groupStatus !== 'IN_PROGRESS' && onStartTrip && !isTripEndDatePassed && (
-                  <button
-                    type="button"
-                    onClick={onStartTrip}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Play className="h-3.5 w-3.5 fill-current" />
-                    <span>Bắt đầu chuyến đi</span>
-                  </button>
-                )}
-
-                {groupStatus === 'IN_PROGRESS' && onCompleteTrip && (
-                  <button
-                    type="button"
-                    onClick={onCompleteTrip}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Flag className="h-3.5 w-3.5" />
-                    <span>Hoàn thành chuyến đi</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       )}
 

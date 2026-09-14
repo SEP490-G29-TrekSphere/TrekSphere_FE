@@ -1,63 +1,24 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 
-export interface MomentMediaItem {
-  momentMediaId?: string;
-  mediaId?: string;
-  imageUrl?: string;
-  mediaUrl?: string;
-  mediaType?: 'IMAGE' | 'VIDEO';
-  sortOrder?: number;
-  sequenceOrder?: number;
-  createdAt?: string;
-}
+import type {
+  MomentCreatePayload,
+  MomentItem,
+  MomentMapMarker,
+  MomentMediaItem,
+  MomentPaginationResponse,
+  MomentVisibility,
+} from '@/features/moments/types';
 
-export interface MomentItem {
-  momentId: string;
-  userId?: string;
-  authorUserId?: string;
-  authorName: string;
-  authorAvatarUrl?: string;
-  matchingGroupId?: string;
-  caption?: string;
-  placeName?: string;
-  locationName?: string;
-  latitude?: number;
-  longitude?: number;
-  altitude?: string;
-  status: 'VISIBLE' | 'HIDDEN' | 'ACTIVE';
-  hiddenReason?: string;
-  visibility: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
-  mediaList: MomentMediaItem[];
-  likesCount?: number;
-  commentsCount?: number;
-  createdAt: string;
-  isLikedByCurrentUser?: boolean;
-}
-
-export interface MomentCreatePayload {
-  caption?: string;
-  placeName?: string;
-  locationName?: string;
-  latitude?: number;
-  longitude?: number;
-  altitude?: string;
-  visibility?: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
-  mediaUrls: string[];
-}
-
-export interface MomentMapMarker {
-  momentId: string;
-  placeName?: string;
-  locationName?: string;
-  latitude: number;
-  longitude: number;
-  altitude?: string;
-  thumbnailUrl: string;
-  caption?: string;
-  authorName?: string;
-  authorAvatarUrl?: string;
-  createdAt: string;
-}
+// Domain model của Khoảnh khắc nằm ở `features/moments` vì được dùng chung
+// với trang hồ sơ cá nhân; re-export để các import cũ theo service vẫn chạy.
+export type {
+  MomentCreatePayload,
+  MomentItem,
+  MomentMapMarker,
+  MomentMediaItem,
+  MomentPaginationResponse,
+  MomentVisibility,
+};
 
 export interface BackendPagination<T> {
   content: T[];
@@ -66,15 +27,6 @@ export interface BackendPagination<T> {
   totalElements: number;
   totalPages: number;
   last: boolean;
-}
-
-export interface MomentPaginationResponse<T = MomentItem> {
-  items: T[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-  hasMore: boolean;
 }
 
 interface RawMomentMedia {
@@ -293,7 +245,7 @@ export const momentService = {
   async updateMomentVisibility(
     groupId: string,
     momentId: string,
-    visibility: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME'
+    visibility: MomentVisibility
   ): Promise<MomentItem> {
     const res = await ApiService<RawMomentItem>(
       `/matching-groups/${groupId}/moments/${momentId}/visibility`,

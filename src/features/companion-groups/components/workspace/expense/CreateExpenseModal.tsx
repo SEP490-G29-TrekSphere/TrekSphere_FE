@@ -6,16 +6,16 @@ import {
   CheckCircle2,
   DollarSign,
   FileText,
+  Image as ImageIcon,
   Loader2,
   Plus,
   Scale,
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { profileService } from '@/features/profile/services/profileService';
-import { AppModalShell } from '@/shared/ui';
+import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useCreateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -29,7 +29,6 @@ import {
   groupExpenseCreateSchema,
 } from '../../../validations/expenseValidation';
 import { MemberAvatar } from '../../detail/MemberAvatar';
-import { ExpenseReceiptUploader } from './ExpenseReceiptUploader';
 
 interface CreateExpenseModalProps {
   isOpen: boolean;
@@ -58,7 +57,7 @@ export function CreateExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
-  const newlyUploadedUrlRef = useRef<string | null>(null);
+  const receiptCleanup = useImageUploadCleanup();
 
   const defaultLeaderMember = activeMembers.find(
     (m) => m.role === 'LEADER' || m.userId === currentUserId
@@ -135,7 +134,7 @@ export function CreateExpenseModal({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset modal state when opened
   useEffect(() => {
     if (isOpen) {
-      newlyUploadedUrlRef.current = null;
+      receiptCleanup.commit();
       setScope('ALL_MEMBERS');
       setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
       setSplitMethod('EQUAL');
@@ -246,7 +245,7 @@ export function CreateExpenseModal({
         await createExpenseMutation.mutateAsync(payload);
       }
 
-      newlyUploadedUrlRef.current = null;
+      receiptCleanup.commit();
       toast.success('Ghi nhận khoản chi tiêu thực tế thành công!');
       onClose();
     } catch (err: unknown) {
@@ -257,10 +256,7 @@ export function CreateExpenseModal({
   };
 
   const handleClose = () => {
-    if (newlyUploadedUrlRef.current) {
-      profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
-      newlyUploadedUrlRef.current = null;
-    }
+    receiptCleanup.discard();
     onClose();
   };
 
@@ -583,10 +579,19 @@ export function CreateExpenseModal({
         </div>
 
         {/* Receipt Image Upload & URL */}
-        <ExpenseReceiptUploader
+        <AppImageUploadField
+          label={
+            <span className="flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
+            </span>
+          }
           value={receiptUrl}
           onChange={(url) => setValue('receiptUrl', url, { shouldValidate: true })}
-          newlyUploadedUrlRef={newlyUploadedUrlRef}
+          folder="expense-receipts"
+          cleanup={receiptCleanup}
+          showOpenLink
+          previewClassName="max-h-48 w-full bg-background/50 object-contain"
+          urlPlaceholder="https://... (nếu có)"
           errorMessage={errors.receiptUrl?.message}
           disabled={createExpenseMutation.isPending}
         />

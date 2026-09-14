@@ -6,16 +6,16 @@ import {
   CheckCircle2,
   DollarSign,
   FileText,
+  Image as ImageIcon,
   Loader2,
   Save,
   Scale,
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { profileService } from '@/features/profile/services/profileService';
-import { AppModalShell } from '@/shared/ui';
+import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -30,7 +30,6 @@ import {
   groupExpenseUpdateSchema,
 } from '../../../validations/expenseValidation';
 import { MemberAvatar } from '../../detail/MemberAvatar';
-import { ExpenseReceiptUploader } from './ExpenseReceiptUploader';
 
 interface EditExpenseModalProps {
   isOpen: boolean;
@@ -60,7 +59,7 @@ export function EditExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>(expense?.splitMethod || 'EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
-  const newlyUploadedUrlRef = useRef<string | null>(null);
+  const receiptCleanup = useImageUploadCleanup();
 
   const {
     register,
@@ -133,7 +132,7 @@ export function EditExpenseModal({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset modal state when opened
   useEffect(() => {
     if (isOpen && expense) {
-      newlyUploadedUrlRef.current = null;
+      receiptCleanup.commit();
       setScope(expense.beneficiaryScope || 'ALL_MEMBERS');
       setSelectedMembers(
         expense.shares && expense.shares.length > 0
@@ -265,7 +264,7 @@ export function EditExpenseModal({
         });
       }
 
-      newlyUploadedUrlRef.current = null;
+      receiptCleanup.commit();
       toast.success('Cập nhật khoản chi tiêu thành công!');
       onClose();
     } catch (err: unknown) {
@@ -276,10 +275,7 @@ export function EditExpenseModal({
   };
 
   const handleClose = () => {
-    if (newlyUploadedUrlRef.current) {
-      profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
-      newlyUploadedUrlRef.current = null;
-    }
+    receiptCleanup.discard();
     onClose();
   };
 
@@ -602,10 +598,19 @@ export function EditExpenseModal({
         </div>
 
         {/* Receipt Image Upload & URL */}
-        <ExpenseReceiptUploader
+        <AppImageUploadField
+          label={
+            <span className="flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
+            </span>
+          }
           value={receiptUrl}
           onChange={(url) => setValue('receiptUrl', url, { shouldValidate: true })}
-          newlyUploadedUrlRef={newlyUploadedUrlRef}
+          folder="expense-receipts"
+          cleanup={receiptCleanup}
+          showOpenLink
+          previewClassName="max-h-48 w-full bg-background/50 object-contain"
+          urlPlaceholder="https://... (nếu có)"
           errorMessage={errors.receiptUrl?.message}
           disabled={updateExpenseMutation.isPending}
         />
