@@ -1,16 +1,17 @@
-import { LogOut, UserCheck } from 'lucide-react';
+import { LogOut, UserCheck, UserMinus } from 'lucide-react';
 import { ConfirmActionDialog } from '@/shared/ui';
 import type { UserRoleInGroup } from '../../types';
 import { ReviewJoinRequestModal } from '../modals/ReviewJoinRequestModal';
 import type { JoinRequestAction } from './JoinRequestsCard';
 
-type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
+type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | 'removeMember' | null;
 
 interface GroupModalsProps {
   activeModal: ActiveModal;
   setActiveModal: (modal: ActiveModal) => void;
   selectedRequest: JoinRequestAction | null;
   selectedAddBackMember?: { id: string; name: string } | null;
+  selectedRemoveMember?: { id: string; name: string } | null;
   currentUserRole: UserRoleInGroup;
 
   // Pending states
@@ -18,6 +19,7 @@ interface GroupModalsProps {
   isRejectPending: boolean;
   isLeaveModalPending: boolean;
   isAddBackPending?: boolean;
+  isRemoveMemberPending?: boolean;
 
   // Action Handlers
   onConfirmApprove: () => void;
@@ -25,6 +27,7 @@ interface GroupModalsProps {
   onConfirmLeaveGroup: () => void;
   onConfirmCancelJoinRequest: () => void;
   onConfirmAddBackToChat?: () => void;
+  onConfirmRemoveMember?: () => void;
 }
 
 /**
@@ -35,16 +38,19 @@ export function GroupModals({
   setActiveModal,
   selectedRequest,
   selectedAddBackMember,
+  selectedRemoveMember,
   currentUserRole,
   isApprovePending,
   isRejectPending,
   isLeaveModalPending,
   isAddBackPending = false,
+  isRemoveMemberPending = false,
   onConfirmApprove,
   onConfirmReject,
   onConfirmLeaveGroup,
   onConfirmCancelJoinRequest,
   onConfirmAddBackToChat,
+  onConfirmRemoveMember,
 }: GroupModalsProps) {
   const closeModal = () => setActiveModal(null);
   const isPendingRequest = currentUserRole === 'pending';
@@ -77,6 +83,25 @@ export function GroupModals({
           pendingLabel={isPendingRequest ? 'Đang hủy...' : 'Đang thực hiện...'}
           isPending={isLeaveModalPending}
           onConfirm={isPendingRequest ? onConfirmCancelJoinRequest : onConfirmLeaveGroup}
+          onCancel={closeModal}
+        />
+      )}
+
+      {activeModal === 'removeMember' && selectedRemoveMember && (
+        <ConfirmActionDialog
+          variant="destructive"
+          icon={<UserMinus className="h-5 w-5" />}
+          title="Xoá thành viên khỏi nhóm"
+          description={
+            <>
+              Bạn có chắc chắn muốn xoá <strong>{selectedRemoveMember.name}</strong> khỏi nhóm ghép
+              này? Thành viên sẽ mất quyền truy cập ngay lập tức.
+            </>
+          }
+          confirmLabel="Xác nhận xoá"
+          pendingLabel="Đang xoá..."
+          isPending={isRemoveMemberPending}
+          onConfirm={() => onConfirmRemoveMember?.()}
           onCancel={closeModal}
         />
       )}

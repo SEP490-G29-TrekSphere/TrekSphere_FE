@@ -166,6 +166,7 @@ export default function CompanionGroupDetailPage({
                 }
                 onDirectChat={actions.openDirectChat}
                 onAddMemberToChat={actions.openAddMemberModal}
+                onRemoveMember={actions.openRemoveMemberModal}
               />
             ) : (
               <>
@@ -230,16 +231,19 @@ export default function CompanionGroupDetailPage({
         setActiveModal={actions.setActiveModal}
         selectedRequest={actions.selectedRequest}
         selectedAddBackMember={actions.selectedAddBackMember}
+        selectedRemoveMember={actions.selectedRemoveMember}
         currentUserRole={actions.currentUserRole}
         isApprovePending={actions.isApprovePending}
         isRejectPending={actions.isRejectPending}
         isLeaveModalPending={actions.isLeavePending}
         isAddBackPending={actions.isAddBackPending}
+        isRemoveMemberPending={actions.isRemoveMemberPending}
         onConfirmApprove={actions.confirmApprove}
         onConfirmReject={actions.confirmReject}
         onConfirmLeaveGroup={actions.confirmLeave}
         onConfirmCancelJoinRequest={actions.confirmWithdraw}
         onConfirmAddBackToChat={actions.confirmAddMemberToChat}
+        onConfirmRemoveMember={actions.confirmRemoveMember}
       />
 
       {/* Join Group Modal */}

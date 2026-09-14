@@ -1,4 +1,4 @@
-import { MessageCircle, MoreHorizontal, UserPlus } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, UserMinus, UserPlus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AppBadge } from '@/shared/ui';
 import type { MatchingMemberItem } from '../../services/companionGroupService';
@@ -13,6 +13,7 @@ interface MembersCardProps {
   hasConversation?: boolean;
   onDirectChat?: (userId: string, userName: string, userAvatar?: string) => void;
   onAddMemberToChat?: (userId: string, userName: string) => void;
+  onRemoveMember?: (memberId: string, memberName: string) => void;
 }
 
 export function MembersCard({
@@ -24,6 +25,7 @@ export function MembersCard({
   hasConversation,
   onDirectChat,
   onAddMemberToChat,
+  onRemoveMember,
 }: MembersCardProps) {
   const acceptedMembers = members.filter((m) => m.status === 'ACCEPTED');
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
@@ -131,6 +133,22 @@ export function MembersCard({
                             <MessageCircle className="h-4 w-4 text-primary" />
                             Nhắn tin riêng
                           </button>
+                          {!isLeader && member.matchingMemberId && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onRemoveMember?.(
+                                  member.matchingMemberId as string,
+                                  member.fullName
+                                );
+                                setActiveDropdownId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                              Xoá khỏi nhóm
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

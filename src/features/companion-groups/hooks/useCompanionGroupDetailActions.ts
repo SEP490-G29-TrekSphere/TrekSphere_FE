@@ -17,8 +17,15 @@ import {
   useMatchingGroupLifecycle,
 } from './useMatchingGroupLifecycle';
 import { useRejectMember } from './useRejectMember';
+import { useRemoveMember } from './useRemoveMember';
 
-export type ActiveGroupModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
+export type ActiveGroupModal =
+  | 'leave'
+  | 'reject'
+  | 'approve'
+  | 'addBackToChat'
+  | 'removeMember'
+  | null;
 
 interface UseCompanionGroupDetailActionsOptions {
   groupId?: string;
@@ -41,12 +48,17 @@ export function useCompanionGroupDetailActions({
   const joinMutation = useJoinMatchingGroup();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
+  const removeMemberMutation = useRemoveMember();
   const lifecycleMutation = useMatchingGroupLifecycle();
 
   const [feedback, setFeedback] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<ActiveGroupModal>(null);
   const [selectedRequest, setSelectedRequest] = useState<JoinRequestAction | null>(null);
   const [selectedAddBackMember, setSelectedAddBackMember] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [selectedRemoveMember, setSelectedRemoveMember] = useState<{
     id: string;
     name: string;
   } | null>(null);
@@ -73,6 +85,29 @@ export function useCompanionGroupDetailActions({
   function openAddMemberModal(memberId: string, memberName: string) {
     setSelectedAddBackMember({ id: memberId, name: memberName });
     setActiveModal('addBackToChat');
+  }
+
+  function openRemoveMemberModal(memberId: string, memberName: string) {
+    setSelectedRemoveMember({ id: memberId, name: memberName });
+    setActiveModal('removeMember');
+  }
+
+  function confirmRemoveMember() {
+    if (!groupId || !selectedRemoveMember) return;
+    removeMemberMutation.mutate(
+      { groupId, memberId: selectedRemoveMember.id },
+      {
+        onSuccess: () => {
+          setActiveModal(null);
+          showFeedback(`Đã xoá ${selectedRemoveMember.name} khỏi nhóm ghép.`);
+          setSelectedRemoveMember(null);
+        },
+        onError: (error) =>
+          showFeedback(
+            error instanceof Error ? error.message : 'Có lỗi xảy ra khi xoá thành viên.'
+          ),
+      }
+    );
   }
 
   function confirmAddMemberToChat() {
@@ -179,10 +214,12 @@ export function useCompanionGroupDetailActions({
     setActiveModal,
     selectedRequest,
     selectedAddBackMember,
+    selectedRemoveMember,
     currentUserRole,
     isJoining: joinMutation.isPending,
     isApprovePending: approveMutation.isPending,
     isRejectPending: rejectMutation.isPending,
+    isRemoveMemberPending: removeMemberMutation.isPending,
     isLeavePending:
       currentUserRole === 'pending' ? withdrawMutation.isPending : leaveMutation.isPending,
     isAddBackPending: chatActions.isAddBackPending,
@@ -225,12 +262,14 @@ export function useCompanionGroupDetailActions({
       ),
     openRequestModal,
     openAddMemberModal,
+    openRemoveMemberModal,
     openGroupChat: chatActions.openGroupChat,
     openDirectChat: chatActions.openDirectChat,
     confirmAddMemberToChat,
     confirmApprove,
     confirmReject,
     confirmLeave,
+    confirmRemoveMember,
     joinGroup,
     confirmWithdraw,
   };

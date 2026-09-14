@@ -31,6 +31,7 @@ interface GroupWorkspaceProps {
   managementSlot?: ReactNode;
   onDirectChat: (memberId: string, memberName: string, memberAvatar?: string) => void;
   onAddMemberToChat: (memberId: string, memberName: string) => void;
+  onRemoveMember: (memberId: string, memberName: string) => void;
 }
 
 /** Khu làm việc của nhóm ghép dành cho thành viên & trưởng nhóm. */
@@ -44,6 +45,7 @@ export function GroupWorkspace({
   managementSlot,
   onDirectChat,
   onAddMemberToChat,
+  onRemoveMember,
 }: GroupWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('overview');
 
@@ -194,6 +196,7 @@ export function GroupWorkspace({
           hasConversation={group.hasConversation}
           onDirectChat={onDirectChat}
           onAddMemberToChat={onAddMemberToChat}
+          onRemoveMember={onRemoveMember}
         />
       )}
 
