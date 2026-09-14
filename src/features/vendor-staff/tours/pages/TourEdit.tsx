@@ -40,7 +40,6 @@ function toCheckpointDraft(checkpoint: VendorTourCheckpoint): CheckpointDraft {
     // ưu tiên mảng, không có thì tự tách chuỗi.
     imageUrls:
       checkpoint.checkpointImageUrls ?? parseCheckpointImageUrls(checkpoint.checkpointImageUrl),
-    imageFiles: [],
   };
 }
 

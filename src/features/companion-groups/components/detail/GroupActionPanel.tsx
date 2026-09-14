@@ -1,15 +1,4 @@
-import {
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  Loader2,
-  Lock,
-  MessageSquare,
-  Send,
-  Settings,
-  Siren,
-  Unlock,
-} from 'lucide-react';
+import { CheckCircle2, Loader2, MessageSquare, Send, Siren } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
@@ -22,17 +11,18 @@ interface GroupActionPanelProps {
   onLeave: () => void;
   onCancelRequest: () => void;
   onCreateGroupChat: () => void;
-  onEditGroup?: () => void;
-  onHideGroup?: () => void;
-  onShowGroup?: () => void;
-  onCloseGroup?: () => void;
-  onOpenGroup?: () => void;
   onOpenSos?: () => void;
-  isLifecyclePending?: boolean;
   acceptedMembersCount: number;
   hasConversation?: boolean;
   isInConversation?: boolean;
 }
+
+/**
+ * Cột hành động bên phải trang chi tiết nhóm: chat nhóm và hành động theo vai trò.
+ *
+ * Các thao tác quản lý vòng đời của Trưởng nhóm đã chuyển sang tab "Quản lý nhóm"
+ * trong workspace (`GroupManagementPanel`) để không nằm lẫn với nội dung đọc hằng ngày.
+ */
 
 export function GroupActionPanel({
   role,
@@ -43,29 +33,13 @@ export function GroupActionPanel({
   onLeave,
   onCancelRequest,
   onCreateGroupChat,
-  onEditGroup,
-  onHideGroup,
-  onShowGroup,
-  onCloseGroup,
-  onOpenGroup,
   onOpenSos,
-  isLifecyclePending = false,
   acceptedMembersCount,
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
   const isMemberOrLeader = role === 'leader' || role === 'member';
   const canSendSos = isMemberOrLeader && groupStatus === 'IN_PROGRESS' && Boolean(onOpenSos);
-
-  const isHidden = groupStatus === 'HIDDEN';
-  const isClosed = groupStatus === 'CLOSED';
-  const isOpen = groupStatus === 'OPEN';
-  const canToggleVisibility =
-    groupStatus === 'OPEN' ||
-    groupStatus === 'FULL' ||
-    groupStatus === 'CLOSED' ||
-    groupStatus === 'HIDDEN';
-  const canToggleRecruitment = groupStatus === 'OPEN' || groupStatus === 'CLOSED';
 
   return (
     <div className="space-y-4">
@@ -124,99 +98,16 @@ export function GroupActionPanel({
         </div>
       )}
 
-      {/* Leader management actions card */}
-      {role === 'leader' && (
-        <div className="rounded-2xl bg-card border border-border p-5 space-y-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-primary" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Quản Lý Nhóm Ghép
-            </h3>
-          </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Điều chỉnh cài đặt nhóm, trạng thái tuyển thành viên và hiển thị công khai.
-          </p>
-
-          {canSendSos && (
-            <button
-              type="button"
-              onClick={onOpenSos}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-2.5 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
-            >
-              <Siren className="h-4 w-4" />
-              <span>Gửi tín hiệu SOS</span>
-            </button>
-          )}
-
-          <div className="space-y-2 pt-1">
-            {onEditGroup && (
-              <button
-                type="button"
-                onClick={onEditGroup}
-                disabled={isLifecyclePending}
-                className="w-full rounded-full border border-border bg-background py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                Chỉnh sửa thông tin nhóm
-              </button>
-            )}
-
-            {/* Lifecycle: Open / Close recruitment */}
-            {canToggleRecruitment && (
-              <>
-                {isOpen && onCloseGroup && (
-                  <button
-                    type="button"
-                    onClick={onCloseGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>Đóng tuyển thành viên</span>
-                  </button>
-                )}
-                {isClosed && onOpenGroup && (
-                  <button
-                    type="button"
-                    onClick={onOpenGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/5 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Unlock className="h-3.5 w-3.5" />
-                    <span>Mở lại tuyển thành viên</span>
-                  </button>
-                )}
-              </>
-            )}
-
-            {/* Lifecycle: Hide / Show group */}
-            {canToggleVisibility && (
-              <>
-                {!isHidden && onHideGroup && (
-                  <button
-                    type="button"
-                    onClick={onHideGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-background py-2 text-xs font-bold text-muted-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <EyeOff className="h-3.5 w-3.5" />
-                    <span>Tạm ẩn nhóm khỏi tìm kiếm</span>
-                  </button>
-                )}
-                {isHidden && onShowGroup && (
-                  <button
-                    type="button"
-                    onClick={onShowGroup}
-                    disabled={isLifecyclePending}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 py-2 text-xs font-bold text-primary hover:bg-primary/10 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    <span>Hiển thị nhóm ra công khai</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+      {/* SOS card: Leader hoặc Member, chỉ hiện khi chuyến đi đang IN_PROGRESS */}
+      {canSendSos && (
+        <button
+          type="button"
+          onClick={onOpenSos}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-3 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
+        >
+          <Siren className="h-4 w-4" />
+          <span>Gửi tín hiệu SOS</span>
+        </button>
       )}
 
       {/* 2. Role-based action card */}
@@ -283,16 +174,6 @@ export function GroupActionPanel({
               </p>
             </div>
           </div>
-          {canSendSos && (
-            <button
-              type="button"
-              onClick={onOpenSos}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-2.5 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
-            >
-              <Siren className="h-4 w-4" />
-              <span>Gửi tín hiệu SOS</span>
-            </button>
-          )}
           <button
             type="button"
             onClick={onLeave}

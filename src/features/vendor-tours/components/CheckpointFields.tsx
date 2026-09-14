@@ -1,5 +1,5 @@
-import { ImagePlus, MapPin, X } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { MapPin, X } from 'lucide-react';
+import { AppImageUploadGallery, type ImageUploadCleanup } from '@/shared/ui';
 
 export interface CheckpointDraft {
   key: string;
@@ -11,10 +11,8 @@ export interface CheckpointDraft {
   latitude: string;
   longitude: string;
   altitude: string;
-  /** URL ảnh đã có trên server (checkpoint cũ) — xem `parseCheckpointImageUrls`. */
+  /** URL ảnh của checkpoint — ảnh chọn từ máy được upload ngay nên ở đây luôn là URL. */
   imageUrls: string[];
-  /** Ảnh mới chọn, chưa upload — upload lúc submit rồi nối vào sau `imageUrls`. */
-  imageFiles: File[];
 }
 
 /**
@@ -38,19 +36,26 @@ export function createEmptyCheckpointDraft(): CheckpointDraft {
     longitude: '',
     altitude: '',
     imageUrls: [],
-    imageFiles: [],
   };
 }
 
 interface CheckpointFieldsProps {
   checkpoints: CheckpointDraft[];
   onChange: (checkpoints: CheckpointDraft[]) => void;
+  /** Dùng chung với ảnh bìa tour để dọn ảnh đã upload nhưng form chưa lưu. */
+  imageCleanup: ImageUploadCleanup;
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
 const MAX_IMAGE_SIZE_MB = 5;
 
 /** Danh sách checkpoint có thể thêm/xóa/sửa — gửi lên API khi submit form Tạo/Sửa. */
-export function CheckpointFields({ checkpoints, onChange }: CheckpointFieldsProps) {
+export function CheckpointFields({
+  checkpoints,
+  onChange,
+  imageCleanup,
+  onUploadingChange,
+}: CheckpointFieldsProps) {
   const handleAdd = () => {
     onChange([...checkpoints, createEmptyCheckpointDraft()]);
   };
@@ -73,6 +78,8 @@ export function CheckpointFields({ checkpoints, onChange }: CheckpointFieldsProp
         <CheckpointRow
           key={checkpoint.key}
           checkpoint={checkpoint}
+          imageCleanup={imageCleanup}
+          onUploadingChange={onUploadingChange}
           onChange={(patch) => handleChange(checkpoint.key, patch)}
           onRemove={() => handleRemove(checkpoint.key)}
         />
@@ -93,36 +100,24 @@ export function CheckpointFields({ checkpoints, onChange }: CheckpointFieldsProp
 
 interface CheckpointRowProps {
   checkpoint: CheckpointDraft;
+  imageCleanup: ImageUploadCleanup;
+  onUploadingChange?: (isUploading: boolean) => void;
   onChange: (patch: Partial<CheckpointDraft>) => void;
   onRemove: () => void;
 }
 
-function CheckpointRow({ checkpoint, onChange, onRemove }: CheckpointRowProps) {
-  const { imageUrls, imageFiles } = checkpoint;
-
-  // Tạo object URL 1 lần cho mỗi file (thay vì mỗi lần render) và thu hồi khi file đổi/unmount —
-  // không revoke thì mỗi lần render lại rò rỉ thêm 1 blob trong bộ nhớ trình duyệt.
-  const filePreviews = useMemo(
-    () => imageFiles.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
-    [imageFiles]
-  );
-  useEffect(
-    () => () => {
-      for (const { previewUrl } of filePreviews) URL.revokeObjectURL(previewUrl);
-    },
-    [filePreviews]
-  );
-
-  const handleAddImages = (fileList: FileList | null) => {
-    if (!fileList) return;
-    const accepted = [...fileList].filter(
-      (file) => file.type.startsWith('image/') && file.size <= MAX_IMAGE_SIZE_MB * 1024 * 1024
-    );
-    if (accepted.length > 0) onChange({ imageFiles: [...imageFiles, ...accepted] });
-  };
-
+function CheckpointRow({
+  checkpoint,
+  imageCleanup,
+  onUploadingChange,
+  onChange,
+  onRemove,
+}: CheckpointRowProps) {
   return (
-    <div className="relative flex gap-3 rounded-2xl p-4" style={{ backgroundColor: '#F0EEE6' }}>
+    <div
+      className="relative flex flex-col gap-3 rounded-2xl p-4"
+      style={{ backgroundColor: '#F0EEE6' }}
+    >
       <button
         type="button"
         onClick={onRemove}
@@ -133,47 +128,17 @@ function CheckpointRow({ checkpoint, onChange, onRemove }: CheckpointRowProps) {
         <X className="h-4 w-4" />
       </button>
 
-      <div className="flex w-20 shrink-0 flex-col gap-2">
-        {imageUrls.map((url, index) => (
-          <ImageThumbnail
-            key={url}
-            src={url}
-            alt={`Ảnh checkpoint ${index + 1}`}
-            onRemove={() => onChange({ imageUrls: imageUrls.filter((item) => item !== url) })}
-          />
-        ))}
-        {filePreviews.map(({ file, previewUrl }) => (
-          <ImageThumbnail
-            key={previewUrl}
-            src={previewUrl}
-            alt={`Ảnh checkpoint mới: ${file.name}`}
-            onRemove={() => onChange({ imageFiles: imageFiles.filter((item) => item !== file) })}
-          />
-        ))}
-
-        <label
-          htmlFor={`checkpoint-image-${checkpoint.key}`}
-          className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl"
-          style={{ backgroundColor: '#FFFFFF', border: '1px dashed #D8D3C4' }}
-        >
-          <ImagePlus className="h-5 w-5" style={{ color: '#6F7B75' }} />
-          <span className="text-[10px] font-semibold" style={{ color: '#6F7B75' }}>
-            Thêm ảnh
-          </span>
-          <input
-            id={`checkpoint-image-${checkpoint.key}`}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              handleAddImages(e.target.files);
-              // Reset để chọn lại đúng file vừa xóa vẫn kích hoạt onChange.
-              e.target.value = '';
-            }}
-          />
-        </label>
-      </div>
+      <AppImageUploadGallery
+        label="Ảnh checkpoint"
+        value={checkpoint.imageUrls}
+        onChange={(imageUrls) => onChange({ imageUrls })}
+        folder="checkpoints"
+        cleanup={imageCleanup}
+        onUploadingChange={onUploadingChange}
+        maxSizeMb={MAX_IMAGE_SIZE_MB}
+        className="space-y-2 pr-6"
+        gridClassName="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      />
 
       <div className="min-w-0 flex-1 space-y-2 pr-6">
         <input
@@ -222,28 +187,6 @@ function CheckpointRow({ checkpoint, onChange, onRemove }: CheckpointRowProps) {
           />
         </div>
       </div>
-    </div>
-  );
-}
-
-interface ImageThumbnailProps {
-  src: string;
-  alt: string;
-  onRemove: () => void;
-}
-
-function ImageThumbnail({ src, alt, onRemove }: ImageThumbnailProps) {
-  return (
-    <div className="relative h-20 w-20 overflow-hidden rounded-xl">
-      <img src={src} alt={alt} className="h-full w-full object-cover" />
-      <button
-        type="button"
-        onClick={onRemove}
-        className="absolute right-1 top-1 rounded-full bg-black/55 p-0.5 text-white transition-colors hover:bg-red-500"
-        aria-label={`Xóa ${alt}`}
-      >
-        <X className="h-3 w-3" />
-      </button>
     </div>
   );
 }

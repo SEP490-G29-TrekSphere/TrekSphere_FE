@@ -47,6 +47,18 @@ jest.mock('../../hooks/usePublicProfile', () => ({
   usePublicHikingSummary: () => mockHikingQuery,
 }));
 
+jest.mock('../../hooks/useUserMoments', () => ({
+  useUserMoments: () => ({ data: { items: [] }, isLoading: false }),
+  useUserMomentsMap: () => ({ data: [], isLoading: false }),
+  useCreatePersonalMoment: () => ({ mutate: jest.fn(), isPending: false }),
+  useUpdatePersonalMomentVisibility: () => ({ mutate: jest.fn(), isPending: false }),
+  useDeletePersonalMoment: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+
+jest.mock('@/features/companion-groups/hooks/useGroupPeerReviews', () => ({
+  useUserPeerReviews: () => ({ data: [], isLoading: false }),
+}));
+
 const post: BlogListItem = {
   blogId: 'b1',
   title: 'Cung đường Tà Xùa mùa săn mây',
@@ -78,18 +90,17 @@ describe('ProfileScreen', () => {
   it('hồ sơ của tôi: hiện email, số bài viết thật và tab Thông tin', () => {
     render(<ProfileScreen mode="me" />);
 
-    expect(screen.getByText('Minh Tuấn')).toBeTruthy();
-    expect(screen.getByText('tuan@example.com')).toBeTruthy();
+    // Tab "Thông tin" mở sẵn nên tên và email xuất hiện ở cả card định danh lẫn panel.
+    expect(screen.getAllByText('Minh Tuấn').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('tuan@example.com').length).toBeGreaterThan(0);
     expect(screen.getByText('Trekker')).toBeTruthy();
     expect(screen.getByText('3')).toBeTruthy(); // blogCount từ meta.totalElements
     expect(screen.getByRole('button', { name: 'Thông tin' })).toBeTruthy();
     expect(screen.getByText('Chỉnh sửa hồ sơ')).toBeTruthy();
   });
 
-  it('hồ sơ của tôi: tab Thông tin hiển thị dữ liệu cá nhân', () => {
+  it('hồ sơ của tôi: mở sẵn tab Thông tin với dữ liệu cá nhân', () => {
     render(<ProfileScreen mode="me" />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Thông tin' }));
 
     expect(screen.getByText('Thông tin cá nhân')).toBeTruthy();
     expect(screen.getByText('0900000000')).toBeTruthy();
@@ -120,13 +131,12 @@ describe('ProfileScreen', () => {
     expect(screen.getByText('Không hiển thị được hồ sơ')).toBeTruthy();
   });
 
-  it('tab Đánh giá dựng khung nhưng không bịa điểm', () => {
+  it('tab Đánh giá hiển thị tổng quan điểm uy tín và thông báo rỗng', () => {
     render(<ProfileScreen mode="me" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Đánh giá' }));
 
-    expect(screen.getByText('0 đánh giá')).toBeTruthy();
-    expect(screen.getByText('Tính năng đánh giá người dùng đang được phát triển.')).toBeTruthy();
+    expect(screen.getByText('Chưa có đánh giá nào')).toBeTruthy();
   });
 
   it('tab Hồ sơ leo núi: hiện kinh nghiệm, kỹ năng và khu vực từ API', () => {
@@ -147,6 +157,8 @@ describe('ProfileScreen', () => {
 
     render(<ProfileScreen mode="me" />);
 
+    fireEvent.click(screen.getByRole('button', { name: 'Hồ sơ leo núi' }));
+
     expect(screen.getAllByText('Nâng cao').length).toBeGreaterThan(0);
     expect(screen.getByText('Thử thách')).toBeTruthy();
     expect(screen.getByText('Tây Bắc')).toBeTruthy();
@@ -156,6 +168,8 @@ describe('ProfileScreen', () => {
 
   it('chưa khai hồ sơ leo núi: hiện lời mời cập nhật thay vì khối rỗng', () => {
     render(<ProfileScreen mode="me" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hồ sơ leo núi' }));
 
     expect(screen.getByText('Chưa có hồ sơ leo núi')).toBeTruthy();
     expect(screen.getByText('Cập nhật hồ sơ leo núi')).toBeTruthy();

@@ -1,4 +1,4 @@
-import { Image, Loader2, Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import type {
   GroupSettlementProofRequest,
@@ -30,13 +31,23 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
   const [proofUrl, setProofUrl] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Chuyển khoản VietQR');
   const [note, setNote] = useState('');
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const proofCleanup = useImageUploadCleanup();
 
   if (!settlement) return null;
+
+  /** Đóng modal giữa chừng → xóa ảnh đã lỡ upload để không rác storage. */
+  const handleClose = () => {
+    proofCleanup.discard();
+    setProofUrl('');
+    setNote('');
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!proofUrl.trim()) {
-      toast.error('Vui lòng nhập đường dẫn hoặc link ảnh chứng từ chuyển tiền');
+      toast.error('Vui lòng tải ảnh lên hoặc dán link ảnh chứng từ chuyển tiền');
       return;
     }
 
@@ -46,6 +57,8 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
         paymentMethod: paymentMethod.trim() || undefined,
         note: note.trim() || undefined,
       });
+      // Nộp thành công → ảnh đã thuộc về chứng từ, không xóa nữa.
+      proofCleanup.commit();
       onClose();
       setProofUrl('');
       setNote('');
@@ -55,7 +68,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md rounded-2xl p-6">
         <DialogHeader className="border-b border-border pb-3">
           <div className="flex items-center justify-between">
@@ -91,35 +104,23 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             />
           </div>
 
-          {/* Proof Image URL */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-foreground">
-              Link ảnh biên lai / Bill chuyển tiền <span className="text-destructive">*</span>
-            </Label>
-            <div className="relative">
-              <Input
-                value={proofUrl}
-                onChange={(e) => setProofUrl(e.target.value)}
-                placeholder="https://... ảnh bill chuyển khoản"
-                className="text-xs pl-8"
-                required
-              />
-              <Image className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            </div>
-            {proofUrl && (
-              <div className="mt-2 relative rounded-lg border border-border overflow-hidden max-h-36 bg-black/5 flex items-center justify-center">
-                <img
-                  src={proofUrl}
-                  alt="Bill Preview"
-                  className="max-h-36 object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://placehold.co/400x200?text=Invalid+Image+URL';
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          {/* Proof Image — tải từ máy hoặc dán URL */}
+          <AppImageUploadField
+            label={
+              <>
+                Ảnh biên lai / Bill chuyển tiền <span className="text-destructive">*</span>
+              </>
+            }
+            value={proofUrl}
+            onChange={setProofUrl}
+            folder="settlement-proofs"
+            cleanup={proofCleanup}
+            onUploadingChange={setIsUploadingProof}
+            showOpenLink
+            previewClassName="max-h-36 w-full bg-background/50 object-contain"
+            urlPlaceholder="https://... ảnh bill chuyển khoản"
+            disabled={actionLoading}
+          />
 
           {/* Optional Note */}
           <div className="space-y-1.5">
@@ -139,7 +140,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={actionLoading}
               className="text-xs font-bold"
             >
@@ -148,7 +149,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             <Button
               type="submit"
               size="sm"
-              disabled={actionLoading || !proofUrl.trim()}
+              disabled={actionLoading || isUploadingProof || !proofUrl.trim()}
               className="text-xs font-bold gap-1.5"
             >
               {actionLoading ? (

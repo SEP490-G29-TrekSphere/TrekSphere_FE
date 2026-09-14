@@ -27,6 +27,7 @@ export {
   GroupFeedTab,
   GroupPostCard,
 } from './components/workspace/feed';
+export { GroupPeerReviewModal } from './components/workspace/reviews/GroupPeerReviewModal';
 export { GroupSettlementTab } from './components/workspace/settlement';
 export * from './constants';
 // Phase 5 Hooks & Keys
@@ -70,6 +71,12 @@ export {
   useUpdateGroupCheckpoint,
   useUpdateGroupJourney,
 } from './hooks/useGroupJourneyWorkspace';
+export {
+  peerReviewKeys,
+  useGroupPeerReviews,
+  usePeerReviewCandidates,
+  useSubmitPeerReview,
+} from './hooks/useGroupPeerReviews';
 export { useGroupSettlement } from './hooks/useGroupSettlement';
 export { useJoinMatchingGroup } from './hooks/useJoinMatchingGroup';
 export { useLeaveMatchingGroup } from './hooks/useLeaveMatchingGroup';
@@ -110,6 +117,12 @@ export type {
 } from './services/companionGroupService';
 export { companionGroupService } from './services/companionGroupService';
 export { groupWorkspaceService } from './services/groupWorkspaceService';
+export type {
+  PeerReviewCandidate,
+  PeerReviewItem,
+  PeerReviewPayload,
+} from './services/peerReviewService';
+export { peerReviewService } from './services/peerReviewService';
 // Types, Constants, Validations
 export * from './types';
 export * from './validations';

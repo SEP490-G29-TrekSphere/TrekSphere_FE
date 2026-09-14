@@ -45,6 +45,7 @@ export const PATHS = {
 
   // Profile
   PROFILE: '/profile',
+  PUBLIC_PROFILE: '/profile/user/:userId',
   EDIT_PROFILE: '/profile/edit',
   /** Hồ sơ công khai của một người dùng khác (mở từ tên tác giả trong feed). */
   USER_PROFILE: '/users/:userId',

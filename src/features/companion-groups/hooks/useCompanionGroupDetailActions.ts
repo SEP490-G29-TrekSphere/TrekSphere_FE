@@ -12,7 +12,10 @@ import { useCancelJoinRequest } from './useCancelJoinRequest';
 import { useCompanionGroupChatActions } from './useCompanionGroupChatActions';
 import { useJoinMatchingGroup } from './useJoinMatchingGroup';
 import { useLeaveMatchingGroup } from './useLeaveMatchingGroup';
-import { useMatchingGroupLifecycle } from './useMatchingGroupLifecycle';
+import {
+  type MatchingGroupLifecycleAction,
+  useMatchingGroupLifecycle,
+} from './useMatchingGroupLifecycle';
 import { useRejectMember } from './useRejectMember';
 
 export type ActiveGroupModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | null;
@@ -156,7 +159,7 @@ export function useCompanionGroupDetailActions({
   }
 
   function handleLifecycleAction(
-    action: 'hide' | 'show' | 'close' | 'open',
+    action: MatchingGroupLifecycleAction,
     successMsg: string,
     errorMsg: string
   ) {
@@ -207,6 +210,18 @@ export function useCompanionGroupDetailActions({
         'open',
         'Đã mở lại tuyển thành viên cho nhóm.',
         'Không thể mở lại tuyển thành viên.'
+      ),
+    startTrip: () =>
+      handleLifecycleAction(
+        'start-trip',
+        'Chuyến đi đã chính thức bắt đầu! Chúc cả đoàn có một hành trình an toàn và trọn vẹn.',
+        'Không thể bắt đầu chuyến đi.'
+      ),
+    completeTrip: () =>
+      handleLifecycleAction(
+        'complete-trip',
+        'Chúc mừng cả đoàn đã hoàn thành chuyến đi! Bạn có thể bắt đầu đánh giá đồng đội.',
+        'Không thể hoàn thành chuyến đi.'
       ),
     openRequestModal,
     openAddMemberModal,

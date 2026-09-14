@@ -1,11 +1,4 @@
-export type ProfileTabId =
-  | 'hiking'
-  | 'blogs'
-  | 'photos'
-  | 'reviews'
-  | 'activities'
-  | 'completed'
-  | 'info';
+export type ProfileTabId = 'hiking' | 'moments' | 'reviews' | 'completed' | 'info';
 
 export interface ProfileTabDef {
   id: ProfileTabId;
@@ -13,15 +6,16 @@ export interface ProfileTabDef {
 }
 
 /**
- * Tab công khai theo reference AllTrails. `hiking` đứng đầu vì là phần hồ sơ
- * năng lực; `info` (thông tin cá nhân) chỉ thêm vào ở hồ sơ của chính mình.
+ * Tab công khai theo reference AllTrails: `hiking` là phần hồ sơ năng lực,
+ * `moments` lưu giữ khoảnh khắc check-in.
+ *
+ * `info` chỉ xuất hiện ở hồ sơ của chính mình và được ghép vào ĐẦU danh sách
+ * (xem `ProfileScreen`) — dữ liệu cá nhân là thứ chủ hồ sơ tra cứu nhiều nhất.
  */
 export const PROFILE_TABS: ProfileTabDef[] = [
   { id: 'hiking', label: 'Hồ sơ leo núi' },
-  { id: 'blogs', label: 'Bài viết' },
-  { id: 'photos', label: 'Ảnh' },
+  { id: 'moments', label: 'Khoảnh khắc' },
   { id: 'reviews', label: 'Đánh giá' },
-  { id: 'activities', label: 'Hoạt động' },
   { id: 'completed', label: 'Đã hoàn thành' },
 ];
 

@@ -1,5 +1,6 @@
 import { Clock, Compass, Eye, MapPin, MapPinned, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
+import { formatCheckpointTime } from '../../../utils/checkpointTime';
 
 interface CheckpointListSectionProps {
   checkpoints: CustomJourneyCheckpointResponse[];
@@ -130,7 +131,10 @@ export function CheckpointListSection({
                   {(cp.plannedStartAt || cp.plannedEndAt) && (
                     <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 font-medium text-muted-foreground">
                       <Clock className="h-3 w-3 shrink-0 text-primary" />
-                      {[cp.plannedStartAt, cp.plannedEndAt].filter(Boolean).join(' - ')}
+                      {[cp.plannedStartAt, cp.plannedEndAt]
+                        .map(formatCheckpointTime)
+                        .filter(Boolean)
+                        .join(' - ')}
                     </span>
                   )}
 

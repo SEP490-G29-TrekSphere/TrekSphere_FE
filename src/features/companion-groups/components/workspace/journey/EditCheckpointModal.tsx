@@ -1,17 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ImagePlus, Loader2, Pencil, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Loader2, Pencil, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { profileService } from '@/features/profile/services/profileService';
-import { AppModalShell } from '@/shared/ui';
+import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import {
   CHECKPOINT_DESCRIPTION_MAX_LENGTH,
   CHECKPOINT_LOCATION_MAX_LENGTH,
   CHECKPOINT_TITLE_MAX_LENGTH,
 } from '../../../constants/workspace';
-import { useUpdateGroupCheckpoint } from '../../../hooks/useGroupJourneyWorkspace';
+import { useGroupJourney, useUpdateGroupCheckpoint } from '../../../hooks/useGroupJourneyWorkspace';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
+import { formatCheckpointTime, toCheckpointDateTime } from '../../../utils/checkpointTime';
 import {
   type CheckpointFormValues,
   checkpointFormSchema,
@@ -31,8 +31,9 @@ export function EditCheckpointModal({
   checkpoint,
 }: EditCheckpointModalProps) {
   const updateCheckpoint = useUpdateGroupCheckpoint(groupId);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const newlyUploadedUrlRef = useRef<string | null>(null);
+  // Cần ngày bắt đầu hành trình để ghép với giờ nhập trong form thành LocalDateTime
+  const { data: journey } = useGroupJourney(groupId);
+  const imageCleanup = useImageUploadCleanup();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const checkpointId = checkpoint?.customJourneyCheckpointId || checkpoint?.id || '';
@@ -54,62 +55,17 @@ export function EditCheckpointModal({
       description: checkpoint?.description ?? '',
       latitude: checkpoint?.latitude ?? null,
       longitude: checkpoint?.longitude ?? null,
-      plannedStartAt: checkpoint?.plannedStartAt ?? '',
-      plannedEndAt: checkpoint?.plannedEndAt ?? '',
+      plannedStartAt: formatCheckpointTime(checkpoint?.plannedStartAt),
+      plannedEndAt: formatCheckpointTime(checkpoint?.plannedEndAt),
       imageUrl: checkpoint?.imageUrl ?? '',
     },
   });
 
   const imageUrl = watch('imageUrl');
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Kích thước ảnh tối đa là 5MB.');
-      return;
-    }
-
-    setIsUploadingImage(true);
-    try {
-      const res = await profileService.uploadFile(file, 'checkpoints');
-      if (res.data) {
-        // Nếu trước đó trong phiên sửa này đã upload 1 ảnh mới khác, xóa ảnh mới đó đi
-        if (newlyUploadedUrlRef.current && newlyUploadedUrlRef.current !== res.data) {
-          profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
-        }
-        newlyUploadedUrlRef.current = res.data;
-        setValue('imageUrl', res.data, { shouldValidate: true });
-        toast.success('Đã tải ảnh lên thành công!');
-      } else {
-        toast.error(res.error || 'Không thể tải ảnh lên. Vui lòng thử lại!');
-      }
-    } catch (err: any) {
-      toast.error(err?.message || 'Có lỗi xảy ra khi tải ảnh lên.');
-    } finally {
-      setIsUploadingImage(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleRemoveImage = () => {
-    // Nếu ảnh vừa bị xóa là ảnh mới tải lên trong phiên sửa này -> xóa khỏi Cloudinary
-    if (newlyUploadedUrlRef.current) {
-      profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
-      newlyUploadedUrlRef.current = null;
-    }
-    setValue('imageUrl', '');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
   function handleClose() {
     // Nếu có ảnh mới upload mà bấm hủy -> dọn rác Cloudinary
-    if (newlyUploadedUrlRef.current) {
-      profileService.deleteFile(newlyUploadedUrlRef.current).catch(() => {});
-      newlyUploadedUrlRef.current = null;
-    }
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    imageCleanup.discard();
     if (checkpoint) {
       reset({
         dayNo: checkpoint.dayNo ?? 1,
@@ -119,8 +75,8 @@ export function EditCheckpointModal({
         description: checkpoint.description ?? '',
         latitude: checkpoint.latitude ?? null,
         longitude: checkpoint.longitude ?? null,
-        plannedStartAt: checkpoint.plannedStartAt ?? '',
-        plannedEndAt: checkpoint.plannedEndAt ?? '',
+        plannedStartAt: formatCheckpointTime(checkpoint.plannedStartAt),
+        plannedEndAt: formatCheckpointTime(checkpoint.plannedEndAt),
         imageUrl: checkpoint.imageUrl ?? '',
       });
     } else {
@@ -131,8 +87,7 @@ export function EditCheckpointModal({
 
   useEffect(() => {
     if (checkpoint) {
-      newlyUploadedUrlRef.current = null;
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      imageCleanup.commit();
       reset({
         dayNo: checkpoint.dayNo ?? 1,
         checkpointOrder: checkpoint.checkpointOrder ?? 1,
@@ -141,12 +96,12 @@ export function EditCheckpointModal({
         description: checkpoint.description ?? '',
         latitude: checkpoint.latitude ?? null,
         longitude: checkpoint.longitude ?? null,
-        plannedStartAt: checkpoint.plannedStartAt ?? '',
-        plannedEndAt: checkpoint.plannedEndAt ?? '',
+        plannedStartAt: formatCheckpointTime(checkpoint.plannedStartAt),
+        plannedEndAt: formatCheckpointTime(checkpoint.plannedEndAt),
         imageUrl: checkpoint.imageUrl ?? '',
       });
     }
-  }, [checkpoint, reset]);
+  }, [checkpoint, reset, imageCleanup.commit]);
 
   if (!isOpen || !checkpoint) return null;
 
@@ -174,15 +129,19 @@ export function EditCheckpointModal({
             !Number.isNaN(values.longitude)
               ? Number(values.longitude)
               : null,
-          plannedStartAt: values.plannedStartAt?.trim() || null,
-          plannedEndAt: values.plannedEndAt?.trim() || null,
+          plannedStartAt: toCheckpointDateTime(
+            journey?.startDate,
+            values.dayNo,
+            values.plannedStartAt
+          ),
+          plannedEndAt: toCheckpointDateTime(journey?.startDate, values.dayNo, values.plannedEndAt),
           imageUrl: values.imageUrl?.trim() || null,
         },
       },
       {
         onSuccess: () => {
           toast.success('Cập nhật điểm dừng thành công!');
-          newlyUploadedUrlRef.current = null; // Đã lưu thành công
+          imageCleanup.commit(); // Đã lưu thành công
           handleClose();
         },
         onError: (err: any) => {
@@ -289,20 +248,18 @@ export function EditCheckpointModal({
             <div className="space-y-1">
               <label className="font-bold text-foreground">Bắt đầu dự kiến</label>
               <input
-                type="text"
+                type="time"
                 {...register('plannedStartAt')}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                placeholder="VD: 08:00"
               />
             </div>
 
             <div className="space-y-1">
               <label className="font-bold text-foreground">Kết thúc dự kiến</label>
               <input
-                type="text"
+                type="time"
                 {...register('plannedEndAt')}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                placeholder="VD: 11:30"
               />
             </div>
           </div>
@@ -331,54 +288,16 @@ export function EditCheckpointModal({
           </div>
 
           {/* Ảnh minh họa điểm dừng (Upload từ máy hoặc Nhập URL) */}
-          <div className="space-y-1.5">
-            <label className="font-bold text-foreground">Ảnh minh họa điểm dừng (Tùy chọn)</label>
-
-            {imageUrl ? (
-              <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
-                <img src={imageUrl} alt="Ảnh điểm dừng" className="h-36 w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute right-2 top-2 rounded-lg bg-black/60 p-1 text-white backdrop-blur-xs transition hover:bg-black/80 cursor-pointer"
-                  title="Gỡ ảnh"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 cursor-pointer"
-                  >
-                    <ImagePlus className="h-3.5 w-3.5 text-primary" />
-                    <span>Tải ảnh từ máy</span>
-                  </button>
-                  <span className="text-[11px] text-muted-foreground">hoặc dán đường dẫn URL:</span>
-                </div>
-
-                <input
-                  type="text"
-                  {...register('imageUrl')}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </div>
-            )}
-            {errors.imageUrl && (
-              <p className="text-[10px] text-red-500">{errors.imageUrl.message}</p>
-            )}
-          </div>
+          <AppImageUploadField
+            label="Ảnh minh họa điểm dừng (Tùy chọn)"
+            value={imageUrl}
+            onChange={(url) => setValue('imageUrl', url, { shouldValidate: true })}
+            folder="checkpoints"
+            cleanup={imageCleanup}
+            onUploadingChange={setIsUploadingImage}
+            disabled={updateCheckpoint.isPending}
+            errorMessage={errors.imageUrl?.message}
+          />
 
           {/* Mô tả hoạt động */}
           <div className="space-y-1">

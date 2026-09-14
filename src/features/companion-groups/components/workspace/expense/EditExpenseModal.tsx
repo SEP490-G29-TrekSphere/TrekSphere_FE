@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { AppModalShell } from '@/shared/ui';
+import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -59,6 +59,7 @@ export function EditExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>(expense?.splitMethod || 'EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
+  const receiptCleanup = useImageUploadCleanup();
 
   const {
     register,
@@ -84,6 +85,7 @@ export function EditExpenseModal({
   });
 
   const enteredAmount = useWatch({ control, name: 'amount' }) || expense?.amount || 0;
+  const receiptUrl = useWatch({ control, name: 'receiptUrl' });
 
   // Beneficiary members list
   const currentBeneficiaryMembers = useMemo(() => {
@@ -130,6 +132,7 @@ export function EditExpenseModal({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset modal state when opened
   useEffect(() => {
     if (isOpen && expense) {
+      receiptCleanup.commit();
       setScope(expense.beneficiaryScope || 'ALL_MEMBERS');
       setSelectedMembers(
         expense.shares && expense.shares.length > 0
@@ -261,6 +264,7 @@ export function EditExpenseModal({
         });
       }
 
+      receiptCleanup.commit();
       toast.success('Cập nhật khoản chi tiêu thành công!');
       onClose();
     } catch (err: unknown) {
@@ -270,12 +274,17 @@ export function EditExpenseModal({
     }
   };
 
+  const handleClose = () => {
+    receiptCleanup.discard();
+    onClose();
+  };
+
   if (!expense) return null;
 
   return (
     <AppModalShell
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       aria-label="Chỉnh sửa khoản chi tiêu"
       className="flex max-w-xl flex-col overflow-hidden border border-border p-0"
     >
@@ -294,7 +303,7 @@ export function EditExpenseModal({
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           disabled={updateExpenseMutation.isPending}
           className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50 cursor-pointer"
         >
@@ -576,36 +585,35 @@ export function EditExpenseModal({
           )}
         </div>
 
-        {/* Spent At & Receipt URL */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> Thời điểm chi tiền
-            </label>
-            <input
-              type="datetime-local"
-              {...register('spentAt')}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
-            </label>
-            <input
-              type="url"
-              placeholder="https://... (nếu có)"
-              {...register('receiptUrl')}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
-            />
-            {errors.receiptUrl && (
-              <p className="text-[11px] text-destructive font-medium">
-                {errors.receiptUrl.message}
-              </p>
-            )}
-          </div>
+        {/* Spent At */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> Thời điểm chi tiền
+          </label>
+          <input
+            type="datetime-local"
+            {...register('spentAt')}
+            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+          />
         </div>
+
+        {/* Receipt Image Upload & URL */}
+        <AppImageUploadField
+          label={
+            <span className="flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
+            </span>
+          }
+          value={receiptUrl}
+          onChange={(url) => setValue('receiptUrl', url, { shouldValidate: true })}
+          folder="expense-receipts"
+          cleanup={receiptCleanup}
+          showOpenLink
+          previewClassName="max-h-48 w-full bg-background/50 object-contain"
+          urlPlaceholder="https://... (nếu có)"
+          errorMessage={errors.receiptUrl?.message}
+          disabled={updateExpenseMutation.isPending}
+        />
 
         {/* Note */}
         <div className="space-y-1.5">
@@ -624,7 +632,7 @@ export function EditExpenseModal({
         <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={updateExpenseMutation.isPending}
             className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
           >
