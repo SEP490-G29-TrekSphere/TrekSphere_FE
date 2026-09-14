@@ -24,6 +24,7 @@ export const updateMatchingGroupSchema = z.object({
       `Mô tả tối đa ${MATCHING_GROUP_DESCRIPTION_MAX_LENGTH} ký tự`
     )
     .optional(),
+  coverImageUrl: z.string().url('URL ảnh không hợp lệ').optional().or(z.literal('')),
   maxSize: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() !== '' ? Number(value) : value),
     z

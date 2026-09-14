@@ -34,6 +34,7 @@ export interface CustomJourneyInput {
 interface MatchingGroupCreateBase {
   groupName: string;
   description?: string;
+  coverImageUrl?: string;
   maxSize: number;
   targetDate: string;
   matchingDeadline: string;
@@ -57,6 +58,7 @@ export type MatchingGroupCreateRequest = MatchingGroupCreateBase &
 export interface MatchingGroupUpdateRequest {
   groupName?: string;
   description?: string;
+  coverImageUrl?: string;
   maxSize?: number;
   targetDate?: string;
   matchingDeadline?: string;
@@ -78,6 +80,7 @@ export interface MatchingGroupItem {
   ownerId: string;
   ownerName: string;
   ownerAvatarUrl: string | null;
+  coverImageUrl?: string | null;
   tourImageUrl?: string | null;
   groupName: string;
   description: string | null;

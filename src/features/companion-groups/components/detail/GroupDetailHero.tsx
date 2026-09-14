@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { AppBadge } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { formatDate } from '@/utils/format';
+import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../../constants';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { JourneyDifficulty } from '../../types/matchingGroup';
 
@@ -19,6 +20,7 @@ interface GroupDetailHeroProps {
   groupName: string;
   tourName?: string | null;
   tourImageUrl?: string | null;
+  coverImageUrl?: string | null;
   location?: string | null;
   description?: string | null;
   status: MatchingGroupStatus;
@@ -54,6 +56,7 @@ export function GroupDetailHero({
   groupName,
   tourName,
   tourImageUrl,
+  coverImageUrl,
   location,
   description,
   status,
@@ -66,6 +69,7 @@ export function GroupDetailHero({
 }: GroupDetailHeroProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { label, variant } = statusConfig[status] ?? statusConfig.OPEN;
+  const heroImage = coverImageUrl || tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE;
 
   function handleShare() {
     if (navigator.clipboard) {
@@ -77,15 +81,14 @@ export function GroupDetailHero({
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-lg">
       <div className="relative h-64 sm:h-80 lg:h-96 w-full overflow-hidden bg-slate-900">
-        {tourImageUrl ? (
-          <img
-            src={tourImageUrl}
-            alt={tourName ?? groupName}
-            className="h-full w-full object-cover opacity-85 transition-transform duration-700 hover:scale-105"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary to-primary/60" />
-        )}
+        <img
+          src={heroImage}
+          alt={tourName ?? groupName}
+          onError={(e) => {
+            e.currentTarget.src = MATCHING_GROUP_FALLBACK_COVER_IMAGE;
+          }}
+          className="h-full w-full object-cover opacity-85 transition-transform duration-700 hover:scale-105"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
 
         {/* Top Floating Action Buttons */}

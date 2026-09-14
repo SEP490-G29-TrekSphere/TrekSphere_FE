@@ -21,6 +21,8 @@ export const MATCHING_GROUP_MIN_SIZE = 2;
 export const MATCHING_GROUP_MAX_SIZE = 100;
 export const MATCHING_GROUP_DEFAULT_SIZE = 4;
 export const MATCHING_GROUP_DEFAULT_SORT = 'createdAt-desc';
+export const MATCHING_GROUP_FALLBACK_COVER_IMAGE =
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80';
 
 export const JOURNEY_DIFFICULTY_OPTIONS = [
   { value: 'EASY', label: 'Dễ (Đi bộ nhẹ nhàng, thư giãn)' },

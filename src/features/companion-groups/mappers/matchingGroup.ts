@@ -1,3 +1,4 @@
+import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../constants';
 import type { CompanionGroup } from '../types';
 import type { MatchingGroupCreateRequest, MatchingGroupItem } from '../types/matchingGroup';
 import type { CreateTourMatchingGroupFormValues } from '../validations';
@@ -17,7 +18,7 @@ export interface MatchingGroupCardViewModel {
   ownerName: string;
   ownerAvatarUrl?: string;
   matchingDeadline?: string;
-  coverImageUrl?: string;
+  coverImageUrl: string;
   isOwner?: boolean;
   myRole?: import('../types/matchingGroup').MatchingMemberRole | null;
 }
@@ -43,7 +44,8 @@ export function toMatchingGroupCardViewModel(
       ownerName: group.ownerName,
       ownerAvatarUrl: group.ownerAvatarUrl ?? undefined,
       matchingDeadline: group.matchingDeadline,
-      coverImageUrl: group.tourImageUrl ?? undefined,
+      coverImageUrl:
+        group.coverImageUrl || group.tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
       isOwner: group.isOwner ?? false,
       myRole: group.myRole ?? null,
     };
@@ -61,7 +63,7 @@ export function toMatchingGroupCardViewModel(
     maxSize: group.maxMembers,
     ownerName: group.leader.name,
     ownerAvatarUrl: group.leader.avatarUrl,
-    coverImageUrl: group.thumbnailUrl,
+    coverImageUrl: group.thumbnailUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
   };
 }
 
@@ -73,6 +75,7 @@ export function toMatchingGroupCreateRequest(
     : `${values.matchingDeadline}T00:00:00`;
 
   const scheduledStartAt = `${values.targetDate}T08:00:00`;
+  const coverImageUrl = values.coverImageUrl?.trim() || undefined;
 
   if (values.sourceType === 'TOUR' && values.tourId) {
     return {
@@ -80,6 +83,7 @@ export function toMatchingGroupCreateRequest(
       tourId: values.tourId,
       groupName: values.groupName,
       description: values.description || undefined,
+      coverImageUrl,
       maxSize: values.maxSize,
       targetDate: values.targetDate,
       matchingDeadline,
@@ -91,6 +95,7 @@ export function toMatchingGroupCreateRequest(
     sourceType: 'CUSTOM_JOURNEY',
     groupName: values.groupName,
     description: values.description || undefined,
+    coverImageUrl,
     maxSize: values.maxSize,
     targetDate: values.targetDate,
     matchingDeadline,
