@@ -1,5 +1,6 @@
 import { Clock, MapPin, Route } from 'lucide-react';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
+import { formatCheckpointTime } from '../../utils/checkpointTime';
 
 interface GroupItineraryTabProps {
   group: MatchingGroupDetailResponse;
@@ -45,7 +46,10 @@ export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
                         <Clock className="h-3 w-3 text-amber-500" />
                         <span>
-                          {[cp.plannedStartAt, cp.plannedEndAt].filter(Boolean).join(' - ')}
+                          {[cp.plannedStartAt, cp.plannedEndAt]
+                            .map(formatCheckpointTime)
+                            .filter(Boolean)
+                            .join(' - ')}
                         </span>
                       </div>
                     )}

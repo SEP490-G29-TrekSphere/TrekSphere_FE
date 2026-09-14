@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { MOMENT_QUERY_ROOTS } from '@/features/moments/queryKeys';
+import type { MomentVisibility } from '@/features/moments/types';
 import { type UserMomentCreatePayload, userMomentService } from '../services/userMomentService';
 
 export const userMomentKeys = {
-  all: ['userMoments'] as const,
+  all: MOMENT_QUERY_ROOTS.personal,
   myList: (page?: number) => [...userMomentKeys.all, 'me', page] as const,
   myMap: () => [...userMomentKeys.all, 'me', 'map'] as const,
   userList: (userId: string, page?: number) =>
@@ -58,15 +60,12 @@ export function useCreatePersonalMoment() {
 export function useUpdatePersonalMomentVisibility() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      momentId,
-      visibility,
-    }: {
-      momentId: string;
-      visibility: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
-    }) => userMomentService.updatePersonalMomentVisibility(momentId, visibility),
+    mutationFn: ({ momentId, visibility }: { momentId: string; visibility: MomentVisibility }) =>
+      userMomentService.updatePersonalMomentVisibility(momentId, visibility),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userMomentKeys.all });
+      // Bài gốc có thể thuộc một nhóm ghép — bảng tin nhóm phải phản ánh quyền hiển thị mới.
+      queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.group });
     },
   });
 }
@@ -77,6 +76,7 @@ export function useDeletePersonalMoment() {
     mutationFn: (momentId: string) => userMomentService.deletePersonalMoment(momentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userMomentKeys.all });
+      queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.group });
     },
   });
 }

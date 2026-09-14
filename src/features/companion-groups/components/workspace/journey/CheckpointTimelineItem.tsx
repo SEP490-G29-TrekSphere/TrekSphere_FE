@@ -1,5 +1,6 @@
 import { Clock, Eye, MapPin, Navigation, Pencil, Trash2 } from 'lucide-react';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
+import { formatCheckpointTime } from '../../../utils/checkpointTime';
 
 interface CheckpointTimelineItemProps {
   checkpoint: CustomJourneyCheckpointResponse;
@@ -30,7 +31,9 @@ export function CheckpointTimelineItem({
 
   const timeRange =
     checkpoint.plannedStartAt || checkpoint.plannedEndAt
-      ? `${checkpoint.plannedStartAt ?? '—'} - ${checkpoint.plannedEndAt ?? '—'}`
+      ? `${formatCheckpointTime(checkpoint.plannedStartAt) || '—'} - ${
+          formatCheckpointTime(checkpoint.plannedEndAt) || '—'
+        }`
       : null;
 
   return (

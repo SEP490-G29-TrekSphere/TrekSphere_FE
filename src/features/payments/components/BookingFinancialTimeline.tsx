@@ -18,8 +18,7 @@ import { z } from 'zod';
 import { paymentService } from '@/features/payments/services/paymentService';
 import type { RefundTransaction } from '@/features/payments/types';
 import { bankDisplayName, bankNameFromBin, VIETNAM_BANKS } from '@/features/payments/utils/banks';
-import { profileService } from '@/features/profile/services/profileService';
-import { AppCard } from '@/shared/ui';
+import { AppCard, AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 interface BookingFinancialTimelineProps {
@@ -272,7 +271,9 @@ function VendorRefundActions({
   onSaved: () => void;
 }) {
   const [showManual, setShowManual] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
+  const receiptCleanup = useImageUploadCleanup();
   const form = useForm<ManualValues>({
     resolver: zodResolver(manualSchema),
     defaultValues: { note: '' },
@@ -295,19 +296,14 @@ function VendorRefundActions({
     onError: (error: Error) => toast.error(error.message),
   });
   const manualMutation = useMutation({
-    mutationFn: async ({ values, file }: { values: ManualValues; file: File }) => {
-      const upload = await profileService.uploadFile(file, 'refund-receipts');
-      if (!upload.data) throw new Error(upload.error || 'Không thể tải ảnh biên nhận lên.');
-      return paymentService.completeManualRefund(
-        refund.refundTransactionId,
-        upload.data,
-        values.note
-      );
-    },
+    mutationFn: ({ values, imageUrl }: { values: ManualValues; imageUrl: string }) =>
+      paymentService.completeManualRefund(refund.refundTransactionId, imageUrl, values.note),
     onSuccess: () => {
       toast.success('Đã gửi biên nhận. Refund đang chờ admin xác minh.');
+      // Ảnh đã thuộc về biên nhận đã gửi → không xóa nữa.
+      receiptCleanup.commit();
       setShowManual(false);
-      setReceiptFile(null);
+      setReceiptUrl('');
       form.reset();
       onSaved();
     },
@@ -338,7 +334,14 @@ function VendorRefundActions({
           )}
           <button
             type="button"
-            onClick={() => setShowManual((value) => !value)}
+            onClick={() => {
+              // Đóng khung gửi biên nhận giữa chừng → dọn ảnh đã lỡ upload.
+              if (showManual) {
+                receiptCleanup.discard();
+                setReceiptUrl('');
+              }
+              setShowManual((value) => !value);
+            }}
             className={SECONDARY_BUTTON}
           >
             Đã chuyển tiền, gửi biên nhận
@@ -349,11 +352,11 @@ function VendorRefundActions({
       {showManual && hasDestination && (
         <form
           onSubmit={form.handleSubmit((values) => {
-            if (!receiptFile) {
+            if (!receiptUrl.trim()) {
               toast.error('Vui lòng chọn ảnh biên nhận chuyển khoản.');
               return;
             }
-            manualMutation.mutate({ values, file: receiptFile });
+            manualMutation.mutate({ values, imageUrl: receiptUrl.trim() });
           })}
           className="mt-4 rounded-2xl border border-[#E7E5DE] bg-[#FAF9F6] p-4"
         >
@@ -362,21 +365,26 @@ function VendorRefundActions({
               Ghi chú (không bắt buộc)
               <input {...form.register('note')} className={FIELD_INPUT} />
             </label>
-            <label className={FIELD_LABEL}>
-              Ảnh biên nhận chuyển khoản
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
-                className="mt-1.5 block w-full rounded-xl border border-[#E7E5DE] bg-white px-3 py-2 text-xs text-[#5A6B62] file:mr-3 file:rounded-full file:border-0 file:bg-[#F2F0EB] file:px-3 file:py-1 file:font-bold file:text-[#1E3932]"
-              />
-              <span className="mt-1.5 block text-[10px] font-medium text-[#8E9A93]">
-                Biên nhận chỉ là bằng chứng gửi duyệt; refund chỉ hoàn tất sau khi admin xác minh.
-              </span>
-            </label>
+            <AppImageUploadField
+              label="Ảnh biên nhận chuyển khoản"
+              value={receiptUrl}
+              onChange={setReceiptUrl}
+              folder="refund-receipts"
+              cleanup={receiptCleanup}
+              onUploadingChange={setIsUploadingReceipt}
+              showOpenLink
+              previewClassName="max-h-48 w-full bg-white object-contain"
+              urlPlaceholder="https://... (nếu ảnh đã có sẵn trên mạng)"
+              hint="Biên nhận chỉ là bằng chứng gửi duyệt; refund chỉ hoàn tất sau khi admin xác minh."
+              disabled={manualMutation.isPending}
+            />
           </div>
           <div className="mt-3 flex justify-end">
-            <button type="submit" disabled={manualMutation.isPending} className={PRIMARY_BUTTON}>
+            <button
+              type="submit"
+              disabled={manualMutation.isPending || isUploadingReceipt}
+              className={PRIMARY_BUTTON}
+            >
               {manualMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Gửi biên nhận để admin duyệt
             </button>

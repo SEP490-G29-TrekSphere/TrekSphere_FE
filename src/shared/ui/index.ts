@@ -16,6 +16,14 @@
 
 // Portal Shared Blocks
 export * from '../components/portal';
+export {
+  AppImageUploadField,
+  type AppImageUploadFieldProps,
+  AppImageUploadGallery,
+  type AppImageUploadGalleryProps,
+  type ImageUploadCleanup,
+  useImageUploadCleanup,
+} from './components/AppImageUpload';
 export { AppModalShell, type AppModalShellProps } from './components/AppModalShell';
 export {
   AppScrollableTabs,
@@ -75,6 +83,12 @@ export {
 } from './form/AppFormPasswordInput';
 export { AppTagInput, type AppTagInputProps } from './form/AppTagInput';
 // Primitives
+export {
+  AppAvatar,
+  type AppAvatarProps,
+  type AppAvatarSize,
+  getAvatarInitials,
+} from './primitives/AppAvatar';
 export { AppBadge, type AppBadgeProps, type AppBadgeVariant } from './primitives/AppBadge';
 export {
   AppButton,

@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { MOMENT_QUERY_ROOTS } from '@/features/moments/queryKeys';
+import type { MomentVisibility } from '@/features/moments/types';
 import { type MomentCreatePayload, momentService } from '../services/momentService';
 
 export const momentKeys = {
-  all: ['group-moments'] as const,
+  all: MOMENT_QUERY_ROOTS.group,
   list: (groupId: string) => [...momentKeys.all, 'list', groupId] as const,
   album: (groupId: string) => [...momentKeys.all, 'album', groupId] as const,
   map: (groupId: string) => [...momentKeys.all, 'map', groupId] as const,
@@ -36,10 +38,14 @@ export function useCreateMoment(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: MomentCreatePayload) => momentService.createGroupMoment(groupId, payload),
-    onSuccess: () => {
+    onSuccess: (_created, payload) => {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.map(groupId) });
+      // Bài đăng công khai xuất hiện luôn trên tab Khoảnh khắc của hồ sơ cá nhân.
+      if (payload.visibility === 'PUBLIC_PROFILE') {
+        queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
+      }
     },
   });
 }
@@ -75,6 +81,8 @@ export function useDeleteMoment(groupId: string) {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.map(groupId) });
+      // Bài bị xóa cũng phải biến mất khỏi trang hồ sơ nếu trước đó đang công khai.
+      queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
     },
   });
 }
@@ -82,16 +90,13 @@ export function useDeleteMoment(groupId: string) {
 export function useUpdateMomentVisibility(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      momentId,
-      visibility,
-    }: {
-      momentId: string;
-      visibility: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
-    }) => momentService.updateMomentVisibility(groupId, momentId, visibility),
+    mutationFn: ({ momentId, visibility }: { momentId: string; visibility: MomentVisibility }) =>
+      momentService.updateMomentVisibility(groupId, momentId, visibility),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
+      // Đổi quyền hiển thị = thêm/bớt bài trên trang hồ sơ cá nhân.
+      queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
     },
   });
 }

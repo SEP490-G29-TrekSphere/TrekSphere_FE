@@ -9,9 +9,9 @@ import {
   VIETMAP_CONFIGURATION_MESSAGE,
 } from '@/shared/map/vietmapSetup';
 import { getSafeImageUrl } from '@/utils/sanitize';
-import type { MomentItem, MomentMapMarker, MomentMediaItem } from '../../../services/momentService';
+import type { MomentItem, MomentMapMarker, MomentMediaItem } from '../types';
 
-interface GroupMomentsMapPanelProps {
+interface MomentsMapPanelProps {
   markers: MomentMapMarker[];
   moments?: MomentItem[];
   onPreviewImage?: (imageUrl: string) => void;
@@ -19,13 +19,13 @@ interface GroupMomentsMapPanelProps {
   className?: string;
 }
 
-export function GroupMomentsMapPanel({
+export function MomentsMapPanel({
   markers,
   moments = [],
   onPreviewImage,
   onSelectMoment,
   className,
-}: GroupMomentsMapPanelProps) {
+}: MomentsMapPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<vietmapgl.Map | null>(null);
   const markersRef = useRef<vietmapgl.Marker[]>([]);

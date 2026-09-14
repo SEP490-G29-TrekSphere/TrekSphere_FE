@@ -3,7 +3,8 @@ import type {
   MomentItem,
   MomentMapMarker,
   MomentPaginationResponse,
-} from '@/features/companion-groups/services/momentService';
+  MomentVisibility,
+} from '@/features/moments/types';
 
 export interface UserMomentCreatePayload {
   caption?: string;
@@ -12,7 +13,7 @@ export interface UserMomentCreatePayload {
   latitude?: number;
   longitude?: number;
   altitude?: string;
-  visibility?: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
+  visibility?: MomentVisibility;
   mediaUrls: string[];
 }
 
@@ -213,7 +214,7 @@ export const userMomentService = {
 
   async updatePersonalMomentVisibility(
     momentId: string,
-    visibility: 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME'
+    visibility: MomentVisibility
   ): Promise<MomentItem> {
     const res = await ApiService<RawMomentItem>(
       `/users/me/moments/${momentId}/visibility`,

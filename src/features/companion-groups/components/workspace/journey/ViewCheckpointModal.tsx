@@ -1,6 +1,7 @@
 import { Calendar, MapPin } from 'lucide-react';
 import { AppModalShell } from '@/shared/ui';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
+import { formatCheckpointTime } from '../../../utils/checkpointTime';
 
 interface ViewCheckpointModalProps {
   checkpoint: CustomJourneyCheckpointResponse | null;
@@ -68,7 +69,8 @@ export function ViewCheckpointModal({ checkpoint, onClose }: ViewCheckpointModal
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Calendar className="h-3.5 w-3.5 text-primary" />
             <span>
-              Thời gian: {checkpoint.plannedStartAt || '—'} → {checkpoint.plannedEndAt || '—'}
+              Thời gian: {formatCheckpointTime(checkpoint.plannedStartAt) || '—'} →{' '}
+              {formatCheckpointTime(checkpoint.plannedEndAt) || '—'}
             </span>
           </div>
         )}

@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bold, ImagePlus, Info, Italic, Link2, List, Loader2 } from 'lucide-react';
+import { Bold, Info, Italic, Link2, List, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { profileService } from '@/features/profile/services/profileService';
+import { AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import type { CheckpointSubmitItem, CreateTourPayload } from '../types';
 import { type CheckpointDraft, CheckpointFields } from './CheckpointFields';
@@ -182,8 +182,11 @@ export function TourForm({
       (initialCheckpoints ?? []).map((c) => c.checkpointId).filter((id): id is string => !!id)
     )
   );
+  // Ảnh bìa + ảnh checkpoint đều upload ngay khi chọn, form chỉ giữ URL.
+  // `coverFile` chỉ để gửi kèm part multipart — xem ghi chú "ẢNH BÌA" trong `vendorTourService.ts`.
+  const imageCleanup = useImageUploadCleanup();
+  const [coverImageUrl, setCoverImageUrl] = useState(existingCoverImageUrl ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(existingCoverImageUrl ?? null);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   const {
@@ -199,33 +202,7 @@ export function TourForm({
 
   const difficulty = watch('difficulty');
 
-  const handleCoverChange = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh.');
-      return;
-    }
-    if (file.size > MAX_COVER_SIZE_MB * 1024 * 1024) {
-      toast.error(`Ảnh tối đa ${MAX_COVER_SIZE_MB}MB.`);
-      return;
-    }
-    setCoverPreview(URL.createObjectURL(file));
-    setCoverFile(file);
-  };
-
   const onSubmit = async (values: TourFormValues) => {
-    let coverImageUrl: string | undefined = existingCoverImageUrl;
-
-    if (coverFile) {
-      setIsUploadingImages(true);
-      const uploadRes = await profileService.uploadFile(coverFile, 'tours');
-      setIsUploadingImages(false);
-      if (uploadRes.error || !uploadRes.data) {
-        toast.error(uploadRes.error || 'Không thể tải ảnh bìa lên.');
-        return;
-      }
-      coverImageUrl = uploadRes.data;
-    }
-
     const payload: CreateTourPayload = {
       tourName: values.tourName,
       description: values.description,
@@ -235,7 +212,7 @@ export function TourForm({
       basePrice: values.basePrice,
       minCapacity: values.minCapacity,
       maxCapacity: values.maxCapacity,
-      coverImageUrl,
+      coverImageUrl: coverImageUrl.trim() || undefined,
       // Gửi kèm cả file thô — xem ghi chú "ẢNH BÌA" trong `vendorTourService.ts`.
       coverImage: coverFile ?? undefined,
       participationPolicy: {
@@ -266,18 +243,7 @@ export function TourForm({
     const checkpointItems: CheckpointSubmitItem[] = [];
 
     for (const [index, checkpoint] of activeCheckpoints.entries()) {
-      const imageUrls = [...checkpoint.imageUrls];
-
-      if (checkpoint.imageFiles.length > 0) {
-        setIsUploadingImages(true);
-        const uploadRes = await profileService.uploadFiles(checkpoint.imageFiles, 'checkpoints');
-        setIsUploadingImages(false);
-        if (uploadRes.error || !uploadRes.data) {
-          toast.error(uploadRes.error || 'Không thể tải ảnh checkpoint lên.');
-          return;
-        }
-        imageUrls.push(...uploadRes.data);
-      }
+      const imageUrls = checkpoint.imageUrls;
 
       checkpointItems.push({
         checkpointId: checkpoint.checkpointId,
@@ -300,7 +266,15 @@ export function TourForm({
       (id) => !keptIds.has(id)
     );
 
+    // Tour đã được gửi đi → ảnh không còn là rác nữa.
+    imageCleanup.commit();
     onSubmitProp(payload, checkpointItems, deletedCheckpointIds);
+  };
+
+  /** Bỏ form giữa chừng → xóa ảnh đã lỡ upload để không rác storage. */
+  const handleCancel = () => {
+    imageCleanup.discard();
+    onCancel();
   };
 
   const isSaving = isSubmitting || isUploadingImages || isParentSubmitting;
@@ -503,7 +477,12 @@ export function TourForm({
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6F7B75' }}>
               Lịch trình & Checkpoints
             </h3>
-            <CheckpointFields checkpoints={checkpoints} onChange={setCheckpoints} />
+            <CheckpointFields
+              checkpoints={checkpoints}
+              onChange={setCheckpoints}
+              imageCleanup={imageCleanup}
+              onUploadingChange={setIsUploadingImages}
+            />
           </section>
         </div>
 
@@ -546,32 +525,16 @@ export function TourForm({
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6F7B75' }}>
               Hình ảnh bìa
             </h3>
-            <label
-              htmlFor="coverImage"
-              className="flex aspect-[3/2] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl"
-              style={{ backgroundColor: '#F8F6EF', border: '1px dashed #D8D3C4' }}
-            >
-              {coverPreview ? (
-                <img src={coverPreview} alt="Ảnh bìa tour" className="h-full w-full object-cover" />
-              ) : (
-                <>
-                  <ImagePlus className="h-6 w-6" style={{ color: '#6F7B75' }} />
-                  <span className="text-xs font-semibold" style={{ color: '#6F7B75' }}>
-                    Chọn ảnh bìa
-                  </span>
-                </>
-              )}
-              <input
-                id="coverImage"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleCoverChange(file);
-                }}
-              />
-            </label>
+            <AppImageUploadField
+              value={coverImageUrl}
+              onChange={setCoverImageUrl}
+              onFileSelected={setCoverFile}
+              folder="tours"
+              cleanup={imageCleanup}
+              onUploadingChange={setIsUploadingImages}
+              maxSizeMb={MAX_COVER_SIZE_MB}
+              previewClassName="aspect-[3/2] w-full object-cover"
+            />
             <p className="flex items-start gap-1.5 text-xs" style={{ color: '#6F7B75' }}>
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               Hình ảnh đẹp sẽ giúp tour của bạn thu hút hơn. Kích thước khuyến nghị: 1200 x 800px.
@@ -715,7 +678,7 @@ export function TourForm({
       <div className="flex items-center justify-end gap-3">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="rounded-full px-5 py-2.5 text-sm font-semibold"
           style={{ backgroundColor: '#FFFFFF', border: '1px solid #D8D3C4', color: '#06261D' }}
         >

@@ -1,6 +1,5 @@
-import { CheckCircle2, Footprints } from 'lucide-react';
 import { useState } from 'react';
-import { PATHS } from '@/constants';
+import { getGroupDetailPath, PATHS } from '@/constants';
 import { AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { useProfile } from '../../hooks/useProfile';
@@ -10,13 +9,11 @@ import {
   useUserBlogs,
 } from '../../hooks/usePublicProfile';
 import type { HikingProfileView } from '../../types';
-import { ProfileBlogGrid } from './ProfileBlogGrid';
-import { ProfileComingSoon } from './ProfileComingSoon';
+import { ProfileCompletedTrips } from './ProfileCompletedTrips';
 import { ProfileHikingPanel } from './ProfileHikingPanel';
 import { ProfileIdentityCard } from './ProfileIdentityCard';
 import { ProfileInfoPanel } from './ProfileInfoPanel';
 import { ProfileMomentsPanel } from './ProfileMomentsPanel';
-import { ProfilePhotoGrid } from './ProfilePhotoGrid';
 import { ProfileRatingSummary } from './ProfileRatingSummary';
 import { PROFILE_INFO_TAB, PROFILE_TABS, type ProfileTabId, ProfileTabs } from './ProfileTabs';
 
@@ -31,6 +28,8 @@ interface ProfileScreenProps {
   changePasswordPath?: string;
   /** Trải rộng 100% full-width và căn sát lề (dùng trong portal có sidebar). */
   fluid?: boolean;
+  /** Sinh đường dẫn chi tiết nhóm ghép — khác nhau giữa MainLayout và TrekkerLayout. */
+  groupDetailPath?: (groupId: string) => string;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -55,6 +54,7 @@ export function ProfileScreen({
   editPath = PATHS.EDIT_PROFILE,
   changePasswordPath = PATHS.CHANGE_PASSWORD,
   fluid = false,
+  groupDetailPath = getGroupDetailPath,
 }: ProfileScreenProps) {
   const currentUser = useAppStore((state) => state.user);
 
@@ -73,12 +73,14 @@ export function ProfileScreen({
   // Mở hồ sơ công khai của chính mình vẫn nên thấy nút "Chỉnh sửa hồ sơ".
   const isOwnProfile = isMeMode || (Boolean(currentUser?.id) && currentUser?.id === userId);
 
-  const blogsQuery = useUserBlogs(resolvedUserId);
-  const posts = blogsQuery.data?.items ?? [];
-  const blogCount = blogsQuery.data?.meta.totalElements;
+  // Chỉ còn dùng cho số "Bài viết" trên card định danh — tab Bài viết/Ảnh đã gỡ khỏi hồ sơ.
+  const blogCount = useUserBlogs(resolvedUserId).data?.meta.totalElements;
 
-  const tabs = isMeMode ? [...PROFILE_TABS, PROFILE_INFO_TAB] : PROFILE_TABS;
-  const [activeTab, setActiveTab] = useState<ProfileTabId>('hiking');
+  // Hồ sơ của chính mình: "Thông tin" đứng đầu vì đây là phần người dùng vào xem/sửa nhiều nhất.
+  const tabs = isMeMode ? [PROFILE_INFO_TAB, ...PROFILE_TABS] : PROFILE_TABS;
+  // Vào hồ sơ của mình thì mở sẵn "Thông tin" (tab đầu tiên); xem hồ sơ người khác
+  // vẫn mở "Hồ sơ leo núi" vì đó mới là nội dung công khai đầu tiên của họ.
+  const [activeTab, setActiveTab] = useState<ProfileTabId>(isMeMode ? 'info' : 'hiking');
 
   const isLoading = isMeMode ? meQuery.isLoading : publicQuery.isLoading || hikingQuery.isLoading;
   const profileMissing = isMeMode ? meQuery.isError || !me : !isLoading && !other && !publicHiking;
@@ -120,10 +122,6 @@ export function ProfileScreen({
   const hikingSummary: HikingProfileView | null = isMeMode ? me : publicHiking;
   const roleLabel = isMeMode && me?.roles?.[0] ? ROLE_LABELS[me.roles[0]] : undefined;
 
-  const emptyBlogMessage = isOwnProfile
-    ? 'Bạn chưa đăng bài viết nào.'
-    : 'Người dùng này chưa có bài viết công khai.';
-
   const renderTab = () => {
     switch (activeTab) {
       case 'hiking':
@@ -142,39 +140,11 @@ export function ProfileScreen({
             currentUserId={currentUser?.id}
           />
         );
-      case 'blogs':
-        return (
-          <ProfileBlogGrid
-            posts={posts}
-            isLoading={blogsQuery.isLoading}
-            emptyMessage={emptyBlogMessage}
-          />
-        );
-      case 'photos':
-        return (
-          <ProfilePhotoGrid
-            posts={posts}
-            isLoading={blogsQuery.isLoading}
-            emptyMessage="Chưa có ảnh nào từ các bài viết."
-          />
-        );
       case 'reviews':
         return <ProfileRatingSummary userId={resolvedUserId} />;
-      case 'activities':
-        return (
-          <ProfileComingSoon
-            icon={Footprints}
-            title="Chưa có hoạt động"
-            description="Nhật ký hành trình và các chuyến đi đã tham gia sẽ xuất hiện ở đây khi tính năng được mở."
-          />
-        );
       case 'completed':
         return (
-          <ProfileComingSoon
-            icon={CheckCircle2}
-            title="Chưa có cung đường hoàn thành"
-            description="Danh sách cung đường đã chinh phục sẽ hiển thị tại đây khi tính năng được mở."
-          />
+          <ProfileCompletedTrips isOwnProfile={isOwnProfile} groupDetailPath={groupDetailPath} />
         );
       case 'info':
         return me ? <ProfileInfoPanel profile={me} /> : null;
