@@ -18,6 +18,7 @@ import { JoinGroupModal } from '../components/modals/JoinGroupModal';
 import { GroupSOSModal } from '../components/workspace/GroupSOSModal';
 import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
 import { GroupManagementPanel } from '../components/workspace/management/GroupManagementPanel';
+import { OpenLeaderElectionModal } from '../components/workspace/votes/OpenLeaderElectionModal';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
 import { useJoinRequests } from '../hooks/useJoinRequests';
@@ -44,6 +45,7 @@ export default function CompanionGroupDetailPage({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isElectionModalOpen, setIsElectionModalOpen] = useState(false);
 
   const applications = useJoinRequests(isOwner ? groupId : undefined, {
     status: 'PENDING',
@@ -161,6 +163,7 @@ export default function CompanionGroupDetailPage({
                       onOpenGroup={actions.openGroup}
                       onStartTrip={actions.startTrip}
                       onCompleteTrip={actions.completeTrip}
+                      onOpenLeaderElection={() => setIsElectionModalOpen(true)}
                     />
                   ) : undefined
                 }
@@ -284,6 +287,17 @@ export default function CompanionGroupDetailPage({
         onClose={() => setIsSosModalOpen(false)}
         leaderName={group.ownerName}
       />
+
+      {/* Leader Election Modal */}
+      {actions.currentUserRole === 'leader' && (
+        <OpenLeaderElectionModal
+          groupId={group.matchingGroupId}
+          isOpen={isElectionModalOpen}
+          onClose={() => setIsElectionModalOpen(false)}
+          members={group.members}
+          onSuccess={() => setIsElectionModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

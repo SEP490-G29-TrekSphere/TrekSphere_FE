@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Flag, Lock, Play, Settings, Unlock } from 'lucide-react';
+import { Eye, EyeOff, Flag, Lock, Play, Settings, Unlock, Vote } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../../services/companionGroupService';
 
 interface GroupManagementPanelProps {
@@ -14,6 +14,7 @@ interface GroupManagementPanelProps {
   onOpenGroup?: () => void;
   onStartTrip?: () => void;
   onCompleteTrip?: () => void;
+  onOpenLeaderElection?: () => void;
 }
 
 const STATUS_LABELS: Partial<Record<MatchingGroupStatus, string>> = {
@@ -49,6 +50,7 @@ export function GroupManagementPanel({
   onOpenGroup,
   onStartTrip,
   onCompleteTrip,
+  onOpenLeaderElection,
 }: GroupManagementPanelProps) {
   const isHidden = groupStatus === 'HIDDEN';
   const isClosed = groupStatus === 'CLOSED';
@@ -199,6 +201,27 @@ export function GroupManagementPanel({
           )}
         </div>
       </div>
+
+      {onOpenLeaderElection && (
+        <div className="space-y-2.5 border-border border-t pt-5">
+          <h4 className="font-bold text-muted-foreground text-xs uppercase tracking-wider">
+            Bầu cử & Giải tán nhóm
+          </h4>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            Đổi Trưởng nhóm chỉ thực hiện được qua bầu cử — toàn bộ thành viên bỏ phiếu, người nhiều
+            phiếu nhất thắng.
+          </p>
+          <button
+            type="button"
+            onClick={onOpenLeaderElection}
+            disabled={isLifecyclePending}
+            className={`${ACTION_BASE} border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 md:w-auto md:px-5`}
+          >
+            <Vote className="h-3.5 w-3.5" />
+            <span>Mở bầu Trưởng nhóm mới</span>
+          </button>
+        </div>
+      )}
     </section>
   );
 }

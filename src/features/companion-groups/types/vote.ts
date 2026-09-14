@@ -47,6 +47,16 @@ export interface CastBallotPayload {
   optionId: string;
 }
 
+/**
+ * Mở cuộc bầu Trưởng nhóm mới (voteType luôn là LEADER_ELECTION). Server tự dựng title
+ * cố định + option theo candidateMemberIds — không có title/optionLabels tự do như poll.
+ */
+export interface OpenLeaderElectionPayload {
+  reason: string;
+  closesAt: string;
+  candidateMemberIds: string[];
+}
+
 export interface GetGroupVotesParams {
   voteType?: GroupVoteType;
   status?: GroupVoteStatus;
