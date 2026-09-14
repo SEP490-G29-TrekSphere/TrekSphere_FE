@@ -1,6 +1,16 @@
-import { AlignLeft, Calendar, Clock, Gauge, Info, MapPin, Tag, Users } from 'lucide-react';
+import {
+  AlignLeft,
+  Calendar,
+  Clock,
+  Gauge,
+  ImageIcon,
+  Info,
+  MapPin,
+  Tag,
+  Users,
+} from 'lucide-react';
 import { Controller, type UseFormReturn } from 'react-hook-form';
-import { AppDatePicker } from '@/shared/ui';
+import { AppDatePicker, AppImageUploadField, type ImageUploadCleanup } from '@/shared/ui';
 import {
   JOURNEY_DIFFICULTY_OPTIONS,
   MATCHING_GROUP_DESCRIPTION_MAX_LENGTH,
@@ -22,6 +32,8 @@ interface CreateMatchingGroupFieldsProps {
   tours: TourOption[];
   isToursLoading: boolean;
   isPending: boolean;
+  cleanup: ImageUploadCleanup;
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
 interface FieldErrorProps {
@@ -49,6 +61,8 @@ export function CreateMatchingGroupFields({
   tours,
   isToursLoading,
   isPending,
+  cleanup,
+  onUploadingChange,
 }: CreateMatchingGroupFieldsProps) {
   const description = form.watch('description') ?? '';
   const sourceType = form.watch('sourceType') ?? 'CUSTOM_JOURNEY';
@@ -121,6 +135,32 @@ export function CreateMatchingGroupFields({
           <FieldError message={form.formState.errors.difficulty?.message} />
         </div>
       )}
+
+      {/* Group Cover Image */}
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
+          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          Ảnh nền nhóm
+          <span className="font-normal text-muted-foreground text-xs">(Không bắt buộc)</span>
+        </label>
+        <Controller
+          name="coverImageUrl"
+          control={form.control}
+          render={({ field }) => (
+            <AppImageUploadField
+              value={field.value || undefined}
+              onChange={(url) => field.onChange(url || '')}
+              cleanup={cleanup}
+              folder="matching-groups/covers"
+              label="Tải lên ảnh nền đại diện cho nhóm"
+              previewClassName="aspect-video w-full object-cover rounded-xl"
+              disabled={isPending}
+              onUploadingChange={onUploadingChange}
+            />
+          )}
+        />
+        <FieldError message={form.formState.errors.coverImageUrl?.message} />
+      </div>
 
       {/* Dates and Size Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

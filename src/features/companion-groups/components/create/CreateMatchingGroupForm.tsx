@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Info, Loader2, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants/paths';
 import { useTours } from '@/features/tours/hooks/useTours';
+import { useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { MATCHING_GROUP_LOOKUP_PAGE_SIZE } from '../../constants';
 import { useCreateMatchingGroup } from '../../hooks/useCreateMatchingGroup';
@@ -31,6 +33,9 @@ export function CreateMatchingGroupForm({
 }: CreateMatchingGroupFormProps) {
   const navigate = useNavigate();
   const createMutation = useCreateMatchingGroup();
+  const cleanup = useImageUploadCleanup();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   const { tours, isLoading: isToursLoading } = useTours({
     page: 0,
     size: MATCHING_GROUP_LOOKUP_PAGE_SIZE,
@@ -51,6 +56,11 @@ export function CreateMatchingGroupForm({
   // Ngày đi của nhóm sắp tạo không được đụng lịch mà người dùng đã cam kết.
   const conflicts = findConflicts({ start: targetDate, end: endDate });
 
+  function handleCancel() {
+    cleanup.discard();
+    onCancel();
+  }
+
   async function handleSubmit(values: CreateMatchingGroupFormValues) {
     if (findConflicts({ start: values.targetDate, end: values.endDate }).length > 0) {
       form.setError('targetDate', {
@@ -61,6 +71,7 @@ export function CreateMatchingGroupForm({
 
     try {
       const group = await createMutation.mutateAsync(toMatchingGroupCreateRequest(values));
+      cleanup.commit();
       toast.success('Tạo nhóm đồng hành thành công! Nhóm của bạn đã được đăng công khai.');
       form.reset();
       onCancel();
@@ -72,8 +83,8 @@ export function CreateMatchingGroupForm({
 
   const isPending = createMutation.isPending;
   const hasConflict = conflicts.length > 0;
-  // Chưa tải xong lịch cũ thì chưa kết luận được, khoá tạm nút tạo.
-  const isSubmitBlocked = hasConflict || isCheckingSchedule;
+  // Chưa tải xong lịch cũ hoặc đang upload ảnh thì khoá tạm nút tạo.
+  const isSubmitBlocked = hasConflict || isCheckingSchedule || isUploadingImage;
 
   return (
     <>
@@ -88,6 +99,8 @@ export function CreateMatchingGroupForm({
             tours={tours}
             isToursLoading={isToursLoading}
             isPending={isPending}
+            cleanup={cleanup}
+            onUploadingChange={setIsUploadingImage}
           />
           <ScheduleConflictNotice
             conflicts={conflicts}
@@ -106,7 +119,7 @@ export function CreateMatchingGroupForm({
       <div className="flex flex-col-reverse justify-end gap-3 border-border border-t bg-muted/20 px-6 py-4 sm:flex-row">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           disabled={isPending}
           className="rounded-lg border border-input bg-background px-6 py-2 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >

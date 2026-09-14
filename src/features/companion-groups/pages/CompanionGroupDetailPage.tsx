@@ -102,6 +102,7 @@ export default function CompanionGroupDetailPage({
           groupName={group.groupName}
           tourName={group.tourName}
           tourImageUrl={group.tourImageUrl}
+          coverImageUrl={group.coverImageUrl}
           location={group.location}
           description={group.description}
           status={group.status}
@@ -248,7 +249,7 @@ export default function CompanionGroupDetailPage({
           title: group.groupName,
           leaderName: group.ownerName,
           leaderAvatar: group.ownerAvatarUrl ?? undefined,
-          coverImageUrl: group.tourImageUrl ?? undefined,
+          coverImageUrl: group.coverImageUrl ?? group.tourImageUrl ?? undefined,
           departureDate: group.targetDate,
           targetDate: group.targetDate,
           endDate: group.customJourneyEndDate,

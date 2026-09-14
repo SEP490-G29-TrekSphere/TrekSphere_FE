@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlignLeft, Loader2, Save, Tag, Users, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { AppModalShell } from '@/shared/ui';
+import { AlignLeft, ImageIcon, Loader2, Save, Tag, Users, X } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import {
   MATCHING_GROUP_DESCRIPTION_MAX_LENGTH,
@@ -24,6 +25,8 @@ interface EditMatchingGroupModalProps {
 
 export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingGroupModalProps) {
   const updateMutation = useUpdateMatchingGroup();
+  const cleanup = useImageUploadCleanup();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<UpdateMatchingGroupFormInput, undefined, UpdateMatchingGroupFormValues>({
     resolver: zodResolver(updateMatchingGroupSchema),
@@ -31,10 +34,16 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
       groupName: group.groupName,
       description: group.description ?? '',
       maxSize: group.maxSize,
+      coverImageUrl: group.coverImageUrl ?? '',
     },
   });
 
   if (!isOpen) return null;
+
+  function handleClose() {
+    cleanup.discard();
+    onClose();
+  }
 
   async function handleSubmit(values: UpdateMatchingGroupFormValues) {
     try {
@@ -44,8 +53,10 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
           groupName: values.groupName,
           description: values.description,
           maxSize: values.maxSize,
+          coverImageUrl: values.coverImageUrl || undefined,
         },
       });
+      cleanup.commit();
       toast.success('Cập nhật thông tin nhóm ghép thành công!');
       onClose();
     } catch (error) {
@@ -61,13 +72,13 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
   return (
     <AppModalShell
       open
-      onClose={onClose}
+      onClose={handleClose}
       aria-label="Chỉnh sửa thông tin nhóm"
       className="flex max-h-[90vh] max-w-lg flex-col overflow-hidden border border-border p-0"
     >
       <button
         type="button"
-        onClick={onClose}
+        onClick={handleClose}
         className="absolute top-4 right-4 z-10 rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
         aria-label="Đóng"
       >
@@ -77,7 +88,7 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
       <div className="border-border border-b bg-muted/30 px-6 py-5">
         <h2 className="font-bold text-foreground text-xl">Chỉnh sửa thông tin nhóm</h2>
         <p className="mt-1 text-muted-foreground text-xs">
-          Cập nhật tên nhóm, mô tả hoặc số lượng thành viên tối đa.
+          Cập nhật tên nhóm, ảnh nền, mô tả hoặc số lượng thành viên tối đa.
         </p>
       </div>
 
@@ -103,6 +114,36 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
           />
           {form.formState.errors.groupName && (
             <p className="text-destructive text-xs">{form.formState.errors.groupName.message}</p>
+          )}
+        </div>
+
+        {/* Group Cover Image */}
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-2 font-semibold text-foreground text-xs">
+            <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+            Ảnh nền nhóm
+            <span className="font-normal text-muted-foreground text-[11px]">(Không bắt buộc)</span>
+          </label>
+          <Controller
+            name="coverImageUrl"
+            control={form.control}
+            render={({ field }) => (
+              <AppImageUploadField
+                value={field.value || undefined}
+                onChange={(url) => field.onChange(url || '')}
+                cleanup={cleanup}
+                folder="matching-groups/covers"
+                label="Tải lên ảnh nền đại diện cho nhóm"
+                previewClassName="aspect-video w-full object-cover rounded-xl"
+                disabled={isPending}
+                onUploadingChange={setIsUploadingImage}
+              />
+            )}
+          />
+          {form.formState.errors.coverImageUrl && (
+            <p className="text-destructive text-xs">
+              {form.formState.errors.coverImageUrl.message}
+            </p>
           )}
         </div>
 
@@ -159,7 +200,7 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
       <div className="flex justify-end gap-3 border-border border-t bg-muted/20 px-6 py-4">
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           disabled={isPending}
           className="rounded-lg border border-input bg-background px-4 py-2 font-medium text-muted-foreground text-xs hover:bg-muted hover:text-foreground cursor-pointer disabled:opacity-50"
         >
@@ -168,7 +209,7 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
         <button
           type="submit"
           form="edit-matching-group-form"
-          disabled={isPending}
+          disabled={isPending || isUploadingImage}
           className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-5 py-2 font-medium text-primary-foreground text-xs hover:bg-primary-hover cursor-pointer disabled:opacity-50"
         >
           {isPending ? (
