@@ -1,6 +1,8 @@
-import { Star } from 'lucide-react';
+import { Siren, Star } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { AppButton } from '@/shared/ui';
+import { useActiveSosAlerts } from '../../hooks/sos/useActiveSosAlerts';
+import { useSosSocket } from '../../hooks/sos/useSosSocket';
 import { usePeerReviewCandidates } from '../../hooks/useGroupPeerReviews';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
@@ -12,6 +14,8 @@ import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
 import { GroupPeerReviewsTab } from './reviews/GroupPeerReviewsTab';
+import { GroupSosTab } from './sos/GroupSosTab';
+import { SosLocationMap } from './sos/SosLocationMap';
 import { type WorkspaceTabKey, WorkspaceTabsNav } from './WorkspaceTabsNav';
 
 export type { WorkspaceTabKey };
@@ -43,6 +47,9 @@ export function GroupWorkspace({
 }: GroupWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('overview');
 
+  useSosSocket(group.matchingGroupId);
+  const { data: activeSosAlerts = [] } = useActiveSosAlerts(group.matchingGroupId);
+
   const isTripEnded = group.status === 'COMPLETED';
   const { data: candidates = [] } = usePeerReviewCandidates(group.matchingGroupId, isTripEnded);
   const unreviewedCount = candidates.filter((candidate) => !candidate.isReviewed).length;
@@ -57,6 +64,38 @@ export function GroupWorkspace({
 
   return (
     <div className="space-y-6">
+      {/* STICKY BANNER: TÍN HIỆU SOS ĐANG MỞ (hiển thị ở mọi tab, ưu tiên trên cùng) */}
+      {activeSosAlerts.length > 0 && (
+        <div className="rounded-2xl border-2 border-destructive/60 bg-destructive/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2 text-destructive font-extrabold text-xs uppercase">
+            <Siren className="h-4 w-4 animate-pulse" />
+            <span>
+              {activeSosAlerts.length} tín hiệu SOS đang mở trong nhóm — cần hỗ trợ khẩn cấp!
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {activeSosAlerts.map((alert) => (
+              <div
+                key={alert.sosAlertId}
+                className="flex items-center justify-between gap-2 rounded-xl bg-background/80 px-3 py-2 text-xs"
+              >
+                <span className="font-bold text-foreground">
+                  {alert.senderName} • {new Date(alert.createdAt).toLocaleTimeString('vi-VN')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sos')}
+                  className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition cursor-pointer"
+                >
+                  Xem chi tiết
+                </button>
+              </div>
+            ))}
+          </div>
+          <SosLocationMap alerts={activeSosAlerts} heightClassName="h-[200px]" />
+        </div>
+      )}
+
       {isTripEnded && unreviewedCount > 0 && (
         <div className="flex flex-col justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
@@ -90,6 +129,10 @@ export function GroupWorkspace({
               : undefined,
           requests: { value: pendingJoinRequestsCount, tone: 'danger' },
           members: { value: acceptedMembers.length, tone: 'muted' },
+          sos:
+            activeSosAlerts.length > 0
+              ? { value: activeSosAlerts.length, tone: 'danger' }
+              : undefined,
         }}
       />
 
@@ -165,6 +208,14 @@ export function GroupWorkspace({
       )}
 
       {activeTab === 'rules' && <GroupRulesTab group={group} />}
+
+      {activeTab === 'sos' && (
+        <GroupSosTab
+          groupId={group.matchingGroupId}
+          currentUserId={currentUserId}
+          isLeader={isLeader}
+        />
+      )}
 
       {activeTab === 'management' && isLeader && managementSlot}
     </div>

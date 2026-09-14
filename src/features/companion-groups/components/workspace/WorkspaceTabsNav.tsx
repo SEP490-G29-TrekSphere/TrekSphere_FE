@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Radio,
   Settings,
+  Siren,
   Star,
   UserCheck,
   Users,
@@ -24,6 +25,7 @@ export type WorkspaceTabKey =
   | 'requests'
   | 'budget'
   | 'rules'
+  | 'sos'
   | 'management';
 
 interface WorkspaceTabDef {
@@ -43,6 +45,7 @@ export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
   { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
   { id: 'rules', label: 'Quy định nhóm', icon: FileText },
+  { id: 'sos', label: 'SOS', icon: Siren },
   { id: 'management', label: 'Quản lý nhóm', icon: Settings, leaderOnly: true },
 ];
 

@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2, MessageSquare, Send } from 'lucide-react';
+import { CheckCircle2, Loader2, MessageSquare, Send, Siren } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
@@ -11,6 +11,7 @@ interface GroupActionPanelProps {
   onLeave: () => void;
   onCancelRequest: () => void;
   onCreateGroupChat: () => void;
+  onOpenSos?: () => void;
   acceptedMembersCount: number;
   hasConversation?: boolean;
   isInConversation?: boolean;
@@ -32,11 +33,13 @@ export function GroupActionPanel({
   onLeave,
   onCancelRequest,
   onCreateGroupChat,
+  onOpenSos,
   acceptedMembersCount,
   hasConversation,
   isInConversation,
 }: GroupActionPanelProps) {
   const isMemberOrLeader = role === 'leader' || role === 'member';
+  const canSendSos = isMemberOrLeader && groupStatus === 'IN_PROGRESS' && Boolean(onOpenSos);
 
   return (
     <div className="space-y-4">
@@ -93,6 +96,18 @@ export function GroupActionPanel({
             </div>
           )}
         </div>
+      )}
+
+      {/* SOS card: Leader hoặc Member, chỉ hiện khi chuyến đi đang IN_PROGRESS */}
+      {canSendSos && (
+        <button
+          type="button"
+          onClick={onOpenSos}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-destructive py-3 text-xs font-black text-destructive-foreground shadow-md hover:bg-destructive/90 transition-colors cursor-pointer animate-pulse"
+        >
+          <Siren className="h-4 w-4" />
+          <span>Gửi tín hiệu SOS</span>
+        </button>
       )}
 
       {/* 2. Role-based action card */}

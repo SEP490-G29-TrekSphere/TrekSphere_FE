@@ -15,6 +15,7 @@ import { GroupOverviewTab } from '../components/detail/GroupOverviewTab';
 import { GroupRulesTab } from '../components/detail/GroupRulesTab';
 import { JoinRequestsCard } from '../components/detail/JoinRequestsCard';
 import { JoinGroupModal } from '../components/modals/JoinGroupModal';
+import { GroupSOSModal } from '../components/workspace/GroupSOSModal';
 import { GroupWorkspace } from '../components/workspace/GroupWorkspace';
 import { GroupManagementPanel } from '../components/workspace/management/GroupManagementPanel';
 import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
@@ -42,6 +43,7 @@ export default function CompanionGroupDetailPage({
   const [applicationPage, setApplicationPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
 
   const applications = useJoinRequests(isOwner ? groupId : undefined, {
     status: 'PENDING',
@@ -212,6 +214,7 @@ export default function CompanionGroupDetailPage({
               onLeave={() => actions.setActiveModal('leave')}
               onCancelRequest={() => actions.setActiveModal('leave')}
               onCreateGroupChat={actions.openGroupChat}
+              onOpenSos={() => setIsSosModalOpen(true)}
               acceptedMembersCount={
                 group.members.filter((member) => member.status === 'ACCEPTED').length
               }
@@ -270,6 +273,14 @@ export default function CompanionGroupDetailPage({
           group={group}
         />
       )}
+
+      {/* SOS Alert Modal */}
+      <GroupSOSModal
+        groupId={group.matchingGroupId}
+        isOpen={isSosModalOpen}
+        onClose={() => setIsSosModalOpen(false)}
+        leaderName={group.ownerName}
+      />
     </div>
   );
 }

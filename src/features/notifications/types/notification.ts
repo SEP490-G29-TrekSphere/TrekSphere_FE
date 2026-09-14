@@ -30,6 +30,8 @@ export type NotificationEventType =
   | 'REFUND_MANUAL_REVIEW'
   | 'REFUND_OVERDUE'
   | 'REFUND_COMPLETED'
+  | 'SOS_ALERT_RAISED'
+  | 'SOS_ALERT_RESOLVED'
   | (string & {});
 
 export type NotificationReferenceType =
