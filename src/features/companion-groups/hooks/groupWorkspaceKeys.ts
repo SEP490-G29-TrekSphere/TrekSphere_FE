@@ -31,11 +31,15 @@ export const groupWorkspaceKeys = {
   equipment: (groupId: string) => [...groupWorkspaceKeys.all, 'equipment', groupId] as const,
   members: (groupId: string) => [...groupWorkspaceKeys.all, 'members', groupId] as const,
   peerReviews: (groupId: string) => [...groupWorkspaceKeys.all, 'peer-reviews', groupId] as const,
-  succession: (groupId: string) => [...groupWorkspaceKeys.all, 'succession', groupId] as const,
-  dissolve: (groupId: string) => [...groupWorkspaceKeys.all, 'dissolve', groupId] as const,
 
   // Phase 7 Keys (SOS Alert)
   sosActive: (groupId: string) => [...groupWorkspaceKeys.all, 'sos-active', groupId] as const,
   sosHistory: (groupId: string, page?: number, size?: number) =>
     [...groupWorkspaceKeys.all, 'sos-history', groupId, { page, size }] as const,
+
+  // Phase 4 Keys (Group Vote: general poll, leader election, dissolution)
+  votes: (groupId: string, voteType?: string, status?: string, page?: number, size?: number) =>
+    [...groupWorkspaceKeys.all, 'votes', groupId, { voteType, status, page, size }] as const,
+  voteDetail: (groupId: string, voteId: string) =>
+    [...groupWorkspaceKeys.all, 'vote-detail', groupId, voteId] as const,
 };

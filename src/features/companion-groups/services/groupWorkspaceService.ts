@@ -620,22 +620,8 @@ export const groupWorkspaceService = {
   async checkInCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
   async skipCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getDissolveRequest(_groupId: string): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async createDissolveRequest(_groupId: string, _reason: string): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async voteDissolveRequest(_groupId: string, _requestId: string, _vote: string): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async cancelDissolveRequest(_groupId: string): Promise<any> {
-    return null;
-  },
+  // Dissolution request/vote: thay bằng voteService.ts (group_vote, voteType=GROUP_DISSOLUTION)
+  // theo BE Phase 4 — không dùng mô hình group_dissolution_request riêng.
 
   async getEquipment(_groupId: string): Promise<EquipmentItemDto[]> {
     return [];
@@ -675,33 +661,8 @@ export const groupWorkspaceService = {
   },
   async submitPeerReview(_groupId: string, _payload: PeerReviewPayload): Promise<void> {},
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getSuccessionRequest(_groupId: string): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async createSuccessionRequest(
-    _groupId: string,
-    _data: { reason: string; nomineeId: string }
-  ): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async appointLeaderDirect(_groupId: string, _data: { nomineeId: string }): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async voteSuccessionRequest(
-    _groupId: string,
-    _requestId: string,
-    _vote: 'YES' | 'NO'
-  ): Promise<any> {
-    return null;
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async cancelSuccessionRequest(_groupId: string): Promise<any> {
-    return null;
-  },
+  // Leader election/succession: thay bằng voteService.ts (group_vote, voteType=LEADER_ELECTION)
+  // theo BE Phase 4 — không có appointLeaderDirect (direct-transfer bị cấm, xem DG-23).
 
   // ==========================================
   // STAGE P6-S2: GROUP EXPENSE & SHARES

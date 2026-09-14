@@ -32,6 +32,10 @@ export type NotificationEventType =
   | 'REFUND_COMPLETED'
   | 'SOS_ALERT_RAISED'
   | 'SOS_ALERT_RESOLVED'
+  | 'GROUP_VOTE_OPENED'
+  | 'GROUP_VOTE_CLOSED'
+  | 'GROUP_LEADER_CHANGED'
+  | 'MATCHING_GROUP_CANCELLED'
   | (string & {});
 
 export type NotificationReferenceType =
