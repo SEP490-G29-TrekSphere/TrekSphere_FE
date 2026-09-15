@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Bell,
   Building2,
   ClipboardCheck,
   Database,
@@ -27,6 +28,7 @@ const adminNavItems = [
   { name: 'Quản lý Bài Viết', path: PATHS.ADMIN_BLOGS, icon: Newspaper },
   { name: 'Quản lý Dữ liệu', path: PATHS.ADMIN_DATA, icon: Database, disabled: true },
   { name: 'Trò chuyện', path: PATHS.ADMIN_CHAT, icon: MessageSquare },
+  { name: 'Thông báo', path: PATHS.ADMIN_NOTIFICATIONS, icon: Bell },
 ];
 
 export default function AdminLayout() {

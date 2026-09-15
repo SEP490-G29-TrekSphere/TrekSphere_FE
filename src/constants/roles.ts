@@ -154,3 +154,18 @@ export function getRoleChatPath(roles: string[] | undefined | null): string {
       return PATHS.TREKKER_CHAT;
   }
 }
+
+/**
+ * Trả về trang "Thông báo" tương ứng với role của user.
+ * Guest/role lạ dùng chung trang thông báo của Trekker.
+ */
+export function getRoleNotificationsPath(roles: string[] | undefined | null): string {
+  switch (getPrimaryRole(roles)) {
+    case ROLES.ADMIN:
+      return PATHS.ADMIN_NOTIFICATIONS;
+    case ROLES.VENDOR:
+      return PATHS.VENDOR_NOTIFICATIONS;
+    default:
+      return PATHS.TREKKER_NOTIFICATIONS;
+  }
+}

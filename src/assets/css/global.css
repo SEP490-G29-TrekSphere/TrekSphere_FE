@@ -225,6 +225,31 @@
     font-family: "Inter", sans-serif;
   }
 
+  /* Chỉ hiện thanh cuộn khi di chuột vào khung — ẩn mặc định, không đổi hành vi overflow-y-auto */
+  .scrollbar-hover {
+    scrollbar-width: none;
+  }
+  .scrollbar-hover:hover {
+    scrollbar-width: thin;
+  }
+  .scrollbar-hover::-webkit-scrollbar {
+    width: 0px;
+    transition: width 0.15s ease;
+  }
+  .scrollbar-hover:hover::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-hover::-webkit-scrollbar-track {
+    background: var(--color-muted);
+  }
+  .scrollbar-hover::-webkit-scrollbar-thumb {
+    background: var(--color-secondary);
+    border-radius: 3px;
+  }
+  .scrollbar-hover::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
+
   /* Slider — hide native scrollbar */
   .hide-scrollbar {
     -ms-overflow-style: none;

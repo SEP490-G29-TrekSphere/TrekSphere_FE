@@ -1,4 +1,5 @@
 import {
+  Bell,
   ClipboardCheck,
   LayoutGrid,
   LogOut,
@@ -9,6 +10,7 @@ import {
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
 import { AppLogo } from '@/shared/ui';
@@ -25,6 +27,7 @@ const navItems = [
   },
   { name: 'Viết Blog', path: PATHS.VENDOR_BLOG_CREATE, icon: PenSquare, disabled: false },
   { name: 'Trò chuyện', path: PATHS.VENDOR_CHAT, icon: MessageSquare, disabled: false },
+  { name: 'Thông báo', path: PATHS.VENDOR_NOTIFICATIONS, icon: Bell, disabled: false },
 ];
 
 export default function VendorManagerLayout() {
@@ -48,6 +51,7 @@ export default function VendorManagerLayout() {
       sidebarStyle={{ backgroundColor: '#EFECE6', borderRight: '1px solid #E0DCD1' }}
       mobileTitle="TrekSphere"
       fullBleed={isChatPage}
+      headerRight={<NotificationBell />}
       brand={({ collapsed }) =>
         collapsed ? (
           <AppLogo

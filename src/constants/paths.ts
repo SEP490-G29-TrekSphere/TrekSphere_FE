@@ -68,6 +68,7 @@ export const PATHS = {
   TREKKER_BLOG_EDIT: '/trekker/blog/edit/:blogId',
   TREKKER_CHANGE_PASSWORD: '/trekker/change-password',
   TREKKER_CHAT: '/trekker/chat',
+  TREKKER_NOTIFICATIONS: '/trekker/notifications',
 
   // Admin
   ADMIN: '/admin',
@@ -83,6 +84,7 @@ export const PATHS = {
   ADMIN_REPORT_DETAIL: '/admin/reports/:id',
   ADMIN_EMERGENCY: '/admin/emergency',
   ADMIN_CHAT: '/admin/chat',
+  ADMIN_NOTIFICATIONS: '/admin/notifications',
 
   // Vendor portal (unified)
   VENDOR: '/vendor',
@@ -95,6 +97,7 @@ export const PATHS = {
   VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
   VENDOR_BLOG_CREATE: '/vendor/blog/create',
   VENDOR_CHAT: '/vendor/chat',
+  VENDOR_NOTIFICATIONS: '/vendor/notifications',
 
   // Vendor Manager (Legacy - redirected to /vendor)
   VENDOR_MANAGER: '/vendor-manager',

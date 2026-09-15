@@ -2,11 +2,11 @@ import { Bell } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { PortalPagination } from '@/shared/ui';
 import { useMarkAllAsRead } from '../hooks/useMarkAllAsRead';
 import { useMarkAsRead } from '../hooks/useMarkAsRead';
 import { useNotifications } from '../hooks/useNotifications';
 import { useUnreadCount } from '../hooks/useUnreadCount';
-import NotificationsLayout from '../layout/NotificationsLayout';
 import type { NotificationResponse } from '../types/notification';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
 
@@ -14,6 +14,8 @@ const filterTabs: { key: 'all' | 'unread'; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
   { key: 'unread', label: 'Chưa đọc' },
 ];
+
+const PAGE_SIZE = 10;
 
 interface NotificationItemProps {
   notification: NotificationResponse;
@@ -71,18 +73,32 @@ const NotificationItem = memo(function NotificationItem({
 
 export default function Notifications() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');
+  const [currentPage, setCurrentPage] = useState(0);
   const navigate = useNavigate();
 
   const { data: unreadCount } = useUnreadCount();
   const { data, isLoading, isError } = useNotifications({
-    page: 1,
-    size: 20,
+    page: currentPage + 1,
+    size: PAGE_SIZE,
     isRead: activeFilter === 'unread' ? false : undefined,
   });
   const { mutate: markAsRead } = useMarkAsRead();
   const { mutate: markAllAsRead } = useMarkAllAsRead();
 
   const notifications = data?.content ?? [];
+  const totalElements = data?.totalElements ?? 0;
+  const totalPages = data?.totalPages ?? 0;
+
+  const handleFilterChange = (filter: 'all' | 'unread') => {
+    setActiveFilter(filter);
+    setCurrentPage(0);
+  };
+
+  const handlePageChange = (pageIndex: number) => {
+    if (pageIndex >= 0 && pageIndex < totalPages) {
+      setCurrentPage(pageIndex);
+    }
+  };
 
   const handleItemClick = (notification: NotificationResponse) => {
     if (!notification.isRead) {
@@ -94,84 +110,93 @@ export default function Notifications() {
   };
 
   return (
-    <NotificationsLayout>
-      <div className="mx-auto max-w-[800px] px-4 py-10 animate-fade-in">
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-1">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Thông báo</h1>
-            {(unreadCount ?? 0) > 0 && (
-              <button
-                type="button"
-                onClick={() => markAllAsRead()}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
-              >
-                Đánh dấu đã đọc tất cả
-              </button>
-            )}
-          </div>
-          <p className="text-base text-muted-foreground">
-            Cập nhật những hoạt động mới nhất từ chuyến đi của bạn.
-          </p>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {filterTabs.map((tab) => {
-            const isActive = activeFilter === tab.key;
-            return (
-              <button
-                type="button"
-                key={tab.key}
-                onClick={() => setActiveFilter(tab.key)}
-                className={cn(
-                  'px-4 py-2 text-sm font-medium rounded-full transition-all',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'border border-input bg-background text-muted-foreground hover:text-foreground hover:border-foreground/20'
-                )}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Notification Container */}
-        <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-muted-foreground">Đang tải...</p>
-            </div>
-          ) : isError ? (
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-destructive">Không thể tải thông báo. Vui lòng thử lại.</p>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-              <div className="flex size-14 items-center justify-center rounded-full bg-muted">
-                <Bell className="size-7 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Không có thông báo nào</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {activeFilter === 'all'
-                    ? 'Bạn đã đọc tất cả thông báo'
-                    : 'Không có thông báo chưa đọc'}
-                </p>
-              </div>
-            </div>
-          ) : (
-            notifications.map((notification) => (
-              <NotificationItem
-                key={notification.notificationId}
-                notification={notification}
-                onClick={handleItemClick}
-              />
-            ))
+    <div className="mx-auto max-w-[800px] animate-fade-in">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Thông báo</h1>
+          {(unreadCount ?? 0) > 0 && (
+            <button
+              type="button"
+              onClick={() => markAllAsRead()}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline cursor-pointer"
+            >
+              Đánh dấu đã đọc tất cả
+            </button>
           )}
         </div>
+        <p className="text-base text-muted-foreground">
+          Cập nhật những hoạt động mới nhất từ chuyến đi của bạn.
+        </p>
       </div>
-    </NotificationsLayout>
+
+      {/* Filter Tabs */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {filterTabs.map((tab) => {
+          const isActive = activeFilter === tab.key;
+          return (
+            <button
+              type="button"
+              key={tab.key}
+              onClick={() => handleFilterChange(tab.key)}
+              className={cn(
+                'px-4 py-2 text-sm font-medium rounded-full transition-all cursor-pointer',
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'border border-input bg-background text-muted-foreground hover:text-foreground hover:border-foreground/20'
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Notification Container */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-muted-foreground">Đang tải...</p>
+          </div>
+        ) : isError ? (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-destructive">Không thể tải thông báo. Vui lòng thử lại.</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+              <Bell className="size-7 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Không có thông báo nào</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {activeFilter === 'all'
+                  ? 'Bạn đã đọc tất cả thông báo'
+                  : 'Không có thông báo chưa đọc'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <NotificationItem
+              key={notification.notificationId}
+              notification={notification}
+              onClick={handleItemClick}
+            />
+          ))
+        )}
+      </div>
+
+      {!isLoading && !isError && totalElements > 0 && (
+        <PortalPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={PAGE_SIZE}
+          onPageChange={handlePageChange}
+          className="mt-4 rounded-2xl border bg-white"
+        />
+      )}
+    </div>
   );
 }

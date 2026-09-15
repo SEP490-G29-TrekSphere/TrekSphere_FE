@@ -1,4 +1,5 @@
 import {
+  Bell,
   ClipboardList,
   FileText,
   Key,
@@ -42,6 +43,12 @@ const navItems = [
     name: 'Trò chuyện',
     path: PATHS.TREKKER_CHAT,
     icon: MessageSquare,
+    disabled: false,
+  },
+  {
+    name: 'Thông báo',
+    path: PATHS.TREKKER_NOTIFICATIONS,
+    icon: Bell,
     disabled: false,
   },
   {

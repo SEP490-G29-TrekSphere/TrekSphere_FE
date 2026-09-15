@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { getTrekkerBlogEditPath, getTrekkerGroupDetailPath, PATHS, ROLES } from '@/constants';
-import { getRoleChatPath } from '@/constants/roles';
+import { getRoleChatPath, getRoleNotificationsPath } from '@/constants/roles';
 import { AccountDetail, AccountList, AdminDashboard, BlogManagement } from '@/features/admin';
 import ProtectedRoute from '@/routes/ProtectedRoute';
 import RequireRole from '@/routes/RequireRole';
@@ -94,6 +94,22 @@ function ChatRedirect() {
   return <Navigate to={getRoleChatPath(user.roles)} state={location.state} replace />;
 }
 
+/**
+ * Redirect `/notifications` (path cũ, độc lập ngoài mọi bảng điều khiển) sang
+ * trang "Thông báo" trong bảng điều khiển tương ứng role — giữ link/bookmark
+ * cũ không vỡ, đồng thời không còn ai vào thẳng trang không có sidebar nữa.
+ */
+function NotificationsRedirect() {
+  const location = useLocation();
+  const user = useAppStore((state) => state.user);
+
+  if (!user) {
+    return <Navigate to={PATHS.LOGIN} state={{ from: location }} replace />;
+  }
+
+  return <Navigate to={getRoleNotificationsPath(user.roles)} state={location.state} replace />;
+}
+
 function PageLoader() {
   return (
     <div className="flex h-screen w-full items-center justify-center">
@@ -125,7 +141,7 @@ export default function AppRoutes() {
           path={PATHS.NOTIFICATIONS}
           element={
             <ProtectedRoute>
-              <Notifications />
+              <NotificationsRedirect />
             </ProtectedRoute>
           }
         />
@@ -217,6 +233,7 @@ export default function AppRoutes() {
           <Route path={PATHS.TREKKER_BLOG_EDIT} element={<CreateBlogPost editMode />} />
           <Route path={PATHS.TREKKER_CHANGE_PASSWORD} element={<TrekkerChangePassword />} />
           <Route path={PATHS.TREKKER_CHAT} element={<ChatList hideSidebar />} />
+          <Route path={PATHS.TREKKER_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
         {/* Admin routes — yêu cầu role admin, dùng AdminLayout với sidebar riêng */}
@@ -241,6 +258,7 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_REPORT_DETAIL} element={<ReportDetail />} />
           <Route path={PATHS.ADMIN_BLOGS} element={<BlogManagement />} />
           <Route path={PATHS.ADMIN_CHAT} element={<ChatList hideSidebar />} />
+          <Route path={PATHS.ADMIN_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
         {/* Vendor routes — yêu cầu role vendor, dùng VendorManagerLayout */}
@@ -262,6 +280,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_TOUR_SCHEDULES} element={<TourSchedules />} />
           <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />
           <Route path={PATHS.VENDOR_CHAT} element={<ChatList hideSidebar />} />
+          <Route path={PATHS.VENDOR_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
         {/* Legacy redirect: /vendor-manager/* và /partner/* trỏ về /vendor/* */}
