@@ -682,14 +682,14 @@ export function GroupBudgetTab({
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Kết Quả Tối Ưu Hóa Giao Dịch P2P (Greedy Settlement Algorithm):
               </div>
-              {isLeader && suggestedSettlements.length > 0 && persistedSettlements.length === 0 && (
+              {isLeader && suggestedSettlements.length > 0 && (
                 <button
                   type="button"
                   onClick={generateSettlements}
                   disabled={actionLoading}
                   className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-700 transition cursor-pointer disabled:opacity-50"
                 >
-                  Khởi tạo quyết toán
+                  {persistedSettlements.length > 0 ? 'Cập nhật quyết toán' : 'Khởi tạo quyết toán'}
                 </button>
               )}
             </div>
