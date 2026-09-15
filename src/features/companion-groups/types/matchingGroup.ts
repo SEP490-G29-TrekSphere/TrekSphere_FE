@@ -80,6 +80,9 @@ export interface MatchingGroupItem {
   ownerId: string;
   ownerName: string;
   ownerAvatarUrl: string | null;
+  /** Trưởng nhóm HIỆN TẠI (role có thể đổi qua bầu cử) — khác owner (người tạo nhóm, cố định). */
+  leaderName?: string | null;
+  leaderAvatarUrl?: string | null;
   coverImageUrl?: string | null;
   tourImageUrl?: string | null;
   groupName: string;

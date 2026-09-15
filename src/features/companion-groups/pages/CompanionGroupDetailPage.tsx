@@ -23,6 +23,7 @@ import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
 import { useJoinRequests } from '../hooks/useJoinRequests';
 import { useMatchingGroupDetail } from '../hooks/useMatchingGroupDetail';
+import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 
 interface CompanionGroupDetailPageProps {
   embedded?: boolean;
@@ -42,7 +43,7 @@ export default function CompanionGroupDetailPage({
   const locationState = location.state as { backPath?: string } | null;
   const effectiveBackPath = locationState?.backPath ?? backPath;
   const { data: group, isLoading, isError, error, refetch } = useMatchingGroupDetail(groupId);
-  const isOwner = Boolean(user && group && String(group.ownerId) === String(user.id));
+  const isOwner = Boolean(group && isCurrentUserGroupLeader(group, user?.id));
   const [activeTab, setActiveTab] = useState<GroupDetailTabKey>('overview');
   const [applicationPage, setApplicationPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

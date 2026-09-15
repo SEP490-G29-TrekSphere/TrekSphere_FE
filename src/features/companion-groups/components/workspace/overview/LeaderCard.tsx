@@ -20,7 +20,7 @@ export function LeaderCard({ ownerName, ownerAvatarUrl, descriptionText }: Leade
           />
           <div>
             <h3 className="font-extrabold text-base text-foreground">{ownerName}</h3>
-            <p className="text-muted-foreground text-xs">Trưởng nhóm khởi xướng chuyến đi</p>
+            <p className="text-muted-foreground text-xs">Trưởng nhóm hiện tại</p>
           </div>
         </div>
       </div>

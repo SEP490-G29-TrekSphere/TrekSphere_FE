@@ -48,7 +48,7 @@ export function collectScheduleConflicts(
       matchingGroupId: group.matchingGroupId,
       groupName: group.groupName,
       targetDate: group.targetDate,
-      kind: group.myRole === 'LEADER' || group.isOwner ? 'LEADER' : 'MEMBER',
+      kind: group.myRole === 'LEADER' ? 'LEADER' : 'MEMBER',
     });
   }
 

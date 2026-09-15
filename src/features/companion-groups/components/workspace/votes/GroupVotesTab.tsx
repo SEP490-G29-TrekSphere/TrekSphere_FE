@@ -123,7 +123,7 @@ function VoteCard({
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              {isOpen && vote.myBallotOptionId == null && (
+              {isOpen && !isMine && (
                 <button
                   type="button"
                   onClick={() => onCast(vote.groupVoteId, option.groupVoteOptionId)}
@@ -131,7 +131,7 @@ function VoteCard({
                   className="mt-1 inline-flex items-center gap-1 rounded-full border border-primary/30 px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 transition disabled:opacity-50 cursor-pointer"
                 >
                   {isCastingThis && <Loader2 className="h-3 w-3 animate-spin" />}
-                  Bỏ phiếu
+                  {vote.myBallotOptionId == null ? 'Bỏ phiếu' : 'Đổi phiếu'}
                 </button>
               )}
             </div>

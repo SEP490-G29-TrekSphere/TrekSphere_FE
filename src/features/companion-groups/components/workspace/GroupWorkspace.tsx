@@ -1,4 +1,4 @@
-import { Siren, Star, Vote } from 'lucide-react';
+import { Star, Vote } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { AppButton } from '@/shared/ui';
 import { useActiveSosAlerts } from '../../hooks/sos/useActiveSosAlerts';
@@ -14,7 +14,6 @@ import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
 import { GroupOverviewTab } from './overview/GroupOverviewTab';
 import { GroupPeoplePanel, type PeopleSubTabKey } from './people/GroupPeoplePanel';
-import { SosLocationMap } from './sos/SosLocationMap';
 import { GroupSosVotesPanel, type SosVotesSubTabKey } from './sosVotes/GroupSosVotesPanel';
 import { type WorkspaceTabKey, WorkspaceTabsNav } from './WorkspaceTabsNav';
 
@@ -90,41 +89,6 @@ export function GroupWorkspace({
 
   return (
     <div className="space-y-6">
-      {/* STICKY BANNER: TÍN HIỆU SOS ĐANG MỞ (hiển thị ở mọi tab, ưu tiên trên cùng) */}
-      {activeSosAlerts.length > 0 && (
-        <div className="rounded-2xl border-2 border-destructive/60 bg-destructive/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2 text-destructive font-extrabold text-xs uppercase">
-            <Siren className="h-4 w-4 animate-pulse" />
-            <span>
-              {activeSosAlerts.length} tín hiệu SOS đang mở trong nhóm — cần hỗ trợ khẩn cấp!
-            </span>
-          </div>
-          <div className="space-y-1.5">
-            {activeSosAlerts.map((alert) => (
-              <div
-                key={alert.sosAlertId}
-                className="flex items-center justify-between gap-2 rounded-xl bg-background/80 px-3 py-2 text-xs"
-              >
-                <span className="font-bold text-foreground">
-                  {alert.senderName} • {new Date(alert.createdAt).toLocaleTimeString('vi-VN')}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('sosVotes');
-                    setActiveSosVotesSubTab('sos');
-                  }}
-                  className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition cursor-pointer"
-                >
-                  Xem chi tiết
-                </button>
-              </div>
-            ))}
-          </div>
-          <SosLocationMap alerts={activeSosAlerts} heightClassName="h-[200px]" />
-        </div>
-      )}
-
       {/* STICKY BANNER: BIỂU QUYẾT QUAN TRỌNG ĐANG MỞ (bầu Trưởng nhóm / giải tán nhóm) */}
       {openGovernanceVotes.length > 0 && (
         <div className="rounded-2xl border-2 border-amber-500/60 bg-amber-500/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">

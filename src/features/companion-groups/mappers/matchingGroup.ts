@@ -17,6 +17,9 @@ export interface MatchingGroupCardViewModel {
   maxSize: number;
   ownerName: string;
   ownerAvatarUrl?: string;
+  /** Trưởng nhóm HIỆN TẠI để hiển thị (fallback owner nếu BE chưa trả leaderName). */
+  leaderName: string;
+  leaderAvatarUrl?: string;
   matchingDeadline?: string;
   coverImageUrl: string;
   isOwner?: boolean;
@@ -43,6 +46,8 @@ export function toMatchingGroupCardViewModel(
       maxSize: group.maxSize,
       ownerName: group.ownerName,
       ownerAvatarUrl: group.ownerAvatarUrl ?? undefined,
+      leaderName: group.leaderName ?? group.ownerName,
+      leaderAvatarUrl: group.leaderAvatarUrl ?? group.ownerAvatarUrl ?? undefined,
       matchingDeadline: group.matchingDeadline,
       coverImageUrl:
         group.coverImageUrl || group.tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
@@ -63,6 +68,8 @@ export function toMatchingGroupCardViewModel(
     maxSize: group.maxMembers,
     ownerName: group.leader.name,
     ownerAvatarUrl: group.leader.avatarUrl,
+    leaderName: group.leader.name,
+    leaderAvatarUrl: group.leader.avatarUrl,
     coverImageUrl: group.thumbnailUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
   };
 }
@@ -112,12 +119,43 @@ export function toMatchingGroupCreateRequest(
 
 export const toTourMatchingGroupCreateRequest = toMatchingGroupCreateRequest;
 
+/**
+ * Trả về member đang là Trưởng nhóm HIỆN TẠI (role có thể đổi qua bầu cử) — khác với "owner"
+ * (người tạo nhóm, cố định vĩnh viễn ở BE, không phản ánh đúng ai đang thật sự cầm quyền sau khi
+ * bầu Trưởng nhóm mới). Luôn ưu tiên tra `members` (dữ liệu chắc chắn đúng) làm nguồn chính.
+ */
+export function resolveCurrentLeaderMember(group: {
+  members?: import('../types/matchingGroup').MatchingMemberItem[];
+}): import('../types/matchingGroup').MatchingMemberItem | null {
+  return (
+    group.members?.find((member) => member.role === 'LEADER' && member.status === 'ACCEPTED') ??
+    null
+  );
+}
+
+/**
+ * Viewer hiện tại có đang là Trưởng nhóm không — theo role thật (members), không phải theo
+ * `ownerId`/`isOwner` (chỉ là người tạo nhóm, không đổi khi bầu Trưởng nhóm mới).
+ */
+export function isCurrentUserGroupLeader(
+  group: {
+    members?: import('../types/matchingGroup').MatchingMemberItem[];
+    myRole?: import('../types/matchingGroup').MatchingMemberRole | null;
+  },
+  userId: string | undefined
+): boolean {
+  const leader = resolveCurrentLeaderMember(group);
+  if (leader) return String(leader.userId) === String(userId);
+  // Fallback khi response không kèm members (VD danh sách rút gọn) — tin myRole do BE tính đúng.
+  return group.myRole === 'LEADER';
+}
+
 export function resolveGroupUserRole(
   group: import('../types/matchingGroup').MatchingGroupDetailResponse | undefined,
   userId: string | undefined
 ): import('../types').UserRoleInGroup {
   if (!group || !userId) return 'guest';
-  if (String(group.ownerId) === String(userId) || group.isOwner || group.myRole === 'LEADER') {
+  if (isCurrentUserGroupLeader(group, userId)) {
     return 'leader';
   }
   if (group.myMembershipStatus === 'ACCEPTED' || group.myRole === 'MEMBER') {

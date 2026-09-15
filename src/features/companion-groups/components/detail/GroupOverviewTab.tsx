@@ -1,4 +1,5 @@
 import { MessageCircle } from 'lucide-react';
+import { isCurrentUserGroupLeader } from '../../mappers/matchingGroup';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { MemberAvatar } from './MemberAvatar';
@@ -18,7 +19,7 @@ export function GroupOverviewTab({
   role,
   onDirectChat,
 }: GroupOverviewTabProps) {
-  const isLeader = currentUserId && String(group.ownerId) === String(currentUserId);
+  const isLeader = Boolean(currentUserId && isCurrentUserGroupLeader(group, currentUserId));
   const descriptionText =
     group.description ||
     group.tourDescription ||

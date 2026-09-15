@@ -24,6 +24,7 @@ import { useMatchingGroups } from '../hooks/useMatchingGroups';
 import { useMyJoinRequests } from '../hooks/useMyJoinRequests';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
 import { toMatchingGroupCardViewModel } from '../mappers';
+import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 import type { JoinApplicationStatus } from '../types/matchingGroup';
 
 export default function CompanionGroupsPage() {
@@ -145,9 +146,7 @@ export default function CompanionGroupsPage() {
 
     if (hideJoinedGroups && !isGuest) {
       result = result.filter((group) => {
-        const isLeader = Boolean(
-          user && (group.ownerId === user.id || group.isOwner || group.myRole === 'LEADER')
-        );
+        const isLeader = Boolean(user && isCurrentUserGroupLeader(group, user.id));
         const isMember = Boolean(
           group.myRole === 'MEMBER' || joinedGroupIds.has(group.matchingGroupId)
         );
@@ -280,9 +279,7 @@ export default function CompanionGroupsPage() {
               onJoinGroup={handleOpenJoinModal}
               onViewDetail={(group) => {
                 const vm = toMatchingGroupCardViewModel(group);
-                const isLeader = Boolean(
-                  user && (vm.ownerId === user.id || vm.isOwner || vm.myRole === 'LEADER')
-                );
+                const isLeader = Boolean(user && isCurrentUserGroupLeader(vm, user.id));
                 const isMember = Boolean(vm.myRole === 'MEMBER' || joinedGroupIds.has(vm.groupId));
                 if (isLeader || isMember) {
                   navigate(getTrekkerGroupDetailPath(vm.groupId));

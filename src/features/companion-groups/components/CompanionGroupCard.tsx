@@ -4,7 +4,11 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { formatDate } from '@/utils/format';
 import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../constants';
-import { type MatchingGroupCardData, toMatchingGroupCardViewModel } from '../mappers/matchingGroup';
+import {
+  isCurrentUserGroupLeader,
+  type MatchingGroupCardData,
+  toMatchingGroupCardViewModel,
+} from '../mappers/matchingGroup';
 import type { JoinApplicationStatus } from '../types/matchingGroup';
 import {
   MatchingGroupOwnerAvatar,
@@ -36,9 +40,7 @@ export function CompanionGroupCard({
   const user = useAppStore((state) => state.user);
   const viewModel = toMatchingGroupCardViewModel(group);
   const groupId = viewModel.groupId;
-  const isLeader = Boolean(
-    user && (viewModel.ownerId === user.id || viewModel.isOwner || viewModel.myRole === 'LEADER')
-  );
+  const isLeader = Boolean(user && isCurrentUserGroupLeader(viewModel, user.id));
   const isMember = Boolean(
     viewModel.myRole === 'MEMBER' ||
       (hasJoined && applicationStatus !== 'PENDING') ||
@@ -128,11 +130,11 @@ export function CompanionGroupCard({
 
           <div className="flex items-center gap-2">
             <MatchingGroupOwnerAvatar
-              name={viewModel.ownerName}
-              avatarUrl={viewModel.ownerAvatarUrl}
+              name={viewModel.leaderName}
+              avatarUrl={viewModel.leaderAvatarUrl}
             />
             <span className="truncate font-semibold text-foreground text-xs">
-              {viewModel.ownerName}
+              {viewModel.leaderName}
             </span>
           </div>
         </div>
@@ -261,11 +263,11 @@ export function CompanionGroupCard({
         </div>
         <div className="flex items-center gap-1.5">
           <MatchingGroupOwnerAvatar
-            name={viewModel.ownerName}
-            avatarUrl={viewModel.ownerAvatarUrl}
+            name={viewModel.leaderName}
+            avatarUrl={viewModel.leaderAvatarUrl}
           />
           <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
-            {viewModel.ownerName}
+            {viewModel.leaderName}
           </span>
         </div>
       </div>

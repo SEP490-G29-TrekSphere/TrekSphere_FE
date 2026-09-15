@@ -57,6 +57,8 @@ export function GroupManagementPanel({
   const isHidden = groupStatus === 'HIDDEN';
   const isClosed = groupStatus === 'CLOSED';
   const isOpen = groupStatus === 'OPEN';
+  const canOpenDissolutionVote =
+    groupStatus !== 'IN_PROGRESS' && groupStatus !== 'COMPLETED' && groupStatus !== 'CANCELLED';
 
   const isDeadlinePassed = matchingDeadline
     ? new Date(matchingDeadline).getTime() <= Date.now()
@@ -225,7 +227,7 @@ export function GroupManagementPanel({
                 <span>Mở bầu Trưởng nhóm mới</span>
               </button>
             )}
-            {onOpenDissolutionVote && (
+            {onOpenDissolutionVote && canOpenDissolutionVote && (
               <button
                 type="button"
                 onClick={onOpenDissolutionVote}
@@ -237,6 +239,11 @@ export function GroupManagementPanel({
               </button>
             )}
           </div>
+          {onOpenDissolutionVote && !canOpenDissolutionVote && (
+            <p className="rounded-2xl border border-border/60 bg-muted/30 p-3 text-muted-foreground text-xs">
+              Chuyến đi đã bắt đầu nên không thể mở biểu quyết giải tán nhóm.
+            </p>
+          )}
         </div>
       )}
     </section>

@@ -19,7 +19,7 @@ import {
   type MatchingGroupStatusFilter,
 } from '../constants';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
-import { toMatchingGroupCardViewModel } from '../mappers';
+import { isCurrentUserGroupLeader, toMatchingGroupCardViewModel } from '../mappers';
 
 export default function MyCompanionGroupsPage() {
   const navigate = useNavigate();
@@ -54,13 +54,14 @@ export default function MyCompanionGroupsPage() {
     () =>
       (data?.content ?? []).filter((group) => {
         const vm = toMatchingGroupCardViewModel(group);
-        if (activeRole === 'LEADER' && !(vm.isOwner || vm.myRole === 'LEADER')) return false;
-        if (activeRole === 'MEMBER' && (vm.isOwner || vm.myRole === 'LEADER')) return false;
+        const isLeader = isCurrentUserGroupLeader(vm, user?.id);
+        if (activeRole === 'LEADER' && !isLeader) return false;
+        if (activeRole === 'MEMBER' && isLeader) return false;
         if (selectedTourId && vm.journeyId !== selectedTourId) return false;
         if (selectedDate && vm.targetDate !== selectedDate) return false;
         return true;
       }),
-    [data, activeRole, selectedTourId, selectedDate]
+    [data, activeRole, selectedTourId, selectedDate, user?.id]
   );
 
   function resetFilters() {

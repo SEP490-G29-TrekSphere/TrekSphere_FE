@@ -9,6 +9,7 @@ import { JoinGroupApplicationPanel } from '../components/applications/JoinGroupA
 import { JoinGroupSummary } from '../components/applications/JoinGroupSummary';
 import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMatchingGroupDetail } from '../hooks/useMatchingGroupDetail';
+import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 import type { JoinGroupApplicationFormValues } from '../validations';
 
 interface JoinGroupRequestPageProps {
@@ -28,7 +29,7 @@ export default function JoinGroupRequestPage({
   const { data: group, isLoading, isError } = useMatchingGroupDetail(groupId);
   const joinMutation = useJoinMatchingGroup();
   const user = useAppStore((state) => state.user);
-  const isOwner = Boolean(user && group && String(group.ownerId) === String(user.id));
+  const isOwner = Boolean(group && isCurrentUserGroupLeader(group, user?.id));
 
   useEffect(() => {
     if (isOwner) navigate(detailPath, { replace: true });

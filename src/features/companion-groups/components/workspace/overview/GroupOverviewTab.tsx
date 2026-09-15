@@ -1,3 +1,4 @@
+import { resolveCurrentLeaderMember } from '../../../mappers/matchingGroup';
 import type { MatchingGroupDetailResponse } from '../../../types/matchingGroup';
 import type { SosAlertResponse } from '../../../types/sos';
 import { CheckpointProgressWidget } from './CheckpointProgressWidget';
@@ -30,12 +31,13 @@ export function GroupOverviewTab({
     'Chưa có mô tả chi tiết cho chuyến đi này.';
 
   const isTripInProgress = group.status === 'IN_PROGRESS';
+  const currentLeader = resolveCurrentLeaderMember(group);
 
   return (
     <div className="space-y-4">
       <LeaderCard
-        ownerName={group.ownerName}
-        ownerAvatarUrl={group.ownerAvatarUrl}
+        ownerName={currentLeader?.fullName ?? group.ownerName}
+        ownerAvatarUrl={currentLeader?.avatarUrl ?? group.ownerAvatarUrl}
         descriptionText={descriptionText}
       />
 
