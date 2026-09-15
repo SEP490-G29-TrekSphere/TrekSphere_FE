@@ -1,4 +1,4 @@
-import { Camera, Plus, Upload } from 'lucide-react';
+import { Camera, Info, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
 import {
   GROUP_MOMENT_VISIBILITY_OPTIONS,
@@ -30,16 +30,24 @@ import {
   useUnhideMoment,
   useUpdateMomentVisibility,
 } from '../../../hooks/useGroupMoments';
+import type { MatchingGroupStatus } from '../../../types/matchingGroup';
 import { HideMomentModal } from './HideMomentModal';
 
 interface GroupMomentsTabProps {
   groupId: string;
   isLeader: boolean;
   currentUserId?: string;
+  groupStatus?: MatchingGroupStatus;
 }
 
 /** Tab "Khoảnh khắc & Album" trong workspace nhóm ghép. */
-export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomentsTabProps) {
+export function GroupMomentsTab({
+  groupId,
+  isLeader,
+  currentUserId,
+  groupStatus,
+}: GroupMomentsTabProps) {
+  const canPostMoments = groupStatus === 'IN_PROGRESS' || groupStatus === 'COMPLETED';
   const [viewMode, setViewMode] = useState<MomentViewMode>('timeline');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [selectedMoment, setSelectedMoment] = useState<MomentItem | null>(null);
@@ -64,8 +72,12 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
     setLightbox({ urls: getMomentImageUrls(moment), index });
   };
 
-  const handleCreateMoment = (payload: MomentCreatePayload) =>
-    createMutation
+  const handleCreateMoment = (payload: MomentCreatePayload) => {
+    if (!canPostMoments) {
+      toast.info('Chuyến đi chưa bắt đầu nên chưa thể đăng khoảnh khắc!');
+      return Promise.reject(new Error('Chuyến đi chưa bắt đầu.'));
+    }
+    return createMutation
       .mutateAsync(payload)
       .then((created) => {
         toast.success('Đã đăng khoảnh khắc mới thành công!');
@@ -77,6 +89,7 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
         );
         throw err;
       });
+  };
 
   const handleToggleVisibility = (momentId: string, visibility: MomentVisibility) => {
     updateVisibilityMutation.mutate(
@@ -114,6 +127,19 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
 
   return (
     <div className="space-y-6">
+      {!canPostMoments && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 text-sm dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="space-y-0.5">
+            <p className="font-semibold text-sm">Chuyến đi chưa khởi hành</p>
+            <p className="text-xs opacity-90 leading-relaxed">
+              Các thành viên chỉ có thể đăng bài viết, tọa độ check-in và tải ảnh khoảnh khắc sau
+              khi chuyến đi chính thức bắt đầu hoặc đã kết thúc.
+            </p>
+          </div>
+        </div>
+      )}
+
       <MomentsPanelHeader
         title="Khoảnh khắc & Kỷ niệm Chuyến đi"
         description="Lưu giữ dòng thời gian, thư viện ảnh check-in và tọa độ hành trình cùng đồng đội"
@@ -123,7 +149,17 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
         action={
           <AppButton
             size="sm"
-            onClick={() => setIsComposerOpen(true)}
+            onClick={() => {
+              if (!canPostMoments) {
+                toast.info('Chuyến đi chưa bắt đầu nên chưa thể đăng khoảnh khắc!');
+                return;
+              }
+              setIsComposerOpen(true);
+            }}
+            disabled={!canPostMoments}
+            title={
+              !canPostMoments ? 'Chuyến đi chưa khởi hành nên chưa thể đăng khoảnh khắc' : undefined
+            }
             className="flex items-center gap-1.5 rounded-xl"
           >
             <Plus className="h-4 w-4" /> Đăng khoảnh khắc
@@ -139,16 +175,22 @@ export function GroupMomentsTab({ groupId, isLeader, currentUserId }: GroupMomen
             <MomentEmptyState
               icon={Camera}
               title="Chưa có bài viết nào trên bảng tin"
-              description="Hãy là người đầu tiên đăng tải những bức ảnh săn mây, vượt suối tuyệt đẹp cùng đồng đội!"
+              description={
+                canPostMoments
+                  ? 'Hãy là người đầu tiên đăng tải những bức ảnh săn mây, vượt suối tuyệt đẹp cùng đồng đội!'
+                  : 'Bảng tin khoảnh khắc sẽ mở khi chuyến đi bắt đầu. Hãy chuẩn bị những khung hình thật đẹp nhé!'
+              }
               action={
-                <AppButton
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsComposerOpen(true)}
-                  className="rounded-xl"
-                >
-                  <Upload className="mr-1 h-3.5 w-3.5" /> Đăng khoảnh khắc đầu tiên
-                </AppButton>
+                canPostMoments ? (
+                  <AppButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsComposerOpen(true)}
+                    className="rounded-xl"
+                  >
+                    <Upload className="mr-1 h-3.5 w-3.5" /> Đăng khoảnh khắc đầu tiên
+                  </AppButton>
+                ) : undefined
               }
             />
           }

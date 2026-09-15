@@ -43,7 +43,6 @@ export default function MyCompanionGroupsPage() {
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
   const { data, isLoading, isError } = useMyMatchingGroups({
     status: statusFilter === 'ALL' ? undefined : statusFilter,
-    role: activeRole === 'ALL' ? undefined : activeRole,
     keyword: debouncedSearchQuery || undefined,
     page,
     size: MATCHING_GROUP_PAGE_SIZE,
@@ -55,11 +54,13 @@ export default function MyCompanionGroupsPage() {
     () =>
       (data?.content ?? []).filter((group) => {
         const vm = toMatchingGroupCardViewModel(group);
+        if (activeRole === 'LEADER' && !(vm.isOwner || vm.myRole === 'LEADER')) return false;
+        if (activeRole === 'MEMBER' && (vm.isOwner || vm.myRole === 'LEADER')) return false;
         if (selectedTourId && vm.journeyId !== selectedTourId) return false;
         if (selectedDate && vm.targetDate !== selectedDate) return false;
         return true;
       }),
-    [data, selectedTourId, selectedDate]
+    [data, activeRole, selectedTourId, selectedDate]
   );
 
   function resetFilters() {

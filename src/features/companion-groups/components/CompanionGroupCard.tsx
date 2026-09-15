@@ -120,9 +120,7 @@ export function CompanionGroupCard({
               {viewModel.matchingDeadline && (
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5 text-primary/70" />
-                  <span>
-                    Hạn: {new Date(viewModel.matchingDeadline).toLocaleDateString('vi-VN')}
-                  </span>
+                  <span>Hạn: {formatDate(viewModel.matchingDeadline)}</span>
                 </span>
               )}
             </div>
@@ -299,7 +297,7 @@ export function CompanionGroupCard({
           {viewModel.matchingDeadline && (
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-primary/70" />
-              Hạn ghép: {new Date(viewModel.matchingDeadline).toLocaleDateString('vi-VN')}
+              Hạn ghép: {formatDate(viewModel.matchingDeadline)}
             </span>
           )}
         </div>

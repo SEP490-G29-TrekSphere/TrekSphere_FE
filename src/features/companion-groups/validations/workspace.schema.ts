@@ -9,7 +9,14 @@ import {
   POST_CONTENT_MAX_LENGTH,
   POST_TITLE_MAX_LENGTH,
   POST_TITLE_MIN_LENGTH,
+  TIME_SLOT_BOUNDARIES,
 } from '../constants/workspace';
+
+// Helper so sánh giờ dạng "HH:mm"
+function timeToMinutes(timeStr: string): number {
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
 
 // ==================== CHECKPOINT SCHEMAS ====================
 export const checkpointFormSchema = z.object({
@@ -45,22 +52,65 @@ export const checkpointFormSchema = z.object({
 export type CheckpointFormValues = z.infer<typeof checkpointFormSchema>;
 
 // ==================== ACTIVITY SCHEMAS ====================
-export const activityFormSchema = z.object({
-  dayNo: z.number().min(1, 'Ngày phải từ 1 trở lên'),
-  timeSlot: z.enum(['MORNING', 'NOON', 'AFTERNOON', 'EVENING'], {
-    message: 'Vui lòng chọn buổi hợp lệ (Sáng, Trưa, Chiều, Tối)',
-  }),
-  activityOrder: z.number().min(1, 'Thứ tự phải từ 1 trở lên').optional().nullable(),
-  title: z
-    .string()
-    .trim()
-    .min(1, 'Tên hoạt động không được để trống')
-    .max(255, 'Tên hoạt động tối đa 255 ký tự'),
-  description: z.string().trim().max(1000, 'Mô tả tối đa 1000 ký tự').optional().nullable(),
-  plannedStartAt: z.string().optional().nullable(),
-  plannedEndAt: z.string().optional().nullable(),
-  checkpointId: z.string().optional().nullable(),
-});
+export const activityFormSchema = z
+  .object({
+    dayNo: z.number().min(1, 'Ngày phải từ 1 trở lên'),
+    timeSlot: z.enum(['MORNING', 'NOON', 'AFTERNOON', 'EVENING'], {
+      message: 'Vui lòng chọn buổi hợp lệ (Sáng, Trưa, Chiều, Tối)',
+    }),
+    activityOrder: z.number().min(1, 'Thứ tự phải từ 1 trở lên').optional().nullable(),
+    title: z
+      .string()
+      .trim()
+      .min(1, 'Tên hoạt động không được để trống')
+      .max(255, 'Tên hoạt động tối đa 255 ký tự'),
+    description: z.string().trim().max(1000, 'Mô tả tối đa 1000 ký tự').optional().nullable(),
+    plannedStartAt: z
+      .string()
+      .min(1, 'Vui lòng chọn giờ bắt đầu')
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Giờ bắt đầu phải có định dạng HH:mm'),
+    plannedEndAt: z
+      .string()
+      .min(1, 'Vui lòng chọn giờ kết thúc')
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Giờ kết thúc phải có định dạng HH:mm'),
+    checkpointId: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    const boundary = TIME_SLOT_BOUNDARIES[data.timeSlot];
+    if (!boundary) return;
+
+    const startMin = timeToMinutes(data.plannedStartAt);
+    const endMin = timeToMinutes(data.plannedEndAt);
+    const boundaryStartMin = timeToMinutes(boundary.start);
+    const boundaryEndMin = timeToMinutes(boundary.end);
+
+    // Validate giờ bắt đầu nằm trong buổi
+    if (startMin < boundaryStartMin || startMin > boundaryEndMin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['plannedStartAt'],
+        message: `Giờ bắt đầu của ${boundary.label} phải từ ${boundary.start} đến ${boundary.end}`,
+      });
+    }
+
+    // Validate giờ kết thúc nằm trong buổi
+    if (endMin < boundaryStartMin || endMin > boundaryEndMin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['plannedEndAt'],
+        message: `Giờ kết thúc của ${boundary.label} phải từ ${boundary.start} đến ${boundary.end}`,
+      });
+    }
+
+    // Validate giờ bắt đầu < giờ kết thúc
+    if (startMin >= endMin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['plannedEndAt'],
+        message: 'Giờ kết thúc phải sau giờ bắt đầu',
+      });
+    }
+  });
 
 export type ActivityFormValues = z.infer<typeof activityFormSchema>;
 

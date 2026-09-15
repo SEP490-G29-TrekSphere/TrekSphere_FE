@@ -106,6 +106,14 @@ export const TIME_SLOT_OPTIONS: ReadonlyArray<{
   { value: 'EVENING', label: 'Buổi Tối', time: '18:00 - 22:00' },
 ] as const;
 
+export const TIME_SLOT_BOUNDARIES: Record<TimeSlot, { start: string; end: string; label: string }> =
+  {
+    MORNING: { start: '06:00', end: '11:30', label: 'Buổi Sáng' },
+    NOON: { start: '11:30', end: '13:30', label: 'Buổi Trưa' },
+    AFTERNOON: { start: '13:30', end: '18:00', label: 'Buổi Chiều' },
+    EVENING: { start: '18:00', end: '22:00', label: 'Buổi Tối' },
+  };
+
 export type TimeSlotKey = 'morning' | 'noon' | 'afternoon' | 'evening';
 
 export const TIMETABLE_TIME_SLOTS: ReadonlyArray<{
