@@ -19,10 +19,10 @@ export const CHECKLIST_ITEM_TYPE_OPTIONS: ReadonlyArray<{
   value: GroupChecklistItemType;
   label: string;
 }> = [
-  { value: 'GEAR', label: 'Trang thiết bị' },
-  { value: 'MEDICINE', label: 'Thuốc men / Y tế' },
-  { value: 'FOOD', label: 'Thực phẩm / Nước uống' },
-  { value: 'DOCUMENT', label: 'Giấy tờ / Thủ tục' },
+  { value: 'TENT', label: 'Lều trại & Dã ngoại' },
+  { value: 'MEDICAL', label: 'Y tế & Cấp cứu' },
+  { value: 'ELECTRONICS', label: 'Điện tử & Đèn pin' },
+  { value: 'CLOTHING', label: 'Trang phục & Giày dép' },
   { value: 'OTHER', label: 'Khác' },
 ] as const;
 
@@ -30,8 +30,11 @@ export const CHECKLIST_STATUS_META: Record<
   GroupChecklistStatus,
   { label: string; variant: 'default' | 'outline' | 'secondary' | 'success' | 'warning' }
 > = {
+  TODO: { label: 'Cần chuẩn bị', variant: 'outline' },
+  IN_PROGRESS: { label: 'Đang chuẩn bị', variant: 'secondary' },
   PENDING: { label: 'Chưa chuẩn bị', variant: 'warning' },
   DONE: { label: 'Đã chuẩn bị', variant: 'success' },
+  COMPLETED: { label: 'Hoàn tất', variant: 'success' },
 };
 
 // ==================== FEED & POST CONSTANTS ====================

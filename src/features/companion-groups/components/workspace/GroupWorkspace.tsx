@@ -12,6 +12,7 @@ import { GroupBudgetTab } from '../detail/GroupBudgetTab';
 import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
 import { MembersCard } from '../detail/MembersCard';
+import { GroupChecklistTab } from './checklist/GroupChecklistTab';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
@@ -221,6 +222,15 @@ export function GroupWorkspace({
 
       {activeTab === 'itinerary' && (
         <GroupJourneyTab groupId={group.matchingGroupId} isLeader={isLeader} />
+      )}
+
+      {activeTab === 'checklist' && (
+        <GroupChecklistTab
+          groupId={group.matchingGroupId}
+          isLeader={isLeader}
+          currentUserId={currentUserId}
+          members={group.members}
+        />
       )}
 
       {activeTab === 'moments' && (
