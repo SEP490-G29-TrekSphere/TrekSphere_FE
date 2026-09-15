@@ -23,6 +23,8 @@ export interface Tour {
   category: string;
   location: string;
   maxParticipants: number;
+  minCapacity?: number;
+  maxCapacity?: number;
   highlights: string[];
   includes: string[];
   excludes?: string[];

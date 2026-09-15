@@ -23,7 +23,7 @@ import {
   useUpdateGroupChecklistItem,
   useUpdateGroupChecklistItemStatus,
 } from '../../../hooks/useGroupChecklistWorkspace';
-import type { MatchingGroupMemberResponse } from '../../../types/matchingGroup';
+import type { MatchingMemberItem } from '../../../types/matchingGroup';
 import type {
   GroupChecklistCategory,
   GroupChecklistItemResponse,
@@ -35,7 +35,7 @@ interface GroupChecklistTabProps {
   groupId: string;
   isLeader: boolean;
   currentUserId?: string;
-  members: MatchingGroupMemberResponse[];
+  members: MatchingMemberItem[];
 }
 
 const ITEM_TYPE_OPTIONS: { label: string; value: GroupChecklistItemType }[] = [
@@ -647,7 +647,7 @@ export function GroupChecklistTab({
                   >
                     <option value="">-- Chưa phân công --</option>
                     {acceptedMembers.map((m) => (
-                      <option key={m.matchingMemberId} value={m.matchingMemberId}>
+                      <option key={m.matchingMemberId || m.userId} value={m.matchingMemberId || ''}>
                         {m.fullName} ({m.role === 'LEADER' ? 'Trưởng nhóm' : 'Thành viên'})
                       </option>
                     ))}

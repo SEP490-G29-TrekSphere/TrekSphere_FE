@@ -1,6 +1,5 @@
 import {
   Camera,
-  CheckSquare,
   FileText,
   Layers,
   type LucideIcon,

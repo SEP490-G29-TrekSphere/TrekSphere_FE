@@ -2,10 +2,11 @@ import {
   AlignLeft,
   Calendar,
   Clock,
+  Compass,
+  Flag,
   Gauge,
   ImageIcon,
   Info,
-  MapPin,
   Tag,
   Users,
 } from 'lucide-react';
@@ -21,11 +22,7 @@ import type {
   CreateMatchingGroupFormInput,
   CreateMatchingGroupFormValues,
 } from '../../validations';
-
-interface TourOption {
-  id: string;
-  name: string;
-}
+import { type TourOption, TourSelectionField } from './TourSelectionField';
 
 interface CreateMatchingGroupFieldsProps {
   form: UseFormReturn<CreateMatchingGroupFormInput, undefined, CreateMatchingGroupFormValues>;
@@ -66,32 +63,73 @@ export function CreateMatchingGroupFields({
 }: CreateMatchingGroupFieldsProps) {
   const description = form.watch('description') ?? '';
   const sourceType = form.watch('sourceType') ?? 'CUSTOM_JOURNEY';
+  const selectedTourId = form.watch('tourId');
+  const selectedTour = tours.find((t) => t.id === selectedTourId);
+
+  function handleTourSelection(tourId: string) {
+    form.setValue('tourId', tourId, { shouldValidate: true });
+    const pickedTour = tours.find((t) => t.id === tourId);
+    if (pickedTour) {
+      const currentName = form.getValues('groupName');
+      if (!currentName || currentName.startsWith('Nhóm ghép:')) {
+        form.setValue('groupName', `Nhóm ghép: ${pickedTour.name}`, {
+          shouldValidate: true,
+        });
+      }
+      const maxCap = pickedTour.maxCapacity ?? MATCHING_GROUP_MAX_SIZE;
+      const currentSize = Number(form.getValues('maxSize')) || 0;
+      if (currentSize < MATCHING_GROUP_MIN_SIZE) {
+        form.setValue('maxSize', MATCHING_GROUP_MIN_SIZE, { shouldValidate: true });
+      } else if (currentSize > maxCap) {
+        form.setValue('maxSize', maxCap, { shouldValidate: true });
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
-      {/* Tour Dropdown (Only when explicit TOUR mode passed) */}
-      {sourceType === 'TOUR' && (
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            Chọn tour <span className="text-destructive">*</span>
-          </label>
-          <select
-            {...form.register('tourId')}
-            disabled={isToursLoading || isPending}
-            className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-input bg-background px-4 pr-10 font-medium text-foreground text-sm outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+      {/* Source Type Selector */}
+      <div className="space-y-2">
+        <label className="font-semibold text-foreground text-sm">Hình thức chuyến đi</label>
+        <div className="grid grid-cols-2 gap-2 p-1 bg-muted/60 rounded-xl border border-border">
+          <button
+            type="button"
+            onClick={() => form.setValue('sourceType', 'CUSTOM_JOURNEY', { shouldValidate: true })}
+            disabled={isPending}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all ${
+              sourceType === 'CUSTOM_JOURNEY'
+                ? 'bg-background text-foreground shadow-xs border border-border'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
           >
-            <option value="" disabled>
-              {isToursLoading ? 'Đang tải...' : 'Chọn điểm đến của bạn'}
-            </option>
-            {tours.map((tour) => (
-              <option key={tour.id} value={tour.id}>
-                {tour.name}
-              </option>
-            ))}
-          </select>
-          <FieldError message={form.formState.errors.tourId?.message} />
+            <Compass className="h-4 w-4 text-emerald-600" />
+            Hành trình tự túc
+          </button>
+          <button
+            type="button"
+            onClick={() => form.setValue('sourceType', 'TOUR', { shouldValidate: true })}
+            disabled={isPending}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition-all ${
+              sourceType === 'TOUR'
+                ? 'bg-background text-foreground shadow-xs border border-border'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Flag className="h-4 w-4 text-primary" />
+            Theo Tour có sẵn
+          </button>
         </div>
+      </div>
+
+      {/* Tour Dropdown & Live Preview (Only when TOUR mode selected) */}
+      {sourceType === 'TOUR' && (
+        <TourSelectionField
+          form={form}
+          tours={tours}
+          isToursLoading={isToursLoading}
+          isPending={isPending}
+          onTourSelected={handleTourSelection}
+        />
       )}
 
       {/* Group Name */}
@@ -163,12 +201,18 @@ export function CreateMatchingGroupFields({
       </div>
 
       {/* Dates and Size Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={`grid grid-cols-1 gap-4 ${
+          sourceType === 'CUSTOM_JOURNEY' ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'
+        }`}
+      >
         <div className="space-y-2">
-          <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            Khởi hành <span className="text-destructive">*</span>
-          </label>
+          <div className="flex min-h-[20px] items-center justify-between">
+            <label className="flex items-center gap-1.5 font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              Khởi hành <span className="text-destructive">*</span>
+            </label>
+          </div>
           <Controller
             name="targetDate"
             control={form.control}
@@ -187,10 +231,12 @@ export function CreateMatchingGroupFields({
 
         {sourceType === 'CUSTOM_JOURNEY' && (
           <div className="space-y-2">
-            <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Kết thúc (dự kiến)
-            </label>
+            <div className="flex min-h-[20px] items-center justify-between">
+              <label className="flex items-center gap-1.5 font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
+                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                Kết thúc (dự kiến)
+              </label>
+            </div>
             <Controller
               name="endDate"
               control={form.control}
@@ -211,10 +257,12 @@ export function CreateMatchingGroupFields({
         )}
 
         <div className="space-y-2">
-          <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            Hạn đăng ký <span className="text-destructive">*</span>
-          </label>
+          <div className="flex min-h-[20px] items-center justify-between">
+            <label className="flex items-center gap-1.5 font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+              Hạn đăng ký <span className="text-destructive">*</span>
+            </label>
+          </div>
           <Controller
             name="matchingDeadline"
             control={form.control}
@@ -238,14 +286,25 @@ export function CreateMatchingGroupFields({
         </div>
 
         <div className="space-y-2">
-          <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            Số người tối đa <span className="text-destructive">*</span>
-          </label>
+          <div className="flex min-h-[20px] items-center justify-between gap-1">
+            <label className="flex items-center gap-1.5 font-semibold text-foreground text-xs sm:text-sm whitespace-nowrap">
+              <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+              Số người tối đa <span className="text-destructive">*</span>
+            </label>
+            {sourceType === 'TOUR' && selectedTour?.maxCapacity && (
+              <span className="text-[11px] text-muted-foreground font-normal whitespace-nowrap">
+                (Tối đa: {selectedTour.maxCapacity})
+              </span>
+            )}
+          </div>
           <input
             type="number"
             min={MATCHING_GROUP_MIN_SIZE}
-            max={MATCHING_GROUP_MAX_SIZE}
+            max={
+              sourceType === 'TOUR' && selectedTour?.maxCapacity
+                ? selectedTour.maxCapacity
+                : MATCHING_GROUP_MAX_SIZE
+            }
             {...form.register('maxSize')}
             disabled={isPending}
             className="h-11 w-full rounded-lg border border-input bg-background px-4 font-medium text-foreground text-sm outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
