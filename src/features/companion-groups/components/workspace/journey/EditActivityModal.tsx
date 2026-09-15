@@ -4,11 +4,12 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import { TIME_SLOT_OPTIONS } from '../../../constants/workspace';
+import { TIME_SLOT_BOUNDARIES, TIME_SLOT_OPTIONS } from '../../../constants/workspace';
 import { useUpdateGroupJourneyActivity } from '../../../hooks/useGroupJourneyWorkspace';
 import type {
   CustomJourneyActivityResponse,
   CustomJourneyCheckpointResponse,
+  TimeSlot,
 } from '../../../types/workspace';
 import { type ActivityFormValues, activityFormSchema } from '../../../validations/workspace.schema';
 
@@ -36,6 +37,8 @@ export function EditActivityModal({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
@@ -51,16 +54,21 @@ export function EditActivityModal({
     },
   });
 
+  const currentTimeSlot = watch('timeSlot') || 'MORNING';
+  const currentBoundary = TIME_SLOT_BOUNDARIES[currentTimeSlot] ?? TIME_SLOT_BOUNDARIES.MORNING;
+
   useEffect(() => {
     if (activity && isOpen) {
+      const slot = activity.timeSlot ?? 'MORNING';
+      const boundary = TIME_SLOT_BOUNDARIES[slot] ?? TIME_SLOT_BOUNDARIES.MORNING;
       reset({
         dayNo: Math.min(Math.max(1, activity.dayNo ?? 1), effectiveMaxDays),
-        timeSlot: activity.timeSlot ?? 'MORNING',
+        timeSlot: slot,
         activityOrder: activity.activityOrder ?? 1,
         title: activity.title || '',
         description: activity.description || '',
-        plannedStartAt: activity.plannedStartAt || '',
-        plannedEndAt: activity.plannedEndAt || '',
+        plannedStartAt: activity.plannedStartAt || boundary.start,
+        plannedEndAt: activity.plannedEndAt || boundary.end,
         checkpointId: activity.checkpointId || '',
       });
     }
@@ -130,7 +138,16 @@ export function EditActivityModal({
               Buổi trong ngày <span className="text-destructive">*</span>
             </label>
             <select
-              {...register('timeSlot')}
+              {...register('timeSlot', {
+                onChange: (e) => {
+                  const newSlot = e.target.value as TimeSlot;
+                  const b = TIME_SLOT_BOUNDARIES[newSlot];
+                  if (b) {
+                    setValue('plannedStartAt', b.start, { shouldValidate: true });
+                    setValue('plannedEndAt', b.end, { shouldValidate: true });
+                  }
+                },
+              })}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
             >
               {TIME_SLOT_OPTIONS.map((slot) => (
@@ -191,28 +208,38 @@ export function EditActivityModal({
             <label className="block text-xs font-bold text-foreground mb-1">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-muted-foreground" />
-                Giờ bắt đầu (HH:mm)
+                Giờ bắt đầu (HH:mm) <span className="text-destructive">*</span>
               </span>
             </label>
             <input
-              type="text"
+              type="time"
+              min={currentBoundary.start}
+              max={currentBoundary.end}
               {...register('plannedStartAt')}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
             />
+            {errors.plannedStartAt && (
+              <p className="mt-1 text-[11px] text-destructive">{errors.plannedStartAt.message}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-xs font-bold text-foreground mb-1">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-muted-foreground" />
-                Giờ kết thúc (HH:mm)
+                Giờ kết thúc (HH:mm) <span className="text-destructive">*</span>
               </span>
             </label>
             <input
-              type="text"
+              type="time"
+              min={currentBoundary.start}
+              max={currentBoundary.end}
               {...register('plannedEndAt')}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
             />
+            {errors.plannedEndAt && (
+              <p className="mt-1 text-[11px] text-destructive">{errors.plannedEndAt.message}</p>
+            )}
           </div>
         </div>
 

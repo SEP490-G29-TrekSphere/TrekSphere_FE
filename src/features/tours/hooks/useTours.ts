@@ -11,7 +11,8 @@ const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   BEGINNER: 'Dễ',
 };
 
-function formatPrice(price: number): string {
+function formatPrice(price?: number | null): string {
+  if (price == null || Number.isNaN(price)) return '0đ';
   return `${price.toLocaleString('vi-VN')}đ`;
 }
 
@@ -20,12 +21,12 @@ export function mapApiItemToTour(item: TourApiItem): Tour {
     id: item.tourId,
     name: item.tourName,
     description: '',
-    duration: formatTourDuration(item.durationDays),
-    level: DIFFICULTY_MAP[item.difficulty],
+    duration: formatTourDuration(item.durationDays ?? 1),
+    level: (item.difficulty && DIFFICULTY_MAP[item.difficulty]) || 'Trung bình',
     price: formatPrice(item.basePrice),
-    basePrice: item.basePrice,
+    basePrice: item.basePrice ?? 0,
     rating: item.averageRating ?? 0,
-    reviewCount: item.totalReviews,
+    reviewCount: item.totalReviews ?? 0,
     image: item.coverImageUrl,
     slug: item.tourId,
     category: item.category || '',

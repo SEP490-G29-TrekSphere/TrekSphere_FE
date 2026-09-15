@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { PATHS } from '@/constants/paths';
 import { useAppStore } from '@/store/useAppStore';
 import { EditMatchingGroupModal } from '../components/create/EditMatchingGroupModal';
@@ -36,8 +36,11 @@ export default function CompanionGroupDetailPage({
   chatPath = PATHS.CHAT,
 }: CompanionGroupDetailPageProps = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { groupId } = useParams<{ groupId: string }>();
   const user = useAppStore((state) => state.user);
+  const locationState = location.state as { backPath?: string } | null;
+  const effectiveBackPath = locationState?.backPath ?? backPath;
   const { data: group, isLoading, isError, error, refetch } = useMatchingGroupDetail(groupId);
   const isOwner = Boolean(user && group && String(group.ownerId) === String(user.id));
   const [activeTab, setActiveTab] = useState<GroupDetailTabKey>('overview');
@@ -58,7 +61,7 @@ export default function CompanionGroupDetailPage({
     groupId,
     group,
     currentUserId: user?.id?.toString(),
-    backPath,
+    backPath: effectiveBackPath,
     chatPath,
   });
 
@@ -69,6 +72,16 @@ export default function CompanionGroupDetailPage({
     ? 'text-foreground'
     : 'min-h-screen bg-background px-4 pt-24 pb-12 text-foreground md:px-10 lg:px-16';
 
+  function handleBack() {
+    if (locationState?.backPath) {
+      navigate(locationState.backPath);
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(effectiveBackPath);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className={shellClassName}>
@@ -78,13 +91,21 @@ export default function CompanionGroupDetailPage({
   }
 
   if (isError || !group) {
+    const rawMessage = error instanceof Error ? error.message : '';
+    const isNotFoundError =
+      rawMessage.includes('không tồn tại') ||
+      rawMessage.includes('8101') ||
+      rawMessage.toLowerCase().includes('not found');
+
+    const errorMessage = isNotFoundError
+      ? 'Nhóm ghép không tồn tại, đã bị đóng tuyển hoặc tạm ẩn bởi trưởng nhóm.'
+      : rawMessage || 'Nhóm ghép không tồn tại hoặc đã bị giải tán.';
+
     return (
       <GroupDetailErrorState
         embedded={embedded}
-        message={
-          error instanceof Error ? error.message : 'Nhóm ghép không tồn tại hoặc đã bị giải tán.'
-        }
-        onBack={() => navigate(backPath)}
+        message={errorMessage}
+        onBack={handleBack}
         onRetry={() => void refetch()}
       />
     );

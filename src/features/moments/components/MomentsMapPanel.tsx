@@ -1,5 +1,5 @@
 import * as vietmapgl from '@vietmap/vietmap-gl-js/dist/vietmap-gl.js';
-import { AlertCircle, Compass, Expand, Globe, Map as MapIcon, MapPin, Moon } from 'lucide-react';
+import { AlertCircle, Compass, Expand, Globe, Map as MapIcon, MapPin } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
@@ -23,7 +23,7 @@ export function MomentsMapPanel({
   markers,
   moments = [],
   onPreviewImage,
-  onSelectMoment,
+  onSelectMoment: _onSelectMoment,
   className,
 }: MomentsMapPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,98 +139,74 @@ export function MomentsMapPanel({
         // Create Rich Popup DOM Element safely without innerHTML
         const popupDiv = document.createElement('div');
         popupDiv.className =
-          'p-3 max-w-[280px] sm:max-w-[320px] rounded-2xl bg-white text-zinc-900 shadow-2xl space-y-2 select-text font-sans';
+          'p-2.5 max-w-[260px] sm:max-w-[280px] rounded-3xl bg-white text-zinc-900 shadow-2xl select-text font-sans';
 
         const container = document.createElement('div');
-        container.className = 'space-y-2';
+        container.className = 'space-y-2.5';
 
         if (safeThumb) {
           const mainPhotoWrap = document.createElement('div');
           mainPhotoWrap.className =
-            'relative w-full aspect-16/10 rounded-xl overflow-hidden bg-zinc-100 group cursor-pointer';
+            'relative w-full aspect-4/3 rounded-2xl overflow-hidden bg-zinc-100 group cursor-pointer shadow-xs';
           const mainImg = document.createElement('img');
           mainImg.src = safeThumb;
           mainImg.className =
             'main-popup-img w-full h-full object-cover hover:scale-105 transition duration-300';
-          mainImg.alt = 'Main photo';
+          mainImg.alt = m.placeName || 'Check-in photo';
           if (onPreviewImage) {
             mainPhotoWrap.addEventListener('click', () => onPreviewImage(safeThumb));
           }
           mainPhotoWrap.appendChild(mainImg);
-
-          if (hasMultiple) {
-            const badge = document.createElement('div');
-            badge.className =
-              'absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs';
-            badge.textContent = `${mediaList.length} ảnh`;
-            mainPhotoWrap.appendChild(badge);
-          }
           container.appendChild(mainPhotoWrap);
         }
 
-        if (hasMultiple) {
-          const row = document.createElement('div');
-          row.className = 'flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none';
-          mediaList.forEach((med, idx) => {
-            const safeUrl = getSafeImageUrl(med.imageUrl || med.mediaUrl);
-            if (!safeUrl) return;
-            const thumbWrap = document.createElement('div');
-            thumbWrap.className =
-              'relative shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-zinc-200 cursor-pointer hover:opacity-80 transition';
-            const subImg = document.createElement('img');
-            subImg.src = safeUrl;
-            subImg.className = 'w-full h-full object-cover';
-            subImg.alt = `Ảnh ${idx + 1}`;
-            if (onPreviewImage) {
-              thumbWrap.addEventListener('click', () => onPreviewImage(safeUrl));
-            }
-            thumbWrap.appendChild(subImg);
-            row.appendChild(thumbWrap);
-          });
-          container.appendChild(row);
-        }
-
         const infoDiv = document.createElement('div');
-        const title = document.createElement('h4');
-        title.className = 'font-extrabold text-sm text-zinc-900 line-clamp-1 leading-snug';
-        title.textContent = `📍 ${m.placeName || m.locationName || 'Tọa độ hành trình'}`;
-        infoDiv.appendChild(title);
+        infoDiv.className = 'px-1 space-y-1';
 
-        if (m.altitude) {
-          const alt = document.createElement('p');
-          alt.className = 'text-[10px] font-bold text-emerald-600 font-mono mt-0.5';
-          alt.textContent = `🏔 Độ cao: ${m.altitude}`;
-          infoDiv.appendChild(alt);
-        }
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center gap-1.5';
+
+        const pinIcon = document.createElement('span');
+        pinIcon.className = 'text-rose-500 text-sm leading-none shrink-0';
+        pinIcon.textContent = '📍';
+        titleRow.appendChild(pinIcon);
+
+        const title = document.createElement('h4');
+        title.className = 'font-bold text-sm text-zinc-900 line-clamp-1 leading-snug';
+        title.textContent = m.placeName || m.locationName || 'Tọa độ hành trình';
+        titleRow.appendChild(title);
+        infoDiv.appendChild(titleRow);
 
         if (m.caption) {
           const cap = document.createElement('p');
-          cap.className = 'text-[11px] text-zinc-600 line-clamp-2 mt-1 italic';
+          cap.className = 'text-[11px] text-zinc-600 line-clamp-2 italic pl-5';
           cap.textContent = `"${m.caption}"`;
           infoDiv.appendChild(cap);
         }
-        container.appendChild(infoDiv);
 
-        const metaDiv = document.createElement('div');
-        metaDiv.className =
-          'flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-zinc-200';
-        const authorSpan = document.createElement('span');
-        authorSpan.textContent = `👤 ${m.authorName || 'Trekker'}`;
+        const metaRow = document.createElement('div');
+        metaRow.className =
+          'flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-zinc-100 px-0.5';
+
         const coordSpan = document.createElement('span');
+        coordSpan.className = 'font-mono text-zinc-400';
         coordSpan.textContent = `📍 ${m.latitude.toFixed(3)}°, ${m.longitude.toFixed(3)}°`;
-        metaDiv.appendChild(authorSpan);
-        metaDiv.appendChild(coordSpan);
-        container.appendChild(metaDiv);
+        metaRow.appendChild(coordSpan);
 
-        if (matchedMoment && onSelectMoment) {
-          const detailBtn = document.createElement('button');
-          detailBtn.type = 'button';
-          detailBtn.className =
-            'view-detail-btn w-full mt-1.5 py-1 text-center text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition cursor-pointer border border-emerald-200';
-          detailBtn.textContent = 'Xem chi tiết bài viết & bình luận';
-          detailBtn.addEventListener('click', () => onSelectMoment(matchedMoment));
-          container.appendChild(detailBtn);
+        if (m.altitude) {
+          const altSpan = document.createElement('span');
+          altSpan.className = 'font-bold text-emerald-600 font-mono';
+          altSpan.textContent = m.altitude;
+          metaRow.appendChild(altSpan);
+        } else if (m.authorName) {
+          const authorSpan = document.createElement('span');
+          authorSpan.className = 'truncate max-w-[100px] text-right';
+          authorSpan.textContent = m.authorName;
+          metaRow.appendChild(authorSpan);
         }
+
+        infoDiv.appendChild(metaRow);
+        container.appendChild(infoDiv);
 
         popupDiv.appendChild(container);
 
@@ -265,7 +241,7 @@ export function MomentsMapPanel({
         });
       }
     },
-    [clearMarkers, validMarkers, moments, selectedMarkerId, onPreviewImage, onSelectMoment]
+    [clearMarkers, validMarkers, moments, selectedMarkerId, onPreviewImage]
   );
 
   useEffect(() => {
@@ -412,20 +388,6 @@ export function MomentsMapPanel({
           >
             <Globe className="h-3 w-3" />
             <span className="hidden sm:inline">Vệ tinh</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSwitchStyle('dark')}
-            className={cn(
-              'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer',
-              currentStyle === 'dark'
-                ? 'bg-zinc-800 text-zinc-100 shadow-xs'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-            title="Bản đồ chế độ Tối (Dark mode)"
-          >
-            <Moon className="h-3 w-3" />
-            <span className="hidden sm:inline">Dark</span>
           </button>
         </div>
 
