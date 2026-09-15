@@ -179,22 +179,26 @@ export function GroupBudgetTab({
     costSummaryData?.totalEstimatedCost ??
     liveCostItems.reduce((sum, item) => sum + (item.estimatedAmount || 0), 0);
 
-  const memberCount =
+  const plannedMemberCount = costSummaryData?.maxSize || group.maxSize || 1;
+
+  const activeMemberCount =
     group.members?.filter((m) => m.status === 'ACCEPTED').length ||
-    costSummaryData?.maxSize ||
-    group.maxSize ||
+    costSummaryData?.activeMemberCount ||
     1;
 
   const effectivePerMemberCost =
     costSummaryData?.estimatedCostPerMember ??
-    (memberCount > 0 ? Math.round(totalItemizedCost / memberCount) : totalItemizedCost);
+    (plannedMemberCount > 0
+      ? Math.round(totalItemizedCost / plannedMemberCount)
+      : totalItemizedCost);
 
   // Computed Values - Actual Expenses & Settlement
   const actualExpenses = expensesData?.content || [];
   const totalActualSpent =
     settlementSummary?.totalGroupExpense ??
     actualExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-  const avgActualSpentPerPerson = memberCount > 0 ? Math.round(totalActualSpent / memberCount) : 0;
+  const avgActualSpentPerPerson =
+    activeMemberCount > 0 ? Math.round(totalActualSpent / activeMemberCount) : 0;
 
   const persistedSettlements = settlementSummary?.persistedSettlements || liveSettlements || [];
   const suggestedSettlements =
@@ -215,7 +219,7 @@ export function GroupBudgetTab({
               Kế Hoạch Dự Toán & Chia Sẻ Chi Phí
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Định mức chi phí chuyến đi được tính tự động dựa trên số lượng thành viên ghép thực tế
+              Định mức chi phí chuyến đi được tính toán dựa trên quy mô số lượng thành viên dự kiến
             </p>
           </div>
           {isLeader && isCustomJourney && !group.isLocked ? (
@@ -251,9 +255,14 @@ export function GroupBudgetTab({
           <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
             <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-1">
               <Users className="h-3 w-3 text-muted-foreground" />
-              Sĩ Số Nhóm Ghép
+              Sĩ Số Dự Kiến
             </span>
-            <div className="text-xl font-black text-foreground">{memberCount} Trekker</div>
+            <div className="text-xl font-black text-foreground">
+              {plannedMemberCount} Trekker
+              <span className="text-[11px] font-normal text-muted-foreground ml-1.5">
+                ({activeMemberCount} đã ghép)
+              </span>
+            </div>
           </div>
 
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 space-y-1">
@@ -297,7 +306,7 @@ export function GroupBudgetTab({
                 liveCostItems.map((item, idx) => {
                   const meta = CATEGORY_META[item.category] ?? CATEGORY_META.OTHER;
                   const Icon = meta.icon;
-                  const perPerson = Math.round(item.estimatedAmount / (memberCount || 1));
+                  const perPerson = Math.round(item.estimatedAmount / (plannedMemberCount || 1));
 
                   return (
                     <tr
@@ -320,7 +329,7 @@ export function GroupBudgetTab({
                         {item.estimatedAmount.toLocaleString('vi-VN')}đ
                       </td>
                       <td className="p-3 text-muted-foreground whitespace-nowrap">
-                        Chia đều {memberCount} người
+                        Chia đều {plannedMemberCount} người (dự kiến)
                       </td>
                       <td className="p-3 font-extrabold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                         {perPerson.toLocaleString('vi-VN')}đ
@@ -421,11 +430,11 @@ export function GroupBudgetTab({
                         ? exp.shares.length
                         : exp.beneficiaryCount || 0;
                     const beneficiaryCount =
-                      actualSharesCount > 0 ? actualSharesCount : memberCount;
+                      actualSharesCount > 0 ? actualSharesCount : activeMemberCount;
                     const isWholeGroup =
                       exp.beneficiaryScope === 'ALL_MEMBERS'
-                        ? actualSharesCount === memberCount || actualSharesCount === 0
-                        : beneficiaryCount >= memberCount;
+                        ? actualSharesCount === activeMemberCount || actualSharesCount === 0
+                        : beneficiaryCount >= activeMemberCount;
                     const isSingleBeneficiary =
                       beneficiaryCount === 1 && exp.shares && exp.shares.length === 1;
                     const singleBeneficiary = isSingleBeneficiary ? exp.shares[0].member : null;
@@ -484,7 +493,7 @@ export function GroupBudgetTab({
                                     Tùy chỉnh
                                   </span>
                                   <span className="text-foreground font-semibold">
-                                    {beneficiaryCount}/{memberCount} người
+                                    {beneficiaryCount}/{activeMemberCount} người
                                   </span>
                                 </span>
                               ) : isSingleBeneficiary && singleBeneficiary ? (
@@ -493,14 +502,14 @@ export function GroupBudgetTab({
                                     ? `Chi hộ ${singleBeneficiary.fullName}`
                                     : `Chi riêng cho ${singleBeneficiary.fullName}`}
                                   <span className="text-[10px] text-muted-foreground font-normal ml-1">
-                                    (1/{memberCount} người)
+                                    (1/{activeMemberCount} người)
                                   </span>
                                 </span>
                               ) : isWholeGroup ? (
-                                <span>Chia đều cả đoàn ({memberCount} người)</span>
+                                <span>Chia đều cả đoàn ({activeMemberCount} người)</span>
                               ) : (
                                 <span>
-                                  Chia đều {beneficiaryCount}/{memberCount} người
+                                  Chia đều {beneficiaryCount}/{activeMemberCount} người
                                 </span>
                               )}
                             </div>
