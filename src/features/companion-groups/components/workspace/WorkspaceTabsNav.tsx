@@ -1,16 +1,12 @@
 import {
   Camera,
-  FileText,
   Layers,
   type LucideIcon,
   MessageSquare,
   Radio,
   Settings,
   Siren,
-  Star,
-  UserCheck,
   Users,
-  Vote,
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,12 +18,8 @@ export type WorkspaceTabKey =
   | 'itinerary'
   | 'moments'
   | 'members'
-  | 'reviews'
-  | 'requests'
   | 'budget'
-  | 'rules'
-  | 'sos'
-  | 'votes'
+  | 'sosVotes'
   | 'management';
 
 interface WorkspaceTabDef {
@@ -39,16 +31,12 @@ interface WorkspaceTabDef {
 
 export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'overview', label: 'Tổng quan', icon: Radio },
-  { id: 'feed', label: 'Bảng tin & Thảo luận', icon: MessageSquare },
+  { id: 'feed', label: 'Bảng tin', icon: MessageSquare },
   { id: 'itinerary', label: 'Lộ trình', icon: Layers },
   { id: 'moments', label: 'Khoảnh khắc & Album', icon: Camera },
   { id: 'members', label: 'Thành viên', icon: Users },
-  { id: 'reviews', label: 'Đánh giá', icon: Star },
-  { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, leaderOnly: true },
   { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
-  { id: 'rules', label: 'Quy định nhóm', icon: FileText },
-  { id: 'sos', label: 'SOS', icon: Siren },
-  { id: 'votes', label: 'Bình chọn', icon: Vote },
+  { id: 'sosVotes', label: 'SOS & Biểu quyết', icon: Siren },
   { id: 'management', label: 'Quản lý nhóm', icon: Settings, leaderOnly: true },
 ];
 
@@ -62,7 +50,7 @@ interface WorkspaceTabsNavProps {
   >;
 }
 
-const BADGE_TONES = {
+export const BADGE_TONES = {
   warning: 'bg-amber-500 text-white',
   danger: 'bg-destructive text-destructive-foreground',
   muted: 'bg-muted text-muted-foreground',

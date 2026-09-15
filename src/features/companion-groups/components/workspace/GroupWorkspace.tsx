@@ -9,16 +9,13 @@ import { useVoteSocket } from '../../hooks/vote/useVoteSocket';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { GroupBudgetTab } from '../detail/GroupBudgetTab';
-import { GroupRulesTab } from '../detail/GroupRulesTab';
 import { MemberAvatar } from '../detail/MemberAvatar';
-import { MembersCard } from '../detail/MembersCard';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
-import { GroupPeerReviewsTab } from './reviews/GroupPeerReviewsTab';
-import { GroupSosTab } from './sos/GroupSosTab';
+import { GroupPeoplePanel, type PeopleSubTabKey } from './people/GroupPeoplePanel';
 import { SosLocationMap } from './sos/SosLocationMap';
-import { GroupVotesTab } from './votes/GroupVotesTab';
+import { GroupSosVotesPanel, type SosVotesSubTabKey } from './sosVotes/GroupSosVotesPanel';
 import { type WorkspaceTabKey, WorkspaceTabsNav } from './WorkspaceTabsNav';
 
 export type { WorkspaceTabKey };
@@ -51,6 +48,8 @@ export function GroupWorkspace({
   onRemoveMember,
 }: GroupWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<WorkspaceTabKey>('overview');
+  const [activePeopleSubTab, setActivePeopleSubTab] = useState<PeopleSubTabKey>('list');
+  const [activeSosVotesSubTab, setActiveSosVotesSubTab] = useState<SosVotesSubTabKey>('sos');
 
   useSosSocket(group.matchingGroupId);
   const { data: activeSosAlerts = [] } = useActiveSosAlerts(group.matchingGroupId);
@@ -76,6 +75,25 @@ export function GroupWorkspace({
 
   const acceptedMembers = group.members.filter((member) => member.status === 'ACCEPTED');
 
+  type Badge = { value: number; tone: 'warning' | 'danger' | 'muted' } | undefined;
+  function pickBadge(...badges: Badge[]): Badge {
+    return badges.find((b) => b && b.value > 0);
+  }
+
+  const requestsBadge: Badge = { value: pendingJoinRequestsCount, tone: 'danger' };
+  const reviewsBadge: Badge =
+    isTripEnded && unreviewedCount > 0 ? { value: unreviewedCount, tone: 'warning' } : undefined;
+  const membersBadge: Badge = { value: acceptedMembers.length, tone: 'muted' };
+  const sosBadge: Badge =
+    activeSosAlerts.length > 0 ? { value: activeSosAlerts.length, tone: 'danger' } : undefined;
+  const votesBadge: Badge =
+    openGovernanceVotes.length > 0
+      ? { value: openGovernanceVotes.length, tone: 'warning' }
+      : undefined;
+
+  const peopleBadge = pickBadge(requestsBadge, reviewsBadge, membersBadge);
+  const sosVotesBadge = pickBadge(sosBadge, votesBadge);
+
   return (
     <div className="space-y-6">
       {/* STICKY BANNER: TÍN HIỆU SOS ĐANG MỞ (hiển thị ở mọi tab, ưu tiên trên cùng) */}
@@ -98,7 +116,10 @@ export function GroupWorkspace({
                 </span>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('sos')}
+                  onClick={() => {
+                    setActiveTab('sosVotes');
+                    setActiveSosVotesSubTab('sos');
+                  }}
                   className="shrink-0 rounded-full border border-destructive/40 px-2.5 py-1 text-[11px] font-bold text-destructive hover:bg-destructive/10 transition cursor-pointer"
                 >
                   Xem chi tiết
@@ -128,7 +149,10 @@ export function GroupWorkspace({
                 <span className="font-bold text-foreground">{vote.title}</span>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('votes')}
+                  onClick={() => {
+                    setActiveTab('sosVotes');
+                    setActiveSosVotesSubTab('votes');
+                  }}
                   className="shrink-0 rounded-full border border-amber-500/40 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition cursor-pointer"
                 >
                   Xem & bỏ phiếu
@@ -155,7 +179,14 @@ export function GroupWorkspace({
               </p>
             </div>
           </div>
-          <AppButton size="sm" onClick={() => setActiveTab('reviews')} className="shrink-0">
+          <AppButton
+            size="sm"
+            onClick={() => {
+              setActiveTab('members');
+              setActivePeopleSubTab('reviews');
+            }}
+            className="shrink-0"
+          >
             Bắt đầu đánh giá
           </AppButton>
         </div>
@@ -166,20 +197,8 @@ export function GroupWorkspace({
         onTabChange={setActiveTab}
         isLeader={isLeader}
         badges={{
-          reviews:
-            isTripEnded && unreviewedCount > 0
-              ? { value: unreviewedCount, tone: 'warning' }
-              : undefined,
-          requests: { value: pendingJoinRequestsCount, tone: 'danger' },
-          members: { value: acceptedMembers.length, tone: 'muted' },
-          sos:
-            activeSosAlerts.length > 0
-              ? { value: activeSosAlerts.length, tone: 'danger' }
-              : undefined,
-          votes:
-            openGovernanceVotes.length > 0
-              ? { value: openGovernanceVotes.length, tone: 'warning' }
-              : undefined,
+          members: peopleBadge,
+          sosVotes: sosVotesBadge,
         }}
       />
 
@@ -232,7 +251,10 @@ export function GroupWorkspace({
       )}
 
       {activeTab === 'members' && (
-        <MembersCard
+        <GroupPeoplePanel
+          activeSubTab={activePeopleSubTab}
+          onSubTabChange={setActivePeopleSubTab}
+          isLeader={isLeader}
           members={group.members}
           maxSize={group.maxSize}
           ownerName={group.ownerName}
@@ -242,35 +264,29 @@ export function GroupWorkspace({
           onDirectChat={onDirectChat}
           onAddMemberToChat={onAddMemberToChat}
           onRemoveMember={onRemoveMember}
+          joinRequestsSlot={joinRequestsSlot}
+          groupId={group.matchingGroupId}
+          isTripEnded={isTripEnded}
+          membersBadge={membersBadge}
+          requestsBadge={requestsBadge}
+          reviewsBadge={reviewsBadge}
         />
       )}
-
-      {activeTab === 'reviews' && (
-        <GroupPeerReviewsTab groupId={group.matchingGroupId} isTripEnded={isTripEnded} />
-      )}
-
-      {activeTab === 'requests' && isLeader && <div className="space-y-6">{joinRequestsSlot}</div>}
 
       {activeTab === 'budget' && (
         <GroupBudgetTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
       )}
 
-      {activeTab === 'rules' && <GroupRulesTab group={group} />}
-
-      {activeTab === 'sos' && (
-        <GroupSosTab
-          groupId={group.matchingGroupId}
-          currentUserId={currentUserId}
-          isLeader={isLeader}
-        />
-      )}
-
-      {activeTab === 'votes' && (
-        <GroupVotesTab
+      {activeTab === 'sosVotes' && (
+        <GroupSosVotesPanel
+          activeSubTab={activeSosVotesSubTab}
+          onSubTabChange={setActiveSosVotesSubTab}
           groupId={group.matchingGroupId}
           currentUserId={currentUserId}
           isLeader={isLeader}
           members={group.members}
+          sosBadge={sosBadge}
+          votesBadge={votesBadge}
         />
       )}
 

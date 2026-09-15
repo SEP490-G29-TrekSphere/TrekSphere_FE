@@ -12,7 +12,6 @@ import { type GroupDetailTabKey, GroupDetailTabs } from '../components/detail/Gr
 import { GroupItineraryTab } from '../components/detail/GroupItineraryTab';
 import { GroupModals } from '../components/detail/GroupModals';
 import { GroupOverviewTab } from '../components/detail/GroupOverviewTab';
-import { GroupRulesTab } from '../components/detail/GroupRulesTab';
 import { JoinRequestsCard } from '../components/detail/JoinRequestsCard';
 import { JoinGroupModal } from '../components/modals/JoinGroupModal';
 import { GroupSOSModal } from '../components/workspace/GroupSOSModal';
@@ -204,8 +203,6 @@ export default function CompanionGroupDetailPage({
                     currentUserId={user?.id?.toString()}
                   />
                 )}
-
-                {activeTab === 'rules' && <GroupRulesTab group={group} />}
               </>
             )}
           </div>

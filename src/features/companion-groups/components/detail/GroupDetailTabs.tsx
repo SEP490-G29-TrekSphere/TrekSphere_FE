@@ -1,9 +1,9 @@
-import { Compass, Route, ShieldCheck, WalletCards } from 'lucide-react';
+import { Compass, Route, WalletCards } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { AppScrollableTabs } from '@/shared/ui';
 
-export type GroupDetailTabKey = 'overview' | 'itinerary' | 'budget' | 'rules';
+export type GroupDetailTabKey = 'overview' | 'itinerary' | 'budget';
 
 interface GroupDetailTabsProps {
   activeTab: GroupDetailTabKey;
@@ -16,7 +16,6 @@ const TABS = [
   { id: 'overview' as const, label: 'Tổng quan & Thành viên', icon: Compass },
   { id: 'itinerary' as const, label: 'Lộ trình & Điểm dừng', icon: Route },
   { id: 'budget' as const, label: 'Dự toán chi phí', icon: WalletCards },
-  { id: 'rules' as const, label: 'Cam kết & An toàn', icon: ShieldCheck },
 ];
 
 export function GroupDetailTabs({
