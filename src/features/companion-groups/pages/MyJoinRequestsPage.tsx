@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTrekkerGroupDetailPath, PATHS } from '@/constants';
+import { getGroupDetailPath, getTrekkerGroupDetailPath, PATHS } from '@/constants';
 import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
@@ -138,7 +138,11 @@ export default function MyJoinRequestsPage() {
           onRetry={() => void refetch()}
           onWithdraw={(app) => setSelectedWithdrawApp(app)}
           onReapply={(app) => setSelectedReapplyApp(app)}
-          onViewDetail={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
+          onViewDetail={(groupId) =>
+            navigate(getGroupDetailPath(groupId), {
+              state: { backPath: PATHS.TREKKER_MY_JOIN_REQUESTS },
+            })
+          }
           onViewWorkspace={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
           onPageChange={setPage}
         />
