@@ -17,6 +17,7 @@ export {
   WithdrawRequestConfirmModal,
 } from './components/modals';
 export { ScheduleConflictNotice } from './components/ScheduleConflictNotice';
+export { GroupChecklistTab } from './components/workspace/checklist/GroupChecklistTab';
 export {
   CommentItem,
   CommentSection,

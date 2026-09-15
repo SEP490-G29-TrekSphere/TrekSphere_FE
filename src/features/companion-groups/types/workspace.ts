@@ -122,62 +122,87 @@ export type UpdateActivityPayload = CustomJourneyActivityUpdateRequest;
 
 // ==================== GROUP CHECKLIST ====================
 export type GroupChecklistCategory = 'SHARED' | 'PERSONAL';
-export type GroupChecklistItemType = 'GEAR' | 'MEDICINE' | 'FOOD' | 'DOCUMENT' | 'OTHER';
-export type GroupChecklistStatus = 'PENDING' | 'DONE';
+export type GroupChecklistItemType = 'CLOTHING' | 'TENT' | 'MEDICAL' | 'ELECTRONICS' | 'OTHER';
+export type GroupChecklistStatus = 'TODO' | 'IN_PROGRESS' | 'DONE' | 'PENDING' | 'COMPLETED';
 
 export interface GroupChecklistItemResponse {
-  itemId: string;
+  groupChecklistItemId?: string;
+  itemId?: string;
   matchingGroupId: string;
-  category: GroupChecklistCategory;
-  itemType: GroupChecklistItemType;
-  itemName: string;
+  title?: string;
+  itemName?: string;
+  itemScope?: GroupChecklistCategory;
+  category?: GroupChecklistCategory;
+  itemTypeCode?: GroupChecklistItemType;
+  itemType?: GroupChecklistItemType;
   isRequired: boolean;
   status: GroupChecklistStatus;
   note: string | null;
-  assigneeMemberId: string | null;
+  assigneeMatchingMemberId?: string | null;
+  assigneeMemberId?: string | null;
   assigneeUserId: string | null;
-  assigneeName: string | null;
+  assigneeFullName?: string | null;
+  assigneeName?: string | null;
   assigneeAvatarUrl: string | null;
   completedAt: string | null;
-  completedByMemberId: string | null;
-  completedByName: string | null;
+  completedByMatchingMemberId?: string | null;
+  completedByMemberId?: string | null;
+  completedByUserId?: string | null;
+  completedByFullName?: string | null;
+  completedByName?: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 export interface GroupChecklistSummaryResponse {
   totalItems: number;
-  doneItems: number;
-  pendingItems: number;
-  completionRate: number;
+  completedItems?: number;
+  doneItems?: number;
+  pendingItems?: number;
+  sharedItems?: number;
+  personalItems?: number;
+  completionRate?: number;
   items: GroupChecklistItemResponse[];
 }
 
 export interface GroupChecklistFilterRequest {
+  itemScope?: GroupChecklistCategory;
   category?: GroupChecklistCategory;
+  itemTypeCode?: GroupChecklistItemType;
   itemType?: GroupChecklistItemType;
   status?: GroupChecklistStatus;
+  assigneeMatchingMemberId?: string;
   assigneeMemberId?: string;
   isRequired?: boolean;
 }
 
 export interface GroupChecklistItemCreateRequest {
-  category: GroupChecklistCategory;
-  itemType: GroupChecklistItemType;
-  itemName: string;
+  title: string;
+  itemScope: GroupChecklistCategory;
+  itemTypeCode?: GroupChecklistItemType;
   isRequired?: boolean;
   note?: string | null;
+  assigneeMatchingMemberId?: string | null;
+  // Aliases for compatibility
+  itemName?: string;
+  category?: GroupChecklistCategory;
+  itemType?: GroupChecklistItemType;
   assigneeMemberId?: string | null;
 }
 
 export interface GroupChecklistItemUpdateRequest {
-  category?: GroupChecklistCategory;
-  itemType?: GroupChecklistItemType;
-  itemName?: string;
+  title?: string;
+  itemScope?: GroupChecklistCategory;
+  itemTypeCode?: GroupChecklistItemType;
   isRequired?: boolean;
   note?: string | null;
+  assigneeMatchingMemberId?: string | null;
+  // Aliases for compatibility
+  itemName?: string;
+  category?: GroupChecklistCategory;
+  itemType?: GroupChecklistItemType;
   assigneeMemberId?: string | null;
 }
 

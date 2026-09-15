@@ -23,6 +23,11 @@ export const groupWorkspaceKeys = {
   expenseDetail: (groupId: string, expenseId: string) =>
     [...groupWorkspaceKeys.all, 'expense-detail', groupId, expenseId] as const,
 
+  // Settlement & Debt Optimization Keys
+  settlementSummary: (groupId: string) =>
+    [...groupWorkspaceKeys.all, 'settlement-summary', groupId] as const,
+  settlements: (groupId: string) => [...groupWorkspaceKeys.all, 'settlements', groupId] as const,
+
   // Legacy & other tabs support
   lifecycle: (groupId: string) => [...groupWorkspaceKeys.all, 'lifecycle', groupId] as const,
   feed: (groupId: string) => [...groupWorkspaceKeys.all, 'feed', groupId] as const,

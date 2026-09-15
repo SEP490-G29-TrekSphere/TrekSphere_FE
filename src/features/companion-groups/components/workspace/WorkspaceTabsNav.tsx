@@ -3,6 +3,7 @@ import {
   Layers,
   type LucideIcon,
   MessageSquare,
+  Package,
   Radio,
   Settings,
   Siren,
@@ -15,6 +16,7 @@ export type WorkspaceTabKey =
   | 'overview'
   | 'feed'
   | 'itinerary'
+  | 'checklist'
   | 'moments'
   | 'members'
   | 'budget'
@@ -32,6 +34,7 @@ export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'overview', label: 'Tổng quan', icon: Radio },
   { id: 'feed', label: 'Bảng tin', icon: MessageSquare },
   { id: 'itinerary', label: 'Lộ trình', icon: Layers },
+  { id: 'checklist', label: 'Đồ dùng', icon: Package },
   { id: 'moments', label: 'Khoảnh khắc & Album', icon: Camera },
   { id: 'members', label: 'Thành viên', icon: Users },
   { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },

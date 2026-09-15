@@ -48,6 +48,8 @@ export function useCreateGroupExpense(groupId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenses(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
     },
   });
 }
@@ -70,6 +72,8 @@ export function useUpdateGroupExpense(groupId: string) {
       queryClient.invalidateQueries({
         queryKey: groupWorkspaceKeys.expenseDetail(groupId, variables.expenseId),
       });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
     },
   });
 }
@@ -83,6 +87,8 @@ export function useVoidGroupExpense(groupId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenses(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
     },
   });
 }

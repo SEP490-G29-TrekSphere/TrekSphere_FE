@@ -119,7 +119,7 @@ export const checklistItemFormSchema = z.object({
   category: z.enum(['SHARED', 'PERSONAL'], {
     message: 'Vui lòng chọn danh mục hợp lệ (SHARED hoặc PERSONAL)',
   }),
-  itemType: z.enum(['GEAR', 'MEDICINE', 'FOOD', 'DOCUMENT', 'OTHER'], {
+  itemType: z.enum(['CLOTHING', 'TENT', 'MEDICAL', 'ELECTRONICS', 'OTHER'], {
     message: 'Vui lòng chọn loại đồ dùng hợp lệ',
   }),
   itemName: z

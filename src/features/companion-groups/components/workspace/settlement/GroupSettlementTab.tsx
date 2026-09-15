@@ -66,7 +66,7 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
   }
 
   const memberBalances = summary?.memberBalances || [];
-  const suggestions = summary?.suggestedSettlements || [];
+  const suggestions = summary?.suggestions || summary?.suggestedSettlements || [];
   const activeSettlements = summary?.persistedSettlements || settlements;
 
   return (

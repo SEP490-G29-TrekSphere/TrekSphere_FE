@@ -436,10 +436,25 @@ export const groupWorkspaceService = {
     groupId: string,
     payload: GroupChecklistItemCreateRequest
   ): Promise<GroupChecklistItemResponse> {
+    const validTypes = ['CLOTHING', 'TENT', 'MEDICAL', 'ELECTRONICS', 'OTHER'];
+    let itemTypeCode = payload.itemTypeCode || payload.itemType || 'OTHER';
+    if (!validTypes.includes(itemTypeCode)) {
+      itemTypeCode = 'OTHER';
+    }
+
+    const bePayload = {
+      title: payload.title || payload.itemName || '',
+      itemScope: payload.itemScope || payload.category || 'SHARED',
+      itemTypeCode,
+      isRequired: payload.isRequired ?? false,
+      note: payload.note || null,
+      assigneeMatchingMemberId:
+        payload.assigneeMatchingMemberId || payload.assigneeMemberId || null,
+    };
     const response = await ApiService<GroupChecklistItemResponse>(
       `/matching-groups/${groupId}/checklist-items`,
       'POST',
-      payload
+      bePayload
     );
     return unwrapResponse(response);
   },
@@ -452,10 +467,25 @@ export const groupWorkspaceService = {
     itemId: string,
     payload: GroupChecklistItemUpdateRequest
   ): Promise<GroupChecklistItemResponse> {
+    const validTypes = ['CLOTHING', 'TENT', 'MEDICAL', 'ELECTRONICS', 'OTHER'];
+    let itemTypeCode = payload.itemTypeCode || payload.itemType || 'OTHER';
+    if (!validTypes.includes(itemTypeCode)) {
+      itemTypeCode = 'OTHER';
+    }
+
+    const bePayload = {
+      title: payload.title || payload.itemName || '',
+      itemScope: payload.itemScope || payload.category || 'SHARED',
+      itemTypeCode,
+      isRequired: payload.isRequired ?? false,
+      note: payload.note || null,
+      assigneeMatchingMemberId:
+        payload.assigneeMatchingMemberId || payload.assigneeMemberId || null,
+    };
     const response = await ApiService<GroupChecklistItemResponse>(
       `/matching-groups/${groupId}/checklist-items/${itemId}`,
       'PUT',
-      payload
+      bePayload
     );
     return unwrapResponse(response);
   },
