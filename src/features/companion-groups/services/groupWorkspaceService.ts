@@ -263,6 +263,34 @@ export const groupWorkspaceService = {
   },
 
   /**
+   * Leader check-in 1 điểm dừng đã đến (chỉ khi chuyến đi đang diễn ra).
+   */
+  async checkInCheckpoint(
+    groupId: string,
+    checkpointId: string
+  ): Promise<CustomJourneyCheckpointResponse> {
+    const response = await ApiService<CustomJourneyCheckpointResponse>(
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/checkin`,
+      'POST'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Leader gỡ check-in điểm dừng (sửa nhầm).
+   */
+  async undoCheckInCheckpoint(
+    groupId: string,
+    checkpointId: string
+  ): Promise<CustomJourneyCheckpointResponse> {
+    const response = await ApiService<CustomJourneyCheckpointResponse>(
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/checkin`,
+      'DELETE'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
    * Lấy danh sách các hoạt động trong thời khóa biểu lộ trình của nhóm ghép.
    */
   async getJourneyActivities(groupId: string): Promise<CustomJourneyActivityResponse[]> {
@@ -617,7 +645,6 @@ export const groupWorkspaceService = {
   async confirmSettlement(_groupId: string, _settlementId: string): Promise<void> {},
 
   async addCheckpoint(_groupId: string, _data: unknown): Promise<void> {},
-  async checkInCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
   async skipCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
 
   // Dissolution request/vote: thay bằng voteService.ts (group_vote, voteType=GROUP_DISSOLUTION)

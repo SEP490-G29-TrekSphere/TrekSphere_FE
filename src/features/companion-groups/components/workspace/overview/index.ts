@@ -1,0 +1,1 @@
+export { GroupOverviewTab } from './GroupOverviewTab';

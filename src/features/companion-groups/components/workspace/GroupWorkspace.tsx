@@ -9,10 +9,10 @@ import { useVoteSocket } from '../../hooks/vote/useVoteSocket';
 import type { UserRoleInGroup } from '../../types';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { GroupBudgetTab } from '../detail/GroupBudgetTab';
-import { MemberAvatar } from '../detail/MemberAvatar';
 import { GroupFeedTab } from './feed/GroupFeedTab';
 import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
+import { GroupOverviewTab } from './overview/GroupOverviewTab';
 import { GroupPeoplePanel, type PeopleSubTabKey } from './people/GroupPeoplePanel';
 import { SosLocationMap } from './sos/SosLocationMap';
 import { GroupSosVotesPanel, type SosVotesSubTabKey } from './sosVotes/GroupSosVotesPanel';
@@ -66,12 +66,6 @@ export function GroupWorkspace({
   const isTripEnded = group.status === 'COMPLETED';
   const { data: candidates = [] } = usePeerReviewCandidates(group.matchingGroupId, isTripEnded);
   const unreviewedCount = candidates.filter((candidate) => !candidate.isReviewed).length;
-
-  const descriptionText =
-    group.description ||
-    group.tourDescription ||
-    group.customJourneyDescription ||
-    'Chưa có mô tả chi tiết cho chuyến đi này.';
 
   const acceptedMembers = group.members.filter((member) => member.status === 'ACCEPTED');
 
@@ -203,31 +197,17 @@ export function GroupWorkspace({
       />
 
       {activeTab === 'overview' && (
-        <div className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-xs">
-          <div className="flex flex-col justify-between gap-4 border-border border-b pb-4 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3.5">
-              <MemberAvatar
-                fullName={group.ownerName}
-                avatarUrl={group.ownerAvatarUrl ?? undefined}
-                size="lg"
-                isLeader
-              />
-              <div>
-                <h3 className="font-extrabold text-base text-foreground">{group.ownerName}</h3>
-                <p className="text-muted-foreground text-xs">Trưởng nhóm khởi xướng chuyến đi</p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="mb-1.5 font-bold text-muted-foreground text-xs uppercase tracking-wider">
-              Mô tả chuyến đi
-            </h4>
-            <p className="whitespace-pre-line text-muted-foreground text-xs leading-relaxed">
-              {descriptionText}
-            </p>
-          </div>
-        </div>
+        <GroupOverviewTab
+          group={group}
+          isLeader={isLeader}
+          currentUserId={currentUserId}
+          activeSosAlerts={activeSosAlerts}
+          onViewFullFeed={() => setActiveTab('feed')}
+          onViewSosDetail={() => {
+            setActiveTab('sosVotes');
+            setActiveSosVotesSubTab('sos');
+          }}
+        />
       )}
 
       {activeTab === 'feed' && (

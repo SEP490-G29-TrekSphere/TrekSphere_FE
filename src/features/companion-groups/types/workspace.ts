@@ -20,6 +20,7 @@ export interface CustomJourneyCheckpointResponse {
   category?: string;
   distanceAltitude?: string;
   gps?: string;
+  isCheckedIn?: boolean;
   checkedInByName?: string;
   checkedInAt?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

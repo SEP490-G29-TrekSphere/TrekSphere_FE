@@ -10,7 +10,6 @@ import {
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AppScrollableTabs } from '@/shared/ui';
 
 export type WorkspaceTabKey =
   | 'overview'
@@ -64,7 +63,7 @@ export function WorkspaceTabsNav({
   badges = {},
 }: WorkspaceTabsNavProps) {
   return (
-    <AppScrollableTabs>
+    <div className="flex flex-wrap gap-1.5 rounded-2xl border border-border bg-card p-1.5 shadow-xs">
       {WORKSPACE_TABS.map((tab) => {
         if (tab.leaderOnly && !isLeader) return null;
         const Icon = tab.icon;
@@ -98,6 +97,6 @@ export function WorkspaceTabsNav({
           </button>
         );
       })}
-    </AppScrollableTabs>
+    </div>
   );
 }

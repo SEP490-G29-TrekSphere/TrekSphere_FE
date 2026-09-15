@@ -99,6 +99,34 @@ export function useDeleteGroupCheckpoint(groupId: string) {
   });
 }
 
+/** Hook Leader check-in 1 checkpoint đã đến (chỉ khi chuyến đi đang diễn ra) */
+export function useCheckInCheckpoint(groupId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (checkpointId: string) =>
+      groupWorkspaceService.checkInCheckpoint(groupId, checkpointId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.checkpoints(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
+    },
+  });
+}
+
+/** Hook Leader gỡ check-in checkpoint (sửa nhầm) */
+export function useUndoCheckInCheckpoint(groupId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (checkpointId: string) =>
+      groupWorkspaceService.undoCheckInCheckpoint(groupId, checkpointId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.checkpoints(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
+    },
+  });
+}
+
 /** Hook tạo mới Hoạt động trong thời khóa biểu */
 export function useCreateGroupJourneyActivity(groupId: string) {
   const queryClient = useQueryClient();
