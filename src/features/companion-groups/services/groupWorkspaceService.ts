@@ -263,28 +263,30 @@ export const groupWorkspaceService = {
   },
 
   /**
-   * Leader check-in 1 điểm dừng đã đến (chỉ khi chuyến đi đang diễn ra).
+   * Leader cập nhật tiến độ 1 điểm dừng: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra).
    */
-  async checkInCheckpoint(
+  async updateCheckpointProgress(
     groupId: string,
-    checkpointId: string
+    checkpointId: string,
+    status: 'CHECKED_IN' | 'SKIPPED'
   ): Promise<CustomJourneyCheckpointResponse> {
     const response = await ApiService<CustomJourneyCheckpointResponse>(
-      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/checkin`,
-      'POST'
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/progress`,
+      'PATCH',
+      { status }
     );
     return unwrapResponse(response);
   },
 
   /**
-   * Leader gỡ check-in điểm dừng (sửa nhầm).
+   * Leader gỡ tiến độ điểm dừng về chưa cập nhật (sửa nhầm).
    */
-  async undoCheckInCheckpoint(
+  async resetCheckpointProgress(
     groupId: string,
     checkpointId: string
   ): Promise<CustomJourneyCheckpointResponse> {
     const response = await ApiService<CustomJourneyCheckpointResponse>(
-      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/checkin`,
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/progress`,
       'DELETE'
     );
     return unwrapResponse(response);

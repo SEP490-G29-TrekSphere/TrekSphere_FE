@@ -104,9 +104,9 @@ export interface CustomJourneyCheckpoint {
   plannedStartAt: string | null;
   plannedEndAt: string | null;
   imageUrl: string | null;
-  isCheckedIn?: boolean;
-  checkedInAt?: string | null;
-  checkedInByName?: string | null;
+  status?: 'PENDING' | 'CHECKED_IN' | 'SKIPPED';
+  progressUpdatedAt?: string | null;
+  progressUpdatedByName?: string | null;
 }
 
 export type CostItemCategory = 'PERMIT' | 'GUIDE' | 'FOOD' | 'TRANSPORT' | 'GEAR' | 'OTHER';

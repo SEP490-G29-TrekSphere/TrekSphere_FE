@@ -16,13 +16,12 @@ export interface CustomJourneyCheckpointResponse {
   plannedStartAt: string | null;
   plannedEndAt: string | null;
   imageUrl: string | null;
-  status?: string;
+  status?: 'PENDING' | 'CHECKED_IN' | 'SKIPPED' | string;
   category?: string;
   distanceAltitude?: string;
   gps?: string;
-  isCheckedIn?: boolean;
-  checkedInByName?: string;
-  checkedInAt?: string;
+  progressUpdatedByName?: string;
+  progressUpdatedAt?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }

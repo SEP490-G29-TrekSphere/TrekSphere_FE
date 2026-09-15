@@ -99,13 +99,18 @@ export function useDeleteGroupCheckpoint(groupId: string) {
   });
 }
 
-/** Hook Leader check-in 1 checkpoint đã đến (chỉ khi chuyến đi đang diễn ra) */
-export function useCheckInCheckpoint(groupId: string) {
+/** Hook Leader cập nhật tiến độ 1 checkpoint: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra) */
+export function useUpdateCheckpointProgress(groupId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (checkpointId: string) =>
-      groupWorkspaceService.checkInCheckpoint(groupId, checkpointId),
+    mutationFn: ({
+      checkpointId,
+      status,
+    }: {
+      checkpointId: string;
+      status: 'CHECKED_IN' | 'SKIPPED';
+    }) => groupWorkspaceService.updateCheckpointProgress(groupId, checkpointId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.checkpoints(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
@@ -113,13 +118,13 @@ export function useCheckInCheckpoint(groupId: string) {
   });
 }
 
-/** Hook Leader gỡ check-in checkpoint (sửa nhầm) */
-export function useUndoCheckInCheckpoint(groupId: string) {
+/** Hook Leader gỡ tiến độ checkpoint về chưa cập nhật (sửa nhầm) */
+export function useResetCheckpointProgress(groupId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (checkpointId: string) =>
-      groupWorkspaceService.undoCheckInCheckpoint(groupId, checkpointId),
+      groupWorkspaceService.resetCheckpointProgress(groupId, checkpointId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.checkpoints(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
