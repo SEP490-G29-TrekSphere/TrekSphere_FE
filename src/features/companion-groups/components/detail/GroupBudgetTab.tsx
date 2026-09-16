@@ -6,6 +6,7 @@ import {
   CircleDollarSign,
   Clock,
   Compass,
+  Eye,
   FileText,
   Pencil,
   Plus,
@@ -37,11 +38,13 @@ import {
 import {
   CreateExpenseModal,
   EditExpenseModal,
+  ExpenseDetailModal,
   VoidExpenseConfirmModal,
 } from '../workspace/expense';
 import {
   ConfirmSettlementModal,
   RejectSettlementModal,
+  SettlementDetailModal,
   SubmitProofModal,
 } from '../workspace/settlement';
 import { MemberAvatar } from './MemberAvatar';
@@ -148,6 +151,8 @@ export function GroupBudgetTab({
 
   // Modal States - Actual Expenses
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [selectedExpenseForDetail, setSelectedExpenseForDetail] =
+    useState<GroupExpenseResponse | null>(null);
   const [selectedExpenseForEdit, setSelectedExpenseForEdit] = useState<GroupExpenseResponse | null>(
     null
   );
@@ -156,6 +161,8 @@ export function GroupBudgetTab({
   );
 
   // Modal States - Settlements
+  const [selectedSettlementForDetail, setSelectedSettlementForDetail] =
+    useState<GroupSettlementResponse | null>(null);
   const [selectedSettlementForProof, setSelectedSettlementForProof] =
     useState<GroupSettlementResponse | null>(null);
   const [selectedSettlementForConfirm, setSelectedSettlementForConfirm] =
@@ -299,7 +306,9 @@ export function GroupBudgetTab({
               ) : liveCostItems.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-xs text-muted-foreground">
-                    Chưa có khoản dự toán nào. Hãy bấm &quot;Thêm Khoản Chi Mới&quot; để thiết lập.
+                    {isLeader
+                      ? 'Chưa có khoản dự toán nào. Hãy bấm "Thêm Khoản Chi Mới" để thiết lập.'
+                      : 'Trưởng nhóm chưa thiết lập bảng dự toán chi phí cho chuyến đi này.'}
                   </td>
                 </tr>
               ) : (
@@ -538,30 +547,36 @@ export function GroupBudgetTab({
                           </div>
                         </td>
                         <td className="p-3 text-right whitespace-nowrap">
-                          {isLeader ? (
-                            <div className="inline-flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedExpenseForEdit(exp)}
-                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
-                                title="Sửa"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedExpenseForVoid(exp)}
-                                className="p-1.5 text-rose-500 hover:text-rose-600 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
-                                title="Xóa"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground italic">
-                              Chỉ xem
-                            </span>
-                          )}
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedExpenseForDetail(exp)}
+                              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+                              title="Xem chi tiết phân bổ"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                            {isLeader && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedExpenseForEdit(exp)}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+                                  title="Sửa"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedExpenseForVoid(exp)}
+                                  className="p-1.5 text-rose-500 hover:text-rose-600 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
+                                  title="Xóa"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -572,117 +587,115 @@ export function GroupBudgetTab({
           </div>
 
           {/* MEMBER NET BALANCES LIST */}
-          {settlementSummary &&
-            settlementSummary.memberBalances &&
-            settlementSummary.memberBalances.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Calculator className="h-3.5 w-3.5" />
-                    Bảng Số Dư Công Nợ Thành Viên ({settlementSummary.memberBalances.length} người)
-                  </h4>
-                  <span className="text-[11px] text-muted-foreground italic">
-                    Số dư = Đã ứng trước - Phần phải chịu
-                  </span>
-                </div>
+          {settlementSummary?.memberBalances && settlementSummary.memberBalances.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Calculator className="h-3.5 w-3.5" />
+                  Bảng Số Dư Công Nợ Thành Viên ({settlementSummary.memberBalances.length} người)
+                </h4>
+                <span className="text-[11px] text-muted-foreground italic">
+                  Số dư = Đã ứng trước - Phần phải chịu
+                </span>
+              </div>
 
-                <div className="divide-y divide-border rounded-xl border border-border bg-background overflow-hidden">
-                  {settlementSummary.memberBalances.map((mb) => {
-                    const isCurrentUser = mb.member.userId === currentUserId;
-                    const isCreditor = mb.balanceType === 'CREDITOR' || mb.netBalance > 0.01;
-                    const isDebtor = mb.balanceType === 'DEBTOR' || mb.netBalance < -0.01;
+              <div className="divide-y divide-border rounded-xl border border-border bg-background overflow-hidden">
+                {settlementSummary.memberBalances.map((mb) => {
+                  const isCurrentUser = mb.member.userId === currentUserId;
+                  const isCreditor = mb.balanceType === 'CREDITOR' || mb.netBalance > 0.01;
+                  const isDebtor = mb.balanceType === 'DEBTOR' || mb.netBalance < -0.01;
 
-                    return (
-                      <div
-                        key={mb.member.matchingMemberId}
-                        className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 gap-3 text-xs hover:bg-muted/30 transition-colors ${
-                          isCurrentUser ? 'bg-primary/5' : ''
-                        }`}
-                      >
-                        {/* Member Info */}
-                        <div className="flex items-center gap-3">
-                          <MemberAvatar
-                            fullName={mb.member.fullName}
-                            avatarUrl={mb.member.avatarUrl ?? undefined}
-                            size="md"
-                          />
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-foreground text-sm">
-                                {mb.member.fullName}
-                              </span>
-                              {isCurrentUser && (
-                                <span className="rounded-full bg-primary/20 px-2 py-0.2 text-[9px] font-black text-primary">
-                                  Bạn
-                                </span>
-                              )}
-                              <span className="text-[10px] text-muted-foreground font-medium">
-                                • {mb.member.role === 'LEADER' ? 'Trưởng nhóm' : 'Thành viên'}
-                              </span>
-                            </div>
-                            <div className="text-[11px] text-muted-foreground flex items-center gap-2">
-                              <span>
-                                Đã ứng:{' '}
-                                <strong className="text-foreground font-semibold">
-                                  {mb.totalPaid.toLocaleString('vi-VN')}đ
-                                </strong>
-                              </span>
-                              <span>•</span>
-                              <span>
-                                Phần phải chịu:{' '}
-                                <strong className="text-foreground font-semibold">
-                                  {mb.totalShare.toLocaleString('vi-VN')}đ
-                                </strong>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Net Balance & Status Badge */}
-                        <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center">
-                          <div className="text-right">
-                            <div className="text-[10px] text-muted-foreground uppercase font-semibold">
-                              Số dư ròng
-                            </div>
-                            <div
-                              className={`text-sm font-black ${
-                                isCreditor
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : isDebtor
-                                    ? 'text-rose-600 dark:text-rose-400'
-                                    : 'text-muted-foreground'
-                              }`}
-                            >
-                              {mb.netBalance > 0.01
-                                ? `+${mb.netBalance.toLocaleString('vi-VN')}đ`
-                                : mb.netBalance < -0.01
-                                  ? `${mb.netBalance.toLocaleString('vi-VN')}đ`
-                                  : '0đ'}
-                            </div>
-                          </div>
-
-                          <div className="min-w-[100px] text-center">
-                            {isCreditor ? (
-                              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                Được nhận lại
-                              </span>
-                            ) : isDebtor ? (
-                              <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                                Cần thanh toán
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold text-muted-foreground border border-border">
-                                Đã cân bằng
+                  return (
+                    <div
+                      key={mb.member.matchingMemberId}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 gap-3 text-xs hover:bg-muted/30 transition-colors ${
+                        isCurrentUser ? 'bg-primary/5' : ''
+                      }`}
+                    >
+                      {/* Member Info */}
+                      <div className="flex items-center gap-3">
+                        <MemberAvatar
+                          fullName={mb.member.fullName}
+                          avatarUrl={mb.member.avatarUrl ?? undefined}
+                          size="md"
+                        />
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-foreground text-sm">
+                              {mb.member.fullName}
+                            </span>
+                            {isCurrentUser && (
+                              <span className="rounded-full bg-primary/20 px-2 py-0.2 text-[9px] font-black text-primary">
+                                Bạn
                               </span>
                             )}
+                            <span className="text-[10px] text-muted-foreground font-medium">
+                              • {mb.member.role === 'LEADER' ? 'Trưởng nhóm' : 'Thành viên'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+                            <span>
+                              Đã ứng:{' '}
+                              <strong className="text-foreground font-semibold">
+                                {mb.totalPaid.toLocaleString('vi-VN')}đ
+                              </strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              Phần phải chịu:{' '}
+                              <strong className="text-foreground font-semibold">
+                                {mb.totalShare.toLocaleString('vi-VN')}đ
+                              </strong>
+                            </span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+
+                      {/* Net Balance & Status Badge */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center">
+                        <div className="text-right">
+                          <div className="text-[10px] text-muted-foreground uppercase font-semibold">
+                            Số dư ròng
+                          </div>
+                          <div
+                            className={`text-sm font-black ${
+                              isCreditor
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : isDebtor
+                                  ? 'text-rose-600 dark:text-rose-400'
+                                  : 'text-muted-foreground'
+                            }`}
+                          >
+                            {mb.netBalance > 0.01
+                              ? `+${mb.netBalance.toLocaleString('vi-VN')}đ`
+                              : mb.netBalance < -0.01
+                                ? `${mb.netBalance.toLocaleString('vi-VN')}đ`
+                                : '0đ'}
+                          </div>
+                        </div>
+
+                        <div className="min-w-[100px] text-center">
+                          {isCreditor ? (
+                            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              Được nhận lại
+                            </span>
+                          ) : isDebtor ? (
+                            <span className="inline-flex items-center rounded-full bg-rose-500/10 px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                              Cần thanh toán
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold text-muted-foreground border border-border">
+                              Đã cân bằng
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
 
           {/* GREEDY DEBT SETTLEMENT BANNER */}
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:p-5 space-y-4">
@@ -774,6 +787,15 @@ export function GroupBudgetTab({
                         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                           {persistedSt ? (
                             <>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSettlementForDetail(persistedSt)}
+                                title="Xem chi tiết giao dịch"
+                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition cursor-pointer"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+
                               {persistedSt.status === 'CONFIRMED' && (
                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
                                   <CheckCircle2 className="h-4 w-4" /> Đã hoàn tất
@@ -867,6 +889,11 @@ export function GroupBudgetTab({
       {!isOutsider && (
         <>
           {/* Actual Expense Modals */}
+          <ExpenseDetailModal
+            isOpen={Boolean(selectedExpenseForDetail)}
+            onClose={() => setSelectedExpenseForDetail(null)}
+            expense={selectedExpenseForDetail}
+          />
           <CreateExpenseModal
             isOpen={isAddExpenseOpen}
             onClose={() => setIsAddExpenseOpen(false)}
@@ -889,6 +916,15 @@ export function GroupBudgetTab({
           />
 
           {/* Settlement Modals */}
+          <SettlementDetailModal
+            isOpen={Boolean(selectedSettlementForDetail)}
+            onClose={() => setSelectedSettlementForDetail(null)}
+            settlement={selectedSettlementForDetail}
+            onOpenProof={(st) => setSelectedSettlementForProof(st)}
+            onOpenConfirm={(st) => setSelectedSettlementForConfirm(st)}
+            onOpenReject={(st) => setSelectedSettlementForReject(st)}
+            currentUserId={currentUserId}
+          />
           <SubmitProofModal
             isOpen={Boolean(selectedSettlementForProof)}
             onClose={() => setSelectedSettlementForProof(null)}

@@ -7,13 +7,14 @@ import { ProfileRatingOverview } from './ProfileRatingOverview';
 
 interface ProfileRatingSummaryProps {
   userId?: string;
+  isOwnProfile?: boolean;
 }
 
 /**
  * Tab "Đánh giá" — tổng hợp điểm uy tín và danh sách nhận xét ẩn danh từ bạn đồng hành
  * nhận được sau các chuyến đi ghép nhóm.
  */
-export function ProfileRatingSummary({ userId }: ProfileRatingSummaryProps) {
+export function ProfileRatingSummary({ userId, isOwnProfile = true }: ProfileRatingSummaryProps) {
   const { data: reviews = [], isLoading } = useUserPeerReviews(userId);
 
   if (isLoading) {
@@ -43,9 +44,10 @@ export function ProfileRatingSummary({ userId }: ProfileRatingSummaryProps) {
             </div>
             <div className="space-y-1">
               <p className="font-semibold text-foreground text-sm">Chưa có đánh giá nào</p>
-              <p className="mx-auto max-w-sm text-muted-foreground text-xs">
-                Khi hoàn thành các chuyến đi ghép nhóm, bạn đồng hành sẽ gửi đánh giá và lời nhận
-                xét ẩn danh tại đây.
+              <p className="mx-auto max-w-sm text-muted-foreground text-xs leading-relaxed">
+                {isOwnProfile
+                  ? 'Khi bạn tham gia và hoàn thành các chuyến đi ghép nhóm, bạn đồng hành sẽ gửi đánh giá và nhận xét ẩn danh tại đây.'
+                  : 'Người dùng này chưa có đánh giá nào từ bạn đồng hành do chưa hoàn thành chuyến đi ghép nhóm nào.'}
               </p>
             </div>
           </div>

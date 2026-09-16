@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { groupWorkspaceService } from '../services/groupWorkspaceService';
 import type { GroupExpenseCreateRequest, GroupExpenseUpdateRequest } from '../types/expense';
+import { companionGroupKeys } from './companionGroupKeys';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
 /** Hook lấy danh sách các khoản chi tiêu của nhóm */
@@ -50,6 +51,8 @@ export function useCreateGroupExpense(groupId: string) {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.costSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(groupId) });
     },
   });
 }
@@ -74,6 +77,8 @@ export function useUpdateGroupExpense(groupId: string) {
       });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.costSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(groupId) });
     },
   });
 }
@@ -89,6 +94,8 @@ export function useVoidGroupExpense(groupId: string) {
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.costSummary(groupId) });
+      queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(groupId) });
     },
   });
 }

@@ -29,17 +29,38 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
       return;
     }
 
+    const targetRecipientId = tour.vendorManagerId || tour.creatorId;
+    if (!targetRecipientId) {
+      toast.error('Không tìm thấy thông tin tài khoản của nhà tổ chức.');
+      return;
+    }
+
     setIsConnecting(true);
     try {
       // Check if conversation exists instead of creating it immediately
       const response = await ApiService<ConversationResponse>('/chat/conversations/check', 'POST', {
         conversationType: 'DIRECT',
-        participantIds: [tour.vendorManagerId],
+        participantIds: [targetRecipientId],
       });
+
+      const tourLink = `${window.location.origin}/tours/${tour.tourId}`;
+      const initialMessage = `Xin chào, tôi quan tâm đến tour "${tour.tourName}":\n${tourLink}`;
+      const draftTour = {
+        tourId: tour.tourId,
+        tourName: tour.tourName,
+        coverImageUrl: tour.coverImageUrl,
+        location: tour.location,
+        durationDays: tour.durationDays,
+        basePrice: tour.basePrice,
+      };
 
       if (response.data?.conversationId) {
         navigate(getRoleChatPath(user.roles), {
-          state: { conversationId: response.data.conversationId },
+          state: {
+            conversationId: response.data.conversationId,
+            initialMessage,
+            draftTour,
+          },
         });
       } else {
         const vendorName = tour.vendorName || tour.creatorName || 'Nhà tổ chức';
@@ -47,10 +68,12 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
           state: {
             virtualConversation: {
               type: 'DIRECT',
-              participantIds: [tour.vendorManagerId],
+              participantIds: [targetRecipientId],
               userName: vendorName,
               title: vendorName,
             },
+            initialMessage,
+            draftTour,
           },
         });
       }

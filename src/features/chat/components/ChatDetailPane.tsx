@@ -11,6 +11,9 @@ interface ChatDetailPaneProps {
   currentMessages: DetailMessage[];
   isLoadingMessages: boolean;
   isSending: boolean;
+  draftTour?: import('@/features/chat/types/types').DraftTourAttachment;
+  onRemoveDraftTour?: () => void;
+  initialDraftMessage?: string;
   onSendMessage: (message: string) => void;
   onBack: () => void;
   onDeleteConversation: (conversationId: string) => void;
@@ -26,6 +29,9 @@ export function ChatDetailPane({
   currentMessages,
   isLoadingMessages,
   isSending,
+  draftTour,
+  onRemoveDraftTour,
+  initialDraftMessage,
   onSendMessage,
   onBack,
   onDeleteConversation,
@@ -37,6 +43,16 @@ export function ChatDetailPane({
 
   const conversationId = selectedConversation?.id;
   const unreadCount = selectedConversation?.unreadCount || 0;
+  const isGroup =
+    selectedConversation?.tag?.text !== 'DIRECT' &&
+    selectedConversation?.virtualData?.type !== 'DIRECT';
+
+  // Đóng panel thành viên khi chuyển sang chat 1v1
+  useEffect(() => {
+    if (!isGroup) {
+      setIsMembersOpen(false);
+    }
+  }, [isGroup]);
 
   // Chốt vị trí vạch "tin nhắn chưa đọc" một lần khi mở cuộc hội thoại, để nó
   // không nhảy đi khi tin nhắn được đánh dấu đã đọc ngay sau đó.
@@ -85,17 +101,22 @@ export function ChatDetailPane({
         <ChatComposer
           onSendMessage={onSendMessage}
           isSending={isSending}
+          draftTour={draftTour}
+          onRemoveDraftTour={onRemoveDraftTour}
+          initialDraftMessage={initialDraftMessage}
           placeholder={`Nhắn cho ${selectedConversation.userName}...`}
         />
       </div>
 
-      <div className={isMembersOpen ? 'hidden md:flex' : 'hidden'}>
-        <MembersPanel
-          conversationId={selectedConversation.id}
-          open={isMembersOpen}
-          onClose={() => setIsMembersOpen(false)}
-        />
-      </div>
+      {isGroup && isMembersOpen && (
+        <div className="hidden md:flex">
+          <MembersPanel
+            conversationId={selectedConversation.id}
+            open={isMembersOpen}
+            onClose={() => setIsMembersOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -9,13 +9,19 @@ import {
   useUserBlogs,
 } from '../../hooks/usePublicProfile';
 import type { HikingProfileView } from '../../types';
+import { ProfileBlogsPanel } from './ProfileBlogsPanel';
 import { ProfileCompletedTrips } from './ProfileCompletedTrips';
 import { ProfileHikingPanel } from './ProfileHikingPanel';
 import { ProfileIdentityCard } from './ProfileIdentityCard';
 import { ProfileInfoPanel } from './ProfileInfoPanel';
 import { ProfileMomentsPanel } from './ProfileMomentsPanel';
 import { ProfileRatingSummary } from './ProfileRatingSummary';
-import { PROFILE_INFO_TAB, PROFILE_TABS, type ProfileTabId, ProfileTabs } from './ProfileTabs';
+import {
+  MY_PROFILE_TABS,
+  type ProfileTabId,
+  ProfileTabs,
+  PUBLIC_PROFILE_TABS,
+} from './ProfileTabs';
 
 interface ProfileScreenProps {
   /** `me`: hồ sơ của người đang đăng nhập. `public`: hồ sơ người khác theo `userId`. */
@@ -76,11 +82,10 @@ export function ProfileScreen({
   // Chỉ còn dùng cho số "Bài viết" trên card định danh — tab Bài viết/Ảnh đã gỡ khỏi hồ sơ.
   const blogCount = useUserBlogs(resolvedUserId).data?.meta.totalElements;
 
-  // Hồ sơ của chính mình: "Thông tin" đứng đầu vì đây là phần người dùng vào xem/sửa nhiều nhất.
-  const tabs = isMeMode ? [PROFILE_INFO_TAB, ...PROFILE_TABS] : PROFILE_TABS;
-  // Vào hồ sơ của mình thì mở sẵn "Thông tin" (tab đầu tiên); xem hồ sơ người khác
-  // vẫn mở "Hồ sơ leo núi" vì đó mới là nội dung công khai đầu tiên của họ.
-  const [activeTab, setActiveTab] = useState<ProfileTabId>(isMeMode ? 'info' : 'hiking');
+  // Hồ sơ của chính mình: giữ nguyên danh sách tabs và mở sẵn tab "Thông tin".
+  // Xem hồ sơ người khác: dùng PUBLIC_PROFILE_TABS và mở sẵn tab "Bài viết".
+  const tabs = isMeMode ? MY_PROFILE_TABS : PUBLIC_PROFILE_TABS;
+  const [activeTab, setActiveTab] = useState<ProfileTabId>(isMeMode ? 'info' : 'blogs');
 
   const isLoading = isMeMode ? meQuery.isLoading : publicQuery.isLoading || hikingQuery.isLoading;
   const profileMissing = isMeMode ? meQuery.isError || !me : !isLoading && !other && !publicHiking;
@@ -124,6 +129,8 @@ export function ProfileScreen({
 
   const renderTab = () => {
     switch (activeTab) {
+      case 'info':
+        return me ? <ProfileInfoPanel profile={me} editPath={editPath} /> : null;
       case 'hiking':
         return (
           <ProfileHikingPanel
@@ -132,6 +139,8 @@ export function ProfileScreen({
             editPath={editPath}
           />
         );
+      case 'blogs':
+        return <ProfileBlogsPanel userId={resolvedUserId} isOwnProfile={isOwnProfile} />;
       case 'moments':
         return (
           <ProfileMomentsPanel
@@ -141,13 +150,11 @@ export function ProfileScreen({
           />
         );
       case 'reviews':
-        return <ProfileRatingSummary userId={resolvedUserId} />;
+        return <ProfileRatingSummary userId={resolvedUserId} isOwnProfile={isOwnProfile} />;
       case 'completed':
         return (
           <ProfileCompletedTrips isOwnProfile={isOwnProfile} groupDetailPath={groupDetailPath} />
         );
-      case 'info':
-        return me ? <ProfileInfoPanel profile={me} /> : null;
       default:
         return null;
     }
@@ -166,7 +173,11 @@ export function ProfileScreen({
       }
     >
       <div
-        className={fluid ? 'lg:sticky lg:top-0 lg:self-start' : 'lg:sticky lg:top-24 lg:self-start'}
+        className={
+          fluid
+            ? 'flex flex-col gap-6 lg:sticky lg:top-0 lg:self-start'
+            : 'flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start'
+        }
       >
         <ProfileIdentityCard
           name={name}
@@ -182,6 +193,15 @@ export function ProfileScreen({
           trustScore={hikingSummary?.trustScore}
           trustReviewCount={hikingSummary?.trustReviewCount}
         />
+
+        {/* Chỉ hiển thị thẻ Hồ sơ leo núi ở cột trái khi xem hồ sơ công khai của người khác */}
+        {!isMeMode && (
+          <ProfileHikingPanel
+            summary={hikingSummary}
+            isOwnProfile={isOwnProfile}
+            editPath={editPath}
+          />
+        )}
       </div>
 
       <div className="min-w-0">

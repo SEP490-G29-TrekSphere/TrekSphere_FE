@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
+  Banknote,
   Bus,
   CircleDollarSign,
   Compass,
-  DollarSign,
   FileText,
   Loader2,
   Plus,
@@ -178,7 +178,7 @@ export function AddCostItemModal({ isOpen, onClose, groupId }: AddCostItemModalP
                 {...register('estimatedAmount', { valueAsNumber: true })}
                 className="w-full rounded-xl border border-border bg-background pl-9 pr-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
               />
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
             {errors.estimatedAmount && (
               <p className="text-[11px] text-destructive font-medium">

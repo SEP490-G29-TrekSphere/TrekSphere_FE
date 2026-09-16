@@ -18,7 +18,7 @@ export function PersonalInfoFields({ email }: { email?: string }) {
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div>
           <label htmlFor="name" className={EDIT_LABEL_CLASS}>
-            Họ và tên
+            Họ và tên <span className="text-destructive">*</span>
           </label>
           <input
             id="name"
@@ -32,7 +32,7 @@ export function PersonalInfoFields({ email }: { email?: string }) {
 
         <div>
           <label htmlFor="phone" className={EDIT_LABEL_CLASS}>
-            Số điện thoại
+            Số điện thoại <span className="text-destructive">*</span>
           </label>
           <input
             id="phone"
@@ -61,7 +61,7 @@ export function PersonalInfoFields({ email }: { email?: string }) {
 
         <div>
           <label htmlFor="dateOfBirth" className={EDIT_LABEL_CLASS}>
-            Ngày sinh
+            Ngày sinh <span className="text-destructive">*</span>
           </label>
           <Controller
             name="dateOfBirth"
@@ -100,6 +100,9 @@ export function PersonalInfoFields({ email }: { email?: string }) {
             <option value="female">Nữ</option>
             <option value="other">Khác</option>
           </select>
+          {errors.gender && (
+            <p className="mt-1 text-xs text-destructive">{errors.gender.message}</p>
+          )}
         </div>
       </div>
     </section>

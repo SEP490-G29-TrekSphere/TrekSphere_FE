@@ -29,17 +29,16 @@ export interface BlogListItem {
   authorId: string;
   authorName: string;
   authorAvatarUrl: string;
-  publishedAt: string; // ISO
-  readingTimeMinutes: number;
-  tags: string[];
+  publishedAt?: string; // ISO
+  createdAt?: string; // ISO from BE
+  readingTimeMinutes?: number;
+  tags?: string[];
   viewCount: number;
 
   /**
    * Các field mạng xã hội của community feed.
-   * BE CHƯA trả về — khai báo optional để component feed render sẵn theo design
-   * (fallback `—` khi undefined) mà không phải sửa type lúc BE bổ sung.
-   * Xem `services/socialService.ts` và `FEATURES.SOCIAL`.
    */
+  totalComments?: number;
   likeCount?: number;
   likedByMe?: boolean;
   commentCount?: number;

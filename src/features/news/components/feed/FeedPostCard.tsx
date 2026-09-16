@@ -4,16 +4,14 @@ import { Link } from 'react-router-dom';
 import { getUserProfilePath, PATHS } from '@/constants';
 import { formatDate } from '@/utils/format';
 import { getSafeImageUrl } from '@/utils/sanitize';
-import { useToggleBlogLike, useToggleFollow } from '../../hooks/useSocial';
+import { EMPTY_STAT } from '../../constants';
+import { useToggleBlogLike } from '../../hooks/useSocial';
 import type { BlogListItem } from '../../types';
 import { FeedAvatar } from './FeedAvatar';
 
 interface FeedPostCardProps {
   post: BlogListItem;
 }
-
-/** Nhãn hiển thị khi BE chưa trả về số liệu tương ứng. */
-const EMPTY_STAT = '—';
 
 interface StatProps {
   label: string;
@@ -32,12 +30,10 @@ function Stat({ label, value }: StatProps) {
 }
 
 /**
- * Thẻ bài viết trong community feed — bố cục theo reference AllTrails:
- * header tác giả → ảnh lớn bo góc (nút tim nổi góc phải) → tiêu đề → tags →
- * hàng 3 chỉ số → divider → hàng hành động Thích / Bình luận.
- *
- * Các nút Thích và Theo dõi phụ thuộc `FEATURES.SOCIAL`; khi BE chưa có endpoint
- * chúng vẫn hiển thị đúng design nhưng ở trạng thái vô hiệu hoá.
+ * Thẻ bài viết trong community feed:
+ * - Header tác giả → ảnh lớn bo góc → tiêu đề → tags → chỉ số.
+ * - Nút "Bình luận": điều hướng trực tiếp vào trang chi tiết bài viết.
+ * - Nhấp vào ảnh, tiêu đề: điều hướng vào trang xem chi tiết bài viết.
  */
 export function FeedPostCard({ post }: FeedPostCardProps) {
   const detailLink = PATHS.NEWS_DETAIL.replace(':blogId', post.blogId);
@@ -45,11 +41,7 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
   const coverUrl = getSafeImageUrl(post.coverImageUrl);
 
   const likeMutation = useToggleBlogLike();
-  const followMutation = useToggleFollow();
-
-  // State lạc quan: cập nhật ngay trên UI, BE là nguồn sự thật sau khi invalidate.
   const [liked, setLiked] = useState(Boolean(post.likedByMe));
-  const [following, setFollowing] = useState(Boolean(post.isFollowingAuthor));
 
   const socialEnabled = likeMutation.isAvailable;
   const socialTitle = socialEnabled ? undefined : 'Sắp ra mắt';
@@ -66,15 +58,14 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
     likeMutation.mutate({ blogId: post.blogId, liked: next }, { onError: () => setLiked(!next) });
   };
 
-  const handleToggleFollow = () => {
-    if (!socialEnabled) return;
-    const next = !following;
-    setFollowing(next);
-    followMutation.mutate(
-      { userId: post.authorId, following: next },
-      { onError: () => setFollowing(!next) }
-    );
-  };
+  const displayCommentCount =
+    typeof post.totalComments === 'number'
+      ? post.totalComments
+      : typeof post.commentCount === 'number'
+        ? post.commentCount
+        : undefined;
+
+  const publishedDate = post.createdAt || post.publishedAt || '';
 
   return (
     <article className="rounded-2xl bg-card p-4 shadow-sm sm:p-5">
@@ -91,19 +82,7 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
           >
             {post.authorName}
           </Link>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{formatDate(post.publishedAt)}</span>
-            <span aria-hidden>·</span>
-            <button
-              type="button"
-              onClick={handleToggleFollow}
-              disabled={!socialEnabled}
-              title={socialTitle}
-              className="cursor-pointer font-semibold text-primary underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:no-underline"
-            >
-              {following ? 'Đang theo dõi' : 'Theo dõi'}
-            </button>
-          </p>
+          <p className="text-xs text-muted-foreground">{formatDate(publishedDate)}</p>
         </div>
 
         <button
@@ -174,11 +153,7 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
       ) : null}
 
       {/* Chỉ số */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <Stat
-          label="Thời gian đọc"
-          value={post.readingTimeMinutes ? `${post.readingTimeMinutes} phút` : EMPTY_STAT}
-        />
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat
           label="Lượt xem"
           value={
@@ -188,14 +163,14 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
         <Stat
           label="Bình luận"
           value={
-            typeof post.commentCount === 'number'
-              ? post.commentCount.toLocaleString('vi-VN')
+            typeof displayCommentCount === 'number'
+              ? displayCommentCount.toLocaleString('vi-VN')
               : EMPTY_STAT
           }
         />
       </div>
 
-      {/* Hành động */}
+      {/* Hàng hành động */}
       <div className="mt-4 flex items-center gap-1 border-t border-border pt-3">
         <button
           type="button"
@@ -212,7 +187,7 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
 
         <Link
           to={detailLink}
-          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted"
+          className="inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
         >
           <MessageCircle className="size-4" />
           Bình luận
@@ -222,7 +197,14 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
           <span className="ml-auto text-xs text-muted-foreground">
             {likeCount.toLocaleString('vi-VN')} lượt thích
           </span>
-        ) : null}
+        ) : (
+          <Link
+            to={detailLink}
+            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary"
+          >
+            Xem chi tiết
+          </Link>
+        )}
       </div>
     </article>
   );

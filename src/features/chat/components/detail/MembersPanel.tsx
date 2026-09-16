@@ -1,7 +1,9 @@
 import { Users, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getUserProfilePath, PATHS } from '@/constants';
 import { AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { useConversationMembers } from '../../hooks/useConversationMembers';
@@ -53,30 +55,37 @@ export function MembersPanel({ conversationId, open, onClose }: MembersPanelProp
           </p>
         ) : (
           <ul className="space-y-1 p-2">
-            {members.map((member) => (
-              <li
-                key={member.id}
-                className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-muted/50"
-              >
-                <Avatar className="h-8 w-8 bg-primary/10 text-[11px] font-bold text-primary">
-                  {member.avatarUrl ? (
-                    <AvatarImage src={member.avatarUrl} alt={member.fullName} />
-                  ) : null}
-                  <AvatarFallback>{getInitials(member.fullName)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {member.fullName}
-                    {member.id === user?.id && (
-                      <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">
-                        (Bạn)
-                      </span>
-                    )}
-                  </p>
-                  <p className="truncate text-[11px] text-muted-foreground">{member.email}</p>
-                </div>
-              </li>
-            ))}
+            {members.map((member) => {
+              const isSelf = member.id === user?.id;
+              const profileLink = isSelf ? PATHS.PROFILE : getUserProfilePath(member.id);
+
+              return (
+                <li key={member.id}>
+                  <Link
+                    to={profileLink}
+                    className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-muted/50 group"
+                  >
+                    <Avatar className="h-8 w-8 bg-primary/10 text-[11px] font-bold text-primary">
+                      {member.avatarUrl ? (
+                        <AvatarImage src={member.avatarUrl} alt={member.fullName} />
+                      ) : null}
+                      <AvatarFallback>{getInitials(member.fullName)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {member.fullName}
+                        {isSelf && (
+                          <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">
+                            (Bạn)
+                          </span>
+                        )}
+                      </p>
+                      <p className="truncate text-[11px] text-muted-foreground">{member.email}</p>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </ScrollArea>

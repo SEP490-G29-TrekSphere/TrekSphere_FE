@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   MessageScroller,
@@ -9,6 +10,7 @@ import {
   MessageScrollerViewport,
   useMessageScroller,
 } from '@/components/ui/message-scroller';
+import { getUserProfilePath } from '@/constants';
 import { cn } from '@/lib/utils';
 import { AppModalShell, AppSpinner } from '@/shared/ui';
 import type { DetailMessage } from '../../types/types';
@@ -19,6 +21,7 @@ import {
   getMessageImageUrl,
   type MessageGroup,
 } from '../../utils/messageContent';
+import { ChatTourLinkPreview, extractTourIdFromText } from './ChatTourLinkPreview';
 
 interface MessageTimelineProps {
   messages: DetailMessage[];
@@ -99,6 +102,36 @@ export function MessageTimeline({
   );
 }
 
+function renderFormattedMessageText(text: string, isOwn: boolean) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  if (parts.length === 1) {
+    return text;
+  }
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          // biome-ignore lint/suspicious/noArrayIndexKey: parts from string split do not have unique ids
+          key={`link-${index}-${part}`}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            'underline break-all transition-opacity hover:opacity-80',
+            isOwn ? 'text-white font-semibold' : 'text-primary font-semibold'
+          )}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 function MessageGroupRow({
   group,
   onOpenImage,
@@ -106,18 +139,18 @@ function MessageGroupRow({
   group: MessageGroup;
   onOpenImage: (url: string) => void;
 }) {
-  const lastMessage = group.messages.at(-1);
-  const showSeen = group.isOwn && lastMessage?.isSeen;
-
   if (group.isOwn) {
+    const showSeen = group.messages.some((m) => m.isSeen);
+
     return (
-      <div className="flex flex-col items-end px-1 py-1">
+      <div className="flex flex-col items-end gap-0.5 px-1 py-1">
         <div className="flex max-w-[85%] flex-col items-end gap-0.5 sm:max-w-[75%] md:max-w-[65%]">
           {group.messages.map((message, index) => {
             const imageUrl = getMessageImageUrl(message.text);
             const isFirst = index === 0;
             const isLast = index === group.messages.length - 1;
             const timeStr = formatMessageTime(message.createdAt);
+            const tourId = extractTourIdFromText(message.text);
 
             if (imageUrl) {
               return (
@@ -139,21 +172,23 @@ function MessageGroupRow({
             }
 
             return (
-              <div
-                key={message.id}
-                title={timeStr}
-                className={cn(
-                  'bg-primary text-primary-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
-                  'rounded-2xl',
-                  // Hiệu ứng bo góc Messenger: các tin nhắn liên tiếp ép sát nhau
-                  group.messages.length > 1 && [
-                    isFirst && 'rounded-br-sm',
-                    !isFirst && !isLast && 'rounded-r-sm',
-                    isLast && 'rounded-tr-sm',
-                  ]
-                )}
-              >
-                {message.text}
+              <div key={message.id} className="flex flex-col items-end py-0.5">
+                <div
+                  title={timeStr}
+                  className={cn(
+                    'bg-primary text-primary-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
+                    'rounded-2xl',
+                    // Hiệu ứng bo góc Messenger: các tin nhắn liên tiếp ép sát nhau
+                    group.messages.length > 1 && [
+                      isFirst && 'rounded-br-sm',
+                      !isFirst && !isLast && 'rounded-r-sm',
+                      isLast && 'rounded-tr-sm',
+                    ]
+                  )}
+                >
+                  {renderFormattedMessageText(message.text, true)}
+                </div>
+                {tourId && <ChatTourLinkPreview tourId={tourId} isOwn={true} />}
               </div>
             );
           })}
@@ -171,16 +206,40 @@ function MessageGroupRow({
     );
   }
 
+  const senderProfileLink = group.senderId ? getUserProfilePath(group.senderId) : null;
+
   return (
     <div className="flex items-start gap-2.5 px-1 py-1">
-      <Avatar className="mt-0.5 h-8 w-8 shrink-0 bg-primary/10 text-xs font-bold text-primary">
-        {group.avatarUrl ? <AvatarImage src={group.avatarUrl} alt={group.senderName} /> : null}
-        <AvatarFallback>{getInitials(group.senderName)}</AvatarFallback>
-      </Avatar>
+      {senderProfileLink ? (
+        <Link
+          to={senderProfileLink}
+          className="mt-0.5 shrink-0 transition-opacity hover:opacity-80"
+          aria-label={`Hồ sơ của ${group.senderName}`}
+        >
+          <Avatar className="h-8 w-8 bg-primary/10 text-xs font-bold text-primary">
+            {group.avatarUrl ? <AvatarImage src={group.avatarUrl} alt={group.senderName} /> : null}
+            <AvatarFallback>{getInitials(group.senderName)}</AvatarFallback>
+          </Avatar>
+        </Link>
+      ) : (
+        <Avatar className="mt-0.5 h-8 w-8 shrink-0 bg-primary/10 text-xs font-bold text-primary">
+          {group.avatarUrl ? <AvatarImage src={group.avatarUrl} alt={group.senderName} /> : null}
+          <AvatarFallback>{getInitials(group.senderName)}</AvatarFallback>
+        </Avatar>
+      )}
 
       <div className="flex max-w-[85%] flex-col items-start gap-0.5 sm:max-w-[75%] md:max-w-[65%]">
         <div className="flex items-baseline gap-2 px-1 mb-0.5">
-          <span className="text-xs font-semibold text-foreground/90">{group.senderName}</span>
+          {senderProfileLink ? (
+            <Link
+              to={senderProfileLink}
+              className="text-xs font-semibold text-foreground/90 transition-colors hover:text-primary hover:underline"
+            >
+              {group.senderName}
+            </Link>
+          ) : (
+            <span className="text-xs font-semibold text-foreground/90">{group.senderName}</span>
+          )}
           <span className="text-[10px] text-muted-foreground">
             {formatMessageTime(group.createdAt)}
           </span>
@@ -191,6 +250,7 @@ function MessageGroupRow({
           const isFirst = index === 0;
           const isLast = index === group.messages.length - 1;
           const timeStr = formatMessageTime(message.createdAt);
+          const tourId = extractTourIdFromText(message.text);
 
           if (imageUrl) {
             return (
@@ -212,21 +272,23 @@ function MessageGroupRow({
           }
 
           return (
-            <div
-              key={message.id}
-              title={timeStr}
-              className={cn(
-                'bg-muted/80 text-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
-                'rounded-2xl',
-                // Hiệu ứng bo góc Messenger cho chuỗi tin nhắn bên trái
-                group.messages.length > 1 && [
-                  isFirst && 'rounded-bl-sm',
-                  !isFirst && !isLast && 'rounded-l-sm',
-                  isLast && 'rounded-tl-sm',
-                ]
-              )}
-            >
-              {message.text}
+            <div key={message.id} className="flex flex-col items-start py-0.5">
+              <div
+                title={timeStr}
+                className={cn(
+                  'bg-muted/80 text-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
+                  'rounded-2xl',
+                  // Hiệu ứng bo góc Messenger cho chuỗi tin nhắn bên trái
+                  group.messages.length > 1 && [
+                    isFirst && 'rounded-bl-sm',
+                    !isFirst && !isLast && 'rounded-l-sm',
+                    isLast && 'rounded-tl-sm',
+                  ]
+                )}
+              >
+                {renderFormattedMessageText(message.text, false)}
+              </div>
+              {tourId && <ChatTourLinkPreview tourId={tourId} isOwn={false} />}
             </div>
           );
         })}

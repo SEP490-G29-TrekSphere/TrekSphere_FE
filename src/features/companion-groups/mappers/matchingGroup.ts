@@ -31,9 +31,23 @@ export function isMatchingGroupItem(group: MatchingGroupCardData): group is Matc
 }
 
 export function toMatchingGroupCardViewModel(
-  group: MatchingGroupCardData
+  group: MatchingGroupCardData,
+  currentUserId?: string
 ): MatchingGroupCardViewModel {
   if (isMatchingGroupItem(group)) {
+    const isOwner = Boolean(
+      group.isOwner === true ||
+        (group as unknown as { owner?: boolean }).owner === true ||
+        group.myRole === 'LEADER' ||
+        (group as unknown as { role?: string }).role === 'LEADER' ||
+        (currentUserId && String(group.ownerId) === String(currentUserId))
+    );
+
+    const myRole =
+      group.myRole ??
+      (group as unknown as { role?: import('../types/matchingGroup').MatchingMemberRole }).role ??
+      (isOwner ? 'LEADER' : null);
+
     return {
       groupId: group.matchingGroupId,
       ownerId: group.ownerId,
@@ -51,10 +65,16 @@ export function toMatchingGroupCardViewModel(
       matchingDeadline: group.matchingDeadline,
       coverImageUrl:
         group.coverImageUrl || group.tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
-      isOwner: group.isOwner ?? false,
-      myRole: group.myRole ?? null,
+      isOwner,
+      myRole,
     };
   }
+
+  const isOwner = Boolean(
+    (currentUserId && String(group.leader.id) === String(currentUserId)) ||
+      (group as unknown as { isOwner?: boolean }).isOwner === true ||
+      (group as unknown as { myRole?: string }).myRole === 'LEADER'
+  );
 
   return {
     groupId: group.id,
@@ -71,6 +91,8 @@ export function toMatchingGroupCardViewModel(
     leaderName: group.leader.name,
     leaderAvatarUrl: group.leader.avatarUrl,
     coverImageUrl: group.thumbnailUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
+    isOwner,
+    myRole: isOwner ? 'LEADER' : 'MEMBER',
   };
 }
 

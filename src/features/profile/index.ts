@@ -2,9 +2,12 @@
  * Barrel export cho feature profile.
  */
 
+export * from './components/modals/ProfileCompletionModal';
 export * from './components/ProfileSidebar';
 // Màn hình hồ sơ (dùng chung cho `/profile` và `/users/:userId`)
+export { ProfileBlogsPanel } from './components/profile-view/ProfileBlogsPanel';
 export { ProfileComingSoon } from './components/profile-view/ProfileComingSoon';
+export { ProfileCompletedTrips } from './components/profile-view/ProfileCompletedTrips';
 export { ProfileHikingPanel } from './components/profile-view/ProfileHikingPanel';
 export { ProfileIdentityCard } from './components/profile-view/ProfileIdentityCard';
 export { ProfileInfoPanel } from './components/profile-view/ProfileInfoPanel';
@@ -12,11 +15,12 @@ export { ProfileMomentsPanel } from './components/profile-view/ProfileMomentsPan
 export { ProfileRatingSummary } from './components/profile-view/ProfileRatingSummary';
 export { ProfileScreen } from './components/profile-view/ProfileScreen';
 export {
-  PROFILE_INFO_TAB,
-  PROFILE_TABS,
+  MY_PROFILE_TABS,
+  MY_PROFILE_TABS as PROFILE_TABS,
   type ProfileTabDef,
   type ProfileTabId,
   ProfileTabs,
+  PUBLIC_PROFILE_TABS,
 } from './components/profile-view/ProfileTabs';
 export * from './hooks/useProfile';
 export {
@@ -35,3 +39,4 @@ export {
   publicProfileService,
 } from './services/publicProfileService';
 export * from './types';
+export * from './utils/profileCompleteness';

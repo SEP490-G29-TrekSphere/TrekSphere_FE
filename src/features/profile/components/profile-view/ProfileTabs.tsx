@@ -1,4 +1,4 @@
-export type ProfileTabId = 'hiking' | 'moments' | 'reviews' | 'completed' | 'info';
+export type ProfileTabId = 'info' | 'hiking' | 'blogs' | 'moments' | 'reviews' | 'completed';
 
 export interface ProfileTabDef {
   id: ProfileTabId;
@@ -6,20 +6,27 @@ export interface ProfileTabDef {
 }
 
 /**
- * Tab công khai theo reference AllTrails: `hiking` là phần hồ sơ năng lực,
- * `moments` lưu giữ khoảnh khắc check-in.
- *
- * `info` chỉ xuất hiện ở hồ sơ của chính mình và được ghép vào ĐẦU danh sách
- * (xem `ProfileScreen`) — dữ liệu cá nhân là thứ chủ hồ sơ tra cứu nhiều nhất.
+ * Tab cho hồ sơ cá nhân của chính mình (`/profile`):
+ * Tab "Thông tin" gộp cả thông tin cá nhân lẫn hồ sơ leo núi & kỹ năng.
  */
-export const PROFILE_TABS: ProfileTabDef[] = [
-  { id: 'hiking', label: 'Hồ sơ leo núi' },
+export const MY_PROFILE_TABS: ProfileTabDef[] = [
+  { id: 'info', label: 'Thông tin' },
+  { id: 'blogs', label: 'Bài viết' },
   { id: 'moments', label: 'Khoảnh khắc' },
   { id: 'reviews', label: 'Đánh giá' },
   { id: 'completed', label: 'Đã hoàn thành' },
 ];
 
-export const PROFILE_INFO_TAB: ProfileTabDef = { id: 'info', label: 'Thông tin' };
+/**
+ * Tab khi xem hồ sơ công khai của người khác (`/users/:userId`):
+ * Hồ sơ leo núi đã chuyển sang cột trái làm Intro Card, nên tab hiển thị Bài viết làm trang chính.
+ */
+export const PUBLIC_PROFILE_TABS: ProfileTabDef[] = [
+  { id: 'blogs', label: 'Bài viết' },
+  { id: 'moments', label: 'Khoảnh khắc' },
+  { id: 'reviews', label: 'Đánh giá' },
+  { id: 'completed', label: 'Đã hoàn thành' },
+];
 
 interface ProfileTabsProps {
   tabs: ProfileTabDef[];

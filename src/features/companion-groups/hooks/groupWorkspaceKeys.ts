@@ -18,7 +18,9 @@ export const groupWorkspaceKeys = {
   // Phase 6 Keys (Expense & Shares)
   expensesBase: (groupId: string) => [...groupWorkspaceKeys.all, 'expenses', groupId] as const,
   expenses: (groupId: string, page?: number, size?: number) =>
-    [...groupWorkspaceKeys.all, 'expenses', groupId, { page, size }] as const,
+    page !== undefined || size !== undefined
+      ? ([...groupWorkspaceKeys.all, 'expenses', groupId, { page, size }] as const)
+      : ([...groupWorkspaceKeys.all, 'expenses', groupId] as const),
   expenseSummary: (groupId: string) =>
     [...groupWorkspaceKeys.all, 'expense-summary', groupId] as const,
   expenseDetail: (groupId: string, expenseId: string) =>
@@ -41,11 +43,15 @@ export const groupWorkspaceKeys = {
   // Phase 7 Keys (SOS Alert)
   sosActive: (groupId: string) => [...groupWorkspaceKeys.all, 'sos-active', groupId] as const,
   sosHistory: (groupId: string, page?: number, size?: number) =>
-    [...groupWorkspaceKeys.all, 'sos-history', groupId, { page, size }] as const,
+    page !== undefined || size !== undefined
+      ? ([...groupWorkspaceKeys.all, 'sos-history', groupId, { page, size }] as const)
+      : ([...groupWorkspaceKeys.all, 'sos-history', groupId] as const),
 
   // Phase 4 Keys (Group Vote: general poll, leader election, dissolution)
   votes: (groupId: string, voteType?: string, status?: string, page?: number, size?: number) =>
-    [...groupWorkspaceKeys.all, 'votes', groupId, { voteType, status, page, size }] as const,
+    voteType !== undefined || status !== undefined || page !== undefined || size !== undefined
+      ? ([...groupWorkspaceKeys.all, 'votes', groupId, { voteType, status, page, size }] as const)
+      : ([...groupWorkspaceKeys.all, 'votes', groupId] as const),
   voteDetail: (groupId: string, voteId: string) =>
     [...groupWorkspaceKeys.all, 'vote-detail', groupId, voteId] as const,
 };

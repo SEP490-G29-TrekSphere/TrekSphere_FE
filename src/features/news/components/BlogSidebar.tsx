@@ -8,7 +8,8 @@ interface BlogSidebarProps {
   isLoggedIn?: boolean;
 }
 
-const formatDate = (iso: string): string => {
+const formatDate = (iso?: string): string => {
+  if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString('vi-VN', {
@@ -52,7 +53,7 @@ export function BlogSidebar({ relatedPosts, isLoggedIn }: BlogSidebarProps) {
                       {p.title}
                     </h4>
                     <span className="text-xs text-muted-foreground">
-                      {formatDate(p.publishedAt)}
+                      {formatDate(p.createdAt || p.publishedAt)}
                     </span>
                   </div>
                 </Link>

@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  Eye,
   Info,
   Loader2,
   RefreshCw,
@@ -24,6 +25,7 @@ import type { GroupSettlementResponse } from '../../../types/settlement';
 import { MemberAvatar } from '../../detail/MemberAvatar';
 import { ConfirmSettlementModal } from './ConfirmSettlementModal';
 import { RejectSettlementModal } from './RejectSettlementModal';
+import { SettlementDetailModal } from './SettlementDetailModal';
 import { SubmitProofModal } from './SubmitProofModal';
 
 interface GroupSettlementTabProps {
@@ -49,6 +51,8 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
     rejectPayment,
   } = useGroupSettlement({ groupId: group.matchingGroupId });
 
+  const [selectedSettlementForDetail, setSelectedSettlementForDetail] =
+    useState<GroupSettlementResponse | null>(null);
   const [selectedSettlementForProof, setSelectedSettlementForProof] =
     useState<GroupSettlementResponse | null>(null);
   const [selectedSettlementForConfirm, setSelectedSettlementForConfirm] =
@@ -292,9 +296,9 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-              {suggestions.map((s, idx) => (
+              {suggestions.map((s) => (
                 <div
-                  key={idx}
+                  key={`${s.fromMember.matchingMemberId}-${s.toMember.matchingMemberId}-${s.amount}`}
                   className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3 shadow-xs text-xs"
                 >
                   <div className="flex items-center gap-2">
@@ -480,6 +484,15 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
 
                     {/* Action Buttons for Debtor and Payee */}
                     <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/60">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedSettlementForDetail(st)}
+                        className="text-xs font-bold gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Chi tiết
+                      </Button>
+
                       {/* Debtor actions */}
                       {isDebtor && (st.status === 'PENDING' || st.status === 'REJECTED') && (
                         <Button
@@ -531,6 +544,16 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
       </div>
 
       {/* MODALS */}
+      <SettlementDetailModal
+        isOpen={Boolean(selectedSettlementForDetail)}
+        onClose={() => setSelectedSettlementForDetail(null)}
+        settlement={selectedSettlementForDetail}
+        onOpenProof={(st) => setSelectedSettlementForProof(st)}
+        onOpenConfirm={(st) => setSelectedSettlementForConfirm(st)}
+        onOpenReject={(st) => setSelectedSettlementForReject(st)}
+        currentUserId={currentUserId}
+      />
+
       <SubmitProofModal
         isOpen={Boolean(selectedSettlementForProof)}
         onClose={() => setSelectedSettlementForProof(null)}

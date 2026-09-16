@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTrekkerGroupDetailPath, getTrekkerGroupJoinPath, PATHS } from '@/constants';
+import { checkProfileCompleteness, ProfileCompletionModal, useProfile } from '@/features/profile';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAppStore } from '@/store/useAppStore';
@@ -9,6 +10,7 @@ import { CreateCompanionGroupModal } from '../components/CreateCompanionGroupMod
 import { MyMatchingGroupsFilters } from '../components/discovery/MyMatchingGroupsFilters';
 import { MyMatchingGroupsHeader } from '../components/discovery/MyMatchingGroupsHeader';
 import { MyMatchingGroupsResults } from '../components/discovery/MyMatchingGroupsResults';
+import { ProfileIncompleteBanner } from '../components/discovery/ProfileIncompleteBanner';
 import {
   MATCHING_GROUP_DEFAULT_SORT,
   MATCHING_GROUP_PAGE_SIZE,
@@ -19,7 +21,7 @@ import {
   type MatchingGroupStatusFilter,
 } from '../constants';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
-import { isCurrentUserGroupLeader, toMatchingGroupCardViewModel } from '../mappers';
+import { toMatchingGroupCardViewModel } from '../mappers';
 
 export default function MyCompanionGroupsPage() {
   const navigate = useNavigate();
@@ -34,35 +36,61 @@ export default function MyCompanionGroupsPage() {
   const [page, setPage] = useState(0);
   const [layout, setLayout] = useState<MatchingGroupLayout>('grid');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isProfileCompletionModalOpen, setIsProfileCompletionModalOpen] = useState(false);
+  const hasAutoPromptedRef = useRef(false);
   const debouncedSearchQuery = useDebounce(searchQuery, MATCHING_GROUP_SEARCH_DEBOUNCE_MS);
+
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isFetching: isProfileFetching,
+  } = useProfile();
+  const completeness = useMemo(() => checkProfileCompleteness(profile), [profile]);
+  const canLoadData = !isGuest && !isProfileLoading && completeness.isComplete;
 
   useEffect(() => {
     if (isGuest) navigate(PATHS.LOGIN);
   }, [isGuest, navigate]);
 
+  // Tự động nhắc nhở hoàn thiện hồ sơ nếu chưa đủ thông tin khi vào trang quản lý nhóm
+  useEffect(() => {
+    if (completeness.isComplete) {
+      setIsProfileCompletionModalOpen(false);
+      return;
+    }
+    if (
+      !isGuest &&
+      !isProfileLoading &&
+      !isProfileFetching &&
+      profile &&
+      !completeness.isComplete &&
+      !hasAutoPromptedRef.current
+    ) {
+      hasAutoPromptedRef.current = true;
+      setIsProfileCompletionModalOpen(true);
+    }
+  }, [isGuest, isProfileLoading, isProfileFetching, profile, completeness.isComplete]);
+
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
-  const { data, isLoading, isError } = useMyMatchingGroups({
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
-    keyword: debouncedSearchQuery || undefined,
-    page,
-    size: MATCHING_GROUP_PAGE_SIZE,
-    sortBy,
-    sortDir,
-  });
-  const { tours } = useTours({ size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE });
-  const groups = useMemo(
-    () =>
-      (data?.content ?? []).filter((group) => {
-        const vm = toMatchingGroupCardViewModel(group);
-        const isLeader = isCurrentUserGroupLeader(vm, user?.id);
-        if (activeRole === 'LEADER' && !isLeader) return false;
-        if (activeRole === 'MEMBER' && isLeader) return false;
-        if (selectedTourId && vm.journeyId !== selectedTourId) return false;
-        if (selectedDate && vm.targetDate !== selectedDate) return false;
-        return true;
-      }),
-    [data, activeRole, selectedTourId, selectedDate, user?.id]
+  const { data, isLoading, isError } = useMyMatchingGroups(
+    {
+      role: activeRole === 'ALL' ? undefined : activeRole,
+      status: statusFilter === 'ALL' ? undefined : statusFilter,
+      tourId: selectedTourId || undefined,
+      targetDate: selectedDate || undefined,
+      keyword: debouncedSearchQuery || undefined,
+      page,
+      size: MATCHING_GROUP_PAGE_SIZE,
+      sortBy,
+      sortDir,
+    },
+    { enabled: canLoadData }
   );
+  const { tours } = useTours(
+    { size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE },
+    { enabled: canLoadData }
+  );
+  const groups = data?.content ?? [];
 
   function resetFilters() {
     setSearchQuery('');
@@ -78,10 +106,25 @@ export default function MyCompanionGroupsPage() {
     return toMatchingGroupCardViewModel(group).groupId;
   }
 
+  function handleCreateClick() {
+    if (!completeness.isComplete) {
+      setIsProfileCompletionModalOpen(true);
+      return;
+    }
+    setIsCreateModalOpen(true);
+  }
+
   if (isGuest) return null;
 
   return (
     <div className="flex w-full max-w-7xl flex-col space-y-6 pb-12">
+      {!completeness.isComplete && (
+        <ProfileIncompleteBanner
+          missingCount={completeness.missingFields.length}
+          returnPath={PATHS.TREKKER_MY_GROUPS}
+        />
+      )}
+
       <MyMatchingGroupsHeader
         searchQuery={searchQuery}
         onSearchChange={(value) => {
@@ -93,7 +136,7 @@ export default function MyCompanionGroupsPage() {
           setActiveRole(value);
           setPage(0);
         }}
-        onCreateClick={() => setIsCreateModalOpen(true)}
+        onCreateClick={handleCreateClick}
       />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -136,6 +179,16 @@ export default function MyCompanionGroupsPage() {
       <CreateCompanionGroupModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* Profile Completion Required Modal */}
+      <ProfileCompletionModal
+        open={isProfileCompletionModalOpen}
+        onClose={() => setIsProfileCompletionModalOpen(false)}
+        missingFieldLabels={completeness.missingFieldLabels}
+        returnPath={PATHS.TREKKER_MY_GROUPS}
+        title="Cần hoàn thiện hồ sơ để tạo và quản lý nhóm"
+        description="Để đảm bảo uy tín và an toàn cho các thành viên đồng hành, bạn cần hoàn tất các thông tin bắt buộc trước khi tạo hoặc quản lý nhóm."
       />
     </div>
   );

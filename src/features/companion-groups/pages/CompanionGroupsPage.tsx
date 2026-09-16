@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getGroupDetailPath, getTrekkerGroupDetailPath, PATHS } from '@/constants';
+import { checkProfileCompleteness, ProfileCompletionModal, useProfile } from '@/features/profile';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAppStore } from '@/store/useAppStore';
@@ -9,6 +10,7 @@ import { MatchingGroupDiscoveryFilters } from '../components/discovery/MatchingG
 import { MatchingGroupDiscoveryHero } from '../components/discovery/MatchingGroupDiscoveryHero';
 import { MatchingGroupDiscoveryResults } from '../components/discovery/MatchingGroupDiscoveryResults';
 import { MatchingGroupDiscoverySearchBar } from '../components/discovery/MatchingGroupDiscoverySearchBar';
+import { ProfileIncompleteBanner } from '../components/discovery/ProfileIncompleteBanner';
 import { JoinGroupModal, type JoinGroupModalData } from '../components/modals/JoinGroupModal';
 import {
   MATCHING_GROUP_DEFAULT_SORT,
@@ -84,15 +86,43 @@ export default function CompanionGroupsPage() {
   ]);
 
   const [selectedJoinGroup, setSelectedJoinGroup] = useState<JoinGroupModalData | null>(null);
+  const [isProfileCompletionModalOpen, setIsProfileCompletionModalOpen] = useState(false);
+  const hasAutoPromptedRef = useRef(false);
   const joinGroupMutation = useJoinMatchingGroup();
+
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isFetching: isProfileFetching,
+  } = useProfile();
+  const completeness = useMemo(() => checkProfileCompleteness(profile), [profile]);
+  const canLoadData = isGuest || (!isProfileLoading && completeness.isComplete);
+
+  useEffect(() => {
+    if (completeness.isComplete) {
+      setIsProfileCompletionModalOpen(false);
+      return;
+    }
+    if (
+      !isGuest &&
+      !isProfileLoading &&
+      !isProfileFetching &&
+      profile &&
+      !completeness.isComplete &&
+      !hasAutoPromptedRef.current
+    ) {
+      hasAutoPromptedRef.current = true;
+      setIsProfileCompletionModalOpen(true);
+    }
+  }, [isGuest, isProfileLoading, isProfileFetching, profile, completeness.isComplete]);
 
   const { data: myGroupsData } = useMyMatchingGroups(
     { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
-    { enabled: !isGuest }
+    { enabled: !isGuest && canLoadData }
   );
   const { data: myApplicationsData } = useMyJoinRequests(
     { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
-    { enabled: !isGuest }
+    { enabled: !isGuest && canLoadData }
   );
   const joinedGroupIds = useMemo(() => {
     const ids = new Set<string>();
@@ -128,17 +158,23 @@ export default function CompanionGroupsPage() {
   }, [myApplicationsData]);
 
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
-  const { data, isLoading, isError, refetch } = useMatchingGroups({
-    keyword: debouncedSearchQuery || undefined,
-    tourId: selectedTourId || undefined,
-    targetDate: selectedDate || undefined,
-    availableSlotsOnly: availableSlotsOnly || undefined,
-    page,
-    size: MATCHING_GROUP_PAGE_SIZE,
-    sortBy,
-    sortDir,
-  });
-  const { tours } = useTours({ size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE });
+  const { data, isLoading, isError, refetch } = useMatchingGroups(
+    {
+      keyword: debouncedSearchQuery || undefined,
+      tourId: selectedTourId || undefined,
+      targetDate: selectedDate || undefined,
+      availableSlotsOnly: availableSlotsOnly || undefined,
+      page,
+      size: MATCHING_GROUP_PAGE_SIZE,
+      sortBy,
+      sortDir,
+    },
+    { enabled: canLoadData }
+  );
+  const { tours } = useTours(
+    { size: MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE },
+    { enabled: canLoadData }
+  );
   const matchingGroups = data?.content ?? [];
   const filteredGroups = useMemo(() => {
     let result =
@@ -177,6 +213,11 @@ export default function CompanionGroupsPage() {
 
   function handleOpenJoinModal(group: GroupCardData) {
     if (!requireLogin()) return;
+
+    if (!completeness.isComplete) {
+      setIsProfileCompletionModalOpen(true);
+      return;
+    }
 
     const vm = toMatchingGroupCardViewModel(group);
     const rawId = vm.groupId;
@@ -219,6 +260,12 @@ export default function CompanionGroupsPage() {
       <MatchingGroupDiscoveryHero />
       <div className="relative z-20 -mt-8 sm:-mt-10">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          {!isGuest && !completeness.isComplete && (
+            <ProfileIncompleteBanner
+              missingCount={completeness.missingFields.length}
+              returnPath={PATHS.GROUPS}
+            />
+          )}
           <MatchingGroupDiscoverySearchBar
             searchQuery={searchQuery}
             onSearchChange={(value) => {
@@ -307,6 +354,16 @@ export default function CompanionGroupsPage() {
           isPending={joinGroupMutation.isPending}
         />
       )}
+
+      {/* Profile Completion Required Modal */}
+      <ProfileCompletionModal
+        open={isProfileCompletionModalOpen}
+        onClose={() => setIsProfileCompletionModalOpen(false)}
+        missingFieldLabels={completeness.missingFieldLabels}
+        returnPath={PATHS.GROUPS}
+        title="Cần hoàn thiện hồ sơ để tham gia nhóm"
+        description="Để đảm bảo an toàn chuyến đi và giúp trưởng nhóm xét duyệt nhanh chóng, bạn cần bổ sung các thông tin cá nhân và hồ sơ leo núi còn thiếu."
+      />
     </div>
   );
 }

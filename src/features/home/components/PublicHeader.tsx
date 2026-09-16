@@ -26,7 +26,7 @@ export default function PublicHeader() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     void location.pathname;
@@ -36,21 +36,26 @@ export default function PublicHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [location.pathname]);
 
-  // Điều hướng xong thì đóng mobile menu, nếu không nó che mất trang vừa mở.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname chỉ dùng để trigger effect, không đọc giá trị trong body
+  // Điều hướng xong thì đóng mobile menu & dropdown
   useEffect(() => {
     setMobileMenuOpen(false);
-  }, [location.pathname]);
+    setDropdownOpen(false);
+  }, []);
 
-  // Close dropdown when clicking outside
+  // Đóng cả mobile menu lẫn dropdown khi click ra ngoài header
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -61,6 +66,7 @@ export default function PublicHeader() {
     queryClient.removeQueries({ queryKey: profileKeys.all });
     toast.success('Đã đăng xuất.');
     setDropdownOpen(false);
+    setMobileMenuOpen(false);
   };
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
@@ -72,6 +78,7 @@ export default function PublicHeader() {
 
   return (
     <header
+      ref={headerRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled || !isHome
           ? 'bg-background/80 backdrop-blur-[16px] border-b border-border/60'
@@ -79,7 +86,26 @@ export default function PublicHeader() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between px-4 sm:px-6">
-        <AppLogo height={40} to={PATHS.HOME} tone={transparent ? 'light' : undefined} />
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Nút hamburger — chuyển sang bên TRÁI trên mobile */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen((prev) => !prev);
+              setDropdownOpen(false);
+            }}
+            className={`flex size-9 items-center justify-center rounded-lg transition-colors md:hidden cursor-pointer ${
+              transparent ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-muted'
+            }`}
+            aria-label="Mở menu điều hướng"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="public-mobile-nav"
+          >
+            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+
+          <AppLogo height={40} to={PATHS.HOME} tone={transparent ? 'light' : undefined} />
+        </div>
 
         <nav className="hidden md:flex items-center gap-8">
           {NAV_ITEMS.map((item) => {
@@ -116,10 +142,13 @@ export default function PublicHeader() {
             /* Authenticated: bell + avatar + dropdown */
             <>
               <NotificationBell />
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  onClick={() => {
+                    setDropdownOpen((prev) => !prev);
+                    setMobileMenuOpen(false);
+                  }}
                   className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
                   aria-label="Mở menu cá nhân"
                 >
@@ -195,20 +224,6 @@ export default function PublicHeader() {
               </Link>
             </>
           )}
-
-          {/* Nút hamburger — chỉ hiện trên mobile, nằm cùng hàng với logo */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className={`-mr-1 flex size-9 items-center justify-center rounded-lg transition-colors md:hidden ${
-              transparent ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-muted'
-            }`}
-            aria-label="Mở menu điều hướng"
-            aria-expanded={mobileMenuOpen}
-            aria-controls="public-mobile-nav"
-          >
-            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
         </div>
       </div>
 

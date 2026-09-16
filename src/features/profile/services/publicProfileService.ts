@@ -33,15 +33,32 @@ export interface PublicUserProfile {
  */
 export const publicProfileService = {
   async getPublicProfile(userId: string): Promise<PublicUserProfile | null> {
-    const { items } = await blogService.getPosts({ authorId: userId, page: 1, size: 1 });
-    const first = items[0];
-    if (!first) return null;
+    try {
+      const hiking = await publicProfileService.getHikingSummary(userId);
+      if (hiking?.fullName) {
+        return {
+          userId,
+          fullName: hiking.fullName,
+          avatarUrl: hiking.avatarUrl || undefined,
+        };
+      }
+    } catch {
+      // Bỏ qua lỗi hiking summary nếu có và thử tiếp phương án fallback từ bài viết
+    }
 
-    return {
-      userId,
-      fullName: first.authorName,
-      avatarUrl: first.authorAvatarUrl || undefined,
-    };
+    try {
+      const { items } = await blogService.getPosts({ authorId: userId, page: 1, size: 1 });
+      const first = items[0];
+      if (!first) return null;
+
+      return {
+        userId,
+        fullName: first.authorName,
+        avatarUrl: first.authorAvatarUrl || undefined,
+      };
+    } catch {
+      return null;
+    }
   },
 
   /**

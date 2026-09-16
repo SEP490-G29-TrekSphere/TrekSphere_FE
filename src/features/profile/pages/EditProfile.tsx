@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import type { UserProfile } from '@/features/auth';
 import {
@@ -26,8 +26,9 @@ function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
     gender: profile?.gender,
     dateOfBirth: profile?.dateOfBirth ?? '',
     bio: profile?.bio ?? '',
-    experienceLevel: profile?.experienceLevel ?? '',
-    preferredDifficulty: profile?.preferredDifficulty ?? '',
+    experienceLevel: (profile?.experienceLevel ?? '') as UpdateProfileFormValues['experienceLevel'],
+    preferredDifficulty: (profile?.preferredDifficulty ??
+      '') as UpdateProfileFormValues['preferredDifficulty'],
     preferredAreas: profile?.preferredAreas ?? [],
     skills: profile?.skills ?? [],
   };
@@ -47,11 +48,10 @@ function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null
   if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth);
   if (data.gender) formData.append('gender', data.gender.toUpperCase());
 
-  // Nhóm hồ sơ leo núi luôn gửi kể cả khi rỗng, để người dùng bỏ chọn được:
-  // Spring map chuỗi rỗng của field enum về null thay vì báo lỗi ràng buộc.
+  // Nhóm hồ sơ leo núi: Chỉ gửi enum khi có giá trị để tránh lỗi Type Mismatch của Spring WebDataBinder
   formData.append('bio', data.bio ?? '');
-  formData.append('experienceLevel', data.experienceLevel ?? '');
-  formData.append('preferredDifficulty', data.preferredDifficulty ?? '');
+  if (data.experienceLevel) formData.append('experienceLevel', data.experienceLevel);
+  if (data.preferredDifficulty) formData.append('preferredDifficulty', data.preferredDifficulty);
   appendList(formData, 'preferredAreas', data.preferredAreas);
   appendList(formData, 'skills', data.skills);
 
@@ -83,8 +83,11 @@ function appendList(formData: FormData, field: string, items?: string[]) {
  */
 export default function EditProfile({ returnPath }: { returnPath?: string }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const setUser = useAppStore((state) => state.setUser);
+
+  const effectiveReturnPath = searchParams.get('returnUrl') || returnPath || PATHS.PROFILE;
 
   // File object của avatar mới (null = không đổi ảnh)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
@@ -118,7 +121,12 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
       profileService.updateProfile(buildProfileFormData(data, selectedAvatarFile)),
     onSuccess: (res) => {
       if (res.error || (res.status && res.status >= 400)) {
-        toast.error(res.message || res.error || 'Cập nhật thất bại. Vui lòng thử lại.');
+        const errorMsg =
+          (res as { errors?: { message: string }[] }).errors?.[0]?.message ||
+          res.message ||
+          res.error ||
+          'Cập nhật thất bại. Vui lòng thử lại.';
+        toast.error(errorMsg);
         return;
       }
       toast.success('Cập nhật hồ sơ thành công!');
@@ -140,9 +148,10 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
           avatarUrl: updatedUser.avatar ?? currentUser?.avatarUrl,
           roles: updatedUser.roles.length > 0 ? updatedUser.roles : currentUser?.roles,
         });
+        queryClient.setQueryData(profileKeys.me(), updatedUser);
       }
       queryClient.invalidateQueries({ queryKey: profileKeys.me() });
-      navigate(returnPath ?? PATHS.PROFILE);
+      navigate(effectiveReturnPath);
     },
     onError: () => {
       toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
@@ -153,8 +162,18 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
     updateMutation.mutate(data);
   };
 
+  const onInvalid = (formErrors: Record<string, unknown>) => {
+    const errorList = Object.values(formErrors) as { message?: string }[];
+    const firstMsg = errorList.find((e) => e?.message)?.message;
+    if (firstMsg) {
+      toast.error(firstMsg);
+    } else {
+      toast.error('Vui lòng kiểm tra lại các trường thông tin chưa hợp lệ.');
+    }
+  };
+
   const handleCancel = () => {
-    navigate(returnPath ?? PATHS.PROFILE);
+    navigate(effectiveReturnPath);
   };
 
   // Chọn avatar: preview ngay bằng createObjectURL, lưu file để gửi cùng form
@@ -216,7 +235,7 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
         {/* Form */}
         <div className="lg:col-span-7">
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
               <PersonalInfoFields email={profile?.email} />
 
               <HikingProfileFields />

@@ -31,9 +31,9 @@ export function BlogContent({ post }: BlogContentProps) {
       )}
 
       {/* Tags ở cuối bài */}
-      {post.tags?.length > 0 && (
+      {Boolean(post.tags && post.tags.length > 0) && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
+          {post.tags?.map((tag) => (
             <span
               key={tag}
               className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-primary/80"

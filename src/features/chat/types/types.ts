@@ -21,6 +21,15 @@ export interface Conversation {
   isGroupLeader?: boolean;
 }
 
+export interface DraftTourAttachment {
+  tourId: string;
+  tourName: string;
+  coverImageUrl?: string | null;
+  location?: string;
+  durationDays?: number;
+  basePrice?: number;
+}
+
 export interface VirtualConversationData {
   participantIds: string[];
   type: 'DIRECT' | 'GROUP';

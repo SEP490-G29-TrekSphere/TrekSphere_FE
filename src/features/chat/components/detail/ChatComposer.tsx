@@ -2,10 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ImagePlus, Loader2, Send, Smile, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { EmojiPicker, EmojiPickerContent, EmojiPickerSearch } from '@/components/ui/emoji-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import type { DraftTourAttachment } from '@/features/chat/types/types';
 import { profileService } from '@/features/profile/services/profileService';
 import { toast } from '@/store/useToastStore';
 
@@ -31,13 +33,23 @@ interface ChatComposerProps {
   onSendMessage: (content: string) => void;
   isSending: boolean;
   placeholder?: string;
+  initialDraftMessage?: string;
+  draftTour?: DraftTourAttachment;
+  onRemoveDraftTour?: () => void;
 }
 
-export function ChatComposer({ onSendMessage, isSending, placeholder }: ChatComposerProps) {
+export function ChatComposer({
+  onSendMessage,
+  isSending,
+  placeholder,
+  initialDraftMessage,
+  draftTour,
+  onRemoveDraftTour,
+}: ChatComposerProps) {
   const { register, handleSubmit, setValue, getValues, watch, reset } = useForm<ComposerFormValues>(
     {
       resolver: zodResolver(composerSchema),
-      defaultValues: { message: '' },
+      defaultValues: { message: initialDraftMessage || '' },
     }
   );
 
@@ -50,8 +62,23 @@ export function ChatComposer({ onSendMessage, isSending, placeholder }: ChatComp
   const { ref: registerTextareaRef, ...messageField } = register('message');
 
   const message = watch('message');
-  const hasContent = message.trim().length > 0 || pendingImages.length > 0;
+  const hasContent = message.trim().length > 0 || pendingImages.length > 0 || Boolean(draftTour);
   const isBusy = isSending || isUploading;
+
+  const autoGrow = useCallback(() => {
+    const element = textareaRef.current;
+    if (!element) return;
+    element.style.height = 'auto';
+    element.style.height = `${Math.min(element.scrollHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
+  }, []);
+
+  // Cập nhật draft message khi nhận prop mới
+  useEffect(() => {
+    if (initialDraftMessage) {
+      setValue('message', initialDraftMessage);
+      requestAnimationFrame(autoGrow);
+    }
+  }, [initialDraftMessage, setValue, autoGrow]);
 
   // Giải phóng object URL của các ảnh còn treo khi component unmount.
   const pendingImagesRef = useRef(pendingImages);
@@ -62,13 +89,6 @@ export function ChatComposer({ onSendMessage, isSending, placeholder }: ChatComp
     return () => {
       for (const image of pendingImagesRef.current) URL.revokeObjectURL(image.previewUrl);
     };
-  }, []);
-
-  const autoGrow = useCallback(() => {
-    const element = textareaRef.current;
-    if (!element) return;
-    element.style.height = 'auto';
-    element.style.height = `${Math.min(element.scrollHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
   }, []);
 
   const handleSelectFiles = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,8 +169,18 @@ export function ChatComposer({ onSendMessage, isSending, placeholder }: ChatComp
   };
 
   const onSubmit = async (data: ComposerFormValues) => {
-    const text = data.message.trim();
-    if (!text && pendingImages.length === 0) return;
+    let text = data.message.trim();
+    if (!text && pendingImages.length === 0 && !draftTour) return;
+
+    if (draftTour) {
+      const tourLink = `${window.location.origin}/tours/${draftTour.tourId}`;
+      if (!text.includes(draftTour.tourId)) {
+        text = text
+          ? `${text}\n${tourLink}`
+          : `Tôi đang quan tâm đến tour "${draftTour.tourName}":\n${tourLink}`;
+      }
+      onRemoveDraftTour?.();
+    }
 
     const imagesToSend = pendingImages;
     setPendingImages([]);
@@ -180,7 +210,63 @@ export function ChatComposer({ onSendMessage, isSending, placeholder }: ChatComp
   return (
     <div className="border-t border-border bg-background px-4 py-3 sm:px-6 sm:py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="rounded-2xl border border-border bg-muted/20 transition-colors focus-within:border-primary/40 focus-within:bg-background">
+        <div className="rounded-2xl border border-border bg-muted/20 transition-colors focus-within:border-primary/40 focus-within:bg-background overflow-hidden">
+          {/* Draft Tour Preview Attachment Banner */}
+          {draftTour && (
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-primary/5 p-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {draftTour.coverImageUrl ? (
+                  <img
+                    src={draftTour.coverImageUrl}
+                    alt={draftTour.tourName}
+                    className="h-12 w-16 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                  />
+                ) : (
+                  <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-xs">
+                    Tour
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                    Đính kèm liên kết Tour
+                  </span>
+                  <p className="truncate text-xs font-semibold text-foreground">
+                    {draftTour.tourName}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                    {draftTour.location && <span>{draftTour.location}</span>}
+                    {draftTour.durationDays && <span>• {draftTour.durationDays} ngày</span>}
+                    {draftTour.basePrice !== undefined && (
+                      <span className="font-semibold text-primary">
+                        • {draftTour.basePrice.toLocaleString('vi-VN')} đ
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to={`/tours/${draftTour.tourId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                >
+                  Xem chi tiết
+                </Link>
+                {onRemoveDraftTour && (
+                  <button
+                    type="button"
+                    onClick={onRemoveDraftTour}
+                    aria-label="Bỏ đính kèm tour"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {pendingImages.length > 0 && (
             <div className="flex flex-wrap gap-2 border-b border-border/70 p-3">
               {pendingImages.map((image) => (

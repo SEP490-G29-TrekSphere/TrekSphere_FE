@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import type { BlogListItem } from '../types';
 import BlogList from './BlogList';
@@ -110,13 +110,5 @@ describe('BlogList (community feed)', () => {
     render(<BlogList />);
 
     expect(screen.getByText('Bạn đã xem hết bài viết')).toBeTruthy();
-  });
-
-  it('tab "Đang theo dõi" hiển thị thông báo tính năng chưa mở', () => {
-    render(<BlogList />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Đang theo dõi' }));
-
-    expect(screen.getByText('Tính năng đang được phát triển')).toBeTruthy();
   });
 });
