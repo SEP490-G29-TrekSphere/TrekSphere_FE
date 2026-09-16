@@ -96,6 +96,7 @@ export const PATHS = {
   VENDOR_TOUR_CREATE: '/vendor/tours/new',
   VENDOR_TOUR_EDIT: '/vendor/tours/:id/edit',
   VENDOR_TOUR_PREVIEW: '/vendor/tours/:id/preview',
+  VENDOR_TOUR_STATISTICS: '/vendor/tours/statistics',
   VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
   VENDOR_BLOG_CREATE: '/vendor/blog/create',
   VENDOR_CHAT: '/vendor/chat',
