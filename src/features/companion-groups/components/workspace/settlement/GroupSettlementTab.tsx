@@ -298,7 +298,7 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               {suggestions.map((s) => (
                 <div
-                  key={`${s.fromMember.memberId}-${s.toMember.memberId}-${s.amount}`}
+                  key={`${s.fromMember.matchingMemberId}-${s.toMember.matchingMemberId}-${s.amount}`}
                   className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card p-3 shadow-xs text-xs"
                 >
                   <div className="flex items-center gap-2">
