@@ -1,6 +1,7 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
   CreateReviewRequest,
+  RecommendedTourListApiResponse,
   ReviewListParams,
   ReviewResponse,
   ReviewSummaryResponse,
@@ -204,6 +205,15 @@ export const tourService = {
     const response = await ApiService<ReviewResponse>(`/reviews/${reviewId}/status`, 'PATCH', {
       status,
     });
+    return unwrapResponse(response);
+  },
+
+  /** `GET /tours/recommended` — gợi ý tour cá nhân hoá, chỉ role Trekker gọi được. */
+  async getRecommendedTours(page = 0, size = 6): Promise<RecommendedTourListApiResponse> {
+    const response = await ApiService<RecommendedTourListApiResponse>(
+      `/tours/recommended?page=${page}&size=${size}`,
+      'GET'
+    );
     return unwrapResponse(response);
   },
 };

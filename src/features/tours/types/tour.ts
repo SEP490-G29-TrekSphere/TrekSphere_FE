@@ -394,6 +394,63 @@ export interface TourSearchValues {
   keyword: string;
 }
 
+// ============================================================
+// API Types for Recommended Tours (GET /api/v1/tours/recommended)
+// ============================================================
+
+/** Lý do BE gợi ý tour này — khớp enum `RecommendationReason` phía backend. */
+export type RecommendationReason =
+  | 'AREA'
+  | 'BEHAVIOR'
+  | 'SIMILAR_TO_HISTORY'
+  | 'DIFFICULTY'
+  | 'SKILL_PROGRESSION'
+  | 'EXPERIENCE'
+  | 'SCHEDULE_FLEXIBILITY'
+  | 'AVAILABLE_GROUP'
+  | 'POPULAR'
+  | 'DISCOVERY';
+
+/**
+ * Tour rút gọn nhúng trong response gợi ý — khớp `TourSummaryResponse` phía
+ * backend, khác `TourApiItem` (list thường): dùng `fromPrice` thay vì
+ * `basePrice`, không có `averageRating`/`totalReviews`/`onlineBookingEnabled`.
+ */
+export interface RecommendedTourSummaryApi {
+  tourId: string;
+  tourName: string;
+  location: string;
+  durationDays: number;
+  fromPrice: number;
+  minCapacity: number;
+  maxCapacity: number;
+  totalDistanceKm: number;
+  difficulty: ApiDifficulty;
+  status: ApiStatus;
+  coverImageUrl: string | null;
+  highlights: string | null;
+  includes: string | null;
+  excludes: string | null;
+  vendorId: string;
+  vendorName: string;
+  createdAt: string;
+  publishedAt: string | null;
+}
+
+export interface RecommendedTourApiItem {
+  tour: RecommendedTourSummaryApi;
+  matchReasons: RecommendationReason[];
+}
+
+export interface RecommendedTourListApiResponse {
+  content: RecommendedTourApiItem[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
 export interface TourCheckpoint {
   checkpointId: string;
   tourId: string;
