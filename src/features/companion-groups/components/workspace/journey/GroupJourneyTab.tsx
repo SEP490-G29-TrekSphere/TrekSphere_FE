@@ -8,6 +8,7 @@ import {
   useGroupJourney,
   useGroupJourneyActivities,
 } from '../../../hooks/useGroupJourneyWorkspace';
+import type { MatchingGroupStatus } from '../../../types/matchingGroup';
 import type {
   CustomJourneyActivityResponse,
   CustomJourneyCheckpointResponse,
@@ -28,6 +29,7 @@ import { ViewCheckpointModal } from './ViewCheckpointModal';
 interface GroupJourneyTabProps {
   groupId: string;
   isLeader: boolean;
+  groupStatus?: MatchingGroupStatus;
 }
 
 function parseLocalDate(dateStr: string): Date {
@@ -35,7 +37,7 @@ function parseLocalDate(dateStr: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function GroupJourneyTab({ groupId, isLeader }: GroupJourneyTabProps) {
+export function GroupJourneyTab({ groupId, isLeader, groupStatus }: GroupJourneyTabProps) {
   const {
     data: journey,
     isLoading: isJourneyLoading,
@@ -79,7 +81,9 @@ export function GroupJourneyTab({ groupId, isLeader }: GroupJourneyTabProps) {
   );
 
   const isLocked = Boolean(journey?.isLocked);
-  const canEdit = isLeader && !isLocked;
+  const isTripActiveOrEnded =
+    groupStatus === 'IN_PROGRESS' || groupStatus === 'COMPLETED' || groupStatus === 'CANCELLED';
+  const canEdit = isLeader && !isLocked && !isTripActiveOrEnded;
 
   // Sắp xếp checkpoints theo thứ tự chặng
   const sortedCheckpoints = useMemo(() => {
@@ -176,6 +180,7 @@ export function GroupJourneyTab({ groupId, isLeader }: GroupJourneyTabProps) {
         journey={journey}
         checkpointCount={checkpoints.length}
         isLeader={isLeader}
+        groupStatus={groupStatus}
         onEditJourney={() => setIsEditJourneyModalOpen(true)}
       />
 

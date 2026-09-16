@@ -1,10 +1,23 @@
-import { Calendar, CheckCircle2, Lock, MapPin, Pencil, Unlock } from 'lucide-react';
+import {
+  Calendar,
+  CheckCircle2,
+  Compass,
+  Flag,
+  Lock,
+  MapPin,
+  Pencil,
+  Unlock,
+  XCircle,
+} from 'lucide-react';
+import { formatDate } from '@/utils/format';
+import type { MatchingGroupStatus } from '../../../types/matchingGroup';
 import type { CustomJourneyDetailResponse } from '../../../types/workspace';
 
 interface JourneyHeaderCardProps {
   journey: CustomJourneyDetailResponse | null | undefined;
   checkpointCount: number;
   isLeader: boolean;
+  groupStatus?: MatchingGroupStatus;
   onEditJourney: () => void;
 }
 
@@ -35,18 +48,24 @@ export function JourneyHeaderCard({
   journey,
   checkpointCount,
   isLeader,
+  groupStatus,
   onEditJourney,
 }: JourneyHeaderCardProps) {
   if (!journey) return null;
 
   const isLocked = Boolean(journey.isLocked);
+  const isTripActiveOrEnded =
+    groupStatus === 'IN_PROGRESS' || groupStatus === 'COMPLETED' || groupStatus === 'CANCELLED';
   const normalizedDiff = (journey.difficulty || '').toUpperCase().trim();
   const diffConfig = DIFFICULTY_CONFIG[normalizedDiff] || {
     label: journey.difficulty ? `Độ khó: ${journey.difficulty}` : 'Độ khó: Trung bình',
     badgeClass: 'bg-muted text-muted-foreground border-border',
   };
 
-  const canEdit = isLeader && !isLocked;
+  const canEdit = isLeader && !isLocked && !isTripActiveOrEnded;
+
+  const formattedStartDate = journey.startDate ? formatDate(journey.startDate) : '';
+  const formattedEndDate = journey.endDate ? formatDate(journey.endDate) : '';
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-xs transition sm:p-6">
@@ -59,7 +78,19 @@ export function JourneyHeaderCard({
               {diffConfig.label}
             </span>
 
-            {isLocked ? (
+            {groupStatus === 'IN_PROGRESS' ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-xs font-bold text-sky-600 dark:text-sky-400">
+                <Compass className="h-3 w-3" /> Đang trong chuyến đi
+              </span>
+            ) : groupStatus === 'COMPLETED' ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-0.5 text-xs font-bold text-purple-600 dark:text-purple-400">
+                <Flag className="h-3 w-3" /> Chuyến đi đã hoàn thành
+              </span>
+            ) : groupStatus === 'CANCELLED' ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
+                <XCircle className="h-3 w-3" /> Chuyến đi đã hủy
+              </span>
+            ) : isLocked ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                 <Lock className="h-3 w-3" /> Đã khóa lộ trình
               </span>
@@ -80,13 +111,21 @@ export function JourneyHeaderCard({
             <div className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-primary" />
               <span>
-                {journey.startDate} → {journey.endDate}
+                {formattedStartDate && formattedEndDate
+                  ? `${formattedStartDate} → ${formattedEndDate}`
+                  : journey.startDate && journey.endDate
+                    ? `${journey.startDate} → ${journey.endDate}`
+                    : 'Chưa có ngày'}
               </span>
             </div>
             {isLocked && journey.lockedAt && (
               <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Đã chốt lúc: {new Date(journey.lockedAt).toLocaleDateString('vi-VN')}</span>
+                <span>
+                  Đã chốt lúc:{' '}
+                  {formatDate(journey.lockedAt) ||
+                    new Date(journey.lockedAt).toLocaleDateString('vi-VN')}
+                </span>
               </div>
             )}
           </div>

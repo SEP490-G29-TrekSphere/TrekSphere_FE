@@ -9,7 +9,8 @@ import {
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
-import { AppBadge } from '@/shared/ui';
+import { cn } from '@/lib/utils';
+import { AppBadge, type AppBadgeVariant } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { formatDate } from '@/utils/format';
 import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../../constants';
@@ -34,10 +35,14 @@ interface GroupDetailHeroProps {
 
 const statusConfig: Record<
   MatchingGroupStatus,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+  { label: string; variant: AppBadgeVariant; className?: string }
 > = {
   OPEN: { label: 'Đang tuyển', variant: 'secondary' },
-  FULL: { label: 'Đã đủ', variant: 'outline' },
+  FULL: {
+    label: 'Đã đủ',
+    variant: 'warning',
+    className: 'bg-amber-500 text-white font-bold shadow-xs',
+  },
   CLOSED: { label: 'Đã đóng', variant: 'destructive' },
   HIDDEN: { label: 'Ẩn', variant: 'outline' },
   IN_PROGRESS: { label: 'Đang diễn ra', variant: 'default' },
@@ -68,7 +73,7 @@ export function GroupDetailHero({
   maxMembers,
 }: GroupDetailHeroProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const { label, variant } = statusConfig[status] ?? statusConfig.OPEN;
+  const statusInfo = statusConfig[status] ?? statusConfig.OPEN;
   const heroImage = coverImageUrl || tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE;
 
   function handleShare() {
@@ -123,8 +128,11 @@ export function GroupDetailHero({
         {/* Bottom Hero Info */}
         <div className="absolute right-6 bottom-6 left-6 z-10 space-y-3 text-white">
           <div className="flex flex-wrap items-center gap-2">
-            <AppBadge variant={variant} className="font-bold text-xs">
-              {label}
+            <AppBadge
+              variant={statusInfo.variant}
+              className={cn('font-bold text-xs', statusInfo.className)}
+            >
+              {statusInfo.label}
             </AppBadge>
             {currentMembers !== undefined && maxMembers !== undefined && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/70 px-3 py-1 font-semibold text-white text-xs backdrop-blur-xs">
