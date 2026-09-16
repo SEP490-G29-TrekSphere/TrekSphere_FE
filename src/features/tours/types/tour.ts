@@ -392,9 +392,6 @@ export interface TourDetailFromApi {
 
 export interface TourSearchValues {
   keyword: string;
-  location: string;
-  departureDate: string;
-  budget: string;
 }
 
 export interface TourCheckpoint {

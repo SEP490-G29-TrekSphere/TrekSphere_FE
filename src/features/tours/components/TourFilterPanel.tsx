@@ -1,8 +1,27 @@
+import { CalendarDays, MapPin, X } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
+import { useTourLocations } from '@/features/tours/hooks/useTourLocations';
 import type { ApiDifficulty, TourFilter } from '@/features/tours/types';
 import { cn } from '@/lib/utils';
+import { AppDatePicker } from '@/shared/ui';
 
 interface TourFilterPanelProps {
+  location?: string;
+  onLocationChange: (location: string) => void;
+  departureDate?: string;
+  returnDate?: string;
+  onDepartureDateChange: (date: string) => void;
+  onReturnDateChange: (date: string) => void;
   difficulty: TourFilter['difficulty'];
   priceRange: [number, number];
   minPrice: number;
@@ -32,7 +51,21 @@ function formatShortPrice(val: number): string {
   return String(val);
 }
 
+/** Normalise a JS Date to a local YYYY-MM-DD string. */
+function toLocalDateStr(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function TourFilterPanel({
+  location,
+  onLocationChange,
+  departureDate,
+  returnDate,
+  onDepartureDateChange,
+  onReturnDateChange,
   difficulty,
   priceRange,
   minPrice,
@@ -42,9 +75,125 @@ export default function TourFilterPanel({
   onPriceRangeChange,
   onResetFilters,
 }: TourFilterPanelProps) {
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const { locations } = useTourLocations();
+
+  const departureDateObj = departureDate ? new Date(departureDate) : null;
+  const returnDateObj = returnDate ? new Date(returnDate) : null;
+
   return (
     <div className="rounded-2xl border border-border bg-white p-5 shadow-xs">
       <h3 className="mb-5 text-lg font-bold text-primary">Bộ lọc</h3>
+
+      {/* Section: Điểm đến */}
+      <div className="mb-6">
+        <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+          Điểm đến
+        </span>
+        <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+          <PopoverTrigger
+            type="button"
+            className="flex w-full items-center gap-2 rounded-xl border border-input px-3 py-2.5 text-left focus:outline-none"
+          >
+            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span
+              className={cn(
+                'flex-1 truncate text-sm',
+                location ? 'font-semibold text-foreground' : 'text-muted-foreground'
+              )}
+            >
+              {location || 'Bạn muốn đi đâu?'}
+            </span>
+            {location && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onLocationChange('');
+                }}
+                className="shrink-0 text-muted-foreground/60 hover:text-foreground"
+                aria-label="Xóa điểm đến"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </PopoverTrigger>
+          <PopoverContent className="w-[250px] p-0" align="start">
+            <Command>
+              <CommandInput
+                placeholder="Tìm địa danh..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+              />
+              <CommandList>
+                <CommandEmpty>Không tìm thấy địa danh</CommandEmpty>
+                <CommandGroup>
+                  {locations.map((loc) => (
+                    <CommandItem
+                      key={loc}
+                      value={loc}
+                      onSelect={() => {
+                        onLocationChange(loc);
+                        setIsLocationOpen(false);
+                      }}
+                    >
+                      {loc}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <hr className="my-5 border-border" />
+
+      {/* Section: Ngày đi / Ngày về */}
+      <div className="mb-6 grid grid-cols-2 gap-3">
+        <div>
+          <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Ngày đi
+          </span>
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-2.5">
+            <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <AppDatePicker
+              selected={departureDateObj}
+              onChange={(date: Date | null) => {
+                onDepartureDateChange(date ? toLocalDateStr(date) : '');
+              }}
+              placeholderText="Chọn ngày"
+              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              isClearable
+            />
+          </div>
+        </div>
+
+        <div>
+          <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Ngày về
+          </span>
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-2.5">
+            <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <AppDatePicker
+              selected={returnDateObj}
+              onChange={(date: Date | null) => {
+                onReturnDateChange(date ? toLocalDateStr(date) : '');
+              }}
+              placeholderText="Chọn ngày"
+              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              minDate={departureDateObj || undefined}
+              isClearable
+            />
+          </div>
+        </div>
+      </div>
+
+      <hr className="my-5 border-border" />
 
       {/* Section: Độ khó */}
       <div className="mb-6">
