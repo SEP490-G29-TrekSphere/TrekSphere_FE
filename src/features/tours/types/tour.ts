@@ -228,6 +228,8 @@ export interface TourListParams {
   difficulty?: ApiDifficulty;
   departureDate?: string;
   returnDate?: string;
+  /** Lọc tour theo 1 vendor cụ thể — dùng cho trang hồ sơ Vendor công khai. */
+  vendorId?: string;
   page?: number;
   size?: number;
   sortBy?: ApiSortField;

@@ -43,6 +43,9 @@ function buildQuery(params: TourListParams): string {
   if (params.returnDate !== undefined && params.returnDate !== '') {
     search.set('returnDate', params.returnDate);
   }
+  if (params.vendorId !== undefined && params.vendorId !== '') {
+    search.set('vendorId', params.vendorId);
+  }
   if (params.page !== undefined) {
     search.set('page', String(params.page));
   }

@@ -30,3 +30,21 @@ export const VENDOR_PROFILE_STATUS_LABELS: Record<VendorProfileStatus, string> =
   INACTIVE: 'Ngừng hoạt động',
   REVOKED: 'Đã thu hồi',
 };
+
+/**
+ * Hồ sơ Vendor công khai — mirror `PublicVendorProfileResponse` từ BE
+ * (`GET /vendors/{vendorId}/public`), dùng cho Guest xem trang hồ sơ 1 Vendor.
+ */
+export interface PublicVendorProfile {
+  vendorId: string;
+  companyName: string;
+  description?: string;
+  logoUrl?: string;
+  businessAddress?: string;
+  websiteUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  /** ISO datetime — thời điểm Vendor gia nhập hệ thống. */
+  partnerSince: string;
+  publishedTourCount: number;
+}

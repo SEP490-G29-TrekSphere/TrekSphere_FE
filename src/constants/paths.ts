@@ -28,6 +28,8 @@ export const PATHS = {
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
   TOUR_DETAIL: '/tours/:id',
+  /** Hồ sơ công khai của 1 Vendor (Guest xem, không cần đăng nhập). */
+  VENDOR_PUBLIC_PROFILE: '/vendors/:vendorId',
   MY_VENDOR_APPLICATIONS: '/my-vendor-applications',
   GROUPS: '/groups',
   GROUPS_CREATE: '/groups/create',
@@ -143,6 +145,8 @@ export const getPartnerTourSchedulesPath = (id: string) =>
   PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
 export const getUserProfilePath = (userId: string) => PATHS.USER_PROFILE.replace(':userId', userId);
+export const getVendorPublicProfilePath = (vendorId: string) =>
+  PATHS.VENDOR_PUBLIC_PROFILE.replace(':vendorId', vendorId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
 export const getTrekkerGroupDetailPath = (groupId: string) =>

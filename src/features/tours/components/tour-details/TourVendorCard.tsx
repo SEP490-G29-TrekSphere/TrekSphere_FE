@@ -1,8 +1,8 @@
 import { Mail, MessageCircle, Phone } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ApiService } from '@/config/apiClient';
-import { getRoleChatPath } from '@/constants';
+import { getRoleChatPath, getVendorPublicProfilePath } from '@/constants';
 import type { ConversationResponse } from '@/features/chat/types/types';
 import type { TourDetailFromApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -69,7 +69,10 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
         Nhà tổ chức
       </h2>
 
-      <div className="flex items-center gap-3">
+      <Link
+        to={getVendorPublicProfilePath(tour.vendorId)}
+        className="flex items-center gap-3 rounded-xl transition-colors hover:bg-muted/60"
+      >
         {tour.vendorLogoUrl ? (
           <img
             src={tour.vendorLogoUrl}
@@ -82,12 +85,14 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
           </span>
         )}
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-foreground">{vendorName}</p>
+          <p className="truncate text-sm font-bold text-foreground hover:text-primary">
+            {vendorName}
+          </p>
           {tour.creatorName && tour.creatorName !== vendorName && (
             <p className="truncate text-xs text-muted-foreground">Phụ trách: {tour.creatorName}</p>
           )}
         </div>
-      </div>
+      </Link>
 
       {(tour.vendorContactEmail || tour.vendorContactPhone) && (
         <ul className="flex flex-col gap-2 text-sm">

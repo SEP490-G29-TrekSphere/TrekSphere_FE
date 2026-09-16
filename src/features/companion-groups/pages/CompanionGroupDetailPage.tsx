@@ -23,6 +23,7 @@ import { MATCHING_GROUP_APPLICATION_PAGE_SIZE } from '../constants';
 import { useCompanionGroupDetailActions } from '../hooks/useCompanionGroupDetailActions';
 import { useJoinRequests } from '../hooks/useJoinRequests';
 import { useMatchingGroupDetail } from '../hooks/useMatchingGroupDetail';
+import { useRequireLogin } from '../hooks/useRequireLogin';
 import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 
 interface CompanionGroupDetailPageProps {
@@ -40,6 +41,7 @@ export default function CompanionGroupDetailPage({
   const location = useLocation();
   const { groupId } = useParams<{ groupId: string }>();
   const user = useAppStore((state) => state.user);
+  const requireLogin = useRequireLogin();
   const locationState = location.state as { backPath?: string } | null;
   const effectiveBackPath = locationState?.backPath ?? backPath;
   const { data: group, isLoading, isError, error, refetch } = useMatchingGroupDetail(groupId);
@@ -236,7 +238,10 @@ export default function CompanionGroupDetailPage({
               groupStatus={group.status}
               isJoining={actions.isJoining}
               onOpenChat={actions.openGroupChat}
-              onJoin={() => setIsJoinModalOpen(true)}
+              onJoin={() => {
+                if (!requireLogin()) return;
+                setIsJoinModalOpen(true);
+              }}
               onLeave={() => actions.setActiveModal('leave')}
               onCancelRequest={() => actions.setActiveModal('leave')}
               onCreateGroupChat={actions.openGroupChat}

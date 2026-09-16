@@ -67,6 +67,7 @@ export function useTours(params: TourListParams = {}): UseToursResult {
     difficulty: params.difficulty,
     departureDate: params.departureDate,
     returnDate: params.returnDate,
+    vendorId: params.vendorId,
   };
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({

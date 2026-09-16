@@ -23,6 +23,9 @@ const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'));
 const Notifications = lazy(() => import('@/features/notifications/pages/Notifications'));
 const ListTours = lazy(() => import('@/features/tours/pages/ListTours'));
 const TourDetails = lazy(() => import('@/features/tours/pages/TourDetails'));
+const PublicVendorProfilePage = lazy(
+  () => import('@/features/vendor-profile/pages/PublicVendorProfilePage')
+);
 const BlogList = lazy(() => import('@/features/news/pages/BlogList'));
 const BlogDetails = lazy(() => import('@/features/news/pages/BlogDetails'));
 const ViewProfile = lazy(() => import('@/features/profile/pages/ViewProfile'));
@@ -166,6 +169,7 @@ export default function AppRoutes() {
           <Route path={PATHS.GROUPS_DETAIL} element={<CompanionGroupDetail />} />
           <Route path={PATHS.TOURS} element={<ListTours />} />
           <Route path={PATHS.TOUR_DETAIL} element={<TourDetails />} />
+          <Route path={PATHS.VENDOR_PUBLIC_PROFILE} element={<PublicVendorProfilePage />} />
           <Route path={PATHS.NEWS} element={<BlogList />} />
           <Route path={PATHS.NEWS_DETAIL} element={<BlogDetails />} />
           <Route path={PATHS.USER_PROFILE} element={<PublicProfile />} />

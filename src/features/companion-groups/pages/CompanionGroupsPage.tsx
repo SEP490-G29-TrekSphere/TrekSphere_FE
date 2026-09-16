@@ -23,6 +23,7 @@ import { useJoinMatchingGroup } from '../hooks/useJoinMatchingGroup';
 import { useMatchingGroups } from '../hooks/useMatchingGroups';
 import { useMyJoinRequests } from '../hooks/useMyJoinRequests';
 import { useMyMatchingGroups } from '../hooks/useMyMatchingGroups';
+import { useRequireLogin } from '../hooks/useRequireLogin';
 import { toMatchingGroupCardViewModel } from '../mappers';
 import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 import type { JoinApplicationStatus } from '../types/matchingGroup';
@@ -32,6 +33,7 @@ export default function CompanionGroupsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useAppStore((state) => state.user);
   const isGuest = !user;
+  const requireLogin = useRequireLogin();
 
   const [searchQuery, setSearchQuery] = useState(
     () => searchParams.get('q') || searchParams.get('keyword') || ''
@@ -174,6 +176,8 @@ export default function CompanionGroupsPage() {
   }
 
   function handleOpenJoinModal(group: GroupCardData) {
+    if (!requireLogin()) return;
+
     const vm = toMatchingGroupCardViewModel(group);
     const rawId = vm.groupId;
     const lowerId = rawId.toLowerCase();
