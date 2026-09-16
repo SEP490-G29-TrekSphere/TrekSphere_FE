@@ -95,6 +95,7 @@ export const PATHS = {
   VENDOR_TOURS: '/vendor/tours',
   VENDOR_TOUR_CREATE: '/vendor/tours/new',
   VENDOR_TOUR_EDIT: '/vendor/tours/:id/edit',
+  VENDOR_TOUR_PREVIEW: '/vendor/tours/:id/preview',
   VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
   VENDOR_BLOG_CREATE: '/vendor/blog/create',
   VENDOR_CHAT: '/vendor/chat',
@@ -132,6 +133,8 @@ export const getGroupDetailPath = (groupId: string) =>
   PATHS.GROUPS_DETAIL.replace(':groupId', groupId);
 export const getGroupJoinPath = (groupId: string) => PATHS.GROUPS_JOIN.replace(':groupId', groupId);
 export const getVendorTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getVendorTourPreviewPath = (id: string) =>
+  PATHS.VENDOR_TOUR_PREVIEW.replace(':id', id);
 export const getVendorManagerTourEditPath = (id: string) =>
   PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
 export const getPartnerTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);

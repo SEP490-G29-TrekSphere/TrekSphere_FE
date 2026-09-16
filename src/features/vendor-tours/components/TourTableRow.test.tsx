@@ -21,6 +21,7 @@ function renderRow(status: VendorTourListItem['status'], overrides: RowOverrides
           <TourTableRow
             tour={tour}
             editPath="/vendor/tours/t1/edit"
+            previewPath="/vendor/tours/t1/preview"
             schedulesPath="/vendor/tours/t1/schedules"
             editableStatuses={MANAGER_EDITABLE_STATUSES}
             {...overrides}
@@ -30,6 +31,15 @@ function renderRow(status: VendorTourListItem['status'], overrides: RowOverrides
     </MemoryRouter>
   );
 }
+
+test('Xem trước: luôn hiện, không phụ thuộc trạng thái tour', () => {
+  const statuses: ApiStatus[] = ['DRAFT', 'PUBLISHED', 'HIDDEN'];
+  for (const status of statuses) {
+    const { unmount } = renderRow(status);
+    expect(screen.getByTitle('Xem trước')).toBeTruthy();
+    unmount();
+  }
+});
 
 test('Sửa: hiện ở mọi trạng thái (DRAFT/PUBLISHED/HIDDEN) — BE không giới hạn theo status', () => {
   const statuses: ApiStatus[] = ['DRAFT', 'PUBLISHED', 'HIDDEN'];

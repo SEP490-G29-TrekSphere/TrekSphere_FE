@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   getVendorManagerTourEditPath,
   getVendorManagerTourSchedulesPath,
+  getVendorTourPreviewPath,
   PATHS,
 } from '@/constants';
 import { DeleteTourConfirmDialog } from '@/features/vendor-tours/components/DeleteTourConfirmDialog';
@@ -213,6 +214,7 @@ export default function TourList() {
                     key={tour.id}
                     tour={tour}
                     editPath={getVendorManagerTourEditPath(tour.id)}
+                    previewPath={getVendorTourPreviewPath(tour.id)}
                     schedulesPath={getVendorManagerTourSchedulesPath(tour.id)}
                     editableStatuses={MANAGER_EDITABLE_STATUSES}
                     onDeleteClick={setDeleteTarget}

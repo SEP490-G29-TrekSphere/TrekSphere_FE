@@ -1,4 +1,4 @@
-import { CalendarClock, EyeOff, Pencil, Send, Trash2 } from 'lucide-react';
+import { CalendarClock, Eye, EyeOff, Pencil, Send, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '@/utils/format';
 import type { ApiStatus, VendorTourListItem } from '../types';
@@ -28,6 +28,8 @@ interface TourTableRowProps {
   tour: VendorTourListItem;
   /** Đường dẫn màn Sửa cho đúng tour này — do trang cha tính sẵn. */
   editPath: string;
+  /** Đường dẫn màn xem trước (read-only) cho đúng tour này — do trang cha tính sẵn. */
+  previewPath: string;
   /** Đường dẫn màn Lịch khởi hành cho đúng tour này — do trang cha tính sẵn. */
   schedulesPath: string;
   /** Set trạng thái được phép Sửa — page cha truyền vào. */
@@ -42,6 +44,7 @@ interface TourTableRowProps {
 export function TourTableRow({
   tour,
   editPath,
+  previewPath,
   schedulesPath,
   editableStatuses,
   onDeleteClick,
@@ -103,6 +106,15 @@ export function TourTableRow({
 
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(previewPath)}
+            className="transition-opacity hover:opacity-70"
+            style={{ color: '#0E7C6B' }}
+            title="Xem trước"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
           {canEdit && (
             <button
               type="button"
