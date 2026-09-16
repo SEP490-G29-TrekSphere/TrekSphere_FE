@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react';
+import { EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,39 +9,36 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-interface RevertToDraftConfirmDialogProps {
+interface UnpublishTourConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Copy khác nhau tùy trang gọi (Staff → về Bản nháp, Manager → về Chờ duyệt). */
-  description: string;
+  tourName: string;
   onConfirm: () => void;
   isPending?: boolean;
 }
 
-/**
- * Xác nhận trước khi gọi `revert-to-draft` — cùng 1 API cho cả Staff và Manager, BE tự quyết
- * định trạng thái đích theo role người gọi nên không cần lý do, chỉ cần xác nhận.
- */
-export function RevertToDraftConfirmDialog({
+/** Xác nhận trước khi ngừng công khai 1 tour đang PUBLISHED, đưa về DRAFT. */
+export function UnpublishTourConfirmDialog({
   open,
   onOpenChange,
-  description,
+  tourName,
   onConfirm,
   isPending = false,
-}: RevertToDraftConfirmDialogProps) {
+}: UnpublishTourConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
           <div
             className="mb-2 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(14, 124, 107, 0.1)' }}
+            style={{ backgroundColor: 'rgba(234, 88, 12, 0.1)' }}
           >
-            <RefreshCw className="h-5 w-5" style={{ color: '#0E7C6B' }} />
+            <EyeOff className="h-5 w-5" style={{ color: '#EA580C' }} />
           </div>
-          <DialogTitle className="text-xl font-bold">Chuyển trạng thái / Sửa lại</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Ngừng công khai tour</DialogTitle>
           <DialogDescription className="text-center leading-relaxed">
-            {description}
+            Ngừng công khai tour "{tourName}"? Tour sẽ chuyển về Bản nháp và không còn hiển thị cho
+            khách hàng. Bạn có thể công khai lại bất cứ lúc nào.
           </DialogDescription>
         </DialogHeader>
 
@@ -55,11 +52,11 @@ export function RevertToDraftConfirmDialog({
           </Button>
           <Button
             className="flex-1 rounded-full text-white"
-            style={{ backgroundColor: '#0E7C6B' }}
+            style={{ backgroundColor: '#EA580C' }}
             onClick={onConfirm}
             disabled={isPending}
           >
-            {isPending ? 'Đang chuyển...' : 'Xác nhận'}
+            {isPending ? 'Đang xử lý...' : 'Ngừng công khai'}
           </Button>
         </DialogFooter>
       </DialogContent>

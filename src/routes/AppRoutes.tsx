@@ -67,7 +67,6 @@ const VendorManagerLayout = lazy(
 const TourList = lazy(() => import('@/features/vendor-manager/tours/pages/TourList'));
 const TourCreate = lazy(() => import('@/features/vendor-manager/tours/pages/TourCreate'));
 const TourEdit = lazy(() => import('@/features/vendor-manager/tours/pages/TourEdit'));
-const TourApprovals = lazy(() => import('@/features/vendor-manager/tours/pages/TourApprovals'));
 const TourSchedules = lazy(() => import('@/features/vendor-manager/tours/pages/TourSchedules'));
 const VendorProfileOverview = lazy(
   () => import('@/features/vendor-profile/pages/VendorProfileOverview')
@@ -280,7 +279,6 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_TOURS} element={<TourList />} />
           <Route path={PATHS.VENDOR_TOUR_CREATE} element={<TourCreate />} />
           <Route path={PATHS.VENDOR_TOUR_EDIT} element={<TourEdit />} />
-          <Route path={PATHS.VENDOR_TOUR_APPROVALS} element={<TourApprovals />} />
           <Route path={PATHS.VENDOR_TOUR_SCHEDULES} element={<TourSchedules />} />
           <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />
           <Route path={PATHS.VENDOR_CHAT} element={<ChatList hideSidebar />} />

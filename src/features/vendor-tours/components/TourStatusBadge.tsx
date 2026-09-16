@@ -5,11 +5,9 @@ const STATUS_CONFIG: Record<
   ApiStatus,
   { label: string; variant: 'success' | 'warning' | 'destructive' | 'neutral' }
 > = {
-  APPROVED: { label: 'Đã duyệt', variant: 'success' },
-  PENDING_APPROVAL: { label: 'Đang chờ duyệt', variant: 'warning' },
+  PUBLISHED: { label: 'Đã công khai', variant: 'success' },
   DRAFT: { label: 'Bản nháp', variant: 'neutral' },
-  REJECTED: { label: 'Bị từ chối', variant: 'destructive' },
-  HIDDEN: { label: 'Đã ẩn', variant: 'neutral' },
+  HIDDEN: { label: 'Đã ẩn', variant: 'destructive' },
 };
 
 interface TourStatusBadgeProps {

@@ -187,7 +187,7 @@ export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER'
 /**
  * Status values from the API
  */
-export type ApiStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'HIDDEN';
+export type ApiStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN';
 
 /**
  * Allowed sort directions from the API

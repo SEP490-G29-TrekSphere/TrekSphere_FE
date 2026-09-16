@@ -107,9 +107,9 @@ export default function TourEdit() {
 
   return (
     <div className="space-y-4">
-      {tour.status === 'APPROVED' && (
+      {tour.status === 'PUBLISHED' && (
         <div className="rounded-2xl bg-[#EAF4EE] px-5 py-4 text-sm text-[#1E3932]">
-          <p className="font-bold">Bạn đang cập nhật một tour đã duyệt.</p>
+          <p className="font-bold">Bạn đang cập nhật một tour đã công khai.</p>
           <p className="mt-1 text-xs leading-relaxed text-[#527066]">
             Policy mới áp dụng cho đơn tạo sau khi lưu. Các đơn đã đặt vẫn giữ nguyên policy tại
             thời điểm xác nhận.
