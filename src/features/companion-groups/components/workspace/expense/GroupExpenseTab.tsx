@@ -1,6 +1,6 @@
 import {
+  Banknote,
   Calendar,
-  DollarSign,
   Edit2,
   Eye,
   Info,
@@ -68,7 +68,7 @@ export function GroupExpenseTab({ group, isLeader, currentUserId }: GroupExpense
               Tổng chi tiêu thực tế
             </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <DollarSign className="h-4 w-4" />
+              <Banknote className="h-4 w-4" />
             </div>
           </div>
           <div className="text-2xl font-black text-foreground">

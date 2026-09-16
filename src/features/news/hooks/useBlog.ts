@@ -136,6 +136,7 @@ export function useCreateBlogComment(blogId: string | undefined) {
     onSuccess: () => {
       if (blogId) {
         queryClient.invalidateQueries({ queryKey: blogKeys.comments(blogId) });
+        queryClient.invalidateQueries({ queryKey: blogKeys.lists() });
       }
     },
   });
@@ -172,6 +173,7 @@ export function useDeleteBlogComment(blogId: string | undefined) {
     onSuccess: () => {
       if (blogId) {
         queryClient.invalidateQueries({ queryKey: blogKeys.comments(blogId) });
+        queryClient.invalidateQueries({ queryKey: blogKeys.lists() });
       }
     },
   });

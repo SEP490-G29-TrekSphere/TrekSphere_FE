@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertCircle,
+  Banknote,
   Calculator,
   Calendar,
   CheckCircle2,
-  DollarSign,
   FileText,
   Image as ImageIcon,
   Loader2,
@@ -38,6 +38,17 @@ interface CreateExpenseModalProps {
   currentUserId?: string;
 }
 
+function getLocalCurrentDatetime(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = now.getFullYear();
+  const month = pad(now.getMonth() + 1);
+  const day = pad(now.getDate());
+  const hours = pad(now.getHours());
+  const minutes = pad(now.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export function CreateExpenseModal({
   isOpen,
   onClose,
@@ -57,6 +68,7 @@ export function CreateExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
+  const [displayAmount, setDisplayAmount] = useState<string>('');
   const receiptCleanup = useImageUploadCleanup();
 
   const defaultLeaderMember = activeMembers.find(
@@ -79,7 +91,7 @@ export function CreateExpenseModal({
       beneficiaryScope: 'ALL_MEMBERS',
       beneficiaryMemberIds: [],
       splitMethod: 'EQUAL',
-      spentAt: new Date().toISOString().slice(0, 16),
+      spentAt: getLocalCurrentDatetime(),
       receiptUrl: '',
       note: '',
     },
@@ -139,6 +151,7 @@ export function CreateExpenseModal({
       setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
       setSplitMethod('EQUAL');
       setCustomSharesMap({});
+      setDisplayAmount('');
       reset({
         title: '',
         amount: undefined,
@@ -146,7 +159,7 @@ export function CreateExpenseModal({
         beneficiaryScope: 'ALL_MEMBERS',
         beneficiaryMemberIds: [],
         splitMethod: 'EQUAL',
-        spentAt: new Date().toISOString().slice(0, 16),
+        spentAt: getLocalCurrentDatetime(),
         receiptUrl: '',
         note: '',
       });
@@ -167,7 +180,8 @@ export function CreateExpenseModal({
   };
 
   const handleCustomShareChange = (memberId: string, value: string) => {
-    const num = parseFloat(value) || 0;
+    const raw = value.replace(/\D/g, '');
+    const num = raw ? parseInt(raw, 10) : 0;
     setCustomSharesMap((prev) => ({
       ...prev,
       [memberId]: Math.max(0, num),
@@ -179,11 +193,34 @@ export function CreateExpenseModal({
       toast.error(formErrors.title.message);
     } else if (formErrors.amount?.message) {
       toast.error(formErrors.amount.message);
+    } else if (formErrors.spentAt?.message) {
+      toast.error(formErrors.spentAt.message);
     } else if (formErrors.receiptUrl?.message) {
       toast.error(formErrors.receiptUrl.message);
     } else {
       toast.error('Vui lòng kiểm tra lại thông tin biểu mẫu');
     }
+  };
+
+  const handleClose = () => {
+    receiptCleanup.discard();
+    reset({
+      title: '',
+      amount: undefined,
+      paidByMemberId: defaultLeaderMember?.matchingMemberId || '',
+      beneficiaryScope: 'ALL_MEMBERS',
+      beneficiaryMemberIds: [],
+      splitMethod: 'EQUAL',
+      spentAt: getLocalCurrentDatetime(),
+      receiptUrl: '',
+      note: '',
+    });
+    setDisplayAmount('');
+    setScope('ALL_MEMBERS');
+    setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
+    setSplitMethod('EQUAL');
+    setCustomSharesMap({});
+    onClose();
   };
 
   const onSubmit = async (data: GroupExpenseCreateFormValues) => {
@@ -247,17 +284,12 @@ export function CreateExpenseModal({
 
       receiptCleanup.commit();
       toast.success('Ghi nhận khoản chi tiêu thực tế thành công!');
-      onClose();
+      handleClose();
     } catch (err: unknown) {
       const errorMsg =
         err instanceof Error ? err.message : 'Không thể tạo khoản chi. Vui lòng thử lại!';
       toast.error(errorMsg);
     }
-  };
-
-  const handleClose = () => {
-    receiptCleanup.discard();
-    onClose();
   };
 
   return (
@@ -320,14 +352,24 @@ export function CreateExpenseModal({
             </label>
             <div className="relative">
               <input
-                type="number"
-                step="1000"
-                min="1000"
-                placeholder="VD: 500000"
-                {...register('amount', { valueAsNumber: true })}
+                type="text"
+                inputMode="numeric"
+                placeholder="VD: 500.000"
+                value={displayAmount}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  if (!raw) {
+                    setDisplayAmount('');
+                    setValue('amount', 0, { shouldValidate: true });
+                    return;
+                  }
+                  const num = parseInt(raw, 10);
+                  setDisplayAmount(num.toLocaleString('vi-VN'));
+                  setValue('amount', num, { shouldValidate: true });
+                }}
                 className="w-full rounded-xl border border-border bg-background pl-9 pr-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
               />
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
             {errors.amount && (
               <p className="text-[11px] text-destructive font-medium">{errors.amount.message}</p>
@@ -515,15 +557,14 @@ export function CreateExpenseModal({
 
                       <div className="flex items-center gap-1.5 shrink-0">
                         <input
-                          type="number"
-                          step="1000"
-                          min="0"
+                          type="text"
+                          inputMode="numeric"
                           placeholder="0"
-                          value={val}
+                          value={val ? Number(val).toLocaleString('vi-VN') : ''}
                           onChange={(e) =>
                             handleCustomShareChange(member.matchingMemberId, e.target.value)
                           }
-                          className="w-28 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
+                          className="w-32 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
                         />
                         <span className="text-[11px] text-muted-foreground font-semibold">đ</span>
                       </div>
@@ -573,9 +614,13 @@ export function CreateExpenseModal({
           </label>
           <input
             type="datetime-local"
+            max={getLocalCurrentDatetime()}
             {...register('spentAt')}
             className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
           />
+          {errors.spentAt && (
+            <p className="text-[11px] text-destructive font-medium">{errors.spentAt.message}</p>
+          )}
         </div>
 
         {/* Receipt Image Upload & URL */}

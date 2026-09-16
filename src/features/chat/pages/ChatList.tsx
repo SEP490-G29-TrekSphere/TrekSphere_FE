@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { ChatDetailPane } from '@/features/chat/components/ChatDetailPane';
@@ -40,6 +40,34 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const virtualConversation = location.state?.virtualConversation as
     | VirtualConversationData
     | undefined;
+  const stateDraftTour = location.state?.draftTour as
+    | import('@/features/chat/types/types').DraftTourAttachment
+    | undefined;
+  const stateInitialMessage = (location.state?.initialMessage || location.state?.draftMessage) as
+    | string
+    | undefined;
+
+  const [draftTour, setDraftTour] = useState(stateDraftTour);
+  const [initialDraftMessage, setInitialDraftMessage] = useState(stateInitialMessage);
+
+  const handleClearDraft = useCallback(() => {
+    setDraftTour(undefined);
+    setInitialDraftMessage(undefined);
+    navigate(location.pathname, {
+      replace: true,
+      state: {
+        ...location.state,
+        draftTour: undefined,
+        initialMessage: undefined,
+        draftMessage: undefined,
+      },
+    });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (stateDraftTour) setDraftTour(stateDraftTour);
+    if (stateInitialMessage) setInitialDraftMessage(stateInitialMessage);
+  }, [stateDraftTour, stateInitialMessage]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -269,6 +297,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const handleSendMessage = async (msgText: string) => {
     if (!selectedId) return;
 
+    // Clear draft tour / initial draft state immediately
+    handleClearDraft();
+
     if (selectedConversation?.isVirtual && selectedConversation.virtualData) {
       try {
         const res = await createConversationAsync({
@@ -285,6 +316,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             ...location.state,
             virtualConversation: undefined,
             conversationId: res.conversationId,
+            draftTour: undefined,
+            initialMessage: undefined,
+            draftMessage: undefined,
           },
         });
 
@@ -369,7 +403,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
       setSelectedId(null);
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
       queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Xóa cuộc hội thoại thất bại');
     }
   };
@@ -380,7 +414,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
       toast.success('Đã xóa thành viên khỏi nhóm');
       // Invalidate matching group queries so the member can be re-added from the group interface
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Xóa thành viên thất bại');
     }
   };
@@ -406,6 +440,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             currentMessages={currentMessages}
             isLoadingMessages={isLoadingMessages}
             isSending={isSending}
+            draftTour={draftTour}
+            onRemoveDraftTour={handleClearDraft}
+            initialDraftMessage={initialDraftMessage}
             onSendMessage={handleSendMessage}
             onBack={() => setSelectedId(null)}
             onDeleteConversation={handleDeleteConversation}

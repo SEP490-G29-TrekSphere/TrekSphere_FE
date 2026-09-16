@@ -8,11 +8,13 @@ export { BlogDetailsHero } from './components/BlogDetailsHero';
 export { BlogSidebar } from './components/BlogSidebar';
 // Community feed
 export { FeedAvatar } from './components/feed/FeedAvatar';
-export { FeedHeader, type FeedTab } from './components/feed/FeedHeader';
+export { FeedCommentsSection } from './components/feed/FeedCommentsSection';
+export { FeedHeader } from './components/feed/FeedHeader';
 export { FeedPostCard } from './components/feed/FeedPostCard';
 export { FeedPostSkeleton } from './components/feed/FeedPostSkeleton';
 export { FeedSidebar } from './components/feed/FeedSidebar';
 export { SuggestedUserRow } from './components/feed/SuggestedUserRow';
+export * from './constants';
 export {
   useBlogComments,
   useBlogDetail,

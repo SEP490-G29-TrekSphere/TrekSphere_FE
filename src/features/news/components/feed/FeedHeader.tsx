@@ -1,45 +1,32 @@
 import { Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-
-export type FeedTab = 'discover' | 'following';
+import { FEED_SORT_OPTIONS } from '../../constants';
 
 interface FeedHeaderProps {
-  activeTab: FeedTab;
-  onTabChange: (tab: FeedTab) => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   sortBy: string;
   sortDir: 'asc' | 'desc';
   onSortChange: (sortBy: string, sortDir: 'asc' | 'desc') => void;
+  topics?: string[];
+  onTopicSelect?: (topic: string) => void;
 }
 
-const tabs: { id: FeedTab; label: string }[] = [
-  { id: 'discover', label: 'Khám phá' },
-  { id: 'following', label: 'Đang theo dõi' },
-];
-
-const sortOptions = [
-  { value: 'createdAt-desc', label: 'Mới nhất' },
-  { value: 'createdAt-asc', label: 'Cũ nhất' },
-  { value: 'viewCount-desc', label: 'Xem nhiều nhất' },
-];
-
 /**
- * Phần đầu cột feed: tabs (Khám phá / Đang theo dõi), tiêu đề lớn,
- * ô tìm kiếm dạng pill và dropdown sắp xếp.
+ * Phần đầu cột feed: tiêu đề lớn, ô tìm kiếm dạng pill, dropdown sắp xếp và tag chủ đề.
  */
 export function FeedHeader({
-  activeTab,
-  onTabChange,
   searchQuery,
   onSearchChange,
   sortBy,
   sortDir,
   onSortChange,
+  topics = [],
+  onTopicSelect,
 }: FeedHeaderProps) {
   const currentSortValue = `${sortBy}-${sortDir}`;
   const currentSortLabel =
-    sortOptions.find((o) => o.value === currentSortValue)?.label ?? 'Mới nhất';
+    FEED_SORT_OPTIONS.find((o) => o.value === currentSortValue)?.label ?? 'Mới nhất';
 
   const handleSortChange = (val: string | null) => {
     if (!val) return;
@@ -49,30 +36,8 @@ export function FeedHeader({
 
   return (
     <header className="pt-6 sm:pt-8">
-      {/* Tabs */}
-      <nav className="flex items-center gap-6 border-b border-border" aria-label="Bộ lọc bảng tin">
-        {tabs.map((tab) => {
-          const isActive = tab.id === activeTab;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={`-mb-px cursor-pointer border-b-2 pb-3 text-sm font-semibold transition-colors ${
-                isActive
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-primary'
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Tiêu đề lớn — 2 dòng như reference */}
-      <h1 className="mt-8 text-4xl font-bold leading-[1.1] tracking-tight text-primary sm:text-5xl">
+      {/* Tiêu đề lớn */}
+      <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-primary sm:text-5xl">
         Mới nhất
         <br />
         từ cộng đồng
@@ -97,7 +62,7 @@ export function FeedHeader({
             <span>{currentSortLabel}</span>
           </SelectTrigger>
           <SelectContent>
-            {sortOptions.map((option) => (
+            {FEED_SORT_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -105,6 +70,30 @@ export function FeedHeader({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Tags chủ đề nổi bật dạng pill */}
+      {topics.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground mr-1">Chủ đề:</span>
+          {topics.map((topic) => {
+            const isSelected = searchQuery.toLowerCase() === topic.toLowerCase();
+            return (
+              <button
+                key={topic}
+                type="button"
+                onClick={() => onTopicSelect?.(isSelected ? '' : topic)}
+                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-muted text-primary hover:bg-accent'
+                }`}
+              >
+                #{topic}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }

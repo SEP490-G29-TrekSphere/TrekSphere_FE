@@ -234,6 +234,8 @@ export interface GetMatchingGroupsParams {
 export interface GetMyMatchingGroupsParams {
   status?: MatchingGroupStatus;
   role?: MatchingMemberRole;
+  tourId?: string;
+  targetDate?: string;
   keyword?: string;
   page?: number;
   size?: number;

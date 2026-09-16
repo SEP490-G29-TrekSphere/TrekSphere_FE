@@ -62,16 +62,21 @@ export default function Header() {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -81,6 +86,8 @@ export default function Header() {
     setUser(null);
     queryClient.removeQueries({ queryKey: profileKeys.all });
     toast.success('Đã đăng xuất.');
+    setDropdownOpen(false);
+    setMobileMenuOpen(false);
     navigate(PATHS.HOME);
   };
 
@@ -90,13 +97,19 @@ export default function Header() {
   const dashboardPath = getRoleDashboardPath(user?.roles);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6"
+    >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none"
+            onClick={() => {
+              setMobileMenuOpen((prev) => !prev);
+              setDropdownOpen(false);
+            }}
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
             aria-label="Mở menu điều hướng"
             aria-controls="mobile-nav-menu"
             aria-expanded={mobileMenuOpen}
@@ -114,10 +127,13 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {user && <NotificationBell />}
           {/* User avatar + dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setDropdownOpen((prev) => !prev)}
+              onClick={() => {
+                setDropdownOpen((prev) => !prev);
+                setMobileMenuOpen(false);
+              }}
               className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
               aria-label="Mở menu cá nhân"
             >

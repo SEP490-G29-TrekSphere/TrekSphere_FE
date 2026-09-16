@@ -1,7 +1,24 @@
-import { KeyRound, MoreHorizontal, NotebookPen, PencilLine, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { HIKING_EXPERIENCE_LEVEL_META, type HikingExperienceLevel, PATHS } from '@/constants';
+import {
+  KeyRound,
+  Loader2,
+  MessageCircle,
+  MoreHorizontal,
+  NotebookPen,
+  PencilLine,
+  ShieldCheck,
+} from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ApiService } from '@/config/apiClient';
+import {
+  getRoleChatPath,
+  HIKING_EXPERIENCE_LEVEL_META,
+  type HikingExperienceLevel,
+  PATHS,
+} from '@/constants';
 import { useToggleFollow } from '@/features/news';
+import { useAppStore } from '@/store/useAppStore';
+import { toast } from '@/store/useToastStore';
 import { getSafeImageUrl } from '@/utils/sanitize';
 
 interface ProfileIdentityCardProps {
@@ -26,12 +43,6 @@ interface ProfileIdentityCardProps {
   trustScore?: number;
   trustReviewCount?: number;
 }
-
-const footerLinks = [
-  { to: PATHS.ABOUT, label: 'Về chúng tôi' },
-  { to: PATHS.TERMS, label: 'Điều khoản' },
-  { to: PATHS.PRIVACY, label: 'Bảo mật' },
-];
 
 interface StatProps {
   label: string;
@@ -68,12 +79,56 @@ export function ProfileIdentityCard({
   trustScore,
   trustReviewCount,
 }: ProfileIdentityCardProps) {
+  const navigate = useNavigate();
+  const currentUser = useAppStore((state) => state.user);
+  const [isConnectingChat, setIsConnectingChat] = useState(false);
   const followMutation = useToggleFollow();
   const socialEnabled = followMutation.isAvailable;
 
   const experience = experienceLevel ? HIKING_EXPERIENCE_LEVEL_META[experienceLevel] : null;
   const safeAvatar = getSafeImageUrl(avatarUrl);
   const initial = name?.trim()?.[0]?.toUpperCase() || '?';
+
+  async function handleChat() {
+    if (!currentUser) {
+      toast.warning('Vui lòng đăng nhập để nhắn tin với người dùng này.');
+      return;
+    }
+    if (!userId) return;
+
+    setIsConnectingChat(true);
+    try {
+      const response = await ApiService<{ conversationId?: string }>(
+        '/chat/conversations/check',
+        'POST',
+        {
+          conversationType: 'DIRECT',
+          participantIds: [userId],
+        }
+      );
+
+      if (response.data?.conversationId) {
+        navigate(getRoleChatPath(currentUser.roles), {
+          state: { conversationId: response.data.conversationId },
+        });
+      } else {
+        navigate(getRoleChatPath(currentUser.roles), {
+          state: {
+            virtualConversation: {
+              type: 'DIRECT',
+              participantIds: [userId],
+              userName: name || 'Người dùng',
+              title: name || 'Người dùng',
+            },
+          },
+        });
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể kết nối đến cuộc trò chuyện');
+    } finally {
+      setIsConnectingChat(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -124,13 +179,11 @@ export function ProfileIdentityCard({
         ) : null}
 
         {/* Chỉ số */}
-        <div className="mt-5 flex w-full items-start divide-x divide-border">
+        <div className="mt-5 flex w-full items-center justify-center rounded-2xl bg-muted/50 py-3">
           <Stat
             label="Bài viết"
             value={typeof blogCount === 'number' ? blogCount.toLocaleString('vi-VN') : '—'}
           />
-          <Stat label="Người theo dõi" value="—" />
-          <Stat label="Đang theo dõi" value="—" />
         </div>
 
         {typeof trustScore === 'number' ? (
@@ -158,15 +211,31 @@ export function ProfileIdentityCard({
             Chỉnh sửa hồ sơ
           </Link>
         ) : (
-          <button
-            type="button"
-            onClick={() => userId && followMutation.mutate({ userId, following: true })}
-            disabled={!socialEnabled}
-            title={socialEnabled ? undefined : 'Sắp ra mắt'}
-            className="mt-5 inline-flex w-full cursor-pointer items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Theo dõi
-          </button>
+          <div className="mt-5 flex w-full flex-col gap-2">
+            <button
+              type="button"
+              onClick={handleChat}
+              disabled={isConnectingChat}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isConnectingChat ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <MessageCircle className="size-4" />
+              )}
+              Nhắn tin
+            </button>
+
+            {socialEnabled && (
+              <button
+                type="button"
+                onClick={() => userId && followMutation.mutate({ userId, following: true })}
+                className="inline-flex w-full cursor-pointer items-center justify-center rounded-full bg-muted px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-accent"
+              >
+                Theo dõi
+              </button>
+            )}
+          </div>
         )}
 
         {/* Hành động phụ — chỉ có ý nghĩa với hồ sơ của mình */}
@@ -189,23 +258,6 @@ export function ProfileIdentityCard({
           </div>
         ) : null}
       </section>
-
-      <footer className="px-2">
-        <nav className="flex flex-wrap justify-center gap-x-3 gap-y-1.5">
-          {footerLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="text-xs text-muted-foreground transition-colors hover:text-primary"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} TrekSphere
-        </p>
-      </footer>
     </div>
   );
 }

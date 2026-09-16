@@ -72,6 +72,7 @@ export type ApiResponse<T> = {
   status?: number;
   meta?: unknown;
   message?: string;
+  errors?: Array<{ field?: string; message?: string }>;
 };
 
 // Đánh dấu request đã retry để tránh refresh vô hạn
@@ -339,6 +340,7 @@ const handleError = (error: unknown): ApiResponse<never> => {
     return {
       error: message,
       message,
+      errors: responseData?.errors,
       status: error.response?.status || 500,
     };
   }

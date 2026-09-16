@@ -82,12 +82,18 @@ export function AppModalShell({
     if (!open) return;
 
     openModalCount += 1;
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
     return () => {
       openModalCount -= 1;
-      if (openModalCount === 0) document.body.style.overflow = previousOverflow;
+      if (openModalCount === 0) {
+        document.body.style.overflow = previousBodyOverflow;
+        document.documentElement.style.overflow = previousHtmlOverflow;
+      }
     };
   }, [open]);
 
@@ -97,7 +103,7 @@ export function AppModalShell({
     // biome-ignore lint/a11y/noStaticElementInteractions: backdrop chỉ là lối tắt chuột, Esc và nút đóng mới là đường chính
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-150',
+        'fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overscroll-contain bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-150',
         backdropClassName
       )}
       onMouseDown={handleBackdropMouseDown}

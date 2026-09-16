@@ -46,7 +46,7 @@ export function HikingProfileFields() {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
             <label htmlFor="experienceLevel" className={EDIT_LABEL_CLASS}>
-              Cấp độ kinh nghiệm
+              Cấp độ kinh nghiệm <span className="text-destructive">*</span>
             </label>
             <select
               id="experienceLevel"
@@ -60,11 +60,14 @@ export function HikingProfileFields() {
                 </option>
               ))}
             </select>
+            {errors.experienceLevel && (
+              <p className="mt-1 text-xs text-destructive">{errors.experienceLevel.message}</p>
+            )}
           </div>
 
           <div>
             <label htmlFor="preferredDifficulty" className={EDIT_LABEL_CLASS}>
-              Độ khó ưa thích
+              Độ khó ưa thích <span className="text-destructive">*</span>
             </label>
             <select
               id="preferredDifficulty"
@@ -78,6 +81,9 @@ export function HikingProfileFields() {
                 </option>
               ))}
             </select>
+            {errors.preferredDifficulty && (
+              <p className="mt-1 text-xs text-destructive">{errors.preferredDifficulty.message}</p>
+            )}
           </div>
         </div>
 

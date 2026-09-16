@@ -1,9 +1,10 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Compass } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PATHS } from '@/constants';
 import { useMyMatchingGroups } from '@/features/companion-groups/hooks/useMyMatchingGroups';
 import { AppSpinner } from '@/shared/ui';
 import { PROFILE_COMPLETED_TRIPS_PAGE_SIZE } from '../../constants';
 import { CompletedTripCard } from './CompletedTripCard';
-import { ProfileComingSoon } from './ProfileComingSoon';
 
 interface ProfileCompletedTripsProps {
   isOwnProfile: boolean;
@@ -13,9 +14,6 @@ interface ProfileCompletedTripsProps {
 
 /**
  * Tab "Đã hoàn thành" — các chuyến đi ghép nhóm đã chuyển sang trạng thái COMPLETED.
- *
- * Nguồn dữ liệu là `GET /matching-groups/my-groups?status=COMPLETED`, chỉ trả về nhóm của
- * người đang đăng nhập; BE chưa có endpoint công khai nên hồ sơ người khác vẫn để trống.
  */
 export function ProfileCompletedTrips({
   isOwnProfile,
@@ -28,11 +26,15 @@ export function ProfileCompletedTrips({
 
   if (!isOwnProfile) {
     return (
-      <ProfileComingSoon
-        icon={CheckCircle2}
-        title="Chưa có cung đường hoàn thành"
-        description="Danh sách chuyến đi đã chinh phục của người dùng khác chưa được chia sẻ công khai."
-      />
+      <div className="flex flex-col items-center rounded-3xl bg-card px-6 py-14 text-center shadow-xs border border-border">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <CheckCircle2 className="size-7" />
+        </div>
+        <h3 className="mt-4 text-base font-bold text-foreground">Chưa có chuyến đi hoàn thành</h3>
+        <p className="mx-auto mt-1.5 max-w-sm text-xs text-muted-foreground">
+          Người dùng này chưa có chuyến đi ghép nhóm nào ở trạng thái hoàn thành trên TrekSphere.
+        </p>
+      </div>
     );
   }
 
@@ -46,11 +48,17 @@ export function ProfileCompletedTrips({
 
   if (isError) {
     return (
-      <ProfileComingSoon
-        icon={CheckCircle2}
-        title="Không tải được danh sách chuyến đi"
-        description="Đã có lỗi khi lấy các chuyến đi đã hoàn thành. Vui lòng tải lại trang."
-      />
+      <div className="flex flex-col items-center rounded-3xl bg-card px-6 py-14 text-center shadow-xs border border-border">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <CheckCircle2 className="size-7" />
+        </div>
+        <h3 className="mt-4 text-base font-bold text-destructive">
+          Không tải được danh sách chuyến đi
+        </h3>
+        <p className="mx-auto mt-1.5 max-w-sm text-xs text-muted-foreground">
+          Đã có lỗi xảy ra khi tải các chuyến đi đã hoàn thành. Vui lòng thử lại sau.
+        </p>
+      </div>
     );
   }
 
@@ -58,11 +66,23 @@ export function ProfileCompletedTrips({
 
   if (trips.length === 0) {
     return (
-      <ProfileComingSoon
-        icon={CheckCircle2}
-        title="Chưa có cung đường hoàn thành"
-        description="Khi một nhóm ghép được Trưởng nhóm chuyển sang trạng thái Đã hoàn thành, chuyến đi sẽ xuất hiện tại đây."
-      />
+      <div className="flex flex-col items-center rounded-3xl bg-card px-6 py-14 text-center shadow-xs border border-border">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Compass className="size-7" />
+        </div>
+        <h3 className="mt-4 text-base font-bold text-foreground">Chưa tham gia chuyến đi nào</h3>
+        <p className="mx-auto mt-1.5 max-w-md text-xs text-muted-foreground leading-relaxed">
+          Bạn chưa hoàn thành chuyến đi ghép nhóm nào. Hãy tham gia các nhóm ghép hoặc tự tạo nhóm
+          để cùng đồng đội chinh phục những cung đường tuyệt đẹp!
+        </p>
+        <Link
+          to={PATHS.GROUPS}
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary-hover shadow-xs"
+        >
+          <Compass className="size-4" />
+          Khám phá nhóm ghép đoàn
+        </Link>
+      </div>
     );
   }
 

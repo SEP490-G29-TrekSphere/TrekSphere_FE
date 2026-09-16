@@ -1,5 +1,7 @@
 import { MessageCircle, MoreHorizontal, UserMinus, UserPlus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { getUserProfilePath } from '@/constants';
 import { AppBadge } from '@/shared/ui';
 import type { MatchingMemberItem } from '../../services/companionGroupService';
 import { MemberAvatar } from './MemberAvatar';
@@ -63,27 +65,35 @@ export function MembersCard({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {acceptedMembers.map((member) => {
           const isLeader = member.role === 'LEADER';
+          const profileLink = getUserProfilePath(member.userId);
 
           return (
             <div
               key={member.matchingMemberId}
               className="flex items-center gap-3 rounded-xl bg-background p-3.5 shadow-sm border border-border"
             >
-              <MemberAvatar
-                fullName={member.fullName}
-                avatarUrl={member.avatarUrl ?? undefined}
-                isLeader={isLeader}
-              />
-              <div className="min-w-0">
-                <h3 className="text-xs font-bold text-foreground truncate">{member.fullName}</h3>
-                <p
-                  className={`text-[10px] tracking-wider font-bold uppercase ${
-                    isLeader ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  {isLeader ? 'Trưởng nhóm' : 'Thành viên'}
-                </p>
-              </div>
+              <Link
+                to={profileLink}
+                className="group flex min-w-0 flex-1 items-center gap-3 hover:opacity-90 transition-opacity"
+              >
+                <MemberAvatar
+                  fullName={member.fullName}
+                  avatarUrl={member.avatarUrl ?? undefined}
+                  isLeader={isLeader}
+                />
+                <div className="min-w-0">
+                  <h3 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                    {member.fullName}
+                  </h3>
+                  <p
+                    className={`text-[10px] tracking-wider font-bold uppercase ${
+                      isLeader ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {isLeader ? 'Trưởng nhóm' : 'Thành viên'}
+                  </p>
+                </div>
+              </Link>
 
               {/* Action: Direct Chat / Add to Group (hide for self) */}
               {currentUserId && String(currentUserId) !== String(member.userId) && (

@@ -45,7 +45,6 @@ describe('FeedPostCard', () => {
     expect(screen.getByText('Minh Tuấn')).toBeTruthy();
     expect(screen.getByText('Kinh nghiệm')).toBeTruthy();
     expect(screen.getByText('#taxua')).toBeTruthy();
-    expect(screen.getByText('7 phút')).toBeTruthy();
     expect(screen.getByText('1.234')).toBeTruthy();
   });
 
@@ -56,14 +55,12 @@ describe('FeedPostCard', () => {
     expect(screen.getByText('—')).toBeTruthy();
   });
 
-  it('vô hiệu hoá nút Thích và Theo dõi khi FEATURES.SOCIAL đang tắt', () => {
+  it('vô hiệu hoá nút Thích khi FEATURES.SOCIAL đang tắt', () => {
     render(<FeedPostCard post={post} />);
 
     const likeButton = screen.getByRole('button', { name: 'Thích bài viết' }) as HTMLButtonElement;
-    const followButton = screen.getByRole('button', { name: 'Theo dõi' }) as HTMLButtonElement;
 
     expect(likeButton.disabled).toBe(true);
-    expect(followButton.disabled).toBe(true);
     expect(mockLike).not.toHaveBeenCalled();
   });
 

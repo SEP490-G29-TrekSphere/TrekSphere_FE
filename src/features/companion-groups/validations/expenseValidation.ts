@@ -7,6 +7,19 @@ export const customShareItemSchema = z.object({
     .positive('Số tiền chia phải lớn hơn 0'),
 });
 
+export const spentAtSchema = z
+  .string()
+  .refine((val) => {
+    if (!val) return true;
+    const spentDate = new Date(val);
+    if (Number.isNaN(spentDate.getTime())) return false;
+    // Cho phép dung sai 1 phút để tránh chênh lệch mili giây khi submit
+    const maxAllowed = new Date(Date.now() + 60 * 1000);
+    return spentDate <= maxAllowed;
+  }, 'Thời điểm chi thực tế không được vượt quá thời điểm hiện tại')
+  .optional()
+  .nullable();
+
 export const groupExpenseCreateSchema = z.object({
   title: z
     .string()
@@ -21,7 +34,7 @@ export const groupExpenseCreateSchema = z.object({
   beneficiaryMemberIds: z.array(z.string()).optional(),
   splitMethod: z.enum(['EQUAL', 'PERCENTAGE', 'EXACT', 'CUSTOM']).optional(),
   customShares: z.array(customShareItemSchema).optional(),
-  spentAt: z.string().optional().nullable(),
+  spentAt: spentAtSchema,
   receiptUrl: z
     .string()
     .url('Đường dẫn hóa đơn không hợp lệ')
@@ -49,7 +62,7 @@ export const groupExpenseUpdateSchema = z.object({
   beneficiaryMemberIds: z.array(z.string()).optional(),
   splitMethod: z.enum(['EQUAL', 'PERCENTAGE', 'EXACT', 'CUSTOM']).optional(),
   customShares: z.array(customShareItemSchema).optional(),
-  spentAt: z.string().optional().nullable(),
+  spentAt: spentAtSchema,
   receiptUrl: z
     .string()
     .url('Đường dẫn hóa đơn không hợp lệ')

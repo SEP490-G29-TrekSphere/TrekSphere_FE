@@ -56,7 +56,10 @@ export interface UseToursResult {
   refetch: UseQueryResult<TourListResponse, Error>['refetch'];
 }
 
-export function useTours(params: TourListParams = {}): UseToursResult {
+export function useTours(
+  params: TourListParams = {},
+  options?: { enabled?: boolean }
+): UseToursResult {
   const queryParams: TourListParams = {
     page: params.page ?? 0,
     size: params.size ?? 10,
@@ -73,6 +76,7 @@ export function useTours(params: TourListParams = {}): UseToursResult {
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['tours', queryParams],
     queryFn: () => tourService.getTours(queryParams),
+    ...options,
   });
 
   return {

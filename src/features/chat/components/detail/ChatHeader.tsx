@@ -67,16 +67,18 @@ export function ChatHeader({
           </Badge>
         )}
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleMembers}
-          aria-label="Danh sách thành viên"
-          aria-pressed={isMembersOpen}
-          className={cn('rounded-full', isMembersOpen && 'bg-muted text-foreground')}
-        >
-          <Users className="h-5 w-5" />
-        </Button>
+        {isGroup && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleMembers}
+            aria-label="Danh sách thành viên"
+            aria-pressed={isMembersOpen}
+            className={cn('rounded-full', isMembersOpen && 'bg-muted text-foreground')}
+          >
+            <Users className="h-5 w-5" />
+          </Button>
+        )}
 
         <ChatActionsMenu
           conversation={conversation}

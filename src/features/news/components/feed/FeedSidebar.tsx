@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
-import { useSuggestedUsers, useToggleFollow } from '../../hooks/useSocial';
-import type { SuggestedUser } from '../../types';
-import { SuggestedUserRow } from './SuggestedUserRow';
 
 interface FeedSidebarProps {
   /** Tag phổ biến rút từ các bài đang hiển thị trong feed. */
@@ -19,49 +16,12 @@ const footerLinks = [
 ];
 
 /**
- * Cột phải của community feed: khối gợi ý theo dõi (phụ thuộc `FEATURES.SOCIAL`),
- * chủ đề nổi bật và footer links.
+ * Cột phải của community feed: chủ đề nổi bật và footer links.
  * Chỉ hiển thị từ breakpoint `lg` trở lên.
  */
 export function FeedSidebar({ topics, onTopicSelect }: FeedSidebarProps) {
-  const { users, isLoading, isAvailable } = useSuggestedUsers(8);
-  const followMutation = useToggleFollow();
-
-  const handleToggleFollow = (user: SuggestedUser, following: boolean) => {
-    followMutation.mutate({ userId: user.userId, following });
-  };
-
   return (
     <aside className="flex flex-col gap-4">
-      {/* Gợi ý theo dõi */}
-      <section className="rounded-2xl bg-card p-4 shadow-sm">
-        <h2 className="text-sm font-bold text-primary">Gợi ý theo dõi</h2>
-
-        {!isAvailable ? (
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Tính năng theo dõi đang được phát triển. Bạn sẽ sớm nhận được gợi ý từ những người có
-            cùng sở thích khám phá.
-          </p>
-        ) : isLoading ? (
-          <ul className="mt-2 space-y-3">
-            {[0, 1, 2].map((i) => (
-              <li key={i} className="flex items-center gap-3" aria-hidden>
-                <div className="size-9 animate-pulse rounded-full bg-muted" />
-                <div className="h-3.5 flex-1 animate-pulse rounded bg-muted" />
-              </li>
-            ))}
-          </ul>
-        ) : users.length === 0 ? (
-          <p className="mt-2 text-xs text-muted-foreground">Chưa có gợi ý nào cho bạn.</p>
-        ) : (
-          <ul className="mt-1 divide-y divide-border">
-            {users.map((user) => (
-              <SuggestedUserRow key={user.userId} user={user} onToggleFollow={handleToggleFollow} />
-            ))}
-          </ul>
-        )}
-      </section>
-
       {/* Chủ đề nổi bật */}
       {topics.length > 0 ? (
         <section className="rounded-2xl bg-card p-4 shadow-sm">

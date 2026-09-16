@@ -201,35 +201,32 @@ export function MyApplicationList({
                   )}
 
                   {/* Case 2: Rejected or Withdrawn */}
-                  {isRejectedOrWithdrawn && (
-                    <>
-                      {isJoinedGroup ? (
-                        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-bold text-[11px] text-emerald-700 dark:text-emerald-400">
-                          Đã tham gia nhóm
-                        </span>
-                      ) : hasActivePending ? (
-                        <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 font-bold text-[11px] text-amber-700 dark:text-amber-400">
-                          Đã nộp đơn mới (Chờ duyệt)
-                        </span>
-                      ) : !isLatestForGroup ? (
-                        <span className="rounded-full border border-border bg-muted px-3 py-1 font-semibold text-[11px] text-muted-foreground">
-                          Đã nộp lại
-                        </span>
-                      ) : canReapply && onReapply ? (
-                        <AppButton
-                          variant="outline"
-                          onClick={() => onReapply(application)}
-                          className="shrink-0 rounded-full border-primary px-4 py-1 font-semibold text-primary text-xs hover:bg-primary/5"
-                        >
-                          Nộp lại đơn
-                        </AppButton>
-                      ) : (
-                        <span className="text-[11px] text-muted-foreground italic">
-                          Nhóm đã đóng tuyển
-                        </span>
-                      )}
-                    </>
-                  )}
+                  {isRejectedOrWithdrawn &&
+                    (isJoinedGroup ? (
+                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-bold text-[11px] text-emerald-700 dark:text-emerald-400">
+                        Đã tham gia nhóm
+                      </span>
+                    ) : hasActivePending ? (
+                      <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 font-bold text-[11px] text-amber-700 dark:text-amber-400">
+                        Đã nộp đơn mới (Chờ duyệt)
+                      </span>
+                    ) : !isLatestForGroup ? (
+                      <span className="rounded-full border border-border bg-muted px-3 py-1 font-semibold text-[11px] text-muted-foreground">
+                        Đã nộp lại
+                      </span>
+                    ) : canReapply && onReapply ? (
+                      <AppButton
+                        variant="outline"
+                        onClick={() => onReapply(application)}
+                        className="shrink-0 rounded-full border-primary px-4 py-1 font-semibold text-primary text-xs hover:bg-primary/5"
+                      >
+                        Nộp lại đơn
+                      </AppButton>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground italic">
+                        Nhóm đã đóng tuyển
+                      </span>
+                    ))}
 
                   {/* Primary navigation button */}
                   {isAccepted || isJoinedGroup ? (

@@ -1,28 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce } from '@/shared/hooks';
 import { AppSpinner } from '@/shared/ui';
-import { FeedHeader, type FeedTab } from '../components/feed/FeedHeader';
+import { FeedHeader } from '../components/feed/FeedHeader';
 import { FeedPostCard } from '../components/feed/FeedPostCard';
 import { FeedPostSkeleton } from '../components/feed/FeedPostSkeleton';
-import { FeedSidebar } from '../components/feed/FeedSidebar';
+import { FEED_MAX_TOPICS, FEED_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '../constants';
 import { useInfiniteBlogList } from '../hooks/useBlog';
 
-const PAGE_SIZE = 8;
-const SEARCH_DEBOUNCE_MS = 400;
 /** Nạp trước khi sentinel còn cách viewport ngần này — cuộn thấy liền mạch. */
 const PREFETCH_MARGIN = '400px';
-const MAX_TOPICS = 8;
 
 /**
  * Màn hình 1: Community feed (`/news`).
- * - Cột trái: tabs + tiêu đề + tìm kiếm, rồi feed 1 cột cuộn vô tận.
- * - Cột phải (từ `lg`): gợi ý theo dõi, chủ đề nổi bật, footer.
- *
- * Phân trang dùng `useInfiniteBlogList` + `IntersectionObserver` thay cho
- * phân trang số — bám thiết kế community feed.
+ * Bố cục trung tâm 1 cột trực quan, cuộn vô tận, tích hợp tìm kiếm & chủ đề nổi bật.
  */
 export default function BlogList() {
-  const [activeTab, setActiveTab] = useState<FeedTab>('discover');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -31,13 +23,23 @@ export default function BlogList() {
 
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteBlogList({
-      size: PAGE_SIZE,
+      size: FEED_PAGE_SIZE,
       keyword: debouncedSearch.trim() || undefined,
       sortBy,
       sortDir,
     });
 
-  const posts = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const posts = useMemo(() => {
+    const raw = data?.pages.flatMap((p) => p.items) ?? [];
+    if (sortBy === 'createdAt') {
+      return [...raw].sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.publishedAt || 0).getTime();
+        const timeB = new Date(b.createdAt || b.publishedAt || 0).getTime();
+        return sortDir === 'asc' ? timeA - timeB : timeB - timeA;
+      });
+    }
+    return raw;
+  }, [data, sortBy, sortDir]);
 
   /** Tag xuất hiện nhiều nhất trong các bài đang tải — dùng cho khối "Chủ đề nổi bật". */
   const topics = useMemo(() => {
@@ -49,17 +51,16 @@ export default function BlogList() {
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, MAX_TOPICS)
+      .slice(0, FEED_MAX_TOPICS)
       .map(([tag]) => tag);
   }, [posts]);
 
   // Cuộn vô tận: nạp trang kế khi sentinel cuối feed lọt vào tầm nhìn.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const isFollowingTab = activeTab === 'following';
 
   useEffect(() => {
     const node = sentinelRef.current;
-    if (!node || isFollowingTab || !hasNextPage || isFetchingNextPage) return;
+    if (!node || !hasNextPage || isFetchingNextPage) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -69,7 +70,7 @@ export default function BlogList() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [isFollowingTab, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleSearchChange = (q: string) => setSearch(q);
 
@@ -80,23 +81,10 @@ export default function BlogList() {
 
   const handleTopicSelect = (topic: string) => {
     setSearch(topic);
-    setActiveTab('discover');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const renderFeed = () => {
-    // Tab "Đang theo dõi" cần API follow — BE chưa có (xem FEATURES.SOCIAL).
-    if (isFollowingTab) {
-      return (
-        <div className="rounded-2xl bg-card py-16 text-center shadow-sm">
-          <p className="text-base font-semibold text-primary">Tính năng đang được phát triển</p>
-          <p className="mx-auto mt-2 max-w-sm px-4 text-sm text-muted-foreground">
-            Khi theo dõi được mở, bảng tin này sẽ chỉ hiển thị bài viết từ những người bạn theo dõi.
-          </p>
-        </div>
-      );
-    }
-
     if (isLoading) {
       return (
         <div className="flex flex-col gap-5">
@@ -160,28 +148,18 @@ export default function BlogList() {
   return (
     // pt-16 chừa chỗ cho PublicHeader (fixed, h-16) — cùng quy ước với ListTours.
     <div className="min-h-screen bg-background pt-16">
-      <div className="mx-auto grid w-full max-w-[980px] gap-10 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,600px)_320px]">
-        {/* Cột feed */}
-        <div className="min-w-0">
-          <FeedHeader
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            searchQuery={search}
-            onSearchChange={handleSearchChange}
-            sortBy={sortBy}
-            sortDir={sortDir}
-            onSortChange={handleSortChange}
-          />
+      <div className="mx-auto w-full max-w-[760px] px-4 pb-16 sm:px-6">
+        <FeedHeader
+          searchQuery={search}
+          onSearchChange={handleSearchChange}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onSortChange={handleSortChange}
+          topics={topics}
+          onTopicSelect={handleTopicSelect}
+        />
 
-          <div className="mt-6">{renderFeed()}</div>
-        </div>
-
-        {/* Cột phải — chỉ hiện từ lg trở lên */}
-        <div className="hidden lg:block">
-          <div className="sticky top-24 pt-6 sm:pt-8">
-            <FeedSidebar topics={topics} onTopicSelect={handleTopicSelect} />
-          </div>
-        </div>
+        <div className="mt-8">{renderFeed()}</div>
       </div>
     </div>
   );
