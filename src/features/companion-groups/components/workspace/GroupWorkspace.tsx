@@ -184,7 +184,11 @@ export function GroupWorkspace({
       )}
 
       {activeTab === 'itinerary' && (
-        <GroupJourneyTab groupId={group.matchingGroupId} isLeader={isLeader} />
+        <GroupJourneyTab
+          groupId={group.matchingGroupId}
+          isLeader={isLeader}
+          groupStatus={group.status}
+        />
       )}
 
       {activeTab === 'checklist' && (

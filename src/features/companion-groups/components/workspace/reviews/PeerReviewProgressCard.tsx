@@ -1,5 +1,4 @@
-import { CheckCircle2, Sparkles, Star } from 'lucide-react';
-import { AppButton } from '@/shared/ui';
+import { CheckCircle2, Star } from 'lucide-react';
 import type { PeerReviewCandidate } from '../../../services/peerReviewService';
 import { PeerReviewCandidateCard } from './PeerReviewCandidateCard';
 
@@ -37,23 +36,11 @@ export function PeerReviewProgressCard({
           </p>
         </div>
 
-        {unreviewedCount > 0 ? (
-          <AppButton
-            size="sm"
-            onClick={() => {
-              const firstUnreviewed = candidates.find((candidate) => !candidate.isReviewed);
-              if (firstUnreviewed) onReview(firstUnreviewed);
-            }}
-            className="flex shrink-0 items-center gap-2 shadow-xs"
-          >
-            <Sparkles className="h-4 w-4" />
-            <span>Chấm điểm ngay ({unreviewedCount} người)</span>
-          </AppButton>
-        ) : isAllReviewed ? (
+        {isAllReviewed && (
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 font-bold text-emerald-600 text-xs dark:text-emerald-400">
             <CheckCircle2 className="h-4 w-4" /> Bạn đã chấm đủ cả đoàn
           </span>
-        ) : null}
+        )}
       </div>
 
       {candidates.length > 0 && (
