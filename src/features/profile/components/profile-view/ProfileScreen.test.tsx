@@ -5,6 +5,7 @@ import { ProfileScreen } from './ProfileScreen';
 
 jest.mock('react-router-dom', () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
+  useNavigate: () => jest.fn(),
 }));
 
 jest.mock('@/store/useAppStore', () => ({
@@ -16,6 +17,12 @@ jest.mock('@/shared/ui', () => ({
 }));
 
 jest.mock('@/features/news', () => ({
+  useToggleFollow: () => ({ mutate: jest.fn(), isAvailable: false }),
+  useToggleBlogLike: () => ({ mutate: jest.fn(), isAvailable: false }),
+}));
+
+jest.mock('@/features/news/hooks/useSocial', () => ({
+  useToggleBlogLike: () => ({ mutate: jest.fn(), isAvailable: false }),
   useToggleFollow: () => ({ mutate: jest.fn(), isAvailable: false }),
 }));
 

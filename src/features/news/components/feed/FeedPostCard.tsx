@@ -63,7 +63,7 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
       ? post.totalComments
       : typeof post.commentCount === 'number'
         ? post.commentCount
-        : 0;
+        : undefined;
 
   const publishedDate = post.createdAt || post.publishedAt || '';
 
