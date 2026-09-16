@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, FileText, MessageSquare, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Map as MapIcon, MessageSquare } from 'lucide-react';
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
@@ -30,8 +30,8 @@ export function ReportTable({
         return <FileText className="h-4 w-4 text-zinc-700" />;
       case 'COMMENT':
         return <MessageSquare className="h-4 w-4 text-zinc-700" />;
-      case 'REVIEW':
-        return <Star className="h-4 w-4 text-zinc-700" />;
+      case 'TOUR':
+        return <MapIcon className="h-4 w-4 text-zinc-700" />;
       default:
         return <FileText className="h-4 w-4 text-zinc-700" />;
     }
@@ -43,8 +43,8 @@ export function ReportTable({
         return 'Blog';
       case 'COMMENT':
         return 'Bình luận';
-      case 'REVIEW':
-        return 'Đánh giá';
+      case 'TOUR':
+        return 'Tour';
       default:
         return 'Khác';
     }

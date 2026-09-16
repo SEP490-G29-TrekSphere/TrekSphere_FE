@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { Flag } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   isBookableSchedule,
@@ -27,6 +28,7 @@ import {
 import { useTourCheckpoints } from '@/features/tours/hooks/useTourCheckpoints';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import { useTourSchedules } from '@/features/tours/hooks/useTourSchedules';
+import { ReportModal } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 /** Thứ tự này phải khớp thứ tự các section trong DOM để scrollspy chạy đúng. */
@@ -61,6 +63,7 @@ function SectionHeading({ title, description }: { title: string; description?: s
 export default function TourDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAppStore((state) => state.user);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { data: tour, isLoading, error, refetch, isFetching } = useTourDetail(id);
   const { data: apiSchedules } = useTourSchedules(id);
@@ -108,6 +111,20 @@ export default function TourDetailsPage() {
       <TourSectionNav sections={visibleSections} />
 
       <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
+        {user && (
+          <div className="mb-6 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsReportModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+              title="Báo cáo vi phạm"
+            >
+              <Flag className="size-3.5" />
+              Báo cáo vi phạm
+            </button>
+          </div>
+        )}
+
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
           {/* Cột trái — nội dung tour */}
           <div className="flex min-w-0 flex-col gap-10">
@@ -188,6 +205,14 @@ export default function TourDetailsPage() {
       />
       {/* Chừa chỗ cho thanh đáy để không che mất nội dung cuối trang */}
       <div className="h-20 lg:hidden" aria-hidden="true" />
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={tour.tourId}
+        targetType="TOUR"
+        targetTitle={tour.tourName}
+      />
     </div>
   );
 }

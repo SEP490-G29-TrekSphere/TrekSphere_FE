@@ -27,13 +27,13 @@ describe('useAccountMutations — khóa/mở khóa tài khoản', () => {
     mockUpdateStatus.mockReset();
   });
 
-  test('lock gửi status DEACTIVATED (BE chưa hỗ trợ LOCKED — trả code 9001)', async () => {
+  test('lock gửi status LOCKED', async () => {
     mockUpdateStatus.mockResolvedValueOnce(undefined);
 
     const { result } = renderHook(() => useAccountMutations('u1'), { wrapper: createWrapper() });
     await result.current.lock.mutateAsync('u1');
 
-    expect(mockUpdateStatus).toHaveBeenCalledWith('u1', 'DEACTIVATED');
+    expect(mockUpdateStatus).toHaveBeenCalledWith('u1', 'LOCKED');
   });
 
   test('unlock gửi status ACTIVE', async () => {

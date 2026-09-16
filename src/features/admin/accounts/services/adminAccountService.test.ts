@@ -12,13 +12,13 @@ describe('adminAccountService.updateStatus', () => {
     mockApiService.mockReset();
   });
 
-  test('gửi status qua query param của PUT /users/{id}/status', async () => {
+  test('khóa gửi status LOCKED qua query param của PUT /users/{id}/status', async () => {
     mockApiService.mockResolvedValueOnce({ status: 200 });
 
-    await adminAccountService.updateStatus('u1', 'DEACTIVATED');
+    await adminAccountService.updateStatus('u1', 'LOCKED');
 
     expect(mockApiService).toHaveBeenCalledWith('/users/u1/status', 'PUT', undefined, {
-      status: 'DEACTIVATED',
+      status: 'LOCKED',
     });
   });
 
@@ -34,12 +34,12 @@ describe('adminAccountService.updateStatus', () => {
 
   test('ném Error kèm message của BE khi request thất bại', async () => {
     mockApiService.mockResolvedValueOnce({
-      error: 'Chức năng khoá vĩnh viễn chưa được hỗ trợ',
-      status: 400,
+      error: 'Không có quyền thực hiện hành động này',
+      status: 403,
     });
 
-    await expect(adminAccountService.updateStatus('u1', 'DEACTIVATED')).rejects.toThrow(
-      'Chức năng khoá vĩnh viễn chưa được hỗ trợ'
+    await expect(adminAccountService.updateStatus('u1', 'LOCKED')).rejects.toThrow(
+      'Không có quyền thực hiện hành động này'
     );
   });
 });

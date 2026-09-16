@@ -15,12 +15,9 @@ export function useAccountMutations(accountId = '') {
     queryClient.invalidateQueries({ queryKey: adminAccountDetailKeys.all });
   };
 
-  // Khóa = DEACTIVATED chứ không phải LOCKED: BE chưa implement nhánh LOCKED
-  // (trả code 9001 "Chức năng khoá vĩnh viễn chưa được hỗ trợ") dù swagger có
-  // khai báo giá trị này.
   const lock = useMutation({
     mutationFn: (targetAccountId?: string) =>
-      adminAccountService.updateStatus(targetAccountId ?? accountId, 'DEACTIVATED'),
+      adminAccountService.updateStatus(targetAccountId ?? accountId, 'LOCKED'),
     onSuccess: invalidate,
   });
 

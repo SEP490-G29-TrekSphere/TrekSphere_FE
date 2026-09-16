@@ -1,7 +1,7 @@
 import { ApiService } from '@/config/apiClient';
 
 export type ReportStatus = 'PENDING' | 'RESOLVED' | 'DISMISSED';
-export type ReportTargetType = 'BLOG' | 'COMMENT' | 'REVIEW';
+export type ReportTargetType = 'BLOG' | 'COMMENT' | 'TOUR';
 export type ReportAction = 'HIDE_CONTENT' | 'WARNING' | 'DISMISS';
 
 export interface ReportResponse {
