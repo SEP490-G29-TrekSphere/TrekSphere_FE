@@ -16,6 +16,7 @@ export const groupWorkspaceKeys = {
     [...groupWorkspaceKeys.all, 'post', groupId, postId] as const,
 
   // Phase 6 Keys (Expense & Shares)
+  expensesBase: (groupId: string) => [...groupWorkspaceKeys.all, 'expenses', groupId] as const,
   expenses: (groupId: string, page?: number, size?: number) =>
     [...groupWorkspaceKeys.all, 'expenses', groupId, { page, size }] as const,
   expenseSummary: (groupId: string) =>

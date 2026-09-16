@@ -46,7 +46,7 @@ export function useCreateGroupExpense(groupId: string) {
     mutationFn: (payload: GroupExpenseCreateRequest) =>
       groupWorkspaceService.createExpense(groupId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenses(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expensesBase(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
@@ -67,7 +67,7 @@ export function useUpdateGroupExpense(groupId: string) {
       payload: GroupExpenseUpdateRequest;
     }) => groupWorkspaceService.updateExpense(groupId, expenseId, payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenses(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expensesBase(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
       queryClient.invalidateQueries({
         queryKey: groupWorkspaceKeys.expenseDetail(groupId, variables.expenseId),
@@ -85,7 +85,7 @@ export function useVoidGroupExpense(groupId: string) {
   return useMutation({
     mutationFn: (expenseId: string) => groupWorkspaceService.voidExpense(groupId, expenseId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenses(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expensesBase(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.expenseSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlementSummary(groupId) });
       queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.settlements(groupId) });
