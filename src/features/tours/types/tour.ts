@@ -182,7 +182,8 @@ export interface TourFilter {
 /**
  * Difficulty levels from the API
  */
-export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER';
+/** Khớp đúng enum `DifficultyLevel` thật ở BE — không có `EXPERT`/`BEGINNER`. */
+export type ApiDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 /**
  * Status values from the API

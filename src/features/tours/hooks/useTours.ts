@@ -7,8 +7,7 @@ const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXPERT: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
-  BEGINNER: 'Dễ',
+  EXTREME: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
 };
 
 function formatPrice(price?: number | null): string {
