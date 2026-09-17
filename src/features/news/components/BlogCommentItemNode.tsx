@@ -98,7 +98,8 @@ export function BlogCommentItemNode({
 
   return (
     <li
-      className="flex gap-4 rounded-2xl bg-card p-4 shadow-xs border border-border md:p-5"
+      id={`comment-${comment.commentId}`}
+      className="flex gap-4 rounded-2xl bg-card p-4 shadow-xs border border-border md:p-5 transition-all duration-300"
       style={depth > 0 ? { marginLeft: `${Math.min(depth, 3) * 1.5}rem` } : undefined}
     >
       {comment.userId ? (

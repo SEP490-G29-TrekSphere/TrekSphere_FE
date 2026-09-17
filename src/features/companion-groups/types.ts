@@ -22,7 +22,6 @@ export interface CompanionGroup {
   neededMembers: number;
   leader: CompanionLeader;
   description?: string;
-  isBookmarked?: boolean;
   isHidden?: boolean;
   tags?: string[];
 }

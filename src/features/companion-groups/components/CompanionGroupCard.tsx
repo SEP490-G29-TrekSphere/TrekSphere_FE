@@ -1,8 +1,8 @@
-import { ArrowRight, Calendar, Clock, Eye, MapPin, RotateCcw, Users } from 'lucide-react';
+import { ArrowRight, Banknote, Calendar, Clock, Eye, MapPin, RotateCcw, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { formatDate } from '@/utils/format';
+import { formatDate, formatPrice } from '@/utils/format';
 import { MATCHING_GROUP_FALLBACK_COVER_IMAGE } from '../constants';
 import {
   isCurrentUserGroupLeader,
@@ -38,17 +38,17 @@ export function CompanionGroupCard({
   applicationStatus,
 }: CompanionGroupCardProps) {
   const user = useAppStore((state) => state.user);
-  const viewModel = toMatchingGroupCardViewModel(group);
+  const viewModel = toMatchingGroupCardViewModel(group, user?.id);
   const groupId = viewModel.groupId;
   const isLeader = Boolean(user && isCurrentUserGroupLeader(viewModel, user.id));
   const isMember = Boolean(
-    viewModel.myRole === 'MEMBER' ||
-      (hasJoined && applicationStatus !== 'PENDING') ||
-      applicationStatus === 'ACCEPTED'
+    !isLeader && (viewModel.myRole === 'MEMBER' || (hasJoined && applicationStatus !== 'PENDING'))
   );
-  const isPending = applicationStatus === 'PENDING';
+  const isPending = !hasJoined && !isLeader && applicationStatus === 'PENDING';
   const isRejectedOrWithdrawn =
-    applicationStatus === 'REJECTED' || applicationStatus === 'WITHDRAWN';
+    !hasJoined &&
+    !isLeader &&
+    (applicationStatus === 'REJECTED' || applicationStatus === 'WITHDRAWN');
   const isMemberOrLeader = isLeader || isMember;
   const detailPath =
     getDetailPath?.(groupId) ??
@@ -123,6 +123,12 @@ export function CompanionGroupCard({
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5 text-primary/70" />
                   <span>Hạn: {formatDate(viewModel.matchingDeadline)}</span>
+                </span>
+              )}
+              {viewModel.estimatedCost != null && viewModel.estimatedCost > 0 && (
+                <span className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                  <Banknote className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Ước tính: ~{formatPrice(viewModel.estimatedCost)} đ</span>
                 </span>
               )}
             </div>
@@ -300,6 +306,12 @@ export function CompanionGroupCard({
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-primary/70" />
               Hạn ghép: {formatDate(viewModel.matchingDeadline)}
+            </span>
+          )}
+          {viewModel.estimatedCost != null && viewModel.estimatedCost > 0 && (
+            <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+              <Banknote className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              Chi phí ước tính: ~{formatPrice(viewModel.estimatedCost)} đ
             </span>
           )}
         </div>

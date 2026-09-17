@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { parseIsoDate, toIsoDate } from '@/lib';
-import { AppDatePicker } from '@/shared/ui';
+import { AppCurrencyInput, AppDatePicker } from '@/shared/ui';
 import type { ApiScheduleStatus, CreateSchedulePayload, UpdateSchedulePayload } from '../types';
 
 const STATUS_OPTIONS: Array<{ value: ApiScheduleStatus; label: string }> = [
@@ -275,13 +275,19 @@ export function ScheduleFormDialog({
               >
                 Giá vé (VNĐ) <span className="text-red-500">*</span>
               </label>
-              <input
-                id="price"
-                type="number"
-                min={0}
-                {...register('price')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+              <Controller
+                name="price"
+                control={control}
+                render={({ field }) => (
+                  <AppCurrencyInput
+                    id="price"
+                    value={field.value as number | undefined}
+                    onChange={field.onChange}
+                    placeholder="0"
+                    className="w-full rounded-xl px-4 py-2.5 pr-14 text-sm font-medium focus:outline-none focus:ring-1"
+                    style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                  />
+                )}
               />
               {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>}
             </div>

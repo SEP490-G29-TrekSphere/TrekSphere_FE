@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertCircle,
-  Banknote,
   Calculator,
   Calendar,
   CheckCircle2,
@@ -14,8 +13,13 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import {
+  AppCurrencyInput,
+  AppImageUploadField,
+  AppModalShell,
+  useImageUploadCleanup,
+} from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useCreateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -68,7 +72,6 @@ export function CreateExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
-  const [displayAmount, setDisplayAmount] = useState<string>('');
   const receiptCleanup = useImageUploadCleanup();
 
   const defaultLeaderMember = activeMembers.find(
@@ -151,7 +154,6 @@ export function CreateExpenseModal({
       setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
       setSplitMethod('EQUAL');
       setCustomSharesMap({});
-      setDisplayAmount('');
       reset({
         title: '',
         amount: undefined,
@@ -179,9 +181,8 @@ export function CreateExpenseModal({
     });
   };
 
-  const handleCustomShareChange = (memberId: string, value: string) => {
-    const raw = value.replace(/\D/g, '');
-    const num = raw ? parseInt(raw, 10) : 0;
+  const handleCustomShareChange = (memberId: string, value?: number) => {
+    const num = value || 0;
     setCustomSharesMap((prev) => ({
       ...prev,
       [memberId]: Math.max(0, num),
@@ -215,7 +216,6 @@ export function CreateExpenseModal({
       receiptUrl: '',
       note: '',
     });
-    setDisplayAmount('');
     setScope('ALL_MEMBERS');
     setSelectedMembers(activeMembers.map((m) => m.matchingMemberId));
     setSplitMethod('EQUAL');
@@ -350,27 +350,18 @@ export function CreateExpenseModal({
             <label className="text-xs font-bold text-foreground">
               Số tiền (VNĐ) <span className="text-destructive">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="VD: 500.000"
-                value={displayAmount}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/\D/g, '');
-                  if (!raw) {
-                    setDisplayAmount('');
-                    setValue('amount', 0, { shouldValidate: true });
-                    return;
-                  }
-                  const num = parseInt(raw, 10);
-                  setDisplayAmount(num.toLocaleString('vi-VN'));
-                  setValue('amount', num, { shouldValidate: true });
-                }}
-                className="w-full rounded-xl border border-border bg-background pl-9 pr-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
-              />
-              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field }) => (
+                <AppCurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="VD: 500.000"
+                  className="w-full rounded-xl border border-border bg-background pl-9 pr-14 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
+                />
+              )}
+            />
             {errors.amount && (
               <p className="text-[11px] text-destructive font-medium">{errors.amount.message}</p>
             )}
@@ -556,17 +547,14 @@ export function CreateExpenseModal({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <input
-                          type="text"
-                          inputMode="numeric"
+                        <AppCurrencyInput
+                          showIcon={false}
+                          suffix="đ"
+                          value={val}
+                          onChange={(num) => handleCustomShareChange(member.matchingMemberId, num)}
                           placeholder="0"
-                          value={val ? Number(val).toLocaleString('vi-VN') : ''}
-                          onChange={(e) =>
-                            handleCustomShareChange(member.matchingMemberId, e.target.value)
-                          }
                           className="w-32 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
                         />
-                        <span className="text-[11px] text-muted-foreground font-semibold">đ</span>
                       </div>
                     </div>
                   );

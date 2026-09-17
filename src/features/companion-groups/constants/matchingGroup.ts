@@ -69,6 +69,30 @@ export const MATCHING_GROUP_STATUS_FILTER_OPTIONS = [
   { value: 'CLOSED', label: 'Đã đóng' },
 ] as const satisfies ReadonlyArray<{ value: MatchingGroupStatusFilter; label: string }>;
 
+export type MatchingGroupDifficultyFilter = JourneyDifficulty | 'ALL';
+
+export const MATCHING_GROUP_DIFFICULTY_OPTIONS = [
+  { value: 'ALL', label: 'Tất cả độ khó' },
+  { value: 'EASY', label: 'Dễ' },
+  { value: 'MODERATE', label: 'Trung bình' },
+  { value: 'HARD', label: 'Khó' },
+  { value: 'EXTREME', label: 'Cực thách thức' },
+] as const satisfies ReadonlyArray<{ value: MatchingGroupDifficultyFilter; label: string }>;
+
+export const MATCHING_GROUP_PRICE_DEFAULT_MIN = 0;
+export const MATCHING_GROUP_PRICE_DEFAULT_MAX = 10_000_000;
+
+export function formatShortPrice(val: number): string {
+  if (val <= 0) return '0';
+  if (val >= 1_000_000) {
+    return `${(val / 1_000_000).toFixed(val % 1_000_000 === 0 ? 0 : 1)}M`;
+  }
+  if (val >= 1_000) {
+    return `${(val / 1_000).toFixed(val % 1_000 === 0 ? 0 : 1)}K`;
+  }
+  return String(val);
+}
+
 export const MATCHING_GROUP_ROLE_TABS = [
   { key: 'ALL', label: 'Tất cả nhóm' },
   { key: 'LEADER', label: 'Nhóm tôi làm trưởng' },

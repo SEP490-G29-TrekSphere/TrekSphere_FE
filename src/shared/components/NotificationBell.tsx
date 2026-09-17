@@ -15,8 +15,18 @@ import { useAppStore } from '@/store/useAppStore';
 const INITIAL_LIMIT = 5;
 const LOAD_MORE_STEP = 5;
 
-export default function NotificationBell() {
-  const [open, setOpen] = useState(false);
+export interface NotificationBellProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function NotificationBell({
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: NotificationBellProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   const [limit, setLimit] = useState(INITIAL_LIMIT);
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
@@ -35,14 +45,17 @@ export default function NotificationBell() {
     if (!notification.isRead) {
       markAsRead(notification.notificationId);
     }
-    setOpen(false);
+    handleOpenChange(false);
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
     }
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    controlledOnOpenChange?.(nextOpen);
     if (!nextOpen) {
       setLimit(INITIAL_LIMIT);
     }
@@ -66,7 +79,7 @@ export default function NotificationBell() {
         <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
           <Link
             to={notificationsPath}
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
             className="text-sm font-semibold text-foreground hover:underline"
           >
             Thông báo

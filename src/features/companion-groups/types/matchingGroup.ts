@@ -81,6 +81,7 @@ export interface MatchingGroupItem {
   ownerName: string;
   ownerAvatarUrl: string | null;
   /** Trưởng nhóm HIỆN TẠI (role có thể đổi qua bầu cử) — khác owner (người tạo nhóm, cố định). */
+  leaderId?: string | null;
   leaderName?: string | null;
   leaderAvatarUrl?: string | null;
   coverImageUrl?: string | null;
@@ -128,6 +129,7 @@ export interface MatchingMemberItem {
   userId: string;
   fullName: string;
   avatarUrl: string | null;
+  trustScore?: number | null;
   role: MatchingMemberRole;
   status: MatchingMemberStatus;
   message: string | null;

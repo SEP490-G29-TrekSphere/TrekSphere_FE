@@ -1,6 +1,7 @@
 import { Calendar, Compass, MapPin, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTours } from '@/features/tours/hooks/useTours';
+import { SearchableTourSelect } from '@/shared/components/SearchableTourSelect';
 import { AppInput } from '@/shared/ui';
 import { MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE } from '../constants';
 
@@ -112,27 +113,13 @@ export function CompanionHeroFilter({
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                 Lọc Theo Tour
               </label>
-              <select
+              <SearchableTourSelect
+                tours={tours}
                 value={selectedTourId}
-                onChange={(e) => onTourChange(e.target.value)}
-                className="w-full bg-muted border border-border rounded-xl px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-              >
-                <option value="">-- Tất cả các Tour --</option>
-                {tours.map((tour) => (
-                  <option key={tour.id} value={tour.id}>
-                    {tour.name} ({tour.location})
-                  </option>
-                ))}
-              </select>
-              {selectedTourId && (
-                <button
-                  type="button"
-                  onClick={() => onTourChange('')}
-                  className="mt-2 text-[11px] text-muted-foreground underline hover:text-foreground cursor-pointer"
-                >
-                  Xóa lọc Tour
-                </button>
-              )}
+                onChange={onTourChange}
+                allOptionLabel="-- Tất cả các Tour --"
+                placeholder="-- Tất cả các Tour --"
+              />
             </div>
 
             {/* Date filter selector */}

@@ -1,5 +1,6 @@
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, Siren, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { type ToastMessage, useToastStore } from '@/store/useToastStore';
 
 const toastConfig: Record<
@@ -57,6 +58,7 @@ const toastConfig: Record<
 
 function ToastItem({ toast: t }: { toast: ToastMessage }) {
   const removeToast = useToastStore((state) => state.removeToast);
+  const navigate = useNavigate();
   const duration = t.duration ?? 4000;
 
   const [remainingTime, setRemainingTime] = useState(duration);
@@ -74,6 +76,16 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
       removeToast(t.id);
     }, 200);
   }, [removeToast, t.id]);
+
+  const handleClick = () => {
+    if (t.onClick) {
+      t.onClick();
+    }
+    if (t.actionUrl) {
+      navigate(t.actionUrl);
+      handleDismiss();
+    }
+  };
 
   // Timer loop for auto dismiss & smooth progress bar
   useEffect(() => {
@@ -108,9 +120,16 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && (t.actionUrl || t.onClick)) {
+          handleClick();
+        }
+      }}
+      tabIndex={t.actionUrl || t.onClick ? 0 : undefined}
       className={`pointer-events-auto relative flex w-full max-w-[380px] items-start gap-3 overflow-hidden rounded-xl border bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all duration-200 dark:bg-[#1C2822]/95 ${
-        config.borderColor
-      } ${
+        t.actionUrl || t.onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.99]' : ''
+      } ${config.borderColor} ${
         isExiting
           ? 'opacity-0 translate-x-4 scale-95'
           : 'animate-in fade-in-0 slide-in-from-top-3 duration-300'
@@ -143,8 +162,11 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
       {/* Close Button */}
       <button
         type="button"
-        onClick={handleDismiss}
-        className="shrink-0 -mr-1 -mt-1 rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100/80 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDismiss();
+        }}
+        className="shrink-0 -mr-1 -mt-1 rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100/80 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600/30 cursor-pointer"
         aria-label="Đóng thông báo"
       >
         <X className="h-4 w-4" />

@@ -30,6 +30,8 @@ export function MembersCard({
   onRemoveMember,
 }: MembersCardProps) {
   const acceptedMembers = members.filter((m) => m.status === 'ACCEPTED');
+  const currentLeader = acceptedMembers.find((m) => m.role === 'LEADER');
+  const displayLeaderName = currentLeader?.fullName || ownerName;
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +59,7 @@ export function MembersCard({
           </p>
         </div>
         <AppBadge variant="secondary" className="text-xs font-bold">
-          Trưởng nhóm: {ownerName}
+          Trưởng nhóm: {displayLeaderName}
         </AppBadge>
       </div>
 
@@ -72,28 +74,50 @@ export function MembersCard({
               key={member.matchingMemberId}
               className="flex items-center gap-3 rounded-xl bg-background p-3.5 shadow-sm border border-border"
             >
-              <Link
-                to={profileLink}
-                className="group flex min-w-0 flex-1 items-center gap-3 hover:opacity-90 transition-opacity"
-              >
-                <MemberAvatar
-                  fullName={member.fullName}
-                  avatarUrl={member.avatarUrl ?? undefined}
-                  isLeader={isLeader}
-                />
-                <div className="min-w-0">
-                  <h3 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                    {member.fullName}
-                  </h3>
-                  <p
-                    className={`text-[10px] tracking-wider font-bold uppercase ${
-                      isLeader ? 'text-primary' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {isLeader ? 'Trưởng nhóm' : 'Thành viên'}
-                  </p>
+              {member.userId ? (
+                <Link
+                  to={profileLink}
+                  className="group flex min-w-0 flex-1 items-center gap-3 hover:opacity-90 transition-opacity"
+                >
+                  <MemberAvatar
+                    fullName={member.fullName}
+                    avatarUrl={member.avatarUrl ?? undefined}
+                    isLeader={isLeader}
+                  />
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                      {member.fullName}
+                    </h3>
+                    <p
+                      className={`text-[10px] tracking-wider font-bold uppercase ${
+                        isLeader ? 'text-primary' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {isLeader ? 'Trưởng nhóm' : 'Thành viên'}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex min-w-0 flex-1 items-center gap-3 opacity-80">
+                  <MemberAvatar
+                    fullName={member.fullName || 'NGƯỜI DÙNG HỆ THỐNG'}
+                    avatarUrl={undefined}
+                    isLeader={isLeader}
+                  />
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-muted-foreground truncate">
+                      {member.fullName || 'NGƯỜI DÙNG HỆ THỐNG'}
+                    </h3>
+                    <p
+                      className={`text-[10px] tracking-wider font-bold uppercase ${
+                        isLeader ? 'text-primary' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {isLeader ? 'Trưởng nhóm' : 'Thành viên'}
+                    </p>
+                  </div>
                 </div>
-              </Link>
+              )}
 
               {/* Action: Direct Chat / Add to Group (hide for self) */}
               {currentUserId && String(currentUserId) !== String(member.userId) && (

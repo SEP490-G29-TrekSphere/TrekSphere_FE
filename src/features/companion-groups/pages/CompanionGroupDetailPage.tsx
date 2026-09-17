@@ -284,8 +284,8 @@ export default function CompanionGroupDetailPage({
         group={{
           id: group.matchingGroupId,
           title: group.groupName,
-          leaderName: group.ownerName,
-          leaderAvatar: group.ownerAvatarUrl ?? undefined,
+          leaderName: group.leaderName ?? group.ownerName,
+          leaderAvatar: group.leaderAvatarUrl ?? group.ownerAvatarUrl ?? undefined,
           coverImageUrl: group.coverImageUrl ?? group.tourImageUrl ?? undefined,
           departureDate: group.targetDate,
           targetDate: group.targetDate,
@@ -313,7 +313,7 @@ export default function CompanionGroupDetailPage({
         groupId={group.matchingGroupId}
         isOpen={isSosModalOpen}
         onClose={() => setIsSosModalOpen(false)}
-        leaderName={group.ownerName}
+        leaderName={group.leaderName ?? group.ownerName}
       />
 
       {/* Leader Election Modal */}

@@ -16,8 +16,11 @@ import {
   MATCHING_GROUP_DEFAULT_SORT,
   MATCHING_GROUP_LOOKUP_PAGE_SIZE,
   MATCHING_GROUP_PAGE_SIZE,
+  MATCHING_GROUP_PRICE_DEFAULT_MAX,
+  MATCHING_GROUP_PRICE_DEFAULT_MIN,
   MATCHING_GROUP_SEARCH_DEBOUNCE_MS,
   MATCHING_GROUP_TOUR_FILTER_PAGE_SIZE,
+  type MatchingGroupDifficultyFilter,
   type MatchingGroupLayout,
   type MatchingGroupStatusFilter,
 } from '../constants';
@@ -44,9 +47,19 @@ export default function CompanionGroupsPage() {
   const [selectedDate, setSelectedDate] = useState(
     () => searchParams.get('date') || searchParams.get('targetDate') || ''
   );
+  const [difficulty, setDifficulty] = useState<MatchingGroupDifficultyFilter>(
+    () => (searchParams.get('difficulty') as MatchingGroupDifficultyFilter) || 'ALL'
+  );
   const [statusFilter, setStatusFilter] = useState<MatchingGroupStatusFilter>(
     () => (searchParams.get('status') as MatchingGroupStatusFilter) || 'ALL'
   );
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => {
+    const minParam = searchParams.get('minCost');
+    const maxParam = searchParams.get('maxCost');
+    const minVal = minParam ? Number(minParam) : MATCHING_GROUP_PRICE_DEFAULT_MIN;
+    const maxVal = maxParam ? Number(maxParam) : MATCHING_GROUP_PRICE_DEFAULT_MAX;
+    return [minVal, maxVal];
+  });
   const [availableSlotsOnly, setAvailableSlotsOnly] = useState(
     () => searchParams.get('slots') === 'true'
   );
@@ -59,6 +72,12 @@ export default function CompanionGroupsPage() {
   const [page, setPage] = useState(() => Math.max(0, Number(searchParams.get('page')) || 0));
   const [layout, setLayout] = useState<MatchingGroupLayout>('grid');
   const debouncedSearchQuery = useDebounce(searchQuery, MATCHING_GROUP_SEARCH_DEBOUNCE_MS);
+  const debouncedPriceRange = useDebounce(priceRange, 300);
+
+  const minCost =
+    debouncedPriceRange[0] > MATCHING_GROUP_PRICE_DEFAULT_MIN ? debouncedPriceRange[0] : undefined;
+  const maxCost =
+    debouncedPriceRange[1] < MATCHING_GROUP_PRICE_DEFAULT_MAX ? debouncedPriceRange[1] : undefined;
 
   // Sync state to URL search parameters
   useEffect(() => {
@@ -66,7 +85,10 @@ export default function CompanionGroupsPage() {
     if (debouncedSearchQuery.trim()) params.set('q', debouncedSearchQuery.trim());
     if (selectedTourId) params.set('tourId', selectedTourId);
     if (selectedDate) params.set('date', selectedDate);
+    if (difficulty && difficulty !== 'ALL') params.set('difficulty', difficulty);
     if (statusFilter && statusFilter !== 'ALL') params.set('status', statusFilter);
+    if (minCost !== undefined) params.set('minCost', String(minCost));
+    if (maxCost !== undefined) params.set('maxCost', String(maxCost));
     if (availableSlotsOnly) params.set('slots', 'true');
     if (hideJoinedGroups) params.set('hideJoined', 'true');
     if (sortKey && sortKey !== MATCHING_GROUP_DEFAULT_SORT) params.set('sort', sortKey);
@@ -77,7 +99,10 @@ export default function CompanionGroupsPage() {
     debouncedSearchQuery,
     selectedTourId,
     selectedDate,
+    difficulty,
     statusFilter,
+    minCost,
+    maxCost,
     availableSlotsOnly,
     hideJoinedGroups,
     sortKey,
@@ -132,14 +157,8 @@ export default function CompanionGroupsPage() {
         ids.add(String(group.matchingGroupId).toLowerCase());
       }
     }
-    for (const application of myApplicationsData?.content ?? []) {
-      if (application.status === 'ACCEPTED' && application.matchingGroupId) {
-        ids.add(String(application.matchingGroupId));
-        ids.add(String(application.matchingGroupId).toLowerCase());
-      }
-    }
     return ids;
-  }, [myApplicationsData, myGroupsData]);
+  }, [myGroupsData]);
 
   const applicationStatusMap = useMemo(() => {
     const map = new Map<string, JoinApplicationStatus>();
@@ -163,6 +182,9 @@ export default function CompanionGroupsPage() {
       keyword: debouncedSearchQuery || undefined,
       tourId: selectedTourId || undefined,
       targetDate: selectedDate || undefined,
+      difficulty: difficulty === 'ALL' ? undefined : difficulty,
+      minCost,
+      maxCost,
       availableSlotsOnly: availableSlotsOnly || undefined,
       page,
       size: MATCHING_GROUP_PAGE_SIZE,
@@ -182,6 +204,22 @@ export default function CompanionGroupsPage() {
         ? matchingGroups
         : matchingGroups.filter((group) => group.status === statusFilter);
 
+    if (difficulty && difficulty !== 'ALL') {
+      result = result.filter((group) => group.difficulty === difficulty);
+    }
+
+    if (minCost !== undefined) {
+      result = result.filter(
+        (group) => group.estimatedCost != null && group.estimatedCost >= minCost
+      );
+    }
+
+    if (maxCost !== undefined) {
+      result = result.filter(
+        (group) => group.estimatedCost != null && group.estimatedCost <= maxCost
+      );
+    }
+
     if (hideJoinedGroups && !isGuest) {
       result = result.filter((group) => {
         const isLeader = Boolean(user && isCurrentUserGroupLeader(group, user.id));
@@ -193,13 +231,25 @@ export default function CompanionGroupsPage() {
     }
 
     return result;
-  }, [matchingGroups, statusFilter, hideJoinedGroups, isGuest, user, joinedGroupIds]);
+  }, [
+    matchingGroups,
+    statusFilter,
+    difficulty,
+    minCost,
+    maxCost,
+    hideJoinedGroups,
+    isGuest,
+    user,
+    joinedGroupIds,
+  ]);
 
   function resetFilters() {
     setSearchQuery('');
     setSelectedTourId('');
     setSelectedDate('');
+    setDifficulty('ALL');
     setStatusFilter('ALL');
+    setPriceRange([MATCHING_GROUP_PRICE_DEFAULT_MIN, MATCHING_GROUP_PRICE_DEFAULT_MAX]);
     setAvailableSlotsOnly(false);
     setHideJoinedGroups(false);
     setSortKey(MATCHING_GROUP_DEFAULT_SORT);
@@ -278,6 +328,10 @@ export default function CompanionGroupsPage() {
               tours={tours}
               selectedTourId={selectedTourId}
               selectedDate={selectedDate}
+              difficulty={difficulty}
+              priceRange={priceRange}
+              minPrice={MATCHING_GROUP_PRICE_DEFAULT_MIN}
+              maxPrice={MATCHING_GROUP_PRICE_DEFAULT_MAX}
               statusFilter={statusFilter}
               availableSlotsOnly={availableSlotsOnly}
               hideJoinedGroups={hideJoinedGroups}
@@ -288,6 +342,14 @@ export default function CompanionGroupsPage() {
               }}
               onDateChange={(value) => {
                 setSelectedDate(value);
+                setPage(0);
+              }}
+              onDifficultyChange={(value) => {
+                setDifficulty(value);
+                setPage(0);
+              }}
+              onPriceRangeChange={(range) => {
+                setPriceRange(range);
                 setPage(0);
               }}
               onStatusChange={(value) => {
@@ -330,8 +392,14 @@ export default function CompanionGroupsPage() {
               onJoinGroup={handleOpenJoinModal}
               onViewDetail={(group) => {
                 const vm = toMatchingGroupCardViewModel(group);
+                const rawId = vm.groupId;
+                const lowerId = rawId?.toLowerCase();
                 const isLeader = Boolean(user && isCurrentUserGroupLeader(vm, user.id));
-                const isMember = Boolean(vm.myRole === 'MEMBER' || joinedGroupIds.has(vm.groupId));
+                const isMember = Boolean(
+                  vm.myRole === 'MEMBER' ||
+                    (rawId && joinedGroupIds.has(rawId)) ||
+                    (lowerId && joinedGroupIds.has(lowerId))
+                );
                 if (isLeader || isMember) {
                   navigate(getTrekkerGroupDetailPath(vm.groupId));
                 } else {

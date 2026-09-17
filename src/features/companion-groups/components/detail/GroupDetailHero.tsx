@@ -1,14 +1,4 @@
-import {
-  Bookmark,
-  Calendar,
-  CircleDollarSign,
-  Clock,
-  HeartPulse,
-  MapPin,
-  Share2,
-  Users,
-} from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, CircleDollarSign, Clock, HeartPulse, MapPin, Share2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppBadge, type AppBadgeVariant } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -72,7 +62,6 @@ export function GroupDetailHero({
   currentMembers,
   maxMembers,
 }: GroupDetailHeroProps) {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const statusInfo = statusConfig[status] ?? statusConfig.OPEN;
   const heroImage = coverImageUrl || tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE;
 
@@ -98,23 +87,6 @@ export function GroupDetailHero({
 
         {/* Top Floating Action Buttons */}
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setIsBookmarked(!isBookmarked);
-              toast.success(
-                isBookmarked ? 'Đã bỏ lưu nhóm' : 'Đã lưu nhóm vào danh sách yêu thích!'
-              );
-            }}
-            className={`inline-flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-md border border-white/20 transition cursor-pointer ${
-              isBookmarked
-                ? 'bg-amber-500 text-white'
-                : 'bg-slate-950/70 text-white hover:bg-slate-900'
-            }`}
-            title="Lưu chuyến đi"
-          >
-            <Bookmark className="h-4 w-4" />
-          </button>
           <button
             type="button"
             onClick={handleShare}

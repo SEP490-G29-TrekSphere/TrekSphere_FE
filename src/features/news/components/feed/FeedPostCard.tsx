@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, MoreHorizontal, ThumbsUp } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getUserProfilePath, PATHS } from '@/constants';
@@ -71,17 +71,27 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
     <article className="rounded-2xl bg-card p-4 shadow-sm sm:p-5">
       {/* Header tác giả */}
       <div className="flex items-start gap-3">
-        <Link to={authorLink} aria-label={`Hồ sơ của ${post.authorName}`}>
-          <FeedAvatar src={post.authorAvatarUrl} name={post.authorName} size={40} />
-        </Link>
+        {post.authorId ? (
+          <Link to={authorLink} aria-label={`Hồ sơ của ${post.authorName}`}>
+            <FeedAvatar src={post.authorAvatarUrl} name={post.authorName} size={40} />
+          </Link>
+        ) : (
+          <FeedAvatar src={undefined} name={post.authorName || 'NGƯỜI DÙNG HỆ THỐNG'} size={40} />
+        )}
 
         <div className="min-w-0 flex-1">
-          <Link
-            to={authorLink}
-            className="block truncate text-sm font-bold text-primary transition-colors hover:text-primary-hover"
-          >
-            {post.authorName}
-          </Link>
+          {post.authorId ? (
+            <Link
+              to={authorLink}
+              className="block truncate text-sm font-bold text-primary transition-colors hover:text-primary-hover"
+            >
+              {post.authorName}
+            </Link>
+          ) : (
+            <span className="block truncate text-sm font-bold text-muted-foreground">
+              {post.authorName || 'NGƯỜI DÙNG HỆ THỐNG'}
+            </span>
+          )}
           <p className="text-xs text-muted-foreground">{formatDate(publishedDate)}</p>
         </div>
 
@@ -117,20 +127,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
             {post.categoryName}
           </span>
         ) : null}
-
-        <button
-          type="button"
-          onClick={handleToggleLike}
-          disabled={!socialEnabled}
-          title={socialTitle}
-          aria-pressed={liked}
-          aria-label={liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
-          className="absolute right-3 top-3 flex size-9 cursor-pointer items-center justify-center rounded-full bg-card shadow-md transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
-        >
-          <Heart
-            className={`size-[18px] ${liked ? 'fill-destructive text-destructive' : 'text-primary'}`}
-          />
-        </button>
       </div>
 
       {/* Tiêu đề */}
@@ -177,6 +173,8 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
           onClick={handleToggleLike}
           disabled={!socialEnabled}
           title={socialTitle}
+          aria-pressed={liked}
+          aria-label={liked ? 'Bỏ thích bài viết' : 'Thích bài viết'}
           className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent ${
             liked ? 'text-destructive' : 'text-muted-foreground'
           }`}

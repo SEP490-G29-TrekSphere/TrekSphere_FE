@@ -72,8 +72,14 @@ export { AppGlobalLoadingSpinner } from './feedback/AppGlobalLoadingSpinner';
 export { AppSpinner, type AppSpinnerProps, type AppSpinnerSize } from './feedback/AppSpinner';
 export { AppGlobalToast } from './feedback/AppToast';
 export { ErrorBoundary } from './feedback/ErrorBoundary';
-export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 // Form
+export {
+  AppCurrencyInput,
+  type AppCurrencyInputProps,
+  AppFormCurrencyInput,
+  type AppFormCurrencyInputProps,
+} from './form/AppCurrencyInput';
+export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 export { AppFormInput, type AppFormInputProps } from './form/AppFormInput';
 export {
   AppFormPasswordInput,

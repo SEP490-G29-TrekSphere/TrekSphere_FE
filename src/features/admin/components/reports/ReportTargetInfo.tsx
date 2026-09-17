@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Shield, UserX } from 'lucide-react';
 import { AppIdDisplay } from '@/shared/ui';
 
 export interface ReportTargetInfoProps {
@@ -11,6 +11,11 @@ export interface ReportTargetInfoProps {
   targetId: string;
   targetTitle: string | null;
   targetContent: string | null;
+  targetAuthorAvatar?: string | null;
+  targetAuthorFullName?: string | null;
+  targetAuthorEmail?: string | null;
+  targetAuthorStatus?: string | null;
+  targetAuthorTrustScore?: number | null;
 }
 
 export function ReportTargetInfo({
@@ -23,6 +28,11 @@ export function ReportTargetInfo({
   targetId,
   targetTitle,
   targetContent,
+  targetAuthorAvatar,
+  targetAuthorFullName,
+  targetAuthorEmail,
+  targetAuthorStatus,
+  targetAuthorTrustScore,
 }: ReportTargetInfoProps) {
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
@@ -39,33 +49,86 @@ export function ReportTargetInfo({
         </div>
       </div>
 
-      {/* Reporter Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E5E4DE]">
-        <div className="flex items-center gap-3.5">
-          {reporterAvatar ? (
-            <img
-              src={reporterAvatar}
-              alt={reporterFullName}
-              className="size-11 rounded-full object-cover border border-[#E5E4DE]"
-            />
-          ) : (
-            <div className="flex size-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 font-bold text-lg uppercase">
-              {reporterFullName.charAt(0)}
+      {/* Two Columns: Reporter vs Target Author */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-[#E5E4DE]">
+        {/* Reporter Card */}
+        <div className="bg-white/80 border border-[#E5E4DE] rounded-2xl p-4 space-y-3">
+          <span className="text-[10px] font-extrabold tracking-wider uppercase text-zinc-400 block">
+            NGƯỜI GỬI BÁO CÁO
+          </span>
+          <div className="flex items-center gap-3">
+            {reporterAvatar ? (
+              <img
+                src={reporterAvatar}
+                alt={reporterFullName}
+                className="size-10 rounded-full object-cover border border-[#E5E4DE]"
+              />
+            ) : (
+              <div className="flex size-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 font-bold text-base uppercase">
+                {reporterFullName?.charAt(0) || 'U'}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-extrabold text-sm text-zinc-900 truncate">{reporterFullName}</h3>
+              <p className="text-xs text-zinc-500 font-medium truncate">{reporterEmail}</p>
             </div>
-          )}
-          <div>
-            <h3 className="font-extrabold text-sm text-zinc-900">{reporterFullName}</h3>
-            <p className="text-xs text-zinc-500 font-medium">{reporterEmail}</p>
+          </div>
+          <div className="text-[11px] text-zinc-400 font-medium pt-1">
+            Gửi lúc:{' '}
+            <span className="font-bold text-zinc-700">
+              {new Date(createdAt).toLocaleDateString('vi-VN')}
+            </span>
           </div>
         </div>
 
-        <div className="text-left sm:text-right">
-          <span className="text-[11px] text-zinc-400 font-bold uppercase tracking-wider block">
-            Thời gian báo cáo
-          </span>
-          <span className="text-xs font-bold text-zinc-800">
-            {new Date(createdAt).toLocaleDateString('vi-VN')}
-          </span>
+        {/* Target Author Card */}
+        <div className="bg-white/80 border border-[#E5E4DE] rounded-2xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold tracking-wider uppercase text-zinc-400 block">
+              TÁC GIẢ BỊ BÁO CÁO
+            </span>
+            {targetAuthorStatus && (
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                  targetAuthorStatus === 'LOCKED'
+                    ? 'bg-red-100 text-red-700 border border-red-200'
+                    : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                }`}
+              >
+                {targetAuthorStatus === 'LOCKED' ? 'Đã khóa' : 'Hoạt động'}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {targetAuthorAvatar ? (
+              <img
+                src={targetAuthorAvatar}
+                alt={targetAuthorFullName || 'Tác giả'}
+                className="size-10 rounded-full object-cover border border-[#E5E4DE]"
+              />
+            ) : (
+              <div className="flex size-10 items-center justify-center rounded-full bg-amber-100 text-amber-900 font-bold text-base uppercase">
+                {targetAuthorFullName?.charAt(0) || <UserX className="size-5" />}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-extrabold text-sm text-zinc-900 truncate">
+                {targetAuthorFullName || 'Chưa xác định'}
+              </h3>
+              <p className="text-xs text-zinc-500 font-medium truncate">
+                {targetAuthorEmail || 'N/A'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1 text-[11px]">
+            <Shield className="size-3.5 text-emerald-700" />
+            <span className="text-zinc-500 font-medium">Điểm tín nhiệm hiện tại:</span>
+            <span className="font-extrabold text-emerald-800">
+              {targetAuthorTrustScore !== null && targetAuthorTrustScore !== undefined
+                ? `${targetAuthorTrustScore}/100`
+                : '100/100'}
+            </span>
+          </div>
         </div>
       </div>
 

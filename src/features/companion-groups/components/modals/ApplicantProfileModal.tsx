@@ -1,4 +1,6 @@
-import { AlertTriangle, Loader2, X } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Loader2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { getUserProfilePath } from '@/constants';
 import {
   GENDER_API_LABELS,
   type PublicHikingSummary,
@@ -69,22 +71,31 @@ export function ApplicantProfileModal({
 
       {/* Header */}
       <div className="border-b border-border bg-primary/5 px-6 py-5">
-        <div className="flex items-center gap-3">
+        <Link
+          to={getUserProfilePath(userId)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-3 hover:opacity-85 transition-opacity"
+          title="Xem trang cá nhân đầy đủ (mở trong tab mới)"
+        >
           <MemberAvatar
             fullName={summary?.fullName || fallbackName}
             avatarUrl={summary?.avatarUrl || fallbackAvatarUrl}
             size="lg"
           />
           <div className="min-w-0 space-y-0.5">
-            <h2 className="truncate text-base font-bold text-foreground">
-              {summary?.fullName || fallbackName}
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="truncate text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                {summary?.fullName || fallbackName}
+              </h2>
+              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+            </div>
             <p className="text-[11px] text-muted-foreground">
               Hồ sơ leo núi công khai
               {summary?.gender ? ` • ${GENDER_API_LABELS[summary.gender]}` : ''}
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Body */}

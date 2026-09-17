@@ -12,6 +12,7 @@ import {
 import { AppButton, AppSpinner, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
+import { normalizePhoneNumber } from '@/utils/phone';
 import { HikingProfileFields } from '../components/edit/HikingProfileFields';
 import { PersonalInfoFields } from '../components/edit/PersonalInfoFields';
 import ProfileSidebar from '../components/ProfileSidebar';
@@ -22,7 +23,7 @@ import { profileService } from '../services/profileService';
 function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
   return {
     name: profile?.name ?? '',
-    phone: profile?.phone ?? '',
+    phone: normalizePhoneNumber(profile?.phone) || (profile?.phone ?? ''),
     gender: profile?.gender,
     dateOfBirth: profile?.dateOfBirth ?? '',
     bio: profile?.bio ?? '',
@@ -44,7 +45,7 @@ function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
 function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null): FormData {
   const formData = new FormData();
   formData.append('fullName', data.name);
-  if (data.phone) formData.append('phone', data.phone);
+  if (data.phone) formData.append('phone', normalizePhoneNumber(data.phone));
   if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth);
   if (data.gender) formData.append('gender', data.gender.toUpperCase());
 
@@ -153,8 +154,9 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
       queryClient.invalidateQueries({ queryKey: profileKeys.me() });
       navigate(effectiveReturnPath);
     },
-    onError: () => {
-      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    onError: (err) => {
+      const errorMsg = err instanceof Error ? err.message : 'Có lỗi xảy ra. Vui lòng thử lại.';
+      toast.error(errorMsg);
     },
   });
 

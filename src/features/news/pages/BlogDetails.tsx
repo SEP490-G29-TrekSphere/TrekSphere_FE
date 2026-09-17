@@ -1,6 +1,6 @@
 import { ChevronLeft, Flag } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { AppSpinner, ReportModal } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
@@ -20,6 +20,7 @@ import { flattenComments } from '../types';
 export default function BlogDetails() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAppStore((state) => state.user);
   const isLoggedIn = Boolean(user);
 
@@ -33,6 +34,35 @@ export default function BlogDetails() {
   const comments = commentsQuery.data?.items ?? [];
   const relatedPosts = relatedQuery.data ?? [];
   const totalComments = flattenComments(comments).length;
+
+  // Lắng nghe URL hash (ví dụ: #comment-uuid hoặc #blog-content), tự động cuộn đến và nháy highlight
+  useEffect(() => {
+    if (!location.hash) return;
+    const targetId = location.hash.replace('#', '');
+    if (!targetId) return;
+
+    let attempts = 0;
+    const maxAttempts = 20;
+    const interval = setInterval(() => {
+      attempts++;
+      const element = document.getElementById(targetId);
+      if (element) {
+        clearInterval(interval);
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.remove('highlight-target');
+        // Force reflow to re-trigger animation
+        void element.offsetWidth;
+        element.classList.add('highlight-target');
+        setTimeout(() => {
+          element.classList.remove('highlight-target');
+        }, 4000);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 150);
+
+    return () => clearInterval(interval);
+  }, [location.hash]);
 
   if (detailQuery.isLoading) {
     return (
