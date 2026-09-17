@@ -23,7 +23,7 @@ export interface VendorTourListItem {
   id: string;
   name: string;
   coverImageUrl?: string;
-  fromPrice: number | null;
+  basePrice: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   createdAt: string;
@@ -53,6 +53,7 @@ export interface CreateTourPayload {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
+  basePrice: number;
   minCapacity: number;
   maxCapacity: number;
   /**
@@ -62,6 +63,21 @@ export interface CreateTourPayload {
   coverImageUrl?: string;
   /** File ảnh bìa thô, chỉ có khi user vừa chọn ảnh mới ở form. */
   coverImage?: File;
+  participationPolicy: {
+    minAge: number;
+    maxAge?: number;
+    fitnessLevel: 'ANY' | 'BASIC' | 'MODERATE' | 'HIGH' | 'EXTREME';
+    healthRequirements?: string;
+    restrictedMedicalConditions?: string;
+    requiredExperience?: string;
+    requiredSkills?: string;
+    requiredEquipment?: string;
+    requiredDocuments?: string;
+    requiresHealthDeclaration: boolean;
+    requiresMedicalCertificate: boolean;
+    guardianRequiredUnderAge?: number;
+    additionalRequirements?: string;
+  };
 }
 
 /** `PUT /vendor/tours/{id}` nhận đúng cùng shape với tạo tour (đã test qua Swagger). */

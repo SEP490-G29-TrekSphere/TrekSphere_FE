@@ -24,16 +24,12 @@ export function TourBookingRail({ tour }: TourBookingRailProps) {
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Giá tham khảo
         </p>
-        {tour.fromPrice == null ? (
-          <p className="mt-1 text-lg font-bold text-primary">Liên hệ để biết giá</p>
-        ) : (
-          <p className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold leading-none text-primary">
-              {formatPrice(tour.fromPrice)}đ
-            </span>
-            <span className="text-sm text-muted-foreground">/ người</span>
-          </p>
-        )}
+        <p className="mt-1 flex items-baseline gap-1.5">
+          <span className="text-3xl font-extrabold leading-none text-primary">
+            {formatPrice(tour.basePrice)}đ
+          </span>
+          <span className="text-sm text-muted-foreground">/ người</span>
+        </p>
       </div>
 
       {contactHref ? (

@@ -7,7 +7,8 @@ const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXTREME: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
+  EXPERT: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
+  BEGINNER: 'Dễ',
 };
 
 function formatPrice(price?: number | null): string {
@@ -22,8 +23,8 @@ export function mapApiItemToTour(item: TourApiItem): Tour {
     description: '',
     duration: formatTourDuration(item.durationDays ?? 1),
     level: (item.difficulty && DIFFICULTY_MAP[item.difficulty]) || 'Trung bình',
-    price: formatPrice(item.fromPrice),
-    fromPrice: item.fromPrice ?? null,
+    price: formatPrice(item.basePrice),
+    basePrice: item.basePrice ?? 0,
     rating: item.averageRating ?? 0,
     reviewCount: item.totalReviews ?? 0,
     image: item.coverImageUrl,

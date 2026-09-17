@@ -11,31 +11,34 @@ import type { ApiDifficulty, TourCheckpoint, TourDetailScheduleApi } from '@/fea
 export const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80';
 
-/** Nhãn tiếng Việt cho enum `difficulty` của API — khớp đúng 4 giá trị thật ở BE (`DifficultyLevel`). */
+/** Nhãn tiếng Việt cho enum `difficulty` của API. */
 export const DIFFICULTY_LABELS: Record<ApiDifficulty | string, string> = {
+  BEGINNER: 'Mới bắt đầu',
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXTREME: 'Cực khó',
+  EXPERT: 'Chuyên gia',
 };
 
 /**
- * Thang điểm 1-4 cho độ khó — dùng để vẽ meter ở khối thông số.
+ * Thang điểm 1-5 cho độ khó — dùng để vẽ meter ở khối thông số.
  * Là thang thứ tự (ordinal) nên chỉ tô đậm dần trên cùng một hue, không đổi màu.
  */
 export const DIFFICULTY_LEVEL: Record<ApiDifficulty | string, number> = {
-  EASY: 1,
-  MODERATE: 2,
-  HARD: 3,
-  EXTREME: 4,
+  BEGINNER: 1,
+  EASY: 2,
+  MODERATE: 3,
+  HARD: 4,
+  EXPERT: 5,
 };
 
 /** Nhãn ngắn hiển thị dạng chip trên hero. */
 export const DIFFICULTY_TAGS: Record<ApiDifficulty | string, string> = {
+  BEGINNER: 'Cung đường khám phá',
   EASY: 'Cung đường dễ',
   MODERATE: 'Cung đường trung bình',
   HARD: 'Cung đường thách thức',
-  EXTREME: 'Cung đường cực khó',
+  EXPERT: 'Cung đường chuyên gia',
 };
 
 /**
@@ -75,15 +78,18 @@ export function handleImageFallback(event: SyntheticEvent<HTMLImageElement>): vo
 }
 
 /**
- * Lịch còn nhận khách: trạng thái OPEN.
+ * Số chỗ còn trống của một lịch khởi hành.
  *
- * BE chưa có domain Booking/giữ chỗ nào (không field `availableSlots`/`bookedSlots` thật trong
- * response) nên không thể lọc theo số chỗ còn trống ở đây — BE đã tự lọc `status=OPEN AND
- * departureDate >= today` ở tầng server (`TourService.upcomingSchedules`), check này chỉ là
- * phòng vệ phía client.
+ * BE giảm trực tiếp `availableSlots` ngay khi giữ chỗ và tăng lại khi booking được
+ * hủy/hết hạn. Vì vậy đây đã là số chỗ còn lại, không được trừ `bookedSlots` lần nữa.
  */
+export function remainingSlots(schedule: TourDetailScheduleApi): number {
+  return Math.max(0, schedule.availableSlots);
+}
+
+/** Lịch còn nhận khách: trạng thái OPEN và vẫn còn chỗ. */
 export function isBookableSchedule(schedule: TourDetailScheduleApi): boolean {
-  return schedule.status === 'OPEN';
+  return schedule.status === 'OPEN' && remainingSlots(schedule) > 0;
 }
 
 /** Sắp xếp lịch theo ngày khởi hành tăng dần. */

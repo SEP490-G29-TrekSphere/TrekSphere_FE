@@ -11,7 +11,8 @@ const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXTREME: 'Khám phá',
+  EXPERT: 'Khám phá',
+  BEGINNER: 'Dễ',
 };
 
 const REASON_LABEL: Record<RecommendationReason, string> = {
@@ -54,7 +55,7 @@ async function fetchRecommendedTours(limit: number): Promise<RecommendedTour[]> 
     duration: formatTourDuration(tour.durationDays ?? 1),
     level: DIFFICULTY_MAP[tour.difficulty] ?? 'Trung bình',
     price: formatPrice(tour.fromPrice),
-    fromPrice: tour.fromPrice ?? null,
+    basePrice: tour.fromPrice ?? 0,
     rating: 0,
     reviewCount: 0,
     image: tour.coverImageUrl ?? '',

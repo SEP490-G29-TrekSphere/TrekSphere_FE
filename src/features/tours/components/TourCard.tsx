@@ -47,9 +47,9 @@ function LevelBadge({ level, className = '' }: { level: string; className?: stri
   );
 }
 
-function formatTourPrice(fromPrice: number | null | undefined, priceStr: string): string {
-  if (fromPrice != null) {
-    return new Intl.NumberFormat('vi-VN').format(fromPrice);
+function formatTourPrice(basePrice: number | undefined, priceStr: string): string {
+  if (basePrice !== undefined) {
+    return new Intl.NumberFormat('vi-VN').format(basePrice);
   }
   return priceStr.replace('đ', '').trim();
 }
@@ -60,7 +60,7 @@ function formatTourPrice(fromPrice: number | null | undefined, priceStr: string)
  */
 export default function TourCard({ tour, className = '', layout = 'list' }: TourCardProps) {
   const [imgSrc, setImgSrc] = useState(tour.image || FALLBACK_IMAGE);
-  const formattedPrice = formatTourPrice(tour.fromPrice, tour.price);
+  const formattedPrice = formatTourPrice(tour.basePrice, tour.price);
 
   if (layout === 'grid') {
     return (

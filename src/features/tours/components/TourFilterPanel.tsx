@@ -37,7 +37,7 @@ const difficultyOptions: { value: ApiDifficulty | 'ALL'; label: string }[] = [
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-  { value: 'EXTREME', label: 'Cực khó' },
+  { value: 'EXPERT', label: 'Cực thách thức' },
 ];
 
 function formatShortPrice(val: number): string {
@@ -153,9 +153,8 @@ export default function TourFilterPanel({
 
       <hr className="my-5 border-border" />
 
-      {/* Section: Ngày đi / Ngày về — xếp dọc, không chia 2 cột, vì sidebar hẹp (~3/12 cột)
-          không đủ chỗ hiển thị đầy đủ ngày + icon + nút xóa khi chia đôi theo chiều ngang. */}
-      <div className="mb-6 flex flex-col gap-3">
+      {/* Section: Ngày đi / Ngày về */}
+      <div className="mb-6 grid grid-cols-2 gap-3">
         <div>
           <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Ngày đi
@@ -168,7 +167,7 @@ export default function TourFilterPanel({
                 onDepartureDateChange(date ? toLocalDateStr(date) : '');
               }}
               placeholderText="Chọn ngày"
-              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !p-0 !pr-5 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
               isClearable
             />
           </div>
@@ -186,7 +185,7 @@ export default function TourFilterPanel({
                 onReturnDateChange(date ? toLocalDateStr(date) : '');
               }}
               placeholderText="Chọn ngày"
-              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !p-0 !pr-5 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
               minDate={departureDateObj || undefined}
               isClearable
             />

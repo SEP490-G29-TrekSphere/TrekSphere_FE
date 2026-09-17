@@ -38,7 +38,7 @@ describe('vendorTourService — publish/unpublish tour', () => {
           {
             tourId: 't1',
             tourName: 'Đỉnh Phượng Hoàng',
-            fromPrice: 15000000,
+            basePrice: 15000000,
             difficulty: 'MODERATE',
             status: 'DRAFT',
             coverImageUrl: null,

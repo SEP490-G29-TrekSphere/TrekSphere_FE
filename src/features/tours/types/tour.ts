@@ -12,7 +12,7 @@ export interface Tour {
   duration: string;
   level: TourLevel;
   price: string;
-  fromPrice?: number | null;
+  basePrice?: number;
   originalPrice?: string;
   rating: number;
   reviewCount: number;
@@ -182,8 +182,7 @@ export interface TourFilter {
 /**
  * Difficulty levels from the API
  */
-/** Khớp đúng enum `DifficultyLevel` thật ở BE — không có `EXPERT`/`BEGINNER`. */
-export type ApiDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
+export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER';
 
 /**
  * Status values from the API
@@ -203,7 +202,7 @@ export type ApiSortDir = 'asc' | 'desc';
  * `sortBy=averageRating` khiến Hibernate ném `UnknownPathException` → 500.
  * Muốn xếp theo điểm đánh giá thì phải sort ở client.
  */
-export type ApiSortField = 'createdAt' | 'fromPrice' | 'durationDays' | 'tourName';
+export type ApiSortField = 'createdAt' | 'basePrice' | 'durationDays' | 'tourName';
 
 /**
  * Query params for fetching tours list.
@@ -245,7 +244,7 @@ export interface TourApiItem {
   tourName: string;
   location: string;
   durationDays: number;
-  fromPrice: number | null;
+  basePrice: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
@@ -323,13 +322,7 @@ export interface TourDetailScheduleApi {
   tourId: string;
   departureDate: string;
   returnDate: string;
-  /**
-   * BE hiện KHÔNG có domain Booking/giữ chỗ nào — trường này chưa từng được `GET /tours/{id}`
-   * (endpoint công khai) trả về giá trị thật, dù type khai báo bắt buộc để khớp với type alias
-   * `TourSchedule` ở `vendor-tours/types.ts` (dùng cho UI quản lý booking phía vendor, vốn được
-   * xây trước nhưng BE chưa hỗ trợ — xem ghi chú ở đó). KHÔNG dùng field này để lọc/hiển thị ở
-   * các trang công khai (trekker) — xem `isBookableSchedule` trong `tour-details/shared.ts`.
-   */
+  /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
   availableSlots: number;
   bookedSlots: number;
   price: number;
@@ -356,7 +349,7 @@ export interface TourDetailFromApi {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
-  fromPrice: number | null;
+  basePrice: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
