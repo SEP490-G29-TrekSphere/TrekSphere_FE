@@ -20,7 +20,8 @@ export function BlogContent({ post }: BlogContentProps) {
 
   return (
     <article
-      className="flex flex-col gap-5 text-base leading-relaxed text-primary/90 md:text-lg ql-editor [&_img]:mx-auto [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl"
+      id="blog-content"
+      className="flex flex-col gap-5 text-base leading-relaxed text-primary/90 md:text-lg ql-editor [&_img]:mx-auto [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl transition-all duration-300"
       style={{ padding: 0 }}
     >
       {stripHtml(content).trim().length === 0 ? (

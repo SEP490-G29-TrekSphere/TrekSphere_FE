@@ -5,6 +5,7 @@ import {
   HIKING_SKILLS_MAX,
   HIKING_TAG_MAX_LENGTH,
 } from '@/constants';
+import { isValidVietnamesePhone, normalizePhoneNumber } from '@/utils/phone';
 
 /**
  * Zod schemas cho form login/register.
@@ -101,10 +102,11 @@ export const updateProfileSchema = z
       .string({ message: 'Vui lòng nhập số điện thoại' })
       .trim()
       .min(1, 'Vui lòng nhập số điện thoại')
-      .regex(
-        /^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/,
-        'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)'
-      ),
+      .refine((val) => isValidVietnamesePhone(val), {
+        message:
+          'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)',
+      })
+      .transform((val) => normalizePhoneNumber(val)),
     gender: z.enum(['male', 'female', 'other']).optional().or(z.literal('')),
     dateOfBirth: z
       .string({ message: 'Vui lòng chọn ngày sinh' })
@@ -132,10 +134,10 @@ export const updateProfileSchema = z
           if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
             age--;
           }
-          return age >= 10 && age <= 100;
+          return age >= 18 && age <= 100;
         },
         {
-          message: 'Độ tuổi hợp lệ phải từ 10 đến 100 tuổi',
+          message: 'Bạn phải từ 18 tuổi trở lên (độ tuổi hợp lệ từ 18 đến 100 tuổi)',
         }
       ),
     bio: z

@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Banknote, FileText, Loader2, Save, X } from 'lucide-react';
+import { FileText, Loader2, Save, X } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AppModalShell } from '@/shared/ui';
+import { AppCurrencyInput, AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupCostItem } from '../../../hooks/useGroupBudgetWorkspace';
 import type { CustomJourneyCostItemResponse } from '../../../types/workspace';
@@ -38,6 +38,7 @@ export function EditCostItemModal({ isOpen, onClose, groupId, costItem }: EditCo
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<EditCostItemFormValues>({
     resolver: zodResolver(editCostItemSchema),
@@ -151,17 +152,18 @@ export function EditCostItemModal({ isOpen, onClose, groupId, costItem }: EditCo
             <label className="text-xs font-bold text-foreground">
               Số tiền dự tính (VNĐ) <span className="text-destructive">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="number"
-                step="1000"
-                min="1000"
-                placeholder="VD: 1500000"
-                {...register('estimatedAmount', { valueAsNumber: true })}
-                className="w-full rounded-xl border border-border bg-background pl-9 pr-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
-              />
-              <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
+            <Controller
+              name="estimatedAmount"
+              control={control}
+              render={({ field }) => (
+                <AppCurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="VD: 1.500.000"
+                  className="w-full rounded-xl border border-border bg-background pl-9 pr-14 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
+                />
+              )}
+            />
             {errors.estimatedAmount && (
               <p className="text-[11px] text-destructive font-medium">
                 {errors.estimatedAmount.message}

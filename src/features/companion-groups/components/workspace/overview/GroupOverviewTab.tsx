@@ -36,8 +36,8 @@ export function GroupOverviewTab({
   return (
     <div className="space-y-4">
       <LeaderCard
-        ownerName={currentLeader?.fullName ?? group.ownerName}
-        ownerAvatarUrl={currentLeader?.avatarUrl ?? group.ownerAvatarUrl}
+        ownerName={currentLeader?.fullName ?? group.leaderName ?? group.ownerName}
+        ownerAvatarUrl={currentLeader?.avatarUrl ?? group.leaderAvatarUrl ?? group.ownerAvatarUrl}
         descriptionText={descriptionText}
       />
 

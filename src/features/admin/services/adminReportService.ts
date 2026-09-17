@@ -15,6 +15,12 @@ export interface ReportResponse {
   reporterAvatar: string | null;
   targetTitle: string | null;
   targetContent: string | null;
+  targetAuthorId: string | null;
+  targetAuthorFullName: string | null;
+  targetAuthorEmail: string | null;
+  targetAuthorAvatar: string | null;
+  targetAuthorStatus: string | null;
+  targetAuthorTrustScore: number | null;
   resolutionNotes: string | null;
   resolvedByFullName: string | null;
   createdAt: string;
@@ -39,6 +45,7 @@ export interface ReportFilterRequest {
 export interface ResolveReportRequest {
   action: ReportAction;
   resolutionNotes: string;
+  penaltyTrustScore?: number;
 }
 
 export const adminReportService = {

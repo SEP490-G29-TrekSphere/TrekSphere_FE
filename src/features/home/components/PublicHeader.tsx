@@ -24,6 +24,7 @@ export default function PublicHeader() {
   const user = useAppStore((state) => state.user);
   const setUser = useAppStore((state) => state.setUser);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -40,6 +41,7 @@ export default function PublicHeader() {
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
+    setNotificationOpen(false);
   }, []);
 
   // Đóng cả mobile menu lẫn dropdown khi click ra ngoài header
@@ -47,6 +49,7 @@ export default function PublicHeader() {
     const handler = (e: MouseEvent | TouchEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setNotificationOpen(false);
         setMobileMenuOpen(false);
       }
     };
@@ -66,6 +69,7 @@ export default function PublicHeader() {
     queryClient.removeQueries({ queryKey: profileKeys.all });
     toast.success('Đã đăng xuất.');
     setDropdownOpen(false);
+    setNotificationOpen(false);
     setMobileMenuOpen(false);
   };
 
@@ -91,8 +95,14 @@ export default function PublicHeader() {
           <button
             type="button"
             onClick={() => {
-              setMobileMenuOpen((prev) => !prev);
-              setDropdownOpen(false);
+              setMobileMenuOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  setDropdownOpen(false);
+                  setNotificationOpen(false);
+                }
+                return next;
+              });
             }}
             className={`flex size-9 items-center justify-center rounded-lg transition-colors md:hidden cursor-pointer ${
               transparent ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-muted'
@@ -141,13 +151,28 @@ export default function PublicHeader() {
           {user ? (
             /* Authenticated: bell + avatar + dropdown */
             <>
-              <NotificationBell />
+              <NotificationBell
+                open={notificationOpen}
+                onOpenChange={(open) => {
+                  setNotificationOpen(open);
+                  if (open) {
+                    setDropdownOpen(false);
+                    setMobileMenuOpen(false);
+                  }
+                }}
+              />
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => {
-                    setDropdownOpen((prev) => !prev);
-                    setMobileMenuOpen(false);
+                    setDropdownOpen((prev) => {
+                      const next = !prev;
+                      if (next) {
+                        setNotificationOpen(false);
+                        setMobileMenuOpen(false);
+                      }
+                      return next;
+                    });
                   }}
                   className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
                   aria-label="Mở menu cá nhân"

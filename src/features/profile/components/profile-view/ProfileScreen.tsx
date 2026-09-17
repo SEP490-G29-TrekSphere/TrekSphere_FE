@@ -99,15 +99,29 @@ export function ProfileScreen({
   }
 
   if (profileMissing) {
-    const message = isMeMode
-      ? meQuery.error instanceof Error
-        ? meQuery.error.message
-        : 'Không thể tải hồ sơ. Vui lòng đăng nhập hoặc thử lại sau.'
-      : 'Không tìm thấy người dùng này, hoặc họ chưa có nội dung công khai nào.';
+    const hikingErr = hikingQuery.error as { message?: string; status?: number } | null;
+    const publicErr = publicQuery.error as { message?: string; status?: number } | null;
+    const isLockedError =
+      hikingErr?.message?.toLowerCase().includes('khóa') ||
+      publicErr?.message?.toLowerCase().includes('khóa') ||
+      hikingErr?.status === 403 ||
+      publicErr?.status === 403;
+
+    const title = isLockedError ? 'Tài khoản đã bị khóa' : 'Không hiển thị được hồ sơ';
+
+    const message = isLockedError
+      ? 'Tài khoản này đã bị khóa do vi phạm tiêu chuẩn cộng đồng. Toàn bộ thông tin cá nhân đã bị ẩn.'
+      : isMeMode
+        ? meQuery.error instanceof Error
+          ? meQuery.error.message
+          : 'Không thể tải hồ sơ. Vui lòng đăng nhập hoặc thử lại sau.'
+        : 'Không tìm thấy người dùng này, hoặc họ chưa có nội dung công khai nào.';
 
     return (
       <div className="mx-auto w-full max-w-md px-4 py-20 text-center">
-        <p className="text-base font-semibold text-primary">Không hiển thị được hồ sơ</p>
+        <p className={`text-base font-semibold ${isLockedError ? 'text-red-600' : 'text-primary'}`}>
+          {title}
+        </p>
         <p className="mt-2 text-sm text-muted-foreground">{message}</p>
         {isMeMode ? (
           <button

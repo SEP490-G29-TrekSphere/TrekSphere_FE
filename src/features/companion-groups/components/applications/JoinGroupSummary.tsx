@@ -26,7 +26,8 @@ export function JoinGroupSummary({ group }: JoinGroupSummaryProps) {
           <div className="flex items-center gap-1.5">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span>
-              Trưởng nhóm: <strong className="font-semibold">{group.ownerName}</strong>
+              Trưởng nhóm:{' '}
+              <strong className="font-semibold">{group.leaderName ?? group.ownerName}</strong>
             </span>
           </div>
           <span className="rounded-full bg-muted px-3 py-1 font-bold text-xs">

@@ -56,6 +56,10 @@ export interface CreateTourPayload {
   basePrice: number;
   minCapacity: number;
   maxCapacity: number;
+  totalDistanceKm?: number;
+  highlights?: string;
+  includes?: string;
+  excludes?: string;
   /**
    * URL ảnh bìa đã upload sẵn qua `POST /files/upload`. Gửi kèm song song với `coverImage`
    * — xem ghi chú "ẢNH BÌA" ở đầu `vendorTourService.ts` để biết vì sao gửi cả hai.

@@ -5,9 +5,11 @@ export interface ReportDecisionPanelProps {
   isSubmitted: boolean;
   selectedDecision: ReportAction | null;
   note: string;
+  penaltyPoints: number;
   isSubmitting: boolean;
   onDecisionChange: (decision: ReportAction | null) => void;
   onNoteChange: (note: string) => void;
+  onPenaltyPointsChange: (points: number) => void;
   onSubmit: () => void;
   onEditDecision: () => void;
 }
@@ -16,12 +18,25 @@ export function ReportDecisionPanel({
   isSubmitted,
   selectedDecision,
   note,
+  penaltyPoints,
   isSubmitting,
   onDecisionChange,
   onNoteChange,
+  onPenaltyPointsChange,
   onSubmit,
   onEditDecision,
 }: ReportDecisionPanelProps) {
+  const handleDecisionSelect = (action: ReportAction) => {
+    onDecisionChange(action);
+    if (action === 'WARNING') {
+      onPenaltyPointsChange(5);
+    } else if (action === 'HIDE_CONTENT') {
+      onPenaltyPointsChange(10);
+    } else {
+      onPenaltyPointsChange(0);
+    }
+  };
+
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
       <h3 className="font-extrabold text-xs tracking-wider uppercase text-zinc-800">
@@ -36,8 +51,8 @@ export function ReportDecisionPanel({
           <div>
             <h4 className="font-bold text-emerald-900 text-sm">Báo cáo đã được xử lý!</h4>
             <p className="text-xs text-emerald-700 mt-1">
-              Hệ thống đã ghi nhận quyết định của quản trị viên và áp dụng lên nội dung/tài khoản vi
-              phạm.
+              Hệ thống đã ghi nhận quyết định của quản trị viên và áp dụng chế tài kỷ luật lên người
+              vi phạm.
             </p>
           </div>
           <button
@@ -65,16 +80,16 @@ export function ReportDecisionPanel({
                 name="decision"
                 value="HIDE_CONTENT"
                 checked={selectedDecision === 'HIDE_CONTENT'}
-                onChange={() => onDecisionChange('HIDE_CONTENT')}
+                onChange={() => handleDecisionSelect('HIDE_CONTENT')}
                 className="mt-1 accent-[#0B3025]"
               />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-zinc-900">Ẩn nội dung</span>
+                  <span className="font-bold text-xs text-zinc-900">Ẩn nội dung vi phạm</span>
                   <EyeOff className="size-4 text-zinc-600" />
                 </div>
                 <p className="text-[11px] text-zinc-500 font-medium leading-normal mt-0.5">
-                  Nội dung sẽ không còn hiển thị với công chúng.
+                  Nội dung sẽ bị ẩn khỏi công chúng (Mặc định trừ -10 điểm tín nhiệm).
                 </p>
               </div>
             </label>
@@ -92,7 +107,7 @@ export function ReportDecisionPanel({
                 name="decision"
                 value="WARNING"
                 checked={selectedDecision === 'WARNING'}
-                onChange={() => onDecisionChange('WARNING')}
+                onChange={() => handleDecisionSelect('WARNING')}
                 className="mt-1 accent-[#0B3025]"
               />
               <div className="flex-1">
@@ -101,7 +116,7 @@ export function ReportDecisionPanel({
                   <AlertTriangle className="size-4 text-amber-600" />
                 </div>
                 <p className="text-[11px] text-zinc-500 font-medium leading-normal mt-0.5">
-                  Thông báo vi phạm sẽ được gửi tới email/inbox.
+                  Gửi thông báo nhắc nhở chính thức (Mặc định trừ nhẹ -5 điểm tín nhiệm).
                 </p>
               </div>
             </label>
@@ -119,7 +134,7 @@ export function ReportDecisionPanel({
                 name="decision"
                 value="DISMISS"
                 checked={selectedDecision === 'DISMISS'}
-                onChange={() => onDecisionChange('DISMISS')}
+                onChange={() => handleDecisionSelect('DISMISS')}
                 className="mt-1 accent-[#0B3025]"
               />
               <div className="flex-1">
@@ -128,20 +143,54 @@ export function ReportDecisionPanel({
                   <XCircle className="size-4 text-zinc-500" />
                 </div>
                 <p className="text-[11px] text-zinc-500 font-medium leading-normal mt-0.5">
-                  Đánh dấu báo cáo là không hợp lệ.
+                  Đánh dấu báo cáo không hợp lệ, không áp dụng xử phạt.
                 </p>
               </div>
             </label>
           </div>
 
+          {/* Penalty Trust Score Adjustment (for WARNING & HIDE_CONTENT) */}
+          {(selectedDecision === 'WARNING' || selectedDecision === 'HIDE_CONTENT') && (
+            <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 space-y-2 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-amber-950">
+                  Điểm tín nhiệm bị trừ (Trust Score)
+                </label>
+                <span className="text-xs font-extrabold text-amber-700">-{penaltyPoints} điểm</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value={penaltyPoints}
+                  onChange={(e) => onPenaltyPointsChange(Number(e.target.value))}
+                  className="w-full accent-amber-700 cursor-pointer"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="50"
+                  value={penaltyPoints}
+                  onChange={(e) => onPenaltyPointsChange(Math.max(0, Number(e.target.value)))}
+                  className="w-14 px-2 py-1 text-center font-bold text-xs bg-white border border-amber-300 rounded-lg text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </div>
+              <p className="text-[10px] text-amber-800/80">
+                Điểm tín nhiệm của tác giả sẽ bị trừ tương ứng và hiển thị trong thông báo kỷ luật.
+              </p>
+            </div>
+          )}
+
           {/* Note Field */}
           <div className="space-y-1.5 pt-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-zinc-800">Ghi chú điều hành</span>
-              <span className="text-[11px] text-zinc-400">Bắt buộc nếu xử lý kỷ luật</span>
+              <span className="text-[11px] text-zinc-400">Lý do xử lý gửi kèm thông báo</span>
             </div>
             <textarea
-              rows={4}
+              rows={3}
               value={note}
               onChange={(e) => onNoteChange(e.target.value)}
               placeholder="Nhập lý do chi tiết cho quyết định này..."

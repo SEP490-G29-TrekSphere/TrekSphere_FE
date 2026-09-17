@@ -22,6 +22,7 @@ export interface MatchingGroupCardViewModel {
   leaderAvatarUrl?: string;
   matchingDeadline?: string;
   coverImageUrl: string;
+  estimatedCost?: number | null;
   isOwner?: boolean;
   myRole?: import('../types/matchingGroup').MatchingMemberRole | null;
 }
@@ -35,18 +36,15 @@ export function toMatchingGroupCardViewModel(
   currentUserId?: string
 ): MatchingGroupCardViewModel {
   if (isMatchingGroupItem(group)) {
-    const isOwner = Boolean(
-      group.isOwner === true ||
-        (group as unknown as { owner?: boolean }).owner === true ||
-        group.myRole === 'LEADER' ||
-        (group as unknown as { role?: string }).role === 'LEADER' ||
-        (currentUserId && String(group.ownerId) === String(currentUserId))
-    );
+    const isLeaderRole =
+      group.myRole === 'LEADER' ||
+      (group as unknown as { role?: string }).role === 'LEADER' ||
+      (group.isOwner === true && group.myRole !== 'MEMBER');
 
     const myRole =
       group.myRole ??
       (group as unknown as { role?: import('../types/matchingGroup').MatchingMemberRole }).role ??
-      (isOwner ? 'LEADER' : null);
+      (isLeaderRole ? 'LEADER' : null);
 
     return {
       groupId: group.matchingGroupId,
@@ -65,7 +63,8 @@ export function toMatchingGroupCardViewModel(
       matchingDeadline: group.matchingDeadline,
       coverImageUrl:
         group.coverImageUrl || group.tourImageUrl || MATCHING_GROUP_FALLBACK_COVER_IMAGE,
-      isOwner,
+      estimatedCost: group.estimatedCost ?? null,
+      isOwner: isLeaderRole,
       myRole,
     };
   }
@@ -163,12 +162,16 @@ export function isCurrentUserGroupLeader(
   group: {
     members?: import('../types/matchingGroup').MatchingMemberItem[];
     myRole?: import('../types/matchingGroup').MatchingMemberRole | null;
+    myMembershipStatus?: import('../types/matchingGroup').MatchingMemberStatus | null;
   },
   userId: string | undefined
 ): boolean {
   const leader = resolveCurrentLeaderMember(group);
   if (leader) return String(leader.userId) === String(userId);
-  // Fallback khi response không kèm members (VD danh sách rút gọn) — tin myRole do BE tính đúng.
+  // Fallback khi response không kèm members (VD danh sách rút gọn) — chỉ là leader khi myMembershipStatus là ACCEPTED (hoặc không set trong list rút gọn)
+  if (group.myMembershipStatus && group.myMembershipStatus !== 'ACCEPTED') {
+    return false;
+  }
   return group.myRole === 'LEADER';
 }
 
@@ -180,14 +183,16 @@ export function resolveGroupUserRole(
   if (isCurrentUserGroupLeader(group, userId)) {
     return 'leader';
   }
-  if (group.myMembershipStatus === 'ACCEPTED' || group.myRole === 'MEMBER') {
+  if (group.myMembershipStatus === 'ACCEPTED' && group.myRole === 'MEMBER') {
     return 'member';
   }
   if (group.myMembershipStatus === 'PENDING') {
     return 'pending';
   }
   const membership = group.members?.find((member) => String(member.userId) === String(userId));
-  if (membership?.status === 'ACCEPTED') return 'member';
+  if (membership?.status === 'ACCEPTED') {
+    return membership.role === 'LEADER' ? 'leader' : 'member';
+  }
   if (membership?.status === 'PENDING') return 'pending';
   return 'guest';
 }

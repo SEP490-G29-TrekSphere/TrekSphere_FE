@@ -1,6 +1,7 @@
 import { Clock, Eye, MapPin, Users } from 'lucide-react';
 import { useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
+import { SearchableTourSelect } from '@/shared/components/SearchableTourSelect';
 import type {
   CreateMatchingGroupFormInput,
   CreateMatchingGroupFormValues,
@@ -57,22 +58,17 @@ export function TourSelectionField({
             </button>
           )}
         </div>
-        <select
-          {...form.register('tourId', {
-            onChange: (e) => onTourSelected(e.target.value),
-          })}
+        <SearchableTourSelect
+          tours={tours}
+          value={selectedTourId}
+          onChange={(val) => {
+            form.setValue('tourId', val, { shouldValidate: true, shouldDirty: true });
+            onTourSelected(val);
+          }}
+          placeholder={isToursLoading ? 'Đang tải...' : 'Chọn tour để tạo nhóm ghép'}
           disabled={isToursLoading || isPending}
-          className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-input bg-background px-4 pr-10 font-medium text-foreground text-sm outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="" disabled>
-            {isToursLoading ? 'Đang tải...' : 'Chọn tour để tạo nhóm ghép'}
-          </option>
-          {tours.map((tour) => (
-            <option key={tour.id} value={tour.id}>
-              {tour.name}
-            </option>
-          ))}
-        </select>
+          triggerClassName="h-11 rounded-lg text-sm bg-background border-input font-medium"
+        />
         {form.formState.errors.tourId?.message && (
           <p className="text-destructive text-xs">{form.formState.errors.tourId.message}</p>
         )}

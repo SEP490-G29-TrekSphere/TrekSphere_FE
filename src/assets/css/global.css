@@ -710,3 +710,38 @@ body {
 .react-datepicker-popper {
   z-index: 9999 !important;
 }
+
+@keyframes target-pulse {
+  0% {
+    background-color: rgba(245, 158, 11, 0.25);
+    box-shadow:
+      0 0 0 4px rgba(245, 158, 11, 0.6),
+      0 0 25px rgba(245, 158, 11, 0.4);
+    transform: scale(1.015);
+  }
+  30% {
+    background-color: rgba(245, 158, 11, 0.2);
+    box-shadow:
+      0 0 0 4px rgba(245, 158, 11, 0.5),
+      0 0 20px rgba(245, 158, 11, 0.3);
+    transform: scale(1.01);
+  }
+  70% {
+    background-color: rgba(245, 158, 11, 0.1);
+    box-shadow:
+      0 0 0 2px rgba(245, 158, 11, 0.3),
+      0 0 10px rgba(245, 158, 11, 0.15);
+    transform: scale(1);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+.highlight-target {
+  animation: target-pulse 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  scroll-margin-top: 120px;
+  border-radius: 1rem;
+}

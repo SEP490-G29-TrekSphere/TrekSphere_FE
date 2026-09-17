@@ -146,7 +146,8 @@ export const getVendorManagerTourSchedulesPath = (id: string) =>
 export const getPartnerTourSchedulesPath = (id: string) =>
   PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
-export const getUserProfilePath = (userId: string) => PATHS.USER_PROFILE.replace(':userId', userId);
+export const getUserProfilePath = (userId?: string | null) =>
+  userId ? PATHS.USER_PROFILE.replace(':userId', userId) : '#';
 export const getVendorPublicProfilePath = (vendorId: string) =>
   PATHS.VENDOR_PUBLIC_PROFILE.replace(':vendorId', vendorId);
 export const getTrekkerBlogEditPath = (blogId: string) =>

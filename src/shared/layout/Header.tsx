@@ -61,6 +61,7 @@ export default function Header() {
   const setUser = useAppStore((state) => state.setUser);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -68,6 +69,7 @@ export default function Header() {
     const handler = (e: MouseEvent | TouchEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setNotificationOpen(false);
         setMobileMenuOpen(false);
       }
     };
@@ -87,6 +89,7 @@ export default function Header() {
     queryClient.removeQueries({ queryKey: profileKeys.all });
     toast.success('Đã đăng xuất.');
     setDropdownOpen(false);
+    setNotificationOpen(false);
     setMobileMenuOpen(false);
     navigate(PATHS.HOME);
   };
@@ -106,8 +109,14 @@ export default function Header() {
           <button
             type="button"
             onClick={() => {
-              setMobileMenuOpen((prev) => !prev);
-              setDropdownOpen(false);
+              setMobileMenuOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  setDropdownOpen(false);
+                  setNotificationOpen(false);
+                }
+                return next;
+              });
             }}
             className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
             aria-label="Mở menu điều hướng"
@@ -125,14 +134,31 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {user && <NotificationBell />}
+          {user && (
+            <NotificationBell
+              open={notificationOpen}
+              onOpenChange={(open) => {
+                setNotificationOpen(open);
+                if (open) {
+                  setDropdownOpen(false);
+                  setMobileMenuOpen(false);
+                }
+              }}
+            />
+          )}
           {/* User avatar + dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => {
-                setDropdownOpen((prev) => !prev);
-                setMobileMenuOpen(false);
+                setDropdownOpen((prev) => {
+                  const next = !prev;
+                  if (next) {
+                    setNotificationOpen(false);
+                    setMobileMenuOpen(false);
+                  }
+                  return next;
+                });
               }}
               className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
               aria-label="Mở menu cá nhân"

@@ -5,6 +5,8 @@ export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'sos';
 export interface ToastOptions {
   title?: string;
   duration?: number;
+  actionUrl?: string;
+  onClick?: () => void;
 }
 
 export interface ToastMessage {
@@ -13,6 +15,8 @@ export interface ToastMessage {
   type: ToastType;
   title?: string;
   duration?: number;
+  actionUrl?: string;
+  onClick?: () => void;
 }
 
 interface ToastState {
@@ -40,6 +44,8 @@ export const useToastStore = create<ToastState>((set, get) => ({
           type,
           title: options?.title,
           duration: options?.duration ?? 4000,
+          actionUrl: options?.actionUrl,
+          onClick: options?.onClick,
         },
       ],
     }));

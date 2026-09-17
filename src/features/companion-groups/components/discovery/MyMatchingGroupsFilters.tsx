@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { SearchableTourSelect } from '@/shared/components/SearchableTourSelect';
 import { AppDatePicker } from '@/shared/ui';
 import {
   MATCHING_GROUP_STATUS_FILTER_OPTIONS,
@@ -46,18 +47,13 @@ export function MyMatchingGroupsFilters({
           <span className="mb-2 block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
             Tour
           </span>
-          <select
+          <SearchableTourSelect
+            tours={tours}
             value={selectedTourId}
-            onChange={(e) => onTourChange(e.target.value)}
-            className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-foreground text-xs outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="">-- Tất cả các Tour --</option>
-            {tours.map((tour) => (
-              <option key={tour.id} value={tour.id}>
-                {tour.name}
-              </option>
-            ))}
-          </select>
+            onChange={onTourChange}
+            allOptionLabel="-- Tất cả các Tour --"
+            placeholder="-- Tất cả các Tour --"
+          />
         </div>
 
         <hr className="my-5 border-border" />
