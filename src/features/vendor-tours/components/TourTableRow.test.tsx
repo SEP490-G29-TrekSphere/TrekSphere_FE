@@ -9,7 +9,7 @@ function renderRow(status: VendorTourListItem['status'], overrides: RowOverrides
   const tour: VendorTourListItem = {
     id: 't1',
     name: 'Đỉnh Phượng Hoàng',
-    basePrice: 15000000,
+    fromPrice: 15000000,
     difficulty: 'MODERATE',
     status,
     createdAt: '2026-07-20T10:00:00Z',

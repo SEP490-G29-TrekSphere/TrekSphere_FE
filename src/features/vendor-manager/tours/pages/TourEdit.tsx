@@ -121,26 +121,11 @@ export default function TourEdit() {
         defaultValues={{
           tourName: tour.tourName,
           difficulty: toFormDifficulty(tour.difficulty),
-          basePrice: tour.basePrice,
           location: tour.location,
           minCapacity: tour.minCapacity ?? 1,
           maxCapacity: tour.maxCapacity,
           durationDays: tour.durationDays,
           description: tour.description,
-          minAge: tour.participationPolicy?.minAge?.toString() ?? '18',
-          maxAge: tour.participationPolicy?.maxAge?.toString() ?? '',
-          fitnessLevel: tour.participationPolicy?.fitnessLevel ?? 'ANY',
-          healthRequirements: tour.participationPolicy?.healthRequirements ?? '',
-          restrictedMedicalConditions: tour.participationPolicy?.restrictedMedicalConditions ?? '',
-          requiredExperience: tour.participationPolicy?.requiredExperience ?? '',
-          requiredSkills: tour.participationPolicy?.requiredSkills ?? '',
-          requiredEquipment: tour.participationPolicy?.requiredEquipment ?? '',
-          requiredDocuments: tour.participationPolicy?.requiredDocuments ?? '',
-          requiresHealthDeclaration: tour.participationPolicy?.requiresHealthDeclaration ?? true,
-          requiresMedicalCertificate: tour.participationPolicy?.requiresMedicalCertificate ?? false,
-          guardianRequiredUnderAge:
-            tour.participationPolicy?.guardianRequiredUnderAge?.toString() ?? '',
-          additionalRequirements: tour.participationPolicy?.additionalRequirements ?? '',
         }}
         existingCoverImageUrl={tour.coverImageUrl ?? undefined}
         initialCheckpoints={(checkpoints ?? []).map(toCheckpointDraft)}

@@ -21,12 +21,16 @@ export function TourMobileBookingBar({ tour, hasSchedules }: TourMobileBookingBa
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-md lg:hidden">
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <div className="min-w-0">
-          <p className="flex items-baseline gap-1">
-            <span className="text-xl font-extrabold text-primary">
-              {formatPrice(tour.basePrice)}đ
-            </span>
-            <span className="text-xs text-muted-foreground">/ người</span>
-          </p>
+          {tour.fromPrice == null ? (
+            <p className="text-sm font-bold text-primary">Liên hệ để biết giá</p>
+          ) : (
+            <p className="flex items-baseline gap-1">
+              <span className="text-xl font-extrabold text-primary">
+                {formatPrice(tour.fromPrice)}đ
+              </span>
+              <span className="text-xs text-muted-foreground">/ người</span>
+            </p>
+          )}
           <p className="truncate text-xs text-muted-foreground">
             {hasSchedules ? 'Khởi hành theo lịch' : 'Liên hệ để đặt chỗ'}
           </p>

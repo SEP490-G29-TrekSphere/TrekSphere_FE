@@ -150,7 +150,7 @@ export function TourPreviewDetailModal({ isOpen, tourId, onClose }: TourPreviewD
             <div>
               <p className="text-muted-foreground text-[10px]">Giá tham khảo</p>
               <p className="font-bold text-primary">
-                {tour.basePrice ? `${tour.basePrice.toLocaleString('vi-VN')}đ` : 'Liên hệ'}
+                {tour.fromPrice ? `${tour.fromPrice.toLocaleString('vi-VN')}đ` : 'Liên hệ'}
               </p>
             </div>
           </div>

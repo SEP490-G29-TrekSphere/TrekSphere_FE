@@ -55,7 +55,7 @@ async function fetchRecommendedTours(limit: number): Promise<RecommendedTour[]> 
     duration: formatTourDuration(tour.durationDays ?? 1),
     level: DIFFICULTY_MAP[tour.difficulty] ?? 'Trung bình',
     price: formatPrice(tour.fromPrice),
-    basePrice: tour.fromPrice ?? 0,
+    fromPrice: tour.fromPrice ?? null,
     rating: 0,
     reviewCount: 0,
     image: tour.coverImageUrl ?? '',

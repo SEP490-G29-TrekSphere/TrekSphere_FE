@@ -80,7 +80,7 @@ export function TourTableRow({
 
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <span className="font-semibold" style={{ color: '#06261D' }}>
-          {formatPrice(tour.basePrice)}đ
+          {tour.fromPrice == null ? 'Liên hệ' : `${formatPrice(tour.fromPrice)}đ`}
         </span>
       </td>
 

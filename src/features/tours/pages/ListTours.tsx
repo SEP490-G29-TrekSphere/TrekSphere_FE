@@ -20,9 +20,9 @@ import { AppButton } from '@/shared/ui';
 function resolveSort(sortBy: TourFilter['sortBy']): { sortBy: ApiSortField; sortDir: ApiSortDir } {
   switch (sortBy) {
     case 'price-asc':
-      return { sortBy: 'basePrice', sortDir: 'asc' };
+      return { sortBy: 'fromPrice', sortDir: 'asc' };
     case 'price-desc':
-      return { sortBy: 'basePrice', sortDir: 'desc' };
+      return { sortBy: 'fromPrice', sortDir: 'desc' };
     case 'newest':
       return { sortBy: 'createdAt', sortDir: 'desc' };
     case 'duration-asc':
@@ -181,8 +181,8 @@ export default function ListTours() {
   const filteredTours = useMemo(() => {
     if (!isPriceFilterActive || isLoading) return tours;
     return tours.filter((tour) => {
-      if (!tour.basePrice) return true;
-      return tour.basePrice >= priceRange[0] && tour.basePrice <= priceRange[1];
+      if (tour.fromPrice == null) return true;
+      return tour.fromPrice >= priceRange[0] && tour.fromPrice <= priceRange[1];
     });
   }, [tours, priceRange, isLoading, isPriceFilterActive]);
 

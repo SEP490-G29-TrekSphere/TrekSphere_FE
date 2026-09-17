@@ -61,7 +61,7 @@ import type {
 interface VendorTourResponseDto {
   tourId: string;
   tourName: string;
-  basePrice: number;
+  fromPrice: number | null;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   coverImageUrl: string | null;
@@ -100,26 +100,6 @@ function toFormData(
   return formData;
 }
 
-function participationPolicyFields(
-  policy: CreateTourPayload['participationPolicy']
-): Record<string, string | number | boolean | undefined> {
-  return {
-    'participationPolicy.minAge': policy.minAge,
-    'participationPolicy.maxAge': policy.maxAge,
-    'participationPolicy.fitnessLevel': policy.fitnessLevel,
-    'participationPolicy.healthRequirements': policy.healthRequirements,
-    'participationPolicy.restrictedMedicalConditions': policy.restrictedMedicalConditions,
-    'participationPolicy.requiredExperience': policy.requiredExperience,
-    'participationPolicy.requiredSkills': policy.requiredSkills,
-    'participationPolicy.requiredEquipment': policy.requiredEquipment,
-    'participationPolicy.requiredDocuments': policy.requiredDocuments,
-    'participationPolicy.requiresHealthDeclaration': policy.requiresHealthDeclaration,
-    'participationPolicy.requiresMedicalCertificate': policy.requiresMedicalCertificate,
-    'participationPolicy.guardianRequiredUnderAge': policy.guardianRequiredUnderAge,
-    'participationPolicy.additionalRequirements': policy.additionalRequirements,
-  };
-}
-
 function unwrapResponse<T>(response: ApiResponse<T>): T {
   if (response.error) {
     throw new Error(response.error);
@@ -135,7 +115,7 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
     id: dto.tourId,
     name: dto.tourName,
     coverImageUrl: dto.coverImageUrl ?? undefined,
-    basePrice: dto.basePrice,
+    fromPrice: dto.fromPrice,
     difficulty: dto.difficulty,
     status: dto.status,
     createdAt: dto.createdAt,
@@ -183,12 +163,10 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
       coverImageUrl: payload.coverImageUrl,
       coverImage: payload.coverImage,
-      ...participationPolicyFields(payload.participationPolicy),
     });
     const response = await ApiUpload<TourDetailResponseDto>('/vendor/tours', formData);
     const data = unwrapResponse(response);
@@ -212,12 +190,10 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
       coverImageUrl: payload.coverImageUrl,
       coverImage: payload.coverImage,
-      ...participationPolicyFields(payload.participationPolicy),
     });
     const response = await ApiUpload<TourDetailResponseDto>(
       `/vendor/tours/${tourId}`,

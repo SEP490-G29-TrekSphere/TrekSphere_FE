@@ -51,7 +51,7 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
         coverImageUrl: tour.coverImageUrl,
         location: tour.location,
         durationDays: tour.durationDays,
-        basePrice: tour.basePrice,
+        fromPrice: tour.fromPrice,
       };
 
       if (response.data?.conversationId) {

@@ -1,10 +1,14 @@
 import { ExternalLink, ImagePlus, Loader2, X } from 'lucide-react';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // `profileService` là transport upload file dùng chung (/files/upload) của toàn hệ thống,
 // không phải API riêng của hồ sơ — mọi feature dùng lại thay vì gọi axios trực tiếp.
 import { profileService } from '@/features/profile/services/profileService';
 import { toast } from '@/store/useToastStore';
 import { getSafeImageUrl } from '@/utils/sanitize';
+
+/** 2 cách nhập ảnh loại trừ nhau — chỉ hiện đúng 1 khối input tương ứng với tab đang chọn. */
+type ImageInputMode = 'upload' | 'url';
 
 /**
  * Cơ chế upload ảnh dùng chung cho toàn app (chuẩn hoá theo modal "Thêm điểm dừng"):
@@ -135,6 +139,7 @@ export function AppImageUploadField({
 }: AppImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [mode, setMode] = useState<ImageInputMode>('upload');
 
   const setUploading = (next: boolean) => {
     setIsUploading(next);
@@ -209,48 +214,58 @@ export function AppImageUploadField({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        <button
-          type="button"
-          disabled={disabled || isUploading}
-          onClick={() => fileInputRef.current?.click()}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-              <span>Đang tải ảnh lên...</span>
-            </>
-          ) : (
-            <>
-              <ImagePlus className="h-3.5 w-3.5 text-primary" />
-              <span>{value ? 'Đổi ảnh khác' : 'Tải ảnh từ máy'}</span>
-            </>
-          )}
-        </button>
-        <span className="text-[11px] text-muted-foreground">hoặc dán đường dẫn URL:</span>
-      </div>
+      <Tabs value={mode} onValueChange={(next) => setMode(next as ImageInputMode)}>
+        <TabsList>
+          <TabsTrigger value="upload">Tải ảnh lên</TabsTrigger>
+          <TabsTrigger value="url">Dán URL ảnh</TabsTrigger>
+        </TabsList>
 
-      <input
-        type="text"
-        value={value ?? ''}
-        disabled={disabled}
-        onChange={(event) => {
-          // Tự gõ/dán URL khác → ảnh vừa upload trong phiên này thành rác, dọn luôn.
-          if (value) cleanup.release(value);
-          onChange(event.target.value);
-          onFileSelected?.(null);
-        }}
-        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
-        placeholder={urlPlaceholder}
-      />
+        <TabsContent value="upload">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              disabled={disabled || isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                  <span>Đang tải ảnh lên...</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-3.5 w-3.5 text-primary" />
+                  <span>{value ? 'Đổi ảnh khác' : 'Tải ảnh từ máy'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="url">
+          <input
+            type="text"
+            value={value ?? ''}
+            disabled={disabled}
+            onChange={(event) => {
+              // Tự gõ/dán URL khác → ảnh vừa upload trong phiên này thành rác, dọn luôn.
+              if (value) cleanup.release(value);
+              onChange(event.target.value);
+              onFileSelected?.(null);
+            }}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
+            placeholder={urlPlaceholder}
+          />
+        </TabsContent>
+      </Tabs>
 
       {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
       {errorMessage && <p className="text-[10px] text-red-500">{errorMessage}</p>}
@@ -305,6 +320,7 @@ export function AppImageUploadGallery({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [urlDraft, setUrlDraft] = useState('');
+  const [mode, setMode] = useState<ImageInputMode>('upload');
 
   const setUploading = (next: boolean) => {
     setIsUploading(next);
@@ -373,60 +389,70 @@ export function AppImageUploadGallery({
     <div className={className ?? 'space-y-2'}>
       {label && <span className="block text-xs font-bold text-foreground">{label}</span>}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        <button
-          type="button"
-          disabled={disabled || isUploading || isFull}
-          onClick={() => fileInputRef.current?.click()}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-              <span>Đang tải ảnh lên...</span>
-            </>
-          ) : (
-            <>
-              <ImagePlus className="h-3.5 w-3.5 text-primary" />
-              <span>Tải ảnh từ máy</span>
-            </>
-          )}
-        </button>
-        <span className="text-[11px] text-muted-foreground">hoặc dán đường dẫn URL:</span>
-      </div>
+      <Tabs value={mode} onValueChange={(next) => setMode(next as ImageInputMode)}>
+        <TabsList>
+          <TabsTrigger value="upload">Tải ảnh lên</TabsTrigger>
+          <TabsTrigger value="url">Dán URL ảnh</TabsTrigger>
+        </TabsList>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={urlDraft}
-          disabled={disabled || isFull}
-          onChange={(event) => setUrlDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              handleAddUrl();
-            }
-          }}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
-          placeholder={urlPlaceholder}
-        />
-        <button
-          type="button"
-          onClick={handleAddUrl}
-          disabled={disabled || isFull || !urlDraft.trim()}
-          className="shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
-        >
-          Thêm
-        </button>
-      </div>
+        <TabsContent value="upload">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              disabled={disabled || isUploading || isFull}
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                  <span>Đang tải ảnh lên...</span>
+                </>
+              ) : (
+                <>
+                  <ImagePlus className="h-3.5 w-3.5 text-primary" />
+                  <span>Tải ảnh từ máy</span>
+                </>
+              )}
+            </button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="url">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={urlDraft}
+              disabled={disabled || isFull}
+              onChange={(event) => setUrlDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleAddUrl();
+                }
+              }}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
+              placeholder={urlPlaceholder}
+            />
+            <button
+              type="button"
+              onClick={handleAddUrl}
+              disabled={disabled || isFull || !urlDraft.trim()}
+              className="shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
+            >
+              Thêm
+            </button>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {value.length > 0 && (
         <div className={gridClassName}>

@@ -6,6 +6,7 @@ import * as z from 'zod';
 import { AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import type { CheckpointSubmitItem, CreateTourPayload } from '../types';
+import { applyMarkdownAction, type MarkdownActionType } from './applyMarkdownAction';
 import { type CheckpointDraft, CheckpointFields } from './CheckpointFields';
 
 /** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó (khớp đúng zod enum bên dưới). */
@@ -19,63 +20,19 @@ const DIFFICULTY_OPTIONS: Array<{ value: FormDifficulty; label: string }> = [
 
 const MAX_COVER_SIZE_MB = 5;
 
-const requiredAgeText = z
-  .string()
-  .trim()
-  .min(1, 'Vui lòng nhập tuổi tối thiểu')
-  .refine(
-    (value) => Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 100,
-    'Tuổi phải là số nguyên từ 1 đến 100'
-  );
-
-function optionalAgeText(label: string, minimum: number, maximum: number) {
-  return z
-    .string()
-    .trim()
-    .refine(
-      (value) =>
-        value === '' ||
-        (Number.isInteger(Number(value)) && Number(value) >= minimum && Number(value) <= maximum),
-      `${label} phải là số nguyên từ ${minimum} đến ${maximum}`
-    );
-}
-
 const tourFormSchema = z
   .object({
     tourName: z.string().trim().min(1, 'Vui lòng nhập tên tour'),
     difficulty: z.enum(['EASY', 'MODERATE', 'HARD']),
-    basePrice: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
     location: z.string().trim().min(1, 'Vui lòng nhập địa điểm'),
     minCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     maxCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     durationDays: z.coerce.number().int().min(1, 'Tối thiểu 1 ngày'),
     description: z.string().trim().min(1, 'Vui lòng nhập lịch trình chi tiết'),
-    minAge: requiredAgeText,
-    maxAge: optionalAgeText('Tuổi tối đa', 1, 100),
-    fitnessLevel: z.enum(['ANY', 'BASIC', 'MODERATE', 'HIGH', 'EXTREME']),
-    healthRequirements: z.string().trim(),
-    restrictedMedicalConditions: z.string().trim(),
-    requiredExperience: z.string().trim(),
-    requiredSkills: z.string().trim(),
-    requiredEquipment: z.string().trim(),
-    requiredDocuments: z.string().trim(),
-    requiresHealthDeclaration: z.boolean(),
-    requiresMedicalCertificate: z.boolean(),
-    guardianRequiredUnderAge: optionalAgeText('Tuổi cần người giám hộ', 1, 18),
-    additionalRequirements: z.string().trim(),
   })
   .refine((data) => data.maxCapacity >= data.minCapacity, {
     message: 'Số khách tối đa phải lớn hơn hoặc bằng số khách tối thiểu',
     path: ['maxCapacity'],
-  })
-  .superRefine((data, context) => {
-    if (data.maxAge !== '' && Number(data.maxAge) < Number(data.minAge)) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Tuổi tối đa phải lớn hơn hoặc bằng tuổi tối thiểu',
-        path: ['maxAge'],
-      });
-    }
   });
 
 /** Giá trị sau khi zod coerce (số thật) — dùng khi submit. */
@@ -119,30 +76,12 @@ export function findDuplicateCheckpointError(checkpoints: CheckpointDraft[]): st
 const EMPTY_DEFAULTS: TourFormInput = {
   tourName: '',
   difficulty: 'EASY',
-  basePrice: 0,
   location: '',
   minCapacity: 1,
   maxCapacity: 1,
   durationDays: 1,
   description: '',
-  minAge: '18',
-  maxAge: '',
-  fitnessLevel: 'ANY',
-  healthRequirements: '',
-  restrictedMedicalConditions: '',
-  requiredExperience: '',
-  requiredSkills: '',
-  requiredEquipment: '',
-  requiredDocuments: '',
-  requiresHealthDeclaration: true,
-  requiresMedicalCertificate: false,
-  guardianRequiredUnderAge: '',
-  additionalRequirements: '',
 };
-
-function optionalNumber(value: string): number | undefined {
-  return value === '' ? undefined : Number(value);
-}
 
 export interface TourFormProps {
   mode: 'create' | 'edit';
@@ -188,6 +127,7 @@ export function TourForm({
   const [coverImageUrl, setCoverImageUrl] = useState(existingCoverImageUrl ?? '');
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
 
   const {
     register,
@@ -201,6 +141,26 @@ export function TourForm({
   });
 
   const difficulty = watch('difficulty');
+  const { ref: descriptionRegisterRef, ...descriptionRegisterRest } = register('description');
+
+  /** Chèn cú pháp markdown quanh vùng đang chọn (hoặc tại con trỏ) của ô "Lịch trình chi tiết". */
+  const handleMarkdownAction = (type: MarkdownActionType) => {
+    const textarea = descriptionRef.current;
+    if (!textarea) return;
+    const current = watch('description');
+    const { next, selectionStart, selectionEnd } = applyMarkdownAction(
+      type,
+      current,
+      textarea.selectionStart ?? current.length,
+      textarea.selectionEnd ?? current.length
+    );
+    setValue('description', next, { shouldDirty: true, shouldValidate: true });
+    // Đợi React commit giá trị mới vào DOM rồi mới đặt lại vị trí con trỏ.
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(selectionStart, selectionEnd);
+    });
+  };
 
   const onSubmit = async (values: TourFormValues) => {
     const payload: CreateTourPayload = {
@@ -209,27 +169,11 @@ export function TourForm({
       difficulty: values.difficulty,
       location: values.location,
       durationDays: values.durationDays,
-      basePrice: values.basePrice,
       minCapacity: values.minCapacity,
       maxCapacity: values.maxCapacity,
       coverImageUrl: coverImageUrl.trim() || undefined,
       // Gửi kèm cả file thô — xem ghi chú "ẢNH BÌA" trong `vendorTourService.ts`.
       coverImage: coverFile ?? undefined,
-      participationPolicy: {
-        minAge: Number(values.minAge),
-        maxAge: optionalNumber(values.maxAge),
-        fitnessLevel: values.fitnessLevel,
-        healthRequirements: values.healthRequirements || undefined,
-        restrictedMedicalConditions: values.restrictedMedicalConditions || undefined,
-        requiredExperience: values.requiredExperience || undefined,
-        requiredSkills: values.requiredSkills || undefined,
-        requiredEquipment: values.requiredEquipment || undefined,
-        requiredDocuments: values.requiredDocuments || undefined,
-        requiresHealthDeclaration: values.requiresHealthDeclaration,
-        requiresMedicalCertificate: values.requiresMedicalCertificate,
-        guardianRequiredUnderAge: optionalNumber(values.guardianRequiredUnderAge),
-        additionalRequirements: values.additionalRequirements || undefined,
-      },
     };
 
     const activeCheckpoints = checkpoints.filter((checkpoint) => checkpoint.name.trim());
@@ -343,65 +287,39 @@ export function TourForm({
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <span className="mb-1.5 block text-sm font-semibold" style={{ color: '#06261D' }}>
-                  Độ khó
-                </span>
-                <div
-                  className="flex rounded-xl p-1"
-                  style={{ backgroundColor: '#F8F6EF' }}
-                  role="radiogroup"
-                  aria-label="Độ khó"
-                >
-                  {DIFFICULTY_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setValue('difficulty', opt.value, { shouldValidate: true })}
-                      className="flex-1 rounded-lg py-2 text-sm font-semibold transition-colors"
-                      style={
-                        difficulty === opt.value
-                          ? { backgroundColor: '#06261D', color: '#FFFFFF' }
-                          : { color: '#6F7B75' }
-                      }
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="basePrice"
-                  className="mb-1.5 block text-sm font-semibold"
-                  style={{ color: '#06261D' }}
-                >
-                  Giá tiền (VNĐ) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="basePrice"
-                    type="number"
-                    min={0}
-                    {...register('basePrice')}
-                    placeholder="0"
-                    className="w-full rounded-xl px-4 py-2.5 pr-14 text-sm font-medium focus:outline-none focus:ring-1"
-                    style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-                  />
-                  <span
-                    className="absolute inset-y-0 right-4 flex items-center text-xs font-bold"
-                    style={{ color: '#6F7B75' }}
+            <div>
+              <span className="mb-1.5 block text-sm font-semibold" style={{ color: '#06261D' }}>
+                Độ khó
+              </span>
+              <div
+                className="flex rounded-xl p-1"
+                style={{ backgroundColor: '#F8F6EF' }}
+                role="radiogroup"
+                aria-label="Độ khó"
+              >
+                {DIFFICULTY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setValue('difficulty', opt.value, { shouldValidate: true })}
+                    className="flex-1 rounded-lg py-2 text-sm font-semibold transition-colors"
+                    style={
+                      difficulty === opt.value
+                        ? { backgroundColor: '#06261D', color: '#FFFFFF' }
+                        : { color: '#6F7B75' }
+                    }
                   >
-                    VNĐ
-                  </span>
-                </div>
-                {errors.basePrice && (
-                  <p className="mt-1 text-xs text-red-500">{errors.basePrice.message}</p>
-                )}
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            <p className="flex items-start gap-1.5 text-xs" style={{ color: '#6F7B75' }}>
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              Giá tour được thiết lập riêng cho từng lịch khởi hành ở bước "Lịch khởi hành" sau khi
+              tạo tour, không đặt giá chung cho cả tour.
+            </p>
 
             <div>
               <label
@@ -543,107 +461,6 @@ export function TourForm({
           </section>
         </div>
 
-        <section
-          className="space-y-5 rounded-3xl bg-white p-6 lg:col-span-5"
-          style={{ border: '1px solid #E6E2D1' }}
-        >
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6F7B75]">
-              Điều kiện tham gia
-            </h3>
-            <p className="mt-1 text-xs font-medium text-[#6F7B75]">
-              Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour thiếu policy sẽ
-              không nhận đặt online.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ['minAge', 'Tuổi tối thiểu *', 'tuổi', '0', '120'],
-              ['maxAge', 'Tuổi tối đa', 'tuổi', '0', '120'],
-              ['guardianRequiredUnderAge', 'Cần người giám hộ nếu dưới', 'tuổi', '1', '18'],
-            ].map(([name, label, unit, minimum, maximum]) => {
-              const fieldError = errors[name as keyof typeof errors];
-              return (
-                <label key={name} className="text-sm font-semibold text-[#06261D]">
-                  {label}
-                  <span className="relative mt-1.5 block">
-                    <input
-                      type="number"
-                      min={minimum}
-                      max={maximum}
-                      step="1"
-                      aria-invalid={Boolean(fieldError)}
-                      {...register(name as keyof TourFormInput)}
-                      className={`w-full rounded-xl border px-4 py-2.5 pr-12 text-sm font-medium outline-none focus:ring-1 ${
-                        fieldError
-                          ? 'border-red-500 bg-red-50 text-red-700 focus:ring-red-500'
-                          : 'border-transparent bg-[#F8F6EF] focus:ring-[#06261D]'
-                      }`}
-                    />
-                    <span
-                      className={`absolute inset-y-0 right-3 flex items-center text-xs ${
-                        fieldError ? 'text-red-500' : 'text-[#6F7B75]'
-                      }`}
-                    >
-                      {unit}
-                    </span>
-                  </span>
-                  {fieldError?.message && (
-                    <span className="mt-1 block text-xs font-medium text-red-500" role="alert">
-                      {String(fieldError.message)}
-                    </span>
-                  )}
-                </label>
-              );
-            })}
-
-            <label className="text-sm font-semibold text-[#06261D]">
-              Thể lực yêu cầu
-              <select
-                {...register('fitnessLevel')}
-                className="mt-1.5 w-full rounded-xl bg-[#F8F6EF] px-4 py-2.5 text-sm font-medium outline-none focus:ring-1"
-              >
-                <option value="ANY">Không yêu cầu đặc biệt</option>
-                <option value="BASIC">Cơ bản</option>
-                <option value="MODERATE">Trung bình</option>
-                <option value="HIGH">Tốt</option>
-                <option value="EXTREME">Rất tốt / chuyên sâu</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              ['healthRequirements', 'Yêu cầu sức khỏe'],
-              ['restrictedMedicalConditions', 'Tình trạng sức khỏe không phù hợp'],
-              ['requiredExperience', 'Kinh nghiệm cần có'],
-              ['requiredSkills', 'Kỹ năng cần có'],
-              ['requiredEquipment', 'Trang bị bắt buộc'],
-              ['requiredDocuments', 'Giấy tờ bắt buộc'],
-            ].map(([name, label]) => (
-              <label key={name} className="text-sm font-semibold text-[#06261D]">
-                {label}
-                <textarea
-                  rows={2}
-                  {...register(name as keyof TourFormInput)}
-                  className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
-                />
-              </label>
-            ))}
-          </div>
-
-          <label className="block text-sm font-semibold text-[#06261D]">
-            Quy định khác
-            <textarea
-              rows={2}
-              {...register('additionalRequirements')}
-              placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành"
-              className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
-            />
-          </label>
-        </section>
-
         {/* Lịch trình chi tiết — full width */}
         <section
           className="space-y-3 rounded-3xl bg-white p-6 lg:col-span-5"
@@ -654,14 +471,46 @@ export function TourForm({
               Lịch trình chi tiết
             </h3>
             <div className="flex items-center gap-3" style={{ color: '#6F7B75' }}>
-              <Bold className="h-4 w-4" />
-              <Italic className="h-4 w-4" />
-              <List className="h-4 w-4" />
-              <Link2 className="h-4 w-4" />
+              <button
+                type="button"
+                onClick={() => handleMarkdownAction('bold')}
+                title="In đậm"
+                aria-label="In đậm"
+              >
+                <Bold className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMarkdownAction('italic')}
+                title="In nghiêng"
+                aria-label="In nghiêng"
+              >
+                <Italic className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMarkdownAction('list')}
+                title="Danh sách"
+                aria-label="Danh sách"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMarkdownAction('link')}
+                title="Chèn liên kết"
+                aria-label="Chèn liên kết"
+              >
+                <Link2 className="h-4 w-4" />
+              </button>
             </div>
           </div>
           <textarea
-            {...register('description')}
+            {...descriptionRegisterRest}
+            ref={(el) => {
+              descriptionRegisterRef(el);
+              descriptionRef.current = el;
+            }}
             rows={8}
             placeholder="Mô tả lịch trình chi tiết từng ngày, các điểm dừng chân, dịch vụ bao gồm và lưu ý quan trọng..."
             className="w-full resize-none rounded-[20px] px-4 py-3 text-sm font-medium focus:outline-none focus:ring-1"

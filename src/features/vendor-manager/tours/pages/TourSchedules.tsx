@@ -256,7 +256,7 @@ export default function TourSchedules() {
                 availableSlots: formTarget.availableSlots,
                 status: formTarget.status,
               }
-            : { price: tour.basePrice }
+            : { price: tour.fromPrice ?? 0 }
         }
         bookedSlots={isEditingExisting ? formTarget.bookedSlots : 0}
         maxCapacity={tour.maxCapacity}
