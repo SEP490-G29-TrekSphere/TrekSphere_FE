@@ -301,6 +301,7 @@ export interface GroupPostDetailResponse {
 }
 
 export interface GroupPostFilterRequest {
+  postType?: GroupPostType;
   page?: number;
   size?: number;
   sort?: string;
@@ -319,6 +320,7 @@ export interface GroupPostUpdateRequest {
   title?: string;
   content?: string;
   imageUrls?: string[];
+  isPinned?: boolean;
 }
 
 export interface GroupPostCommentCreateRequest {

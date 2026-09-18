@@ -91,6 +91,7 @@ export function CreateMatchingGroupForm({
       <div className="flex-1 overflow-y-auto">
         <form
           id="create-matching-group-form"
+          noValidate
           onSubmit={form.handleSubmit(handleSubmit)}
           className="space-y-6 px-6 py-6"
         >

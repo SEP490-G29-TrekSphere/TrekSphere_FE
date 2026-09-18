@@ -5,7 +5,11 @@ import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import { MyApplicationList } from '../components/applications/MyApplicationList';
-import { ReapplyModal, WithdrawRequestConfirmModal } from '../components/modals';
+import {
+  ApplicationDetailModal,
+  ReapplyModal,
+  WithdrawRequestConfirmModal,
+} from '../components/modals';
 import {
   MATCHING_GROUP_APPLICATION_PAGE_SIZE,
   MATCHING_GROUP_APPLICATION_STATUS_TABS,
@@ -25,6 +29,9 @@ export default function MyJoinRequestsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
 
+  const [selectedDetailApp, setSelectedDetailApp] = useState<MyMatchingJoinRequestItem | null>(
+    null
+  );
   const [selectedWithdrawApp, setSelectedWithdrawApp] = useState<MyMatchingJoinRequestItem | null>(
     null
   );
@@ -144,9 +151,39 @@ export default function MyJoinRequestsPage() {
             })
           }
           onViewWorkspace={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
+          onViewApplicationDetail={(app) => setSelectedDetailApp(app)}
           onPageChange={setPage}
         />
       </section>
+
+      {/* Application Detail Modal */}
+      <ApplicationDetailModal
+        isOpen={Boolean(selectedDetailApp)}
+        onClose={() => setSelectedDetailApp(null)}
+        application={selectedDetailApp}
+        isJoinedGroup={Boolean(
+          selectedDetailApp && joinedGroupIds.has(selectedDetailApp.matchingGroupId)
+        )}
+        canReapply={Boolean(
+          selectedDetailApp &&
+            (selectedDetailApp.status === 'REJECTED' || selectedDetailApp.status === 'WITHDRAWN') &&
+            selectedDetailApp.groupStatus === 'OPEN'
+        )}
+        onWithdraw={(app) => {
+          setSelectedDetailApp(null);
+          setSelectedWithdrawApp(app);
+        }}
+        onReapply={(app) => {
+          setSelectedDetailApp(null);
+          setSelectedReapplyApp(app);
+        }}
+        onViewDetail={(groupId) =>
+          navigate(getGroupDetailPath(groupId), {
+            state: { backPath: PATHS.TREKKER_MY_JOIN_REQUESTS },
+          })
+        }
+        onViewWorkspace={(groupId) => navigate(getTrekkerGroupDetailPath(groupId))}
+      />
 
       {/* Withdraw Modal */}
       <WithdrawRequestConfirmModal

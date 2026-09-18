@@ -1,13 +1,14 @@
 import { Sparkles } from 'lucide-react';
 import { splitField } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailFromApi } from '@/features/tours/types';
+import { RichTextContent } from '@/shared/ui';
 
 interface TourOverviewSectionProps {
   tour: TourDetailFromApi;
 }
 
 /**
- * Khối "Tổng quan": các điểm nổi bật dạng chip + đoạn giới thiệu.
+ * Khối "Tổng quan": các điểm nổi bật dạng chip + đoạn giới thiệu formatted như blog/notion.
  *
  * `highlights` đứng trước phần mô tả dài vì đó là thứ người dùng quét mắt đầu tiên
  * khi cân nhắc giữa nhiều tour.
@@ -31,15 +32,10 @@ export function TourOverviewSection({ tour }: TourOverviewSectionProps) {
         </ul>
       )}
 
-      {tour.description ? (
-        <p className="whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground">
-          {tour.description}
-        </p>
-      ) : (
-        <p className="text-sm italic text-muted-foreground">
-          Nhà tổ chức chưa cập nhật phần giới thiệu cho tour này.
-        </p>
-      )}
+      <RichTextContent
+        content={tour.description}
+        fallback="Nhà tổ chức chưa cập nhật phần giới thiệu cho tour này."
+      />
     </div>
   );
 }

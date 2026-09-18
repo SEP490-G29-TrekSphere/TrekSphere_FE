@@ -9,16 +9,16 @@ export function useRejectMember() {
     mutationFn: ({
       groupId,
       applicationId,
-      reviewNote,
+      rejectReason,
     }: {
       groupId: string;
       applicationId: string;
-      reviewNote?: string;
+      rejectReason?: string;
     }) =>
       companionGroupService.rejectApplication(
         groupId,
         applicationId,
-        reviewNote ? { reviewNote } : undefined
+        rejectReason ? { rejectReason } : undefined
       ),
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.lists() });

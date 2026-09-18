@@ -288,7 +288,7 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
-                Phương án chuyển tiền tối giản (Greedy Netting)
+                Phương án chuyển tiền tối ưu
               </h4>
               <span className="text-[11px] text-muted-foreground">
                 Tối ưu chỉ {suggestions.length} giao dịch
@@ -536,9 +536,9 @@ export const GroupSettlementTab: React.FC<GroupSettlementTabProps> = ({
         <div className="flex items-start gap-2.5 rounded-xl bg-muted/40 p-3.5 text-xs text-muted-foreground">
           <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Hệ thống áp dụng thuật toán <strong>Tối giản hóa công nợ (Greedy Netting)</strong> để
-            giảm thiểu tối đa số lần chuyển khoản giữa các thành viên. Khi người nhận xác nhận tiền
-            về, các khoản nợ tương ứng sẽ được tự động hoàn tất.
+            Hệ thống tự động <strong>tối ưu hóa công nợ bù trừ</strong> để giảm thiểu tối đa số lần
+            chuyển khoản giữa các thành viên. Khi người nhận xác nhận tiền về, các khoản nợ tương
+            ứng sẽ được tự động hoàn tất.
           </p>
         </div>
       </div>

@@ -15,7 +15,10 @@ export function useGroupPosts(groupId: string, filter?: GroupPostFilterParams) {
     queryKey: [...groupWorkspaceKeys.posts(groupId), filter],
     queryFn: () => groupWorkspaceService.getGroupPosts(groupId, filter),
     enabled: Boolean(groupId),
-    staleTime: 15 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 }
 
@@ -25,7 +28,10 @@ export function useGroupPostDetail(groupId: string, postId: string) {
     queryKey: groupWorkspaceKeys.postDetail(groupId, postId),
     queryFn: () => groupWorkspaceService.getGroupPostDetail(groupId, postId),
     enabled: Boolean(groupId) && Boolean(postId),
-    staleTime: 15 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 }
 
@@ -54,6 +60,19 @@ export function useUpdateGroupPost(groupId: string) {
       queryClient.invalidateQueries({
         queryKey: groupWorkspaceKeys.postDetail(groupId, variables.postId),
       });
+    },
+  });
+}
+
+/** Hook ghim / bỏ ghim bài viết (Chỉ Leader) */
+export function useTogglePinGroupPost(groupId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (postId: string) => groupWorkspaceService.togglePinGroupPost(groupId, postId),
+    onSuccess: (_, postId) => {
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.posts(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.postDetail(groupId, postId) });
     },
   });
 }

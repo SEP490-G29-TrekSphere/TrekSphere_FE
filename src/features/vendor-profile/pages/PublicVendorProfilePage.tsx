@@ -13,7 +13,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PATHS } from '@/constants/paths';
 import { TourCard, TourPagination } from '@/features/tours';
 import { useTours } from '@/features/tours/hooks/useTours';
-import { AppButton } from '@/shared/ui';
+import { AppButton, RichTextContent } from '@/shared/ui';
 import { usePublicVendorProfile } from '../hooks/usePublicVendorProfile';
 
 const TOURS_PAGE_SIZE = 9;
@@ -101,9 +101,9 @@ export default function PublicVendorProfilePage() {
               </p>
               <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">{profile.companyName}</h1>
               {profile.description && (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/85">
-                  {profile.description}
-                </p>
+                <div className="mt-2 max-w-2xl">
+                  <RichTextContent content={profile.description} variant="dark" />
+                </div>
               )}
 
               <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/90">

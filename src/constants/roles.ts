@@ -169,3 +169,14 @@ export function getRoleNotificationsPath(roles: string[] | undefined | null): st
       return PATHS.TREKKER_NOTIFICATIONS;
   }
 }
+
+/**
+ * Kiểm tra xem danh sách vai trò có chứa Vendor hoặc Admin hay không.
+ */
+export function isVendorOrAdminRole(roles: string[] | undefined | null): boolean {
+  if (!roles || !Array.isArray(roles)) return false;
+  return roles.some((r) => {
+    const normalized = r.toLowerCase().replace(/^role_/, '');
+    return normalized === ROLES.VENDOR || normalized === ROLES.ADMIN;
+  });
+}

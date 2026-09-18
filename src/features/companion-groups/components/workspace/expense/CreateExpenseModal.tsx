@@ -471,7 +471,7 @@ export function CreateExpenseModal({
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Chia đều (EQUAL)
+                Chia đều
               </button>
               <button
                 type="button"
@@ -488,7 +488,7 @@ export function CreateExpenseModal({
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Tùy chỉnh (CUSTOM)
+                Tùy chỉnh
               </button>
             </div>
           </div>

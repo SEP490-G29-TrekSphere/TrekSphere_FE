@@ -188,6 +188,7 @@ export function GroupWorkspace({
           groupId={group.matchingGroupId}
           isLeader={isLeader}
           groupStatus={group.status}
+          groupDescription={group.description}
         />
       )}
 
@@ -197,6 +198,7 @@ export function GroupWorkspace({
           isLeader={isLeader}
           currentUserId={currentUserId}
           members={group.members}
+          groupStatus={group.status}
         />
       )}
 

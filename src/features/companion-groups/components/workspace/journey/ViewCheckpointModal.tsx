@@ -1,5 +1,5 @@
 import { Calendar, MapPin } from 'lucide-react';
-import { AppModalShell } from '@/shared/ui';
+import { AppModalShell, RichTextContent } from '@/shared/ui';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
 import { formatCheckpointTime } from '../../../utils/checkpointTime';
 
@@ -76,8 +76,8 @@ export function ViewCheckpointModal({ checkpoint, onClose }: ViewCheckpointModal
         )}
 
         {checkpoint.description && (
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 leading-relaxed text-muted-foreground">
-            {checkpoint.description}
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5">
+            <RichTextContent content={checkpoint.description} />
           </div>
         )}
       </div>

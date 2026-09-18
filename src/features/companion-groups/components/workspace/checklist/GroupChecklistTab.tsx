@@ -23,7 +23,7 @@ import {
   useUpdateGroupChecklistItem,
   useUpdateGroupChecklistItemStatus,
 } from '../../../hooks/useGroupChecklistWorkspace';
-import type { MatchingMemberItem } from '../../../types/matchingGroup';
+import type { MatchingGroupStatus, MatchingMemberItem } from '../../../types/matchingGroup';
 import type {
   GroupChecklistCategory,
   GroupChecklistItemResponse,
@@ -36,6 +36,7 @@ interface GroupChecklistTabProps {
   isLeader: boolean;
   currentUserId?: string;
   members: MatchingMemberItem[];
+  groupStatus?: MatchingGroupStatus;
 }
 
 const ITEM_TYPE_OPTIONS: { label: string; value: GroupChecklistItemType }[] = [
@@ -57,12 +58,18 @@ export function GroupChecklistTab({
   isLeader,
   currentUserId,
   members,
+  groupStatus,
 }: GroupChecklistTabProps) {
   const { data: summary, isLoading, error } = useGroupChecklist(groupId);
   const createItem = useCreateGroupChecklistItem(groupId);
   const updateItem = useUpdateGroupChecklistItem(groupId);
   const updateStatus = useUpdateGroupChecklistItemStatus(groupId);
   const deleteItem = useDeleteGroupChecklistItem(groupId);
+
+  const isTripOngoing = groupStatus === 'IN_PROGRESS';
+  const isTripEnded = groupStatus === 'COMPLETED' || groupStatus === 'CANCELLED';
+  const isChecklistModifiable = !isTripOngoing && !isTripEnded;
+  const isStatusToggleable = !isTripEnded;
 
   const acceptedMembers = useMemo(() => members.filter((m) => m.status === 'ACCEPTED'), [members]);
 
@@ -137,6 +144,10 @@ export function GroupChecklistTab({
   }, Boolean(deleteTarget));
 
   const openCreateModal = () => {
+    if (!isChecklistModifiable) {
+      toast.error('Chuyến đi đang diễn ra hoặc đã kết thúc, không thể thêm đồ dùng mới.');
+      return;
+    }
     setEditingItem(null);
     setFormTitle('');
     // Nếu là leader thì mặc định SHARED, thành viên thường mặc định PERSONAL
@@ -150,6 +161,10 @@ export function GroupChecklistTab({
 
   const openEditModal = (item: GroupChecklistItemResponse, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (!isChecklistModifiable) {
+      toast.error('Chuyến đi đang diễn ra hoặc đã kết thúc, không thể chỉnh sửa đồ dùng.');
+      return;
+    }
     setEditingItem(item);
     setFormTitle(item.title || item.itemName || '');
     setFormScope((item.itemScope || item.category || 'SHARED') as GroupChecklistCategory);
@@ -162,6 +177,10 @@ export function GroupChecklistTab({
 
   const handleToggleStatus = (item: GroupChecklistItemResponse, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (!isStatusToggleable) {
+      toast.error('Chuyến đi đã kết thúc hoặc đã hủy, không thể thay đổi trạng thái đồ dùng.');
+      return;
+    }
     const id = item.groupChecklistItemId || item.itemId;
     if (!id) return;
 
@@ -205,6 +224,10 @@ export function GroupChecklistTab({
 
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isChecklistModifiable) {
+      toast.error('Chuyến đi đang diễn ra hoặc đã kết thúc, không thể thay đổi danh mục đồ dùng.');
+      return;
+    }
     if (!formTitle.trim()) {
       toast.error('Vui lòng nhập tên đồ dùng.');
       return;
@@ -261,6 +284,10 @@ export function GroupChecklistTab({
 
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
+    if (!isChecklistModifiable) {
+      toast.error('Chuyến đi đang diễn ra hoặc đã kết thúc, không thể xóa đồ dùng.');
+      return;
+    }
     const id = deleteTarget.groupChecklistItemId || deleteTarget.itemId;
     if (!id) return;
 
@@ -311,14 +338,28 @@ export function GroupChecklistTab({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreateModal}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition shrink-0 cursor-pointer"
-          >
-            <Plus className="h-4 w-4" />
-            Thêm đồ dùng mới
-          </button>
+          {isChecklistModifiable ? (
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-primary/90 transition shrink-0 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              Thêm đồ dùng mới
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 rounded-xl bg-muted/80 border border-border/80 px-3.5 py-2.5 text-xs font-bold text-muted-foreground shrink-0 select-none">
+              <span
+                className={cn(
+                  'h-2 w-2 rounded-full',
+                  isTripOngoing ? 'bg-sky-500 animate-pulse' : 'bg-muted-foreground'
+                )}
+              />
+              {isTripOngoing
+                ? 'Chuyến đi đang diễn ra (Đã chốt hành trang)'
+                : 'Chuyến đi đã kết thúc'}
+            </div>
+          )}
         </div>
 
         {/* PROGRESS BAR */}
@@ -392,8 +433,14 @@ export function GroupChecklistTab({
       {/* ITEMS LIST */}
       {filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-8 text-center text-xs text-muted-foreground">
-          Chưa có đồ dùng nào trong danh mục này. Hãy bấm <b>"Thêm đồ dùng mới"</b> để bắt đầu chuẩn
-          bị hành trang!
+          {isChecklistModifiable ? (
+            <>
+              Chưa có đồ dùng nào trong danh mục này. Hãy bấm <b>"Thêm đồ dùng mới"</b> để bắt đầu
+              chuẩn bị hành trang!
+            </>
+          ) : (
+            <>Chưa có đồ dùng nào trong danh mục này và danh mục hành trang đã được chốt.</>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -417,15 +464,17 @@ export function GroupChecklistTab({
             // Quyền đánh dấu:
             // - Đồ cá nhân: CHỈ chính chủ nhân
             // - Đồ chung: Leader HOẶC người được phân công
-            const canToggle = scope === 'PERSONAL' ? isAssignee : isLeader || isAssignee;
+            const canToggle =
+              isStatusToggleable && (scope === 'PERSONAL' ? isAssignee : isLeader || isAssignee);
 
-            // Quyền sửa/xóa:
+            // Quyền sửa/xóa: CHỈ khi chưa khởi hành (isChecklistModifiable)
             // - Đồ PERSONAL: CHỈ chính chủ nhân mới sửa/xóa được
             // - Đồ SHARED: CHỈ Leader mới sửa/xóa được
             const canManage =
-              scope === 'PERSONAL'
+              isChecklistModifiable &&
+              (scope === 'PERSONAL'
                 ? !item.assigneeUserId || item.assigneeUserId === currentUserId
-                : isLeader;
+                : isLeader);
 
             return (
               <div
@@ -439,11 +488,13 @@ export function GroupChecklistTab({
                   }
                 }}
                 title={
-                  canToggle
-                    ? 'Nhấn để chuyển trạng thái đã chuẩn bị'
-                    : scope === 'PERSONAL'
-                      ? 'Chỉ chủ nhân món đồ mới có quyền đánh dấu'
-                      : 'Chỉ người được phân công hoặc Trưởng nhóm mới có quyền đánh dấu'
+                  !isStatusToggleable
+                    ? 'Chuyến đi đã kết thúc hoặc đã hủy'
+                    : canToggle
+                      ? 'Nhấn để chuyển trạng thái đã chuẩn bị'
+                      : scope === 'PERSONAL'
+                        ? 'Chỉ chủ nhân món đồ mới có quyền đánh dấu'
+                        : 'Chỉ người được phân công hoặc Trưởng nhóm mới có quyền đánh dấu'
                 }
                 className={cn(
                   'group relative rounded-2xl border p-4 transition-all duration-200 flex flex-col justify-between space-y-3 select-none',

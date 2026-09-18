@@ -388,7 +388,7 @@ export function GroupBudgetTab({
             <div>
               <h3 className="text-base font-extrabold text-foreground flex items-center gap-2">
                 <Receipt className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                Hóa Đơn Thực Tế & Greedy Debt Settlement
+                Hóa Đơn Thực Tế & Quyết Toán Chi Phí
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Ghi nhận các khoản ứng trước thực tế để tự động tính đối trừ giao dịch P2P tối ưu
@@ -702,7 +702,7 @@ export function GroupBudgetTab({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs sm:text-sm">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                Kết Quả Tối Ưu Hóa Giao Dịch P2P (Greedy Settlement Algorithm):
+                Kết Quả Tối Ưu Hóa Giao Dịch Bù Trừ:
               </div>
               {isLeader && suggestedSettlements.length > 0 && (
                 <button

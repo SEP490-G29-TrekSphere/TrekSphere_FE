@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getGroupDetailPath, getTrekkerGroupDetailPath, PATHS } from '@/constants';
+import {
+  getGroupDetailPath,
+  getTrekkerGroupDetailPath,
+  isVendorOrAdminRole,
+  PATHS,
+} from '@/constants';
 import { checkProfileCompleteness, ProfileCompletionModal, useProfile } from '@/features/profile';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
@@ -38,6 +43,7 @@ export default function CompanionGroupsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const user = useAppStore((state) => state.user);
   const isGuest = !user;
+  const isVendorOrAdmin = isVendorOrAdminRole(user?.roles);
   const requireLogin = useRequireLogin();
 
   const [searchQuery, setSearchQuery] = useState(
@@ -121,15 +127,14 @@ export default function CompanionGroupsPage() {
     isFetching: isProfileFetching,
   } = useProfile();
   const completeness = useMemo(() => checkProfileCompleteness(profile), [profile]);
-  const canLoadData = isGuest || (!isProfileLoading && completeness.isComplete);
+  const canLoadData = isGuest || isVendorOrAdmin || (!isProfileLoading && completeness.isComplete);
 
   useEffect(() => {
-    if (completeness.isComplete) {
+    if (isGuest || isVendorOrAdmin || completeness.isComplete) {
       setIsProfileCompletionModalOpen(false);
       return;
     }
     if (
-      !isGuest &&
       !isProfileLoading &&
       !isProfileFetching &&
       profile &&
@@ -139,7 +144,14 @@ export default function CompanionGroupsPage() {
       hasAutoPromptedRef.current = true;
       setIsProfileCompletionModalOpen(true);
     }
-  }, [isGuest, isProfileLoading, isProfileFetching, profile, completeness.isComplete]);
+  }, [
+    isGuest,
+    isVendorOrAdmin,
+    isProfileLoading,
+    isProfileFetching,
+    profile,
+    completeness.isComplete,
+  ]);
 
   const { data: myGroupsData } = useMyMatchingGroups(
     { size: MATCHING_GROUP_LOOKUP_PAGE_SIZE },
@@ -262,6 +274,7 @@ export default function CompanionGroupsPage() {
   }
 
   function handleOpenJoinModal(group: GroupCardData) {
+    if (isVendorOrAdmin) return;
     if (!requireLogin()) return;
 
     if (!completeness.isComplete) {
@@ -310,7 +323,7 @@ export default function CompanionGroupsPage() {
       <MatchingGroupDiscoveryHero />
       <div className="relative z-20 -mt-8 sm:-mt-10">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          {!isGuest && !completeness.isComplete && (
+          {!isGuest && !isVendorOrAdmin && !completeness.isComplete && (
             <ProfileIncompleteBanner
               missingCount={completeness.missingFields.length}
               returnPath={PATHS.GROUPS}
@@ -389,7 +402,8 @@ export default function CompanionGroupsPage() {
               onRetry={() => void refetch()}
               onReset={resetFilters}
               onLogin={() => navigate(PATHS.LOGIN)}
-              onJoinGroup={handleOpenJoinModal}
+              canJoin={!isVendorOrAdmin}
+              onJoinGroup={isVendorOrAdmin ? undefined : handleOpenJoinModal}
               onViewDetail={(group) => {
                 const vm = toMatchingGroupCardViewModel(group);
                 const rawId = vm.groupId;

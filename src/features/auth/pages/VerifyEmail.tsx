@@ -1,11 +1,13 @@
+import { Mail } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { authService, toAppStoreUser } from '@/features/auth';
 import { AppButton, AppSpinner } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { storage } from '@/utils/storage';
 import AuthLayout from '../components/AuthLayout';
+import { VerifyEmailPendingView } from '../components/VerifyEmailPendingView';
 
 const VERIFY_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80';
 
@@ -13,8 +15,14 @@ type VerifyStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
+
   const token = searchParams.get('token');
+  const emailFromQuery = searchParams.get('email');
+  const emailFromState = (location.state as { email?: string } | null)?.email;
+  const email = emailFromQuery || emailFromState || '';
+
   const [status, setStatus] = useState<VerifyStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   // Lưu lại timeout id để huỷ nếu user unmount/click nút trước thời hạn.
@@ -30,9 +38,8 @@ export default function VerifyEmail() {
   }, []);
 
   useEffect(() => {
+    // Nếu không có token -> không thực hiện verify token
     if (!token) {
-      setStatus('error');
-      setErrorMessage('Liên kết xác thực không hợp lệ. Vui lòng kiểm tra email và thử lại.');
       return;
     }
 
@@ -40,20 +47,6 @@ export default function VerifyEmail() {
       setStatus('loading');
       try {
         const result = await authService.verifyEmail(token);
-
-        // ── Debug-only summary ở caller ────────────────────────────────────────
-        // eslint-disable-next-line no-console
-        console.group('[VerifyEmail] verify result');
-        // eslint-disable-next-line no-console
-        console.log('status:', result.status);
-        // eslint-disable-next-line no-console
-        console.log('error:', result.error);
-        // eslint-disable-next-line no-console
-        console.log('message:', result.message);
-        // eslint-disable-next-line no-console
-        console.log('data:', result.data);
-        // eslint-disable-next-line no-console
-        console.groupEnd();
 
         if (result.error && (result.status === 401 || result.status === 400)) {
           setStatus('error');
@@ -68,10 +61,9 @@ export default function VerifyEmail() {
         }
 
         // ── Luồng sau verify (theo đúng BE spec) ───────────────────────────────
-        // BE /auth/verify CHỈ xác nhận email đã verified (trả `data: "Email verified
-        // successfully"`). BE KHÔNG cấp token trong body. User phải đăng nhập lại
-        // để lấy access/refresh token. Tuy nhiên nếu sau này BE thêm token thì
-        // logic dưới vẫn hoạt động backward-compat.
+        // BE /auth/verify CHỈ xác nhận email đã verified (trả data: "Email verified
+        // successfully"). BE KHÔNG cấp token trong body. User phải đăng nhập lại
+        // để lấy access/refresh token.
         const data = result.data;
         const accessToken = data?.access_token;
         const refreshToken = data?.refresh_token;
@@ -92,7 +84,6 @@ export default function VerifyEmail() {
         // Render UI success — KHÔNG navigate ngay để user kịp đọc.
         setStatus('success');
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('[VerifyEmail] verify threw:', err);
         setStatus('error');
         setErrorMessage('Đã xảy ra lỗi khi xác thực. Vui lòng thử lại sau.');
@@ -103,13 +94,12 @@ export default function VerifyEmail() {
   }, [token]);
 
   // Hàm điều hướng dùng chung cho cả auto-redirect và nút bấm.
-  //
-  // Theo BE spec: /auth/verify KHÔNG cấp token. User cần login lại để lấy
-  // access/refresh token (token được set qua HttpOnly cookie bởi Spring Security).
-  // Flow này navigate về /login sau verify thành công — KHÔNG vào Home.
   const goToLogin = useCallback(() => {
-    navigate(PATHS.LOGIN, { replace: true });
-  }, [navigate]);
+    navigate(PATHS.LOGIN, {
+      replace: true,
+      state: email ? { registeredEmail: email } : undefined,
+    });
+  }, [navigate, email]);
 
   // Auto-redirect sau khi success (3 giây, đủ để user đọc thông báo).
   useEffect(() => {
@@ -133,6 +123,67 @@ export default function VerifyEmail() {
     goToLogin();
   };
 
+  // TH 1: Không có token nhưng có email (vừa đăng ký xong hoặc vào chờ xác thực)
+  if (!token && email) {
+    return (
+      <AuthLayout
+        title="Xác thực email"
+        subtitle="Chỉ còn một bước nữa để kích hoạt tài khoản của bạn."
+        footerText="Đã có tài khoản?"
+        footerLink={{ label: 'Đăng nhập', to: PATHS.LOGIN }}
+        image={VERIFY_IMAGE}
+        variant="register"
+      >
+        <VerifyEmailPendingView email={email} />
+      </AuthLayout>
+    );
+  }
+
+  // TH 2: Không có token và cũng không có email
+  if (!token && !email) {
+    return (
+      <AuthLayout
+        title="Xác thực email"
+        subtitle="Không tìm thấy mã xác thực hợp lệ."
+        footerText="Đã có tài khoản?"
+        footerLink={{ label: 'Đăng nhập ngay', to: PATHS.LOGIN }}
+        image={VERIFY_IMAGE}
+        variant="register"
+      >
+        <div className="space-y-6 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 border border-amber-200">
+              <Mail className="h-8 w-8 text-amber-700" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-[#1F3933]">Liên kết xác thực không hợp lệ</h3>
+            <p className="text-sm text-[#6F7B75]">
+              Liên kết có thể đã hết hạn hoặc bị thiếu mã token. Vui lòng kiểm tra lại email hoặc
+              đăng nhập/đăng ký tài khoản mới.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <AppButton
+              onClick={() => navigate(PATHS.LOGIN)}
+              className="w-full h-11 rounded-full text-white font-semibold text-sm bg-[#06261D] hover:bg-[#06261D]/90"
+            >
+              Quay lại đăng nhập
+            </AppButton>
+            <AppButton
+              variant="outline"
+              onClick={() => navigate(PATHS.REGISTER)}
+              className="w-full h-11 rounded-full font-semibold text-sm border-gray-300"
+            >
+              Đăng ký tài khoản mới
+            </AppButton>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // TH 3: Có token -> Hiển thị trạng thái xác thực token
   return (
     <AuthLayout
       title="Xác thực email"

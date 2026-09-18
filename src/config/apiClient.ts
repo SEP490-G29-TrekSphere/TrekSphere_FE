@@ -98,7 +98,7 @@ let refreshPromise: Promise<string | null> | null = null;
  * Guard theo `accessToken` còn tồn tại không — tránh nhiều request 401 cùng
  * lúc (cùng 1 đợt hết hạn) gọi clear/toast lặp lại nhiều lần.
  */
-const clearExpiredSession = (): void => {
+const clearExpiredSession = (customMessage?: string): void => {
   const hasSession = Boolean(
     storage.get<string>('accessToken') ||
       storage.get<string>('refreshToken') ||
@@ -109,7 +109,11 @@ const clearExpiredSession = (): void => {
   storage.remove('refreshToken');
   useAppStore.getState().setUser(null);
   queryClient.clear();
-  toast.warning('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+  toast.error(customMessage || 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.');
+
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
 };
 
 function buildAbsoluteBaseURL(): string {
@@ -243,6 +247,21 @@ apiClient.interceptors.response.use(
     // cần chạy vào flow này. Cờ __skipRefresh được set cho request /auth/refresh-token
     // qua `performRefresh` rồi, nên logic ở đây an toàn.
     if (originalConfig.url?.includes('/auth/refresh-token')) {
+      return Promise.reject(error);
+    }
+
+    const errorData = error.response?.data as
+      | { message?: string; error?: string; detail?: string }
+      | undefined;
+    const rawErrorMessage = errorData?.message || errorData?.error || errorData?.detail || '';
+    const isAccountLockedOrDisabled =
+      rawErrorMessage.includes('khóa') ||
+      rawErrorMessage.includes('vô hiệu') ||
+      rawErrorMessage.includes('ACCOUNT_LOCKED') ||
+      rawErrorMessage.includes('ACCOUNT_DEACTIVATED');
+
+    if (isAccountLockedOrDisabled) {
+      clearExpiredSession(rawErrorMessage || 'Tài khoản của bạn đã bị khóa.');
       return Promise.reject(error);
     }
 

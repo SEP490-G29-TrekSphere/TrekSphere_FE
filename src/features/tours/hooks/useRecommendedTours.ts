@@ -31,7 +31,7 @@ const REASON_LABEL: Record<RecommendationReason, string> = {
 const DEFAULT_REASON_LABEL = 'Gợi ý dành cho bạn';
 
 function formatPrice(price?: number | null): string {
-  if (price == null || Number.isNaN(price)) return '0đ';
+  if (price == null || Number.isNaN(price) || price < 0) return '0đ';
   return `${price.toLocaleString('vi-VN')}đ`;
 }
 
@@ -48,29 +48,33 @@ function describeFirstReason(reasons: RecommendationReason[]): string {
 async function fetchRecommendedTours(limit: number): Promise<RecommendedTour[]> {
   const response = await tourService.getRecommendedTours(0, limit);
 
-  return response.content.map(({ tour, matchReasons }) => ({
-    id: tour.tourId,
-    name: tour.tourName,
-    description: '',
-    duration: formatTourDuration(tour.durationDays ?? 1),
-    level: DIFFICULTY_MAP[tour.difficulty] ?? 'Trung bình',
-    price: formatPrice(tour.price),
-    basePrice: tour.price ?? 0,
-    rating: 0,
-    reviewCount: 0,
-    image: tour.coverImageUrl ?? '',
-    slug: tour.tourId,
-    category: '',
-    location: tour.location,
-    maxParticipants: tour.maxCapacity ?? 0,
-    minCapacity: tour.minCapacity,
-    maxCapacity: tour.maxCapacity,
-    highlights: [],
-    includes: [],
-    isPopular: false,
-    isNew: false,
-    matchReasonLabel: describeFirstReason(matchReasons),
-  }));
+  return response.content.map(({ tour, matchReasons }) => {
+    const safePrice =
+      tour.price == null || Number.isNaN(tour.price) || tour.price < 0 ? 0 : tour.price;
+    return {
+      id: tour.tourId,
+      name: tour.tourName,
+      description: '',
+      duration: formatTourDuration(tour.durationDays ?? 1),
+      level: DIFFICULTY_MAP[tour.difficulty] ?? 'Trung bình',
+      price: formatPrice(safePrice),
+      basePrice: safePrice,
+      rating: 0,
+      reviewCount: 0,
+      image: tour.coverImageUrl ?? '',
+      slug: tour.tourId,
+      category: '',
+      location: tour.location,
+      maxParticipants: tour.maxCapacity ?? 0,
+      minCapacity: tour.minCapacity,
+      maxCapacity: tour.maxCapacity,
+      highlights: [],
+      includes: [],
+      isPopular: false,
+      isNew: false,
+      matchReasonLabel: describeFirstReason(matchReasons),
+    };
+  });
 }
 
 export interface UseRecommendedToursResult {

@@ -8,13 +8,18 @@ import {
   MessageSquare,
   MoreVertical,
   Pin,
+  PinOff,
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { RichTextContent } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { POST_TYPE_META } from '../../../constants/workspace';
-import { useToggleHideGroupPost } from '../../../hooks/useGroupFeedWorkspace';
+import {
+  useToggleHideGroupPost,
+  useTogglePinGroupPost,
+} from '../../../hooks/useGroupFeedWorkspace';
 import type { GroupPostResponse, GroupPostType } from '../../../types/workspace';
 import { formatRelativeTime } from '../../../utils/workspaceDate';
 import { MemberAvatar } from '../../detail/MemberAvatar';
@@ -54,6 +59,21 @@ export function GroupPostCard({
   const typeMeta = POST_TYPE_META[postType] || POST_TYPE_META.GENERAL;
 
   const toggleHideMutation = useToggleHideGroupPost(groupId);
+  const togglePinMutation = useTogglePinGroupPost(groupId);
+
+  async function handleTogglePin() {
+    if (!postId) return;
+
+    try {
+      await togglePinMutation.mutateAsync(postId);
+      toast.success(isPinned ? 'Đã bỏ ghim bài viết!' : 'Đã ghim bài viết lên đầu!');
+      setShowMenu(false);
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Không thể cập nhật trạng thái ghim bài viết!';
+      toast.error(errorMsg);
+    }
+  }
 
   async function handleToggleHide() {
     if (!postId) return;
@@ -169,6 +189,27 @@ export function GroupPostCard({
                       {isLeader && (
                         <button
                           type="button"
+                          onClick={handleTogglePin}
+                          disabled={togglePinMutation.isPending}
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-foreground hover:bg-muted transition cursor-pointer"
+                        >
+                          {isPinned ? (
+                            <>
+                              <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span>Bỏ ghim</span>
+                            </>
+                          ) : (
+                            <>
+                              <Pin className="h-3.5 w-3.5 text-primary" />
+                              <span>Ghim bài viết</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+
+                      {isLeader && (
+                        <button
+                          type="button"
                           onClick={handleToggleHide}
                           disabled={toggleHideMutation.isPending}
                           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-foreground hover:bg-muted transition cursor-pointer"
@@ -214,9 +255,7 @@ export function GroupPostCard({
         )}
 
         {/* Content */}
-        <p className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-          {post.content}
-        </p>
+        <RichTextContent content={post.content} />
 
         {/* Image attachments if any */}
         {post.imageUrls && post.imageUrls.length > 0 && (

@@ -11,6 +11,7 @@ export { PasswordRequirementList } from './components/PasswordRequirementList';
 export { PasswordStrengthField } from './components/PasswordStrengthField';
 export { PasswordStrengthMeter } from './components/PasswordStrengthMeter';
 export { SecurityTipsPanel } from './components/SecurityTipsPanel';
+export { VerifyEmailPendingView } from './components/VerifyEmailPendingView';
 export { type StrengthScore, usePasswordStrength } from './hooks/usePasswordStrength';
 export { default as ChangePassword } from './pages/ChangePassword';
 export { default as ForgotPassword } from './pages/ForgotPassword';
