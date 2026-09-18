@@ -26,7 +26,7 @@ export function TourBookingRail({ tour }: TourBookingRailProps) {
         </p>
         <p className="mt-1 flex items-baseline gap-1.5">
           <span className="text-3xl font-extrabold leading-none text-primary">
-            {formatPrice(tour.basePrice)}đ
+            {formatPrice(tour.price)}đ
           </span>
           <span className="text-sm text-muted-foreground">/ người</span>
         </p>

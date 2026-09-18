@@ -202,7 +202,7 @@ export type ApiSortDir = 'asc' | 'desc';
  * `sortBy=averageRating` khiến Hibernate ném `UnknownPathException` → 500.
  * Muốn xếp theo điểm đánh giá thì phải sort ở client.
  */
-export type ApiSortField = 'createdAt' | 'basePrice' | 'durationDays' | 'tourName';
+export type ApiSortField = 'createdAt' | 'price' | 'durationDays' | 'tourName';
 
 /**
  * Query params for fetching tours list.
@@ -244,7 +244,7 @@ export interface TourApiItem {
   tourName: string;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
@@ -325,7 +325,6 @@ export interface TourDetailScheduleApi {
   /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
   availableSlots: number;
   bookedSlots: number;
-  price: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
   isDeleted: boolean;
   createdAt: string;
@@ -349,7 +348,7 @@ export interface TourDetailFromApi {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
@@ -413,15 +412,15 @@ export type RecommendationReason =
 
 /**
  * Tour rút gọn nhúng trong response gợi ý — khớp `TourSummaryResponse` phía
- * backend, khác `TourApiItem` (list thường): dùng `fromPrice` thay vì
- * `basePrice`, không có `averageRating`/`totalReviews`/`onlineBookingEnabled`.
+ * backend, khác `TourApiItem` (list thường): không có
+ * `averageRating`/`totalReviews`/`onlineBookingEnabled`.
  */
 export interface RecommendedTourSummaryApi {
   tourId: string;
   tourName: string;
   location: string;
   durationDays: number;
-  fromPrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;

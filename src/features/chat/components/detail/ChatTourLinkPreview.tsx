@@ -60,9 +60,9 @@ export function ChatTourLinkPreview({ tourId, isOwn }: ChatTourLinkPreviewProps)
         <div className="absolute top-2 left-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white uppercase backdrop-blur-xs">
           Tour leo núi
         </div>
-        {tour.basePrice !== undefined && (
+        {tour.price !== undefined && (
           <div className="absolute bottom-2 right-2 rounded-md bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-xs">
-            {tour.basePrice.toLocaleString('vi-VN')} đ
+            {tour.price.toLocaleString('vi-VN')} đ
           </div>
         )}
       </div>

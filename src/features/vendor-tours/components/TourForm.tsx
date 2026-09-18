@@ -44,7 +44,7 @@ const tourFormSchema = z
   .object({
     tourName: z.string().trim().min(1, 'Vui lòng nhập tên tour'),
     difficulty: z.enum(['EASY', 'MODERATE', 'HARD']),
-    basePrice: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
+    price: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
     location: z.string().trim().min(1, 'Vui lòng nhập địa điểm'),
     minCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     maxCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
@@ -129,7 +129,7 @@ export function findDuplicateCheckpointError(checkpoints: CheckpointDraft[]): st
 const EMPTY_DEFAULTS: TourFormInput = {
   tourName: '',
   difficulty: 'MODERATE',
-  basePrice: 0,
+  price: 0,
   location: '',
   minCapacity: 1,
   maxCapacity: 10,
@@ -228,7 +228,7 @@ export function TourForm({
       difficulty: values.difficulty,
       location: values.location,
       durationDays: values.durationDays,
-      basePrice: values.basePrice,
+      price: values.price,
       minCapacity: values.minCapacity,
       maxCapacity: values.maxCapacity,
       totalDistanceKm: optionalNumber(values.totalDistanceKm),
@@ -392,18 +392,18 @@ export function TourForm({
 
               <div>
                 <label
-                  htmlFor="basePrice"
+                  htmlFor="price"
                   className="mb-1.5 block text-sm font-semibold"
                   style={{ color: '#06261D' }}
                 >
-                  Giá khởi điểm (VNĐ) <span className="text-red-500">*</span>
+                  Giá tour (VNĐ) <span className="text-red-500">*</span>
                 </label>
                 <Controller
-                  name="basePrice"
+                  name="price"
                   control={control}
                   render={({ field }) => (
                     <AppCurrencyInput
-                      id="basePrice"
+                      id="price"
                       value={field.value as number | undefined}
                       onChange={field.onChange}
                       placeholder="0"
@@ -412,8 +412,8 @@ export function TourForm({
                     />
                   )}
                 />
-                {errors.basePrice && (
-                  <p className="mt-1 text-xs text-red-500">{errors.basePrice.message}</p>
+                {errors.price && (
+                  <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>
                 )}
               </div>
             </div>

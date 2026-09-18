@@ -22,9 +22,7 @@ export function TourMobileBookingBar({ tour, hasSchedules }: TourMobileBookingBa
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <div className="min-w-0">
           <p className="flex items-baseline gap-1">
-            <span className="text-xl font-extrabold text-primary">
-              {formatPrice(tour.basePrice)}đ
-            </span>
+            <span className="text-xl font-extrabold text-primary">{formatPrice(tour.price)}đ</span>
             <span className="text-xs text-muted-foreground">/ người</span>
           </p>
           <p className="truncate text-xs text-muted-foreground">

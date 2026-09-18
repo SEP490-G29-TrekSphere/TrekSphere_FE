@@ -1,5 +1,5 @@
 import type { TourDetailScheduleApi } from '@/features/tours/types';
-import { getCheckpointImageUrls, isBookableSchedule, remainingSlots } from './shared';
+import { getCheckpointImageUrls, isBookableSchedule } from './shared';
 
 function schedule(overrides: Partial<TourDetailScheduleApi> = {}): TourDetailScheduleApi {
   return {
@@ -9,7 +9,6 @@ function schedule(overrides: Partial<TourDetailScheduleApi> = {}): TourDetailSch
     returnDate: '2026-09-03',
     availableSlots: 6,
     bookedSlots: 4,
-    price: 1_000_000,
     status: 'OPEN',
     isDeleted: false,
     createdAt: '2026-08-01T00:00:00Z',
@@ -43,13 +42,9 @@ describe('getCheckpointImageUrls', () => {
 });
 
 describe('schedule availability', () => {
-  test('dùng availableSlots trực tiếp vì BE đã trừ chỗ giữ và chỗ đã đặt', () => {
-    expect(remainingSlots(schedule({ availableSlots: 6, bookedSlots: 4 }))).toBe(6);
-  });
-
-  test('chỉ cho đặt lịch OPEN còn chỗ', () => {
+  test('chỉ cho đặt lịch có trạng thái OPEN', () => {
     expect(isBookableSchedule(schedule())).toBe(true);
-    expect(isBookableSchedule(schedule({ availableSlots: 0 }))).toBe(false);
     expect(isBookableSchedule(schedule({ status: 'CLOSED' }))).toBe(false);
+    expect(isBookableSchedule(schedule({ status: 'CANCELLED' }))).toBe(false);
   });
 });

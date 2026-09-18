@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { formatDate, formatPrice } from '@/utils/format';
+import { formatDate } from '@/utils/format';
 import type { TourSchedule } from '../types';
 import { ScheduleStatusBadge } from './ScheduleStatusBadge';
 
@@ -33,12 +33,6 @@ export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: Sched
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <span className="text-sm font-medium" style={{ color: '#6F7B75' }}>
           {formatDate(schedule.returnDate)}
-        </span>
-      </td>
-
-      <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
-        <span className="font-semibold" style={{ color: '#06261D' }}>
-          {formatPrice(schedule.price)}đ
         </span>
       </td>
 

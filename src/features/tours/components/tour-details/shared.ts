@@ -78,18 +78,13 @@ export function handleImageFallback(event: SyntheticEvent<HTMLImageElement>): vo
 }
 
 /**
- * Số chỗ còn trống của một lịch khởi hành.
- *
- * BE giảm trực tiếp `availableSlots` ngay khi giữ chỗ và tăng lại khi booking được
- * hủy/hết hạn. Vì vậy đây đã là số chỗ còn lại, không được trừ `bookedSlots` lần nữa.
+ * Lịch còn nhận khách: BE đã tự lọc `status=OPEN AND departureDate>=today` ở
+ * endpoint chi tiết tour, nên ở đây chỉ cần khớp lại đúng điều kiện status —
+ * không dựa vào `availableSlots`/`bookedSlots` (chưa có domain Booking thật ở
+ * BE nên 2 field này không phản ánh dữ liệu thật).
  */
-export function remainingSlots(schedule: TourDetailScheduleApi): number {
-  return Math.max(0, schedule.availableSlots);
-}
-
-/** Lịch còn nhận khách: trạng thái OPEN và vẫn còn chỗ. */
 export function isBookableSchedule(schedule: TourDetailScheduleApi): boolean {
-  return schedule.status === 'OPEN' && remainingSlots(schedule) > 0;
+  return schedule.status === 'OPEN';
 }
 
 /** Sắp xếp lịch theo ngày khởi hành tăng dần. */

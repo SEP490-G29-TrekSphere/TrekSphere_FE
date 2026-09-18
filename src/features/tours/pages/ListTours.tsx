@@ -20,9 +20,9 @@ import { AppButton } from '@/shared/ui';
 function resolveSort(sortBy: TourFilter['sortBy']): { sortBy: ApiSortField; sortDir: ApiSortDir } {
   switch (sortBy) {
     case 'price-asc':
-      return { sortBy: 'basePrice', sortDir: 'asc' };
+      return { sortBy: 'price', sortDir: 'asc' };
     case 'price-desc':
-      return { sortBy: 'basePrice', sortDir: 'desc' };
+      return { sortBy: 'price', sortDir: 'desc' };
     case 'newest':
       return { sortBy: 'createdAt', sortDir: 'desc' };
     case 'duration-asc':

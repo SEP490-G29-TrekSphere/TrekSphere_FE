@@ -236,9 +236,9 @@ export function ChatComposer({
                   <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                     {draftTour.location && <span>{draftTour.location}</span>}
                     {draftTour.durationDays && <span>• {draftTour.durationDays} ngày</span>}
-                    {draftTour.basePrice !== undefined && (
+                    {draftTour.price !== undefined && (
                       <span className="font-semibold text-primary">
-                        • {draftTour.basePrice.toLocaleString('vi-VN')} đ
+                        • {draftTour.price.toLocaleString('vi-VN')} đ
                       </span>
                     )}
                   </div>

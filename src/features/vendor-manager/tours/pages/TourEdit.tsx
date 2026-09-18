@@ -121,7 +121,7 @@ export default function TourEdit() {
         defaultValues={{
           tourName: tour.tourName,
           difficulty: toFormDifficulty(tour.difficulty),
-          basePrice: tour.basePrice ?? (tour as unknown as { fromPrice?: number }).fromPrice ?? 0,
+          price: tour.price ?? 0,
           location: tour.location,
           minCapacity: tour.minCapacity ?? 1,
           maxCapacity: tour.maxCapacity,

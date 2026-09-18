@@ -30,7 +30,6 @@ const schedule: TourSchedule = {
   returnDate: '2026-09-12',
   availableSlots: 10,
   bookedSlots: 2,
-  price: 1_000_000,
   status: 'OPEN',
   isDeleted: false,
   createdAt: '2026-08-01T00:00:00Z',

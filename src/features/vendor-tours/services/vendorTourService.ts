@@ -61,7 +61,7 @@ import type {
 interface VendorTourResponseDto {
   tourId: string;
   tourName: string;
-  basePrice: number;
+  price: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   coverImageUrl: string | null;
@@ -135,7 +135,7 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
     id: dto.tourId,
     name: dto.tourName,
     coverImageUrl: dto.coverImageUrl ?? undefined,
-    basePrice: dto.basePrice,
+    price: dto.price,
     difficulty: dto.difficulty,
     status: dto.status,
     createdAt: dto.createdAt,
@@ -183,7 +183,7 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
+      price: payload.price,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
       totalDistanceKm: payload.totalDistanceKm,
@@ -216,7 +216,7 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
+      price: payload.price,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
       totalDistanceKm: payload.totalDistanceKm,

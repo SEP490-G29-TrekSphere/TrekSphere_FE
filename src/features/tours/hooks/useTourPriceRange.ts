@@ -24,7 +24,7 @@ async function fetchAllTourPrices(
       difficulty: params.difficulty,
       page: 0,
       size: 1,
-      sortBy: 'basePrice',
+      sortBy: 'price',
       sortDir: 'asc',
     }),
     tourService.getTours({
@@ -33,13 +33,13 @@ async function fetchAllTourPrices(
       difficulty: params.difficulty,
       page: 0,
       size: 1,
-      sortBy: 'basePrice',
+      sortBy: 'price',
       sortDir: 'desc',
     }),
   ]);
 
-  const minPrice = minResponse.content[0]?.basePrice ?? 0;
-  const maxPrice = maxResponse.content[0]?.basePrice ?? 0;
+  const minPrice = minResponse.content[0]?.price ?? 0;
+  const maxPrice = maxResponse.content[0]?.price ?? 0;
 
   return {
     minPrice,

@@ -27,7 +27,7 @@ export interface DraftTourAttachment {
   coverImageUrl?: string | null;
   location?: string;
   durationDays?: number;
-  basePrice?: number;
+  price?: number;
 }
 
 export interface VirtualConversationData {

@@ -20,7 +20,7 @@ import type {
 } from '@/features/vendor-tours/types';
 import { toast } from '@/store/useToastStore';
 
-const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Giá', 'Chỗ (đã đặt/tổng)', 'Trạng thái', 'Thao tác'];
+const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Chỗ (đã đặt/tổng)', 'Trạng thái', 'Thao tác'];
 
 /**
  * Quản lý lịch khởi hành của 1 tour — dùng chung layout bảng với TourList/TourApprovals.
@@ -252,11 +252,10 @@ export default function TourSchedules() {
             ? {
                 departureDate: formTarget.departureDate,
                 returnDate: formTarget.returnDate,
-                price: formTarget.price,
                 availableSlots: formTarget.availableSlots,
                 status: formTarget.status,
               }
-            : { price: tour.basePrice }
+            : undefined
         }
         bookedSlots={isEditingExisting ? formTarget.bookedSlots : 0}
         maxCapacity={tour.maxCapacity}

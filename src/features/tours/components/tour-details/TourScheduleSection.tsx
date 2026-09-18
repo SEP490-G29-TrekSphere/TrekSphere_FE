@@ -4,7 +4,7 @@ import {
   sortSchedulesByDeparture,
 } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailScheduleApi } from '@/features/tours/types';
-import { formatDate, formatPrice } from '@/utils/format';
+import { formatDate } from '@/utils/format';
 
 interface TourScheduleSectionProps {
   schedules: TourDetailScheduleApi[];
@@ -39,19 +39,8 @@ export function TourScheduleSection({ schedules }: TourScheduleSectionProps) {
             key={schedule.scheduleId}
             className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 select-none"
           >
-            <div className="flex flex-col gap-1.5">
-              <span className="text-sm font-bold text-foreground">
-                {formatDate(schedule.departureDate)} → {formatDate(schedule.returnDate)}
-              </span>
-            </div>
-
-            <span className="flex flex-col items-end">
-              <span className="text-base font-extrabold text-primary">
-                {formatPrice(schedule.price)}đ
-              </span>
-              <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                / người
-              </span>
+            <span className="text-sm font-bold text-foreground">
+              {formatDate(schedule.departureDate)} → {formatDate(schedule.returnDate)}
             </span>
           </div>
         );

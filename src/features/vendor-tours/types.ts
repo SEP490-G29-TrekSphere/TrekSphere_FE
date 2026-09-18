@@ -23,7 +23,7 @@ export interface VendorTourListItem {
   id: string;
   name: string;
   coverImageUrl?: string;
-  basePrice: number;
+  price: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   createdAt: string;
@@ -53,7 +53,7 @@ export interface CreateTourPayload {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm?: number;
@@ -138,7 +138,6 @@ export type TourSchedule = TourDetailScheduleApi;
 export interface CreateSchedulePayload {
   departureDate: string;
   returnDate: string;
-  price: number;
   /** Số chỗ mở bán ban đầu; khi vừa tạo cũng chính là số chỗ còn trống. */
   availableSlots: number;
 }
@@ -147,7 +146,6 @@ export interface CreateSchedulePayload {
 export interface UpdateSchedulePayload {
   departureDate?: string;
   returnDate?: string;
-  price?: number;
   /** Tạm không gửi từ FE cho đến khi BE tách rõ `capacity` và số chỗ còn trống. */
   availableSlots?: number;
   status?: ApiScheduleStatus;
