@@ -3,7 +3,6 @@ export type {
   ApiSortDir,
   ApiSortField,
   ApiStatus,
-  CreateReviewRequest,
   FitnessLevel,
   GalleryImage,
   LevelBadgeVariant,
@@ -13,10 +12,6 @@ export type {
   RecommendedTourApiItem,
   RecommendedTourListApiResponse,
   RecommendedTourSummaryApi,
-  ReviewItem,
-  ReviewListParams,
-  ReviewResponse,
-  ReviewSummaryResponse,
   Tour,
   TourApiItem,
   TourCategory,
@@ -36,7 +31,6 @@ export type {
   TourTabId,
   TourTabState,
   TourWithDefaults,
-  UpdateReviewStatusRequest,
 } from './tour';
 
 export { levelBadgeVariants } from './tour';

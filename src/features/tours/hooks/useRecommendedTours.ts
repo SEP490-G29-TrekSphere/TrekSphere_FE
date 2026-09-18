@@ -55,8 +55,6 @@ async function fetchRecommendedTours(limit: number): Promise<RecommendedTour[]> 
     level: DIFFICULTY_MAP[tour.difficulty] ?? 'Trung bình',
     price: formatPrice(tour.price),
     basePrice: tour.price ?? 0,
-    rating: 0,
-    reviewCount: 0,
     image: tour.coverImageUrl ?? '',
     slug: tour.tourId,
     category: '',

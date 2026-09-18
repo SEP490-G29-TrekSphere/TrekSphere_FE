@@ -15,13 +15,11 @@ export { default as ToursHero } from './components/ToursHero';
 
 // Tour Details Components
 export * from './components/tour-details';
-export { useAdminReviewMutations } from './hooks/useAdminReviewMutations';
 export { useFeaturedTours } from './hooks/useFeaturedTours';
 export { useTourCheckpoints } from './hooks/useTourCheckpoints';
 // Hooks
 export { useTourDetail } from './hooks/useTourDetail';
 export { useTourPriceRange } from './hooks/useTourPriceRange';
-export { useTourReviews } from './hooks/useTourReviews';
 export { useTourSchedules } from './hooks/useTourSchedules';
 export { useTours } from './hooks/useTours';
 // Pages

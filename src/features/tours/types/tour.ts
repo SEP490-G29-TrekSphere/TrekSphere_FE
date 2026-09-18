@@ -14,8 +14,6 @@ export interface Tour {
   price: string;
   basePrice?: number;
   originalPrice?: string;
-  rating: number;
-  reviewCount: number;
   image: string;
   images?: string[];
   badge?: string;
@@ -254,8 +252,6 @@ export interface TourApiItem {
   excludes: string;
   vendorId: string;
   vendorName: string;
-  averageRating: number | null;
-  totalReviews: number;
   createdAt: string;
   category?: string;
 }
@@ -378,8 +374,6 @@ export interface TourDetailFromApi {
   participationPolicy?: TourParticipationPolicy | null;
   /** Chi phí đã phát sinh và không hoàn lại khi tính yêu cầu hủy. */
   nonRefundableCost?: number;
-  averageRating: number | null;
-  totalReviews: number;
 }
 
 export interface TourSearchValues {
@@ -454,75 +448,4 @@ export interface TourCheckpoint {
   checkpointImageUrl: string | null;
   /** Danh sách URL ảnh checkpoint đã được backend tách từ trường lưu trữ. */
   checkpointImageUrls?: string[];
-}
-
-export interface ReviewItem {
-  reviewId: string;
-  rating: number;
-  content: string;
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
-  userId: string;
-  userFullName: string;
-  userAvatarUrl: string | null;
-  tourId: string;
-  tourName: string;
-  tourCoverImageUrl: string | null;
-  bookingId: string;
-  bookingCode: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReviewSummaryResponse {
-  averageRating: number;
-  totalReviews: number;
-  fiveStar: number;
-  fourStar: number;
-  threeStar: number;
-  twoStar: number;
-  oneStar: number;
-  reviews: {
-    content: ReviewItem[];
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
-  };
-}
-
-export interface ReviewListParams {
-  rating?: number;
-  keyword?: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDir?: string;
-}
-
-export interface CreateReviewRequest {
-  bookingId: string;
-  rating: number;
-  content: string;
-}
-
-export interface ReviewResponse {
-  reviewId: string;
-  rating: number;
-  content: string;
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
-  userId: string;
-  userFullName: string;
-  userAvatarUrl: string | null;
-  tourId: string;
-  tourName: string;
-  tourCoverImageUrl: string | null;
-  bookingId: string;
-  bookingCode: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UpdateReviewStatusRequest {
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
 }

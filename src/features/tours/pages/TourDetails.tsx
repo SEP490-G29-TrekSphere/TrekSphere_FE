@@ -17,7 +17,6 @@ import {
   TourNotFound,
   TourOverviewSection,
   TourParticipationPolicySection,
-  TourReviewsSection,
   TourRouteSection,
   TourScheduleSection,
   type TourSection,
@@ -39,7 +38,6 @@ const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.inclusions, label: 'Bao gồm' },
   { id: SECTION_IDS.gallery, label: 'Hình ảnh' },
   { id: SECTION_IDS.requirements, label: 'Điều kiện' },
-  { id: SECTION_IDS.reviews, label: 'Đánh giá' },
 ];
 
 /** Tiêu đề chung cho mọi khối nội dung ở cột trái. */
@@ -178,11 +176,6 @@ export default function TourDetailsPage() {
                 <TourParticipationPolicySection policy={tour.participationPolicy} />
               </section>
             )}
-
-            <section id={SECTION_IDS.reviews} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
-              <SectionHeading title="Đánh giá cộng đồng" />
-              <TourReviewsSection tour={tour} />
-            </section>
           </div>
 
           {/* Cột phải — thẻ đặt tour dính, ẩn trên mobile vì đã có thanh đáy */}

@@ -111,7 +111,6 @@ export const SECTION_IDS = {
   gallery: 'hinh-anh',
   requirements: 'dieu-kien-tham-gia',
   policy: 'chinh-sach',
-  reviews: 'danh-gia',
 } as const;
 
 /**

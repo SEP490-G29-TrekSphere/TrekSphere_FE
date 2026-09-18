@@ -1,10 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
-  CreateReviewRequest,
   RecommendedTourListApiResponse,
-  ReviewListParams,
-  ReviewResponse,
-  ReviewSummaryResponse,
   TourCheckpoint,
   TourDetailFromApi,
   TourDetailScheduleApi,
@@ -147,52 +143,6 @@ export const tourService = {
 
   async getTourSchedules(tourId: string): Promise<TourDetailScheduleApi[]> {
     const response = await ApiService<TourDetailScheduleApi[]>(`/tours/${tourId}/schedules`, 'GET');
-    return unwrapResponse(response);
-  },
-
-  async getTourReviews(
-    tourId: string,
-    params: ReviewListParams = {}
-  ): Promise<ReviewSummaryResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.rating !== undefined) {
-      searchParams.set('rating', String(params.rating));
-    }
-    if (params.keyword !== undefined && params.keyword !== '') {
-      searchParams.set('keyword', params.keyword);
-    }
-    if (params.page !== undefined) {
-      searchParams.set('page', String(params.page));
-    }
-    if (params.size !== undefined) {
-      searchParams.set('size', String(params.size));
-    }
-    if (params.sortBy) {
-      searchParams.set('sortBy', params.sortBy);
-    }
-    if (params.sortDir) {
-      searchParams.set('sortDir', params.sortDir);
-    }
-    const queryString = searchParams.toString();
-    const path = queryString
-      ? `/tours/${tourId}/reviews?${queryString}`
-      : `/tours/${tourId}/reviews`;
-    const response = await ApiService<ReviewSummaryResponse>(path, 'GET');
-    return unwrapResponse(response);
-  },
-
-  async createReview(reviewData: CreateReviewRequest): Promise<ReviewResponse> {
-    const response = await ApiService<ReviewResponse>('/reviews', 'POST', reviewData);
-    return unwrapResponse(response);
-  },
-
-  async updateReviewStatus(
-    reviewId: string,
-    status: 'PENDING' | 'APPROVED' | 'HIDDEN'
-  ): Promise<ReviewResponse> {
-    const response = await ApiService<ReviewResponse>(`/reviews/${reviewId}/status`, 'PATCH', {
-      status,
-    });
     return unwrapResponse(response);
   },
 

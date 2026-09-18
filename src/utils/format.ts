@@ -53,6 +53,5 @@ export const formatCountdown = (seconds: number): string => {
 };
 
 export const formatTourDuration = (durationDays: number): string => {
-  if (durationDays <= 1) return '1 ngày';
-  return `${durationDays} ngày ${durationDays - 1} đêm`;
+  return `${durationDays} ngày`;
 };

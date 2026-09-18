@@ -24,8 +24,6 @@ export function mapApiItemToTour(item: TourApiItem): Tour {
     level: (item.difficulty && DIFFICULTY_MAP[item.difficulty]) || 'Trung bình',
     price: formatPrice(item.price),
     basePrice: item.price ?? 0,
-    rating: item.averageRating ?? 0,
-    reviewCount: item.totalReviews ?? 0,
     image: item.coverImageUrl,
     slug: item.tourId,
     category: item.category || '',

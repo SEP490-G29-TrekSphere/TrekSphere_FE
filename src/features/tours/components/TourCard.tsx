@@ -1,4 +1,4 @@
-import { Clock, MapPin, Star } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tour } from '@/features/tours/types';
@@ -12,23 +12,6 @@ interface TourCardProps {
 }
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80';
-
-function StarRating({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  const display = rating > 0 ? rating.toFixed(1) : '—';
-  return (
-    <div className="flex items-center gap-1.5">
-      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-      <span className="text-sm font-bold text-primary">
-        {display}
-        {rating > 0 && (
-          <span className="ml-1 text-xs font-normal text-muted-foreground">
-            ({reviewCount.toLocaleString('vi-VN')} đánh giá)
-          </span>
-        )}
-      </span>
-    </div>
-  );
-}
 
 function LevelBadge({ level, className = '' }: { level: string; className?: string }) {
   return (
@@ -104,7 +87,6 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
             </div>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
-              <StarRating rating={tour.rating} reviewCount={tour.reviewCount} />
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5 text-primary/70" />
                 <span>{tour.duration}</span>
@@ -174,7 +156,6 @@ export default function TourCard({ tour, className = '', layout = 'list' }: Tour
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground sm:text-sm">
-            <StarRating rating={tour.rating} reviewCount={tour.reviewCount} />
             <span className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-primary/70" />
               <span>{tour.duration}</span>
