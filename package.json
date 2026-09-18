@@ -91,6 +91,7 @@
       "\\.svg(\\?.*)?$": "<rootDir>/__mocks__/svgMock.js",
       "^@/(.*)$": "<rootDir>/src/$1",
       "^react-quill-new$": "<rootDir>/__mocks__/react-quill-new.js",
+      "^marked$": "<rootDir>/__mocks__/marked.js",
       "^lodash-es$": "lodash",
       "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js"
     },
