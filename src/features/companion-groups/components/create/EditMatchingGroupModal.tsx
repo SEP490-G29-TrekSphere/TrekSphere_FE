@@ -1,20 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlignLeft, ImageIcon, Loader2, Save, Tag, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import {
-  MATCHING_GROUP_DESCRIPTION_MAX_LENGTH,
-  MATCHING_GROUP_MAX_SIZE,
-  MATCHING_GROUP_MIN_SIZE,
-} from '../../constants';
+import { MATCHING_GROUP_DESCRIPTION_MAX_LENGTH } from '../../constants';
 import { useUpdateMatchingGroup } from '../../hooks/useUpdateMatchingGroup';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import {
+  createUpdateMatchingGroupSchema,
   type UpdateMatchingGroupFormInput,
   type UpdateMatchingGroupFormValues,
-  updateMatchingGroupSchema,
 } from '../../validations';
 
 interface EditMatchingGroupModalProps {
@@ -28,8 +24,13 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
   const cleanup = useImageUploadCleanup();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const dynamicSchema = useMemo(
+    () => createUpdateMatchingGroupSchema(group.currentSize ?? 1),
+    [group.currentSize]
+  );
+
   const form = useForm<UpdateMatchingGroupFormInput, undefined, UpdateMatchingGroupFormValues>({
-    resolver: zodResolver(updateMatchingGroupSchema),
+    resolver: zodResolver(dynamicSchema),
     defaultValues: {
       groupName: group.groupName,
       description: group.description ?? '',
@@ -94,6 +95,7 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
 
       <form
         id="edit-matching-group-form"
+        noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-5 p-6 overflow-y-auto"
       >
@@ -148,18 +150,21 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
         </div>
 
         <div className="space-y-1.5">
-          <label
-            htmlFor="edit-max-size"
-            className="flex items-center gap-2 font-semibold text-foreground text-xs"
-          >
-            <Users className="h-3.5 w-3.5 text-muted-foreground" />
-            Số lượng thành viên tối đa
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="edit-max-size"
+              className="flex items-center gap-2 font-semibold text-foreground text-xs"
+            >
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              Số lượng thành viên tối đa
+            </label>
+            <span className="text-[11px] text-muted-foreground">
+              Hiện có {group.currentSize} thành viên
+            </span>
+          </div>
           <input
             id="edit-max-size"
             type="number"
-            min={Math.max(MATCHING_GROUP_MIN_SIZE, group.currentSize)}
-            max={MATCHING_GROUP_MAX_SIZE}
             {...form.register('maxSize')}
             disabled={isPending}
             className="h-10 w-full rounded-lg border border-input bg-background px-3 font-medium text-foreground text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"

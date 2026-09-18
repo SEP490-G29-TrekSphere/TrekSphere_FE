@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2, MessageSquare, Send, Siren } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, MessageSquare, Send, Siren } from 'lucide-react';
 import type { MatchingGroupStatus } from '../../services/companionGroupService';
 import type { UserRoleInGroup } from '../../types';
 
@@ -15,6 +15,9 @@ interface GroupActionPanelProps {
   acceptedMembersCount: number;
   hasConversation?: boolean;
   isInConversation?: boolean;
+  canJoin?: boolean;
+  myMembershipStatus?: string | null;
+  rejectReason?: string | null;
 }
 
 /**
@@ -37,6 +40,9 @@ export function GroupActionPanel({
   acceptedMembersCount,
   hasConversation,
   isInConversation,
+  canJoin = true,
+  myMembershipStatus,
+  rejectReason,
 }: GroupActionPanelProps) {
   const isMemberOrLeader = role === 'leader' || role === 'member';
   const canSendSos = isMemberOrLeader && groupStatus === 'IN_PROGRESS' && Boolean(onOpenSos);
@@ -129,7 +135,57 @@ export function GroupActionPanel({
         </div>
       )}
 
-      {role === 'guest' && (
+      {role === 'guest' && myMembershipStatus === 'REJECTED' && (
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3.5 shadow-xs">
+          <div className="flex items-start gap-2.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive mt-0.5">
+              <AlertCircle className="h-4 w-4" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-destructive">
+                Đơn tham gia trước đó bị từ chối
+              </h3>
+              {rejectReason ? (
+                <div className="text-xs text-foreground/90 space-y-0.5">
+                  <span className="font-semibold text-destructive text-[11px] block">
+                    Lý do từ chối:
+                  </span>
+                  <p className="rounded-lg bg-background/80 border border-destructive/20 p-2.5 leading-relaxed italic text-destructive">
+                    "{rejectReason}"
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Trưởng nhóm đã từ chối yêu cầu tham gia của bạn.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {canJoin && groupStatus === 'OPEN' && (
+            <button
+              type="button"
+              disabled={isJoining}
+              onClick={() => onJoin()}
+              className="w-full rounded-full bg-primary py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
+            >
+              {isJoining ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Đang xử lý...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Nộp lại đơn tham gia</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
+      {role === 'guest' && myMembershipStatus !== 'REJECTED' && canJoin && (
         <div className="rounded-2xl bg-card border border-border p-5 space-y-3.5 shadow-xs">
           <div>
             <h3 className="text-sm font-bold text-foreground">Gửi Đơn Tham Gia Nhóm</h3>

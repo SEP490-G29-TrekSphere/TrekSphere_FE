@@ -1,5 +1,5 @@
 export const formatPrice = (price: number | null | undefined): string => {
-  if (price == null || Number.isNaN(price)) return '—';
+  if (price == null || Number.isNaN(price) || price < 0) return '0';
   return new Intl.NumberFormat('vi-VN').format(price);
 };
 

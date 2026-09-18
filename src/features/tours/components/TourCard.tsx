@@ -48,10 +48,11 @@ function LevelBadge({ level, className = '' }: { level: string; className?: stri
 }
 
 function formatTourPrice(basePrice: number | undefined, priceStr: string): string {
-  if (basePrice !== undefined) {
-    return new Intl.NumberFormat('vi-VN').format(basePrice);
+  if (basePrice !== undefined && !Number.isNaN(basePrice)) {
+    return new Intl.NumberFormat('vi-VN').format(Math.max(0, basePrice));
   }
-  return priceStr.replace('đ', '').trim();
+  const clean = (priceStr || '').replace(/[^\d]/g, '').trim();
+  return clean ? new Intl.NumberFormat('vi-VN').format(Number(clean)) : '0';
 }
 
 /**

@@ -30,6 +30,7 @@ interface GroupJourneyTabProps {
   groupId: string;
   isLeader: boolean;
   groupStatus?: MatchingGroupStatus;
+  groupDescription?: string | null;
 }
 
 function parseLocalDate(dateStr: string): Date {
@@ -37,7 +38,12 @@ function parseLocalDate(dateStr: string): Date {
   return new Date(y, m - 1, d);
 }
 
-export function GroupJourneyTab({ groupId, isLeader, groupStatus }: GroupJourneyTabProps) {
+export function GroupJourneyTab({
+  groupId,
+  isLeader,
+  groupStatus,
+  groupDescription,
+}: GroupJourneyTabProps) {
   const {
     data: journey,
     isLoading: isJourneyLoading,
@@ -181,6 +187,7 @@ export function GroupJourneyTab({ groupId, isLeader, groupStatus }: GroupJourney
         checkpointCount={checkpoints.length}
         isLeader={isLeader}
         groupStatus={groupStatus}
+        groupDescription={groupDescription}
         onEditJourney={() => setIsEditJourneyModalOpen(true)}
       />
 

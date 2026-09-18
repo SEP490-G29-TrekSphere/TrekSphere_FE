@@ -138,7 +138,7 @@ export function useCompanionGroupDetailActions({
   function confirmReject(reason?: string) {
     if (!selectedRequest || !groupId) return;
     rejectMutation.mutate(
-      { groupId, applicationId: selectedRequest.id, reviewNote: reason },
+      { groupId, applicationId: selectedRequest.id, rejectReason: reason },
       {
         onSuccess: () => {
           setActiveModal(null);

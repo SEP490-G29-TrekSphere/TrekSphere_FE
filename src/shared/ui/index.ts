@@ -67,6 +67,7 @@ export {
   AppTableHeader,
   AppTableRow,
 } from './data-display/AppTable';
+export { RichTextContent, type RichTextContentProps } from './data-display/RichTextContent';
 // Feedback
 export { AppGlobalLoadingSpinner } from './feedback/AppGlobalLoadingSpinner';
 export { AppSpinner, type AppSpinnerProps, type AppSpinnerSize } from './feedback/AppSpinner';

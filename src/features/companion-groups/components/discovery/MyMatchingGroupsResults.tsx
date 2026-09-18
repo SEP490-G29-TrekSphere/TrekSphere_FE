@@ -17,9 +17,10 @@ interface MyMatchingGroupsResultsProps {
   onLayoutChange: (layout: MatchingGroupLayout) => void;
   onReset: () => void;
   onPageChange: (page: number) => void;
-  onJoinGroup: (group: GroupCardData) => void;
+  onJoinGroup?: (group: GroupCardData) => void;
   onViewDetail: (group: GroupCardData) => void;
   getDetailPath: (groupId: string) => string;
+  canJoin?: boolean;
 }
 
 export function MyMatchingGroupsResults({
@@ -36,6 +37,7 @@ export function MyMatchingGroupsResults({
   onJoinGroup,
   onViewDetail,
   getDetailPath,
+  canJoin = true,
 }: MyMatchingGroupsResultsProps) {
   return (
     <main className="lg:col-span-9">
@@ -85,6 +87,7 @@ export function MyMatchingGroupsResults({
               onJoinGroup={onJoinGroup}
               onViewDetail={onViewDetail}
               getDetailPath={getDetailPath}
+              canJoin={canJoin}
             />
           ))}
         </div>

@@ -219,7 +219,7 @@ export const companionGroupService = {
   async rejectApplication(
     groupId: string,
     applicationId: string,
-    payload?: { reviewNote?: string }
+    payload?: { rejectReason?: string }
   ): Promise<MatchingMemberItem> {
     const response = await ApiService<MatchingMemberItem>(
       `/matching-groups/${groupId}/applications/${applicationId}/reject`,

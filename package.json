@@ -36,6 +36,7 @@
     "globe.gl": "^2.32.2",
     "gsap": "^3.15.0",
     "lucide-react": "^1.22.0",
+    "marked": "^18.0.13",
     "react": "^19.2.6",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.6",
@@ -90,6 +91,7 @@
       "\\.svg(\\?.*)?$": "<rootDir>/__mocks__/svgMock.js",
       "^@/(.*)$": "<rootDir>/src/$1",
       "^react-quill-new$": "<rootDir>/__mocks__/react-quill-new.js",
+      "^marked$": "<rootDir>/__mocks__/marked.js",
       "^lodash-es$": "lodash",
       "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js"
     },

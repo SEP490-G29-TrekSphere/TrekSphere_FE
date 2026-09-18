@@ -37,6 +37,13 @@ export const authService = {
     } as unknown as RegisterPayload),
 
   /**
+   * Resend a verification email to the user.
+   * BE: POST /api/v1/auth/resend-verification
+   */
+  resendVerification: (email: string): Promise<ApiResponse<void>> =>
+    ApiService<void>('/auth/resend-verification', 'POST', { email }),
+
+  /**
    * Send a password reset request.
    */
   forgotPassword: (email: string) => ApiService('/auth/forgot-password', 'POST', { email }),

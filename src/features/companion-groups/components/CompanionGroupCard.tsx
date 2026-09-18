@@ -1,5 +1,6 @@
 import { ArrowRight, Banknote, Calendar, Clock, Eye, MapPin, RotateCcw, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { isVendorOrAdminRole } from '@/constants';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { formatDate, formatPrice } from '@/utils/format';
@@ -26,6 +27,8 @@ interface CompanionGroupCardProps {
   getDetailPath?: (groupId: string) => string;
   hasJoined?: boolean;
   applicationStatus?: JoinApplicationStatus | null;
+  /** Cho phép xin gia nhập nhóm. Mặc định true. */
+  canJoin?: boolean;
 }
 
 export function CompanionGroupCard({
@@ -36,8 +39,11 @@ export function CompanionGroupCard({
   getDetailPath,
   hasJoined = false,
   applicationStatus,
+  canJoin = true,
 }: CompanionGroupCardProps) {
   const user = useAppStore((state) => state.user);
+  const isVendorOrAdmin = isVendorOrAdminRole(user?.roles);
+  const effectiveCanJoin = Boolean(canJoin && !isVendorOrAdmin && onJoinGroup);
   const viewModel = toMatchingGroupCardViewModel(group, user?.id);
   const groupId = viewModel.groupId;
   const isLeader = Boolean(user && isCurrentUserGroupLeader(viewModel, user.id));
@@ -50,6 +56,7 @@ export function CompanionGroupCard({
     !isLeader &&
     (applicationStatus === 'REJECTED' || applicationStatus === 'WITHDRAWN');
   const isMemberOrLeader = isLeader || isMember;
+
   const detailPath =
     getDetailPath?.(groupId) ??
     (isMemberOrLeader ? `/trekker/my-groups/${groupId}` : `/groups/${groupId}`);
@@ -155,6 +162,15 @@ export function CompanionGroupCard({
               <span>Vào nhóm</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
+          ) : !effectiveCanJoin ? (
+            <button
+              type="button"
+              onClick={() => onViewDetail?.(group)}
+              className="inline-flex items-center gap-1 rounded-full border border-border px-3.5 py-1.5 font-semibold text-foreground text-xs transition-all hover:border-primary hover:text-primary cursor-pointer"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Chi tiết
+            </button>
           ) : isPending ? (
             <div className="flex items-center gap-2">
               <button
@@ -327,6 +343,15 @@ export function CompanionGroupCard({
             <span>Vào nhóm</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
+        ) : !effectiveCanJoin ? (
+          <button
+            type="button"
+            onClick={() => onViewDetail?.(group)}
+            className="inline-flex w-full items-center justify-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:border-primary hover:text-primary cursor-pointer"
+          >
+            <Eye className="h-3.5 w-3.5" />
+            Chi tiết
+          </button>
         ) : isPending ? (
           <>
             <button

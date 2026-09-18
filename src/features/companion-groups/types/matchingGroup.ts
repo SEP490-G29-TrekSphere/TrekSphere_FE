@@ -154,6 +154,7 @@ export interface MatchingGroupDetailResponse extends MatchingGroupItem {
   members: MatchingMemberItem[];
   isOwner: boolean;
   myMembershipStatus: MatchingMemberStatus | null;
+  myRejectReason?: string | null;
   canJoin: boolean;
   canLeave: boolean;
   hasConversation: boolean;

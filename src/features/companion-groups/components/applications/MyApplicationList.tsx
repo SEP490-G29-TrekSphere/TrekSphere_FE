@@ -31,6 +31,7 @@ interface MyApplicationListProps {
   onReapply?: (application: MyMatchingJoinRequestItem) => void;
   onViewDetail: (groupId: string) => void;
   onViewWorkspace?: (groupId: string) => void;
+  onViewApplicationDetail?: (application: MyMatchingJoinRequestItem) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -48,6 +49,7 @@ export function MyApplicationList({
   onReapply,
   onViewDetail,
   onViewWorkspace,
+  onViewApplicationDetail,
   onPageChange,
 }: MyApplicationListProps) {
   // Compute group-level statuses to determine if an old application was already superseded or reapplied
@@ -200,33 +202,27 @@ export function MyApplicationList({
                     </AppButton>
                   )}
 
-                  {/* Case 2: Rejected or Withdrawn */}
-                  {isRejectedOrWithdrawn &&
-                    (isJoinedGroup ? (
-                      <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-bold text-[11px] text-emerald-700 dark:text-emerald-400">
-                        Đã tham gia nhóm
-                      </span>
-                    ) : hasActivePending ? (
-                      <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 font-bold text-[11px] text-amber-700 dark:text-amber-400">
-                        Đã nộp đơn mới (Chờ duyệt)
-                      </span>
-                    ) : !isLatestForGroup ? (
-                      <span className="rounded-full border border-border bg-muted px-3 py-1 font-semibold text-[11px] text-muted-foreground">
-                        Đã nộp lại
-                      </span>
-                    ) : canReapply && onReapply ? (
-                      <AppButton
-                        variant="outline"
-                        onClick={() => onReapply(application)}
-                        className="shrink-0 rounded-full border-primary px-4 py-1 font-semibold text-primary text-xs hover:bg-primary/5"
-                      >
-                        Nộp lại đơn
-                      </AppButton>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground italic">
-                        Nhóm đã đóng tuyển
-                      </span>
-                    ))}
+                  {/* Case 2: Reapply button if eligible */}
+                  {isRejectedOrWithdrawn && canReapply && onReapply && (
+                    <AppButton
+                      variant="outline"
+                      onClick={() => onReapply(application)}
+                      className="shrink-0 rounded-full border-primary px-4 py-1 font-semibold text-primary text-xs hover:bg-primary/5"
+                    >
+                      Nộp lại đơn
+                    </AppButton>
+                  )}
+
+                  {/* View Application Detail Button */}
+                  {onViewApplicationDetail && (
+                    <AppButton
+                      variant="outline"
+                      onClick={() => onViewApplicationDetail(application)}
+                      className="shrink-0 rounded-full border-border px-3.5 py-1 font-semibold text-foreground text-xs hover:bg-muted"
+                    >
+                      Chi tiết đơn
+                    </AppButton>
+                  )}
 
                   {/* Primary navigation button */}
                   {isAccepted || isJoinedGroup ? (
@@ -259,13 +255,15 @@ export function MyApplicationList({
               )}
 
               {/* Rejection Note */}
-              {application.status === 'REJECTED' && application.rejectReason && (
+              {application.status === 'REJECTED' && (
                 <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
                   <div className="flex items-center gap-1.5 font-bold mb-0.5">
                     <Info className="h-3.5 w-3.5" />
                     <span>Lý do từ chối:</span>
                   </div>
-                  <p className="leading-relaxed">{application.rejectReason}</p>
+                  <p className="leading-relaxed">
+                    {application.rejectReason || 'Trưởng nhóm không kèm theo lý do cụ thể.'}
+                  </p>
                 </div>
               )}
             </article>
