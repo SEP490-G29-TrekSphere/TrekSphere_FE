@@ -89,19 +89,7 @@ export function TourTableRow({
       </td>
 
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
-        <div className="space-y-1.5">
-          <TourStatusBadge status={tour.status} />
-          {tour.status === 'PUBLISHED' && (
-            <p
-              className={`text-[11px] font-semibold ${
-                tour.onlineBookingEnabled ? 'text-emerald-700' : 'text-amber-700'
-              }`}
-              title={tour.onlineBookingDisabledReason ?? undefined}
-            >
-              {tour.onlineBookingEnabled ? 'Đang nhận đặt online' : 'Chưa sẵn sàng đặt online'}
-            </p>
-          )}
-        </div>
+        <TourStatusBadge status={tour.status} />
       </td>
 
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>

@@ -27,8 +27,6 @@ export interface VendorTourListItem {
   difficulty: ApiDifficulty;
   status: ApiStatus;
   createdAt: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 /**

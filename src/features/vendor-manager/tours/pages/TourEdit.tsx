@@ -16,8 +16,8 @@ import type {
 } from '@/features/vendor-tours/types';
 import { toast } from '@/store/useToastStore';
 
-type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD';
-const FORM_DIFFICULTIES: readonly FormDifficulty[] = ['EASY', 'MODERATE', 'HARD'];
+type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
+const FORM_DIFFICULTIES: readonly FormDifficulty[] = ['EASY', 'MODERATE', 'HARD', 'EXTREME'];
 
 /** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó — fallback về EASY nếu BE trả giá trị khác. */
 function toFormDifficulty(value: ApiDifficulty): FormDifficulty {

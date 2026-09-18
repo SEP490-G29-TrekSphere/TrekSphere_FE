@@ -1,14 +1,5 @@
 import { CalendarDays, MapPin, X } from 'lucide-react';
-import { useState } from 'react';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useEffect, useRef, useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { useTourLocations } from '@/features/tours/hooks/useTourLocations';
 import type { ApiDifficulty, TourFilter } from '@/features/tours/types';
@@ -37,7 +28,7 @@ const difficultyOptions: { value: ApiDifficulty | 'ALL'; label: string }[] = [
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-  { value: 'EXPERT', label: 'Cực thách thức' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 function formatShortPrice(val: number): string {
@@ -76,7 +67,28 @@ export default function TourFilterPanel({
   onResetFilters,
 }: TourFilterPanelProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const locationContainerRef = useRef<HTMLDivElement>(null);
   const { locations } = useTourLocations();
+
+  // Đóng dropdown khi click ra ngoài — dropdown không dùng portal nên chỉ cần theo dõi
+  // trong phạm vi component này.
+  useEffect(() => {
+    if (!isLocationOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        locationContainerRef.current &&
+        !locationContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsLocationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isLocationOpen]);
 
   const departureDateObj = departureDate ? new Date(departureDate) : null;
   const returnDateObj = returnDate ? new Date(returnDate) : null;
@@ -90,9 +102,12 @@ export default function TourFilterPanel({
         <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
           Điểm đến
         </span>
-        <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
-          <PopoverTrigger
+        <div ref={locationContainerRef} className="relative">
+          <button
             type="button"
+            onClick={() => setIsLocationOpen((open) => !open)}
+            aria-expanded={isLocationOpen}
+            aria-haspopup="listbox"
             className="flex w-full items-center gap-2 rounded-xl border border-input px-3 py-2.5 text-left focus:outline-none"
           >
             <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -105,56 +120,64 @@ export default function TourFilterPanel({
               {location || 'Bạn muốn đi đâu?'}
             </span>
             {location && (
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   onLocationChange('');
                 }}
-                className="shrink-0 text-muted-foreground/60 hover:text-foreground"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    onLocationChange('');
+                  }
+                }}
+                className="shrink-0 cursor-pointer text-muted-foreground/60 hover:text-foreground"
                 aria-label="Xóa điểm đến"
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </span>
             )}
-          </PopoverTrigger>
-          <PopoverContent className="w-[250px] p-0" align="start">
-            <Command>
-              <CommandInput
-                placeholder="Tìm địa danh..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                  }
-                }}
-              />
-              <CommandList>
-                <CommandEmpty>Không tìm thấy địa danh</CommandEmpty>
-                <CommandGroup>
-                  {locations.map((loc) => (
-                    <CommandItem
-                      key={loc}
-                      value={loc}
-                      onSelect={() => {
-                        onLocationChange(loc);
-                        setIsLocationOpen(false);
-                      }}
-                    >
-                      {loc}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+          </button>
+
+          {isLocationOpen && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover p-1.5 shadow-xl">
+              {locations.length > 0 ? (
+                locations.map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    role="option"
+                    aria-selected={loc === location}
+                    onClick={() => {
+                      onLocationChange(loc);
+                      setIsLocationOpen(false);
+                    }}
+                    className={cn(
+                      'block w-full rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                      loc === location
+                        ? 'bg-primary/10 font-semibold text-primary'
+                        : 'text-foreground hover:bg-muted'
+                    )}
+                  >
+                    {loc}
+                  </button>
+                ))
+              ) : (
+                <p className="px-2.5 py-4 text-center text-sm text-muted-foreground">
+                  Không tìm thấy địa danh
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <hr className="my-5 border-border" />
 
       {/* Section: Ngày đi / Ngày về */}
-      <div className="mb-6 grid grid-cols-2 gap-3">
+      <div className="mb-6 flex flex-col gap-3">
         <div>
           <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Ngày đi
@@ -167,7 +190,7 @@ export default function TourFilterPanel({
                 onDepartureDateChange(date ? toLocalDateStr(date) : '');
               }}
               placeholderText="Chọn ngày"
-              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !py-0 !pl-0 !pr-6 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
               isClearable
             />
           </div>
@@ -185,7 +208,7 @@ export default function TourFilterPanel({
                 onReturnDateChange(date ? toLocalDateStr(date) : '');
               }}
               placeholderText="Chọn ngày"
-              className="!h-auto !w-full !border-0 !bg-transparent !p-0 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !py-0 !pl-0 !pr-6 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
               minDate={departureDateObj || undefined}
               isClearable
             />

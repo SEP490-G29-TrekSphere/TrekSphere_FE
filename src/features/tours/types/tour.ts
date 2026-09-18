@@ -31,8 +31,6 @@ export interface Tour {
   schedule?: string;
   isPopular?: boolean;
   isNew?: boolean;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 // ============================================================
@@ -182,7 +180,7 @@ export interface TourFilter {
 /**
  * Difficulty levels from the API
  */
-export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER';
+export type ApiDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 /**
  * Status values from the API
@@ -260,8 +258,6 @@ export interface TourApiItem {
   totalReviews: number;
   createdAt: string;
   category?: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 export type FitnessLevel = 'ANY' | 'BASIC' | 'MODERATE' | 'HIGH' | 'EXTREME';
@@ -380,9 +376,6 @@ export interface TourDetailFromApi {
   paymentPolicy?: TourPaymentPolicy;
   /** Điều kiện tham gia do vendor cấu hình riêng cho tour. */
   participationPolicy?: TourParticipationPolicy | null;
-  /** False vẫn cho xem tour public nhưng khóa tạo booking online. */
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
   /** Chi phí đã phát sinh và không hoàn lại khi tính yêu cầu hủy. */
   nonRefundableCost?: number;
   averageRating: number | null;
@@ -412,8 +405,7 @@ export type RecommendationReason =
 
 /**
  * Tour rút gọn nhúng trong response gợi ý — khớp `TourSummaryResponse` phía
- * backend, khác `TourApiItem` (list thường): không có
- * `averageRating`/`totalReviews`/`onlineBookingEnabled`.
+ * backend, khác `TourApiItem` (list thường): không có `averageRating`/`totalReviews`.
  */
 export interface RecommendedTourSummaryApi {
   tourId: string;

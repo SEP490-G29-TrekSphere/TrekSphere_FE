@@ -35,6 +35,7 @@ const DIFFICULTY_OPTIONS: Array<{ value: ApiDifficulty | ''; label: string }> = 
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 export default function TourList() {

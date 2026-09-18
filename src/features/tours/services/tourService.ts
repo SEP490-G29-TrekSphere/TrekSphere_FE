@@ -93,19 +93,7 @@ export const tourService = {
 
   async getTourById(tourId: string): Promise<TourDetailFromApi> {
     const response = await ApiService<TourDetailFromApi>(`/tours/${tourId}`, 'GET');
-    const data = unwrapResponse(response);
-    const hasRequiredPolicies = Boolean(data.paymentPolicy && data.participationPolicy);
-    return {
-      ...data,
-      onlineBookingEnabled: data.onlineBookingEnabled === true && hasRequiredPolicies,
-      onlineBookingDisabledReason:
-        data.onlineBookingDisabledReason ??
-        (!data.participationPolicy
-          ? 'Tour chưa có điều kiện tham gia.'
-          : !data.paymentPolicy
-            ? 'Tour chưa có chính sách thanh toán.'
-            : 'Tour chưa sẵn sàng nhận đặt online.'),
-    };
+    return unwrapResponse(response);
   },
 
   async validateVoucher(

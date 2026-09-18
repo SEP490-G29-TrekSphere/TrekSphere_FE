@@ -11,8 +11,7 @@ const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXPERT: 'Khám phá',
-  BEGINNER: 'Dễ',
+  EXTREME: 'Khám phá',
 };
 
 const REASON_LABEL: Record<RecommendationReason, string> = {

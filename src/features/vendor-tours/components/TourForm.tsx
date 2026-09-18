@@ -8,13 +8,14 @@ import { toast } from '@/store/useToastStore';
 import type { CheckpointSubmitItem, CreateTourPayload } from '../types';
 import { type CheckpointDraft, CheckpointFields } from './CheckpointFields';
 
-/** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó (khớp đúng zod enum bên dưới). */
-type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD';
+/** Khớp đúng 4 mức độ khó thật của BE (`DifficultyLevel`), xem zod enum bên dưới. */
+type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 const DIFFICULTY_OPTIONS: Array<{ value: FormDifficulty; label: string }> = [
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Vừa' },
   { value: 'HARD', label: 'Khó' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 const MAX_COVER_SIZE_MB = 5;
@@ -43,7 +44,7 @@ function optionalAgeText(label: string, minimum: number, maximum: number) {
 const tourFormSchema = z
   .object({
     tourName: z.string().trim().min(1, 'Vui lòng nhập tên tour'),
-    difficulty: z.enum(['EASY', 'MODERATE', 'HARD']),
+    difficulty: z.enum(['EASY', 'MODERATE', 'HARD', 'EXTREME']),
     price: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
     location: z.string().trim().min(1, 'Vui lòng nhập địa điểm'),
     minCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),

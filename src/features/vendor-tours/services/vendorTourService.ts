@@ -66,8 +66,6 @@ interface VendorTourResponseDto {
   status: ApiStatus;
   coverImageUrl: string | null;
   createdAt: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 interface TourDetailResponseDto {
@@ -139,8 +137,6 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
     difficulty: dto.difficulty,
     status: dto.status,
     createdAt: dto.createdAt,
-    onlineBookingEnabled: dto.onlineBookingEnabled === true,
-    onlineBookingDisabledReason: dto.onlineBookingDisabledReason,
   };
 }
 
