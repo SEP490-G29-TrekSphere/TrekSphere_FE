@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { PATHS } from '@/constants/paths';
+import { isVendorOrAdminRole, PATHS } from '@/constants';
 import { useAppStore } from '@/store/useAppStore';
 import { EditMatchingGroupModal } from '../components/create/EditMatchingGroupModal';
 import { GroupActionPanel } from '../components/detail/GroupActionPanel';
@@ -70,6 +70,7 @@ export default function CompanionGroupDetailPage({
 
   const isMemberOrLeader =
     actions.currentUserRole === 'leader' || actions.currentUserRole === 'member';
+  const isVendorOrAdmin = isVendorOrAdminRole(user?.roles);
 
   const shellClassName = embedded
     ? 'text-foreground'
@@ -237,8 +238,12 @@ export default function CompanionGroupDetailPage({
               role={actions.currentUserRole}
               groupStatus={group.status}
               isJoining={actions.isJoining}
+              canJoin={!isVendorOrAdmin}
+              myMembershipStatus={group.myMembershipStatus}
+              rejectReason={group.myRejectReason}
               onOpenChat={actions.openGroupChat}
               onJoin={() => {
+                if (isVendorOrAdmin) return;
                 if (!requireLogin()) return;
                 setIsJoinModalOpen(true);
               }}

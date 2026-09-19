@@ -34,8 +34,9 @@ interface MatchingGroupDiscoveryResultsProps {
   onRetry: () => void;
   onReset: () => void;
   onLogin: () => void;
-  onJoinGroup: (group: GroupCardData) => void;
+  onJoinGroup?: (group: GroupCardData) => void;
   onViewDetail: (group: GroupCardData) => void;
+  canJoin?: boolean;
 }
 
 export function MatchingGroupDiscoveryResults({
@@ -60,6 +61,7 @@ export function MatchingGroupDiscoveryResults({
   onLogin,
   onJoinGroup,
   onViewDetail,
+  canJoin = true,
 }: MatchingGroupDiscoveryResultsProps) {
   const currentSortLabel =
     MATCHING_GROUP_SORT_OPTIONS.find((option) => option.value === sortKey)?.label ??
@@ -152,6 +154,7 @@ export function MatchingGroupDiscoveryResults({
                 onViewDetail={onViewDetail}
                 hasJoined={isJoined}
                 applicationStatus={appStatus}
+                canJoin={canJoin}
               />
             );
           })}

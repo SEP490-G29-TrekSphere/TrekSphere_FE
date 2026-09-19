@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ export default function NotificationBell({
   const open = isControlled ? controlledOpen : internalOpen;
   const [limit, setLimit] = useState(INITIAL_LIMIT);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const user = useAppStore((state) => state.user);
 
   const { data: unreadCount } = useUnreadCount();
@@ -46,6 +48,8 @@ export default function NotificationBell({
       markAsRead(notification.notificationId);
     }
     handleOpenChange(false);
+    queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
     }

@@ -136,9 +136,19 @@ function invalidateQueriesForNotification(
       }
       break;
 
+    // 11. Bài viết mới / Thông báo mới trong nhóm
+    case 'GROUP_POST_CREATED':
+    case 'GROUP_POST_ANNOUNCEMENT':
+      queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
+      if (referenceId) {
+        queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(referenceId) });
+      }
+      break;
+
     default:
       if (referenceType === 'MATCHING_GROUP') {
         queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });
+        queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
       } else if (referenceType === 'TOUR') {
         queryClient.invalidateQueries({ queryKey: ['tours'] });
         queryClient.invalidateQueries({ queryKey: ['vendor-tours'] });

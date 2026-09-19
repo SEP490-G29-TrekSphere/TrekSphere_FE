@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTrekkerGroupDetailPath, getTrekkerGroupJoinPath, PATHS } from '@/constants';
+import {
+  getTrekkerGroupDetailPath,
+  getTrekkerGroupJoinPath,
+  isVendorOrAdminRole,
+  PATHS,
+} from '@/constants';
 import { checkProfileCompleteness, ProfileCompletionModal, useProfile } from '@/features/profile';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
@@ -27,6 +32,7 @@ export default function MyCompanionGroupsPage() {
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
   const isGuest = !user;
+  const isVendorOrAdmin = isVendorOrAdminRole(user?.roles);
   const [activeRole, setActiveRole] = useState<MatchingGroupRoleFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTourId, setSelectedTourId] = useState('');
@@ -46,7 +52,8 @@ export default function MyCompanionGroupsPage() {
     isFetching: isProfileFetching,
   } = useProfile();
   const completeness = useMemo(() => checkProfileCompleteness(profile), [profile]);
-  const canLoadData = !isGuest && !isProfileLoading && completeness.isComplete;
+  const canLoadData =
+    !isGuest && (isVendorOrAdmin || (!isProfileLoading && completeness.isComplete));
 
   useEffect(() => {
     if (isGuest) navigate(PATHS.LOGIN);
@@ -54,12 +61,11 @@ export default function MyCompanionGroupsPage() {
 
   // Tự động nhắc nhở hoàn thiện hồ sơ nếu chưa đủ thông tin khi vào trang quản lý nhóm
   useEffect(() => {
-    if (completeness.isComplete) {
+    if (isGuest || isVendorOrAdmin || completeness.isComplete) {
       setIsProfileCompletionModalOpen(false);
       return;
     }
     if (
-      !isGuest &&
       !isProfileLoading &&
       !isProfileFetching &&
       profile &&
@@ -69,7 +75,14 @@ export default function MyCompanionGroupsPage() {
       hasAutoPromptedRef.current = true;
       setIsProfileCompletionModalOpen(true);
     }
-  }, [isGuest, isProfileLoading, isProfileFetching, profile, completeness.isComplete]);
+  }, [
+    isGuest,
+    isVendorOrAdmin,
+    isProfileLoading,
+    isProfileFetching,
+    profile,
+    completeness.isComplete,
+  ]);
 
   const [sortBy, sortDir] = sortKey.split('-') as [string, string];
   const { data, isLoading, isError } = useMyMatchingGroups(
@@ -107,7 +120,7 @@ export default function MyCompanionGroupsPage() {
   }
 
   function handleCreateClick() {
-    if (!completeness.isComplete) {
+    if (!isVendorOrAdmin && !completeness.isComplete) {
       setIsProfileCompletionModalOpen(true);
       return;
     }
@@ -118,7 +131,7 @@ export default function MyCompanionGroupsPage() {
 
   return (
     <div className="flex w-full max-w-7xl flex-col space-y-6 pb-12">
-      {!completeness.isComplete && (
+      {!isVendorOrAdmin && !completeness.isComplete && (
         <ProfileIncompleteBanner
           missingCount={completeness.missingFields.length}
           returnPath={PATHS.TREKKER_MY_GROUPS}
@@ -170,7 +183,12 @@ export default function MyCompanionGroupsPage() {
           onLayoutChange={setLayout}
           onReset={resetFilters}
           onPageChange={setPage}
-          onJoinGroup={(group) => navigate(getTrekkerGroupJoinPath(groupId(group)))}
+          canJoin={!isVendorOrAdmin}
+          onJoinGroup={
+            isVendorOrAdmin
+              ? undefined
+              : (group) => navigate(getTrekkerGroupJoinPath(groupId(group)))
+          }
           onViewDetail={(group) => navigate(getTrekkerGroupDetailPath(groupId(group)))}
           getDetailPath={getTrekkerGroupDetailPath}
         />

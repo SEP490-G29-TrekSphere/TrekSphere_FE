@@ -1,4 +1,5 @@
 import { Clock, MapPin, Route } from 'lucide-react';
+import { RichTextContent } from '@/shared/ui';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { formatCheckpointTime } from '../../utils/checkpointTime';
 
@@ -9,6 +10,7 @@ interface GroupItineraryTabProps {
 export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
   const checkpoints = group.checkpoints ?? [];
   const hasCheckpoints = checkpoints.length > 0;
+  const journeyDescription = group.tourDescription || group.customJourneyDescription;
 
   return (
     <div className="space-y-6">
@@ -21,6 +23,16 @@ export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
               : 'Chi tiết các điểm dừng chân và mốc thời gian của hành trình'}
           </p>
         </div>
+
+        {journeyDescription && (
+          <div className="rounded-2xl border border-border/80 bg-muted/20 p-4 space-y-2">
+            <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <Route className="h-3.5 w-3.5 text-primary" />
+              Tổng quan lộ trình
+            </h4>
+            <RichTextContent content={journeyDescription} />
+          </div>
+        )}
 
         {hasCheckpoints ? (
           <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-border">

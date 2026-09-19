@@ -9,6 +9,7 @@ import {
   Unlock,
   XCircle,
 } from 'lucide-react';
+import { RichTextContent } from '@/shared/ui';
 import { formatDate } from '@/utils/format';
 import type { MatchingGroupStatus } from '../../../types/matchingGroup';
 import type { CustomJourneyDetailResponse } from '../../../types/workspace';
@@ -18,6 +19,7 @@ interface JourneyHeaderCardProps {
   checkpointCount: number;
   isLeader: boolean;
   groupStatus?: MatchingGroupStatus;
+  groupDescription?: string | null;
   onEditJourney: () => void;
 }
 
@@ -49,6 +51,7 @@ export function JourneyHeaderCard({
   checkpointCount,
   isLeader,
   groupStatus,
+  groupDescription,
   onEditJourney,
 }: JourneyHeaderCardProps) {
   if (!journey) return null;
@@ -66,6 +69,11 @@ export function JourneyHeaderCard({
 
   const formattedStartDate = journey.startDate ? formatDate(journey.startDate) : '';
   const formattedEndDate = journey.endDate ? formatDate(journey.endDate) : '';
+
+  const hasJourneyDesc = Boolean(journey.description?.trim());
+  const hasGroupDesc = Boolean(
+    groupDescription?.trim() && groupDescription.trim() !== journey.description?.trim()
+  );
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-xs transition sm:p-6">
@@ -143,9 +151,25 @@ export function JourneyHeaderCard({
         )}
       </div>
 
-      {journey.description && (
-        <div className="mt-4 border-t border-border/60 pt-3.5 text-xs leading-relaxed text-muted-foreground">
-          {journey.description}
+      {(hasJourneyDesc || hasGroupDesc) && (
+        <div className="mt-5 space-y-4 border-t border-border/60 pt-4">
+          {hasJourneyDesc && (
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Mô tả lộ trình
+              </h4>
+              <RichTextContent content={journey.description!} />
+            </div>
+          )}
+
+          {hasGroupDesc && (
+            <div className="space-y-1.5 rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+                Lưu ý & Mô tả từ Trưởng nhóm
+              </h4>
+              <RichTextContent content={groupDescription!} />
+            </div>
+          )}
         </div>
       )}
     </div>

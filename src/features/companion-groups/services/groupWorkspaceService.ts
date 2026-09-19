@@ -37,6 +37,7 @@ import type {
   GroupPostCommentUpdateRequest,
   GroupPostCreateRequest,
   GroupPostDetailResponse,
+  GroupPostFilterRequest,
   GroupPostResponse,
   GroupPostUpdateRequest,
 } from '../types/workspace';
@@ -521,11 +522,11 @@ export const groupWorkspaceService = {
   // ==================== 3. GROUP FEED & POSTS ====================
 
   /**
-   * Lấy danh sách bài đăng bảng tin của nhóm (phân trang).
+   * Lấy danh sách bài đăng bảng tin của nhóm (phân trang, lọc theo loại).
    */
   async getGroupPosts(
     groupId: string,
-    params: { page?: number; size?: number; sort?: string } = {}
+    params: GroupPostFilterRequest = {}
   ): Promise<PaginationResponse<GroupPostResponse>> {
     const response = await ApiService<PaginationResponse<GroupPostResponse>>(
       `/matching-groups/${groupId}/posts`,
@@ -563,7 +564,7 @@ export const groupWorkspaceService = {
   },
 
   /**
-   * Chỉnh sửa bài viết (chỉ tác giả).
+   * Chỉnh sửa bài viết (chỉ tác giả hoặc Leader cập nhật ghim).
    */
   async updateGroupPost(
     groupId: string,
@@ -574,6 +575,17 @@ export const groupWorkspaceService = {
       `/matching-groups/${groupId}/posts/${postId}`,
       'PUT',
       payload
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
+   * Ghim / Bỏ ghim bài viết (chỉ Leader).
+   */
+  async togglePinGroupPost(groupId: string, postId: string): Promise<GroupPostResponse> {
+    const response = await ApiService<GroupPostResponse>(
+      `/matching-groups/${groupId}/posts/${postId}/toggle-pin`,
+      'PATCH'
     );
     return unwrapResponse(response);
   },

@@ -24,12 +24,6 @@ export function GroupOverviewTab({
   onViewFullFeed,
   onViewSosDetail,
 }: GroupOverviewTabProps) {
-  const descriptionText =
-    group.description ||
-    group.tourDescription ||
-    group.customJourneyDescription ||
-    'Chưa có mô tả chi tiết cho chuyến đi này.';
-
   const isTripInProgress = group.status === 'IN_PROGRESS';
   const currentLeader = resolveCurrentLeaderMember(group);
 
@@ -38,7 +32,8 @@ export function GroupOverviewTab({
       <LeaderCard
         ownerName={currentLeader?.fullName ?? group.leaderName ?? group.ownerName}
         ownerAvatarUrl={currentLeader?.avatarUrl ?? group.leaderAvatarUrl ?? group.ownerAvatarUrl}
-        descriptionText={descriptionText}
+        groupDescription={group.description}
+        journeyDescription={group.tourDescription || group.customJourneyDescription}
       />
 
       <SosStatusWidget activeSosAlerts={activeSosAlerts} onViewSosDetail={onViewSosDetail} />

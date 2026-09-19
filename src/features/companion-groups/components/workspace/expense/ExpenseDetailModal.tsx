@@ -148,9 +148,7 @@ export function ExpenseDetailModal({ isOpen, onClose, expense }: ExpenseDetailMo
             <span className="text-[11px] font-normal normal-case text-muted-foreground">
               Phương thức:{' '}
               <strong className="text-foreground">
-                {expense.splitMethod === 'CUSTOM'
-                  ? 'Chia theo số tiền chỉ định (CUSTOM)'
-                  : 'Chia đều (EQUAL)'}
+                {expense.splitMethod === 'CUSTOM' ? 'Chia tùy chỉnh' : 'Chia đều'}
               </strong>
             </span>
           </h4>
