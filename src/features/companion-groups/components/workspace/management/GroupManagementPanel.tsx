@@ -75,6 +75,29 @@ export function GroupManagementPanel({
   const canToggleVisibility = isOpen || groupStatus === 'FULL' || isClosed || isHidden;
   const canRunLifecycle = groupStatus !== 'COMPLETED' && groupStatus !== 'CANCELLED';
 
+  if (groupStatus === 'CANCELLED') {
+    return (
+      <section className="space-y-6 rounded-3xl border border-destructive/30 bg-destructive/5 p-6 shadow-xs">
+        <div className="flex flex-col gap-2 border-border border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <h3 className="font-bold text-base text-foreground">Quản lý nhóm ghép</h3>
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full bg-destructive/15 px-3 py-1 font-semibold text-[11px] text-destructive">
+            Nhóm đã hủy
+          </span>
+        </div>
+        <div className="rounded-2xl border border-destructive/20 bg-background/80 p-5 text-center space-y-2">
+          <p className="text-sm font-bold text-destructive">Nhóm ghép này đã giải tán / hủy bỏ</p>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
+            Toàn bộ chức năng quản lý, chỉnh sửa thông tin, tuyển thành viên, bắt đầu chuyến đi và
+            biểu quyết đã bị vô hiệu hóa vĩnh viễn.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-xs">
       <div className="flex flex-col gap-2 border-border border-b pb-4 sm:flex-row sm:items-center sm:justify-between">

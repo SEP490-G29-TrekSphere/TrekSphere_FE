@@ -99,6 +99,25 @@ export function useDeleteGroupCheckpoint(groupId: string) {
   });
 }
 
+/** Hook đổi chéo thứ tự giữa 2 Checkpoint */
+export function useSwapGroupCheckpoints(groupId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      checkpointId,
+      targetCheckpointId,
+    }: {
+      checkpointId: string;
+      targetCheckpointId: string;
+    }) => groupWorkspaceService.swapCheckpoints(groupId, checkpointId, targetCheckpointId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.checkpoints(groupId) });
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.journey(groupId) });
+    },
+  });
+}
+
 /** Hook Leader cập nhật tiến độ 1 checkpoint: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra) */
 export function useUpdateCheckpointProgress(groupId: string) {
   const queryClient = useQueryClient();

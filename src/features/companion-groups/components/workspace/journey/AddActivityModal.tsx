@@ -40,7 +40,6 @@ export function AddActivityModal({
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<ActivityFormValues>({
@@ -55,10 +54,8 @@ export function AddActivityModal({
       plannedEndAt: initialBoundary.end,
       checkpointId: '',
     },
+    mode: 'onChange',
   });
-
-  const currentTimeSlot = watch('timeSlot') || 'MORNING';
-  const currentBoundary = TIME_SLOT_BOUNDARIES[currentTimeSlot] ?? TIME_SLOT_BOUNDARIES.MORNING;
 
   useEffect(() => {
     if (isOpen) {
@@ -111,7 +108,7 @@ export function AddActivityModal({
       aria-label="Thêm Hoạt Động Vào Thời Khóa Biểu"
       className="max-w-xl"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         {/* Hàng 1: Ngày & Buổi */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -143,8 +140,11 @@ export function AddActivityModal({
                   const newSlot = e.target.value as TimeSlot;
                   const b = TIME_SLOT_BOUNDARIES[newSlot];
                   if (b) {
-                    setValue('plannedStartAt', b.start, { shouldValidate: true });
-                    setValue('plannedEndAt', b.end, { shouldValidate: true });
+                    setValue('plannedStartAt', b.start, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                    setValue('plannedEndAt', b.end, { shouldValidate: true, shouldDirty: true });
                   }
                 },
               })}
@@ -217,8 +217,6 @@ export function AddActivityModal({
             </label>
             <input
               type="time"
-              min={currentBoundary.start}
-              max={currentBoundary.end}
               {...register('plannedStartAt')}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
             />
@@ -236,8 +234,6 @@ export function AddActivityModal({
             </label>
             <input
               type="time"
-              min={currentBoundary.start}
-              max={currentBoundary.end}
               {...register('plannedEndAt')}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
             />

@@ -264,6 +264,21 @@ export const groupWorkspaceService = {
   },
 
   /**
+   * Đổi chéo thứ tự giữa 2 điểm dừng trong hành trình (chỉ Leader khi chưa khóa).
+   */
+  async swapCheckpoints(
+    groupId: string,
+    checkpointId: string,
+    targetCheckpointId: string
+  ): Promise<CustomJourneyCheckpointResponse[]> {
+    const response = await ApiService<CustomJourneyCheckpointResponse[]>(
+      `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}/swap/${targetCheckpointId}`,
+      'PUT'
+    );
+    return unwrapResponse(response);
+  },
+
+  /**
    * Leader cập nhật tiến độ 1 điểm dừng: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra).
    */
   async updateCheckpointProgress(

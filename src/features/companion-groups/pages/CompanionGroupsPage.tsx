@@ -10,6 +10,7 @@ import { checkProfileCompleteness, ProfileCompletionModal, useProfile } from '@/
 import { useTours } from '@/features/tours/hooks/useTours';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useAppStore } from '@/store/useAppStore';
+import { toast } from '@/store/useToastStore';
 import type { GroupCardData } from '../components/CompanionGroupCard';
 import { MatchingGroupDiscoveryFilters } from '../components/discovery/MatchingGroupDiscoveryFilters';
 import { MatchingGroupDiscoveryHero } from '../components/discovery/MatchingGroupDiscoveryHero';
@@ -312,9 +313,14 @@ export default function CompanionGroupsPage() {
         matchingGroupId: selectedJoinGroup.id,
         message,
       });
+      toast.success(
+        'Đã gửi yêu cầu tham gia thành công! Trưởng nhóm sẽ xét duyệt yêu cầu của bạn.'
+      );
       setSelectedJoinGroup(null);
-    } catch {
-      // Error handled by mutation or global query error
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi gửi yêu cầu tham gia.'
+      );
     }
   }
 
@@ -430,10 +436,16 @@ export default function CompanionGroupsPage() {
       {selectedJoinGroup && (
         <JoinGroupModal
           isOpen={Boolean(selectedJoinGroup)}
-          onClose={() => setSelectedJoinGroup(null)}
+          onClose={() => {
+            setSelectedJoinGroup(null);
+            joinGroupMutation.reset();
+          }}
           group={selectedJoinGroup}
           onSubmit={handleConfirmJoinGroup}
           isPending={joinGroupMutation.isPending}
+          errorMessage={
+            joinGroupMutation.error instanceof Error ? joinGroupMutation.error.message : null
+          }
         />
       )}
 

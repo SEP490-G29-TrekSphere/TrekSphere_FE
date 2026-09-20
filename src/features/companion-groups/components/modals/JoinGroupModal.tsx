@@ -1,4 +1,4 @@
-import { Calendar, Compass, Loader2, Send, User, Users, X } from 'lucide-react';
+import { AlertCircle, Calendar, Compass, Loader2, Send, User, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { AppModalShell } from '@/shared/ui';
 import { formatDate } from '@/utils/format';
@@ -28,6 +28,7 @@ interface JoinGroupModalProps {
   onClose: () => void;
   group: JoinGroupModalGroupSummary | null;
   isPending: boolean;
+  errorMessage?: string | null;
   onSubmit: (message?: string) => void;
 }
 
@@ -36,6 +37,7 @@ export function JoinGroupModal({
   onClose,
   group,
   isPending,
+  errorMessage,
   onSubmit,
 }: JoinGroupModalProps) {
   const [message, setMessage] = useState('');
@@ -105,6 +107,13 @@ export function JoinGroupModal({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 p-6 text-xs">
+        {errorMessage && (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="leading-relaxed font-medium">{errorMessage}</span>
+          </div>
+        )}
+
         {/* GROUP SUMMARY CARD */}
         <div className="rounded-2xl border border-border bg-card p-4 space-y-2.5 shadow-2xs">
           <h4 className="font-bold text-foreground text-xs line-clamp-1">{group.title}</h4>

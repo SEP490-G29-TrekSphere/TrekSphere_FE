@@ -119,6 +119,7 @@ export function GroupBudgetTab({
   currentUserId,
 }: GroupBudgetTabProps) {
   const groupId = group.matchingGroupId;
+  const isCancelled = group.status === 'CANCELLED';
   const isCustomJourney = group.sourceType === 'CUSTOM_JOURNEY' || Boolean(group.customJourneyId);
 
   // 1. Budget Plan Data
@@ -229,7 +230,7 @@ export function GroupBudgetTab({
               Định mức chi phí chuyến đi được tính toán dựa trên quy mô số lượng thành viên dự kiến
             </p>
           </div>
-          {isLeader && isCustomJourney && !group.isLocked ? (
+          {isLeader && isCustomJourney && !group.isLocked && !isCancelled ? (
             <button
               type="button"
               onClick={() => setIsAddBudgetOpen(true)}
@@ -238,7 +239,7 @@ export function GroupBudgetTab({
               <Plus className="h-4 w-4" />
               Thêm Khoản Chi Mới
             </button>
-          ) : (
+          ) : isCancelled ? null : (
             <span
               className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-border px-3 py-2 text-[11px] font-bold text-muted-foreground"
               title="Chỉ Leader được sửa dự toán chung của nhóm"
@@ -347,7 +348,7 @@ export function GroupBudgetTab({
                         {item.note || '-'}
                       </td>
                       <td className="p-3 text-right whitespace-nowrap">
-                        {isLeader && isCustomJourney && !group.isLocked ? (
+                        {isLeader && isCustomJourney && !group.isLocked && !isCancelled ? (
                           <div className="inline-flex items-center gap-1">
                             <button
                               type="button"
@@ -394,7 +395,7 @@ export function GroupBudgetTab({
                 Ghi nhận các khoản ứng trước thực tế để tự động tính đối trừ giao dịch P2P tối ưu
               </p>
             </div>
-            {isLeader && (
+            {isLeader && !isCancelled && (
               <button
                 type="button"
                 onClick={() => setIsAddExpenseOpen(true)}
@@ -556,7 +557,7 @@ export function GroupBudgetTab({
                             >
                               <Eye className="h-3.5 w-3.5" />
                             </button>
-                            {isLeader && (
+                            {isLeader && !isCancelled && (
                               <>
                                 <button
                                   type="button"
@@ -704,7 +705,7 @@ export function GroupBudgetTab({
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Kết Quả Tối Ưu Hóa Giao Dịch Bù Trừ:
               </div>
-              {isLeader && suggestedSettlements.length > 0 && (
+              {isLeader && !isCancelled && suggestedSettlements.length > 0 && (
                 <button
                   type="button"
                   onClick={generateSettlements}

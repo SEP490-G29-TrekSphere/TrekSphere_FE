@@ -85,9 +85,7 @@ export default function JoinGroupRequestPage({
     );
   }
 
-  const currentApplication = group.members.find(
-    (member) => String(member.userId) === String(user?.id)
-  );
+  const existingStatus = group.myMembershipStatus ?? undefined;
   return (
     <div
       className={
@@ -100,7 +98,7 @@ export default function JoinGroupRequestPage({
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           <JoinGroupSummary group={group} />
           <JoinGroupApplicationPanel
-            existingStatus={currentApplication?.status}
+            existingStatus={existingStatus}
             matchingGroupId={group.matchingGroupId}
             targetDate={group.targetDate}
             endDate={group.customJourneyEndDate}

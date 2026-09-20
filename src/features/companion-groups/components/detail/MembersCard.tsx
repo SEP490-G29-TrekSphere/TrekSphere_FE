@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getUserProfilePath } from '@/constants';
 import { AppBadge } from '@/shared/ui';
 import type { MatchingMemberItem } from '../../services/companionGroupService';
+import type { MatchingGroupStatus } from '../../types/matchingGroup';
 import { MemberAvatar } from './MemberAvatar';
 
 interface MembersCardProps {
@@ -13,6 +14,7 @@ interface MembersCardProps {
   currentUserId?: string;
   role?: string;
   hasConversation?: boolean;
+  groupStatus?: MatchingGroupStatus;
   onDirectChat?: (userId: string, userName: string, userAvatar?: string) => void;
   onAddMemberToChat?: (userId: string, userName: string) => void;
   onRemoveMember?: (memberId: string, memberName: string) => void;
@@ -25,10 +27,12 @@ export function MembersCard({
   currentUserId,
   role,
   hasConversation,
+  groupStatus,
   onDirectChat,
   onAddMemberToChat,
   onRemoveMember,
 }: MembersCardProps) {
+  const isCancelled = groupStatus === 'CANCELLED';
   const acceptedMembers = members.filter((m) => m.status === 'ACCEPTED');
   const currentLeader = acceptedMembers.find((m) => m.role === 'LEADER');
   const displayLeaderName = currentLeader?.fullName || ownerName;
@@ -167,7 +171,7 @@ export function MembersCard({
                             <MessageCircle className="h-4 w-4 text-primary" />
                             Nhắn tin riêng
                           </button>
-                          {!isLeader && member.matchingMemberId && (
+                          {!isLeader && !isCancelled && member.matchingMemberId && (
                             <button
                               type="button"
                               onClick={() => {
@@ -177,7 +181,7 @@ export function MembersCard({
                                 );
                                 setActiveDropdownId(null);
                               }}
-                              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left"
+                              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors text-left cursor-pointer"
                             >
                               <UserMinus className="h-4 w-4" />
                               Xoá khỏi nhóm

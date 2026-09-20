@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
@@ -60,6 +60,13 @@ export function AddCheckpointModal({
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      setValue('checkpointOrder', nextOrder);
+      setValue('dayNo', suggestedDayNo);
+    }
+  }, [isOpen, nextOrder, suggestedDayNo, setValue]);
+
   const imageUrl = watch('imageUrl');
 
   function handleClose() {
@@ -75,7 +82,7 @@ export function AddCheckpointModal({
     createCheckpoint.mutate(
       {
         dayNo: values.dayNo ? Number(values.dayNo) : null,
-        checkpointOrder: Number(values.checkpointOrder),
+        checkpointOrder: nextOrder,
         title: values.title.trim(),
         locationName: values.locationName?.trim() || null,
         description: values.description?.trim() || null,
@@ -166,16 +173,17 @@ export function AddCheckpointModal({
               <label className="font-bold text-foreground">
                 Thứ tự chặng (Order) <span className="text-red-500">*</span>
               </label>
+              <div className="flex h-[38px] items-center justify-between rounded-xl border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground select-none">
+                <span>Chặng {nextOrder}</span>
+                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                  Tuần tự (Tự động)
+                </span>
+              </div>
               <input
-                type="number"
-                min={0}
+                type="hidden"
+                value={nextOrder}
                 {...register('checkpointOrder', { valueAsNumber: true })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                placeholder="VD: 1"
               />
-              {errors.checkpointOrder && (
-                <p className="text-[10px] text-red-500">{errors.checkpointOrder.message}</p>
-              )}
             </div>
           </div>
 

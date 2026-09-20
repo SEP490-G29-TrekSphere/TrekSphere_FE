@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { AppEmptyState } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useDeleteGroupPost, useGroupPosts } from '../../../hooks/useGroupFeedWorkspace';
+import type { MatchingGroupStatus } from '../../../types/matchingGroup';
 import type { GroupPostResponse, GroupPostType } from '../../../types/workspace';
 import { CreatePostCard } from './CreatePostCard';
 import { DeletePostConfirmModal } from './DeletePostConfirmModal';
@@ -14,6 +15,7 @@ interface GroupFeedTabProps {
   groupId: string;
   isLeader: boolean;
   currentUserId?: string;
+  groupStatus?: MatchingGroupStatus;
 }
 
 type FeedFilterType = 'ALL' | GroupPostType;
@@ -25,11 +27,12 @@ const FEED_FILTER_TABS: { id: FeedFilterType; label: string; icon: typeof Layers
   { id: 'QUESTION', label: 'Hỏi đáp', icon: HelpCircle },
 ];
 
-export function GroupFeedTab({ groupId, isLeader, currentUserId }: GroupFeedTabProps) {
+export function GroupFeedTab({ groupId, isLeader, currentUserId, groupStatus }: GroupFeedTabProps) {
   const [activeFilter, setActiveFilter] = useState<FeedFilterType>('ALL');
   const [editingPost, setEditingPost] = useState<GroupPostResponse | null>(null);
   const [deletingPost, setDeletingPost] = useState<GroupPostResponse | null>(null);
 
+  const isCancelled = groupStatus === 'CANCELLED';
   const { data: postsData, isLoading, isError, refetch } = useGroupPosts(groupId);
   const deletePostMutation = useDeleteGroupPost(groupId);
 
@@ -72,7 +75,15 @@ export function GroupFeedTab({ groupId, isLeader, currentUserId }: GroupFeedTabP
   return (
     <div className="space-y-6">
       {/* Create New Post Card */}
-      <CreatePostCard groupId={groupId} isLeader={isLeader} />
+      {isCancelled ? (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4 text-center">
+          <p className="text-xs font-semibold text-destructive">
+            Nhóm ghép đã bị hủy. Bảng tin đã chuyển sang chế độ chỉ xem.
+          </p>
+        </div>
+      ) : (
+        <CreatePostCard groupId={groupId} isLeader={isLeader} />
+      )}
 
       {/* Filter Chips / Categories */}
       <div className="flex items-center justify-between gap-3 flex-wrap">

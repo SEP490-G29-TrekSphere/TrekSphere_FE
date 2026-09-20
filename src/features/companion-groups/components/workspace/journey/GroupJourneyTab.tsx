@@ -193,6 +193,7 @@ export function GroupJourneyTab({
 
       {/* 2. CHECKPOINT DỰ KIẾN (WAYPOINTS GRID) */}
       <CheckpointListSection
+        groupId={groupId}
         checkpoints={sortedCheckpoints}
         canEdit={canEdit}
         onAddCheckpoint={() => setIsAddCheckpointModalOpen(true)}
