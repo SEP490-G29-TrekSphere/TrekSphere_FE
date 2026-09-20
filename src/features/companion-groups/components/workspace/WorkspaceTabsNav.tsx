@@ -8,6 +8,7 @@ import {
   Settings,
   Siren,
   Users,
+  Vote,
   Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,8 @@ export type WorkspaceTabKey =
   | 'moments'
   | 'members'
   | 'budget'
+  | 'votes'
+  | 'sos'
   | 'sosVotes'
   | 'management';
 
@@ -38,7 +41,8 @@ export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'moments', label: 'Khoảnh khắc & Album', icon: Camera },
   { id: 'members', label: 'Thành viên', icon: Users },
   { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
-  { id: 'sosVotes', label: 'SOS & Biểu quyết', icon: Siren },
+  { id: 'votes', label: 'Bình chọn', icon: Vote },
+  { id: 'sos', label: 'SOS', icon: Siren },
   { id: 'management', label: 'Quản lý nhóm', icon: Settings, leaderOnly: true },
 ];
 

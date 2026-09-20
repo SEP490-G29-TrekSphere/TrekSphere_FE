@@ -200,18 +200,18 @@ export function EditCheckpointModal({
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-foreground">
-                Thứ tự chặng (Order) <span className="text-red-500">*</span>
-              </label>
+              <label className="font-bold text-foreground">Thứ tự chặng (Order)</label>
+              <div className="flex h-[38px] items-center justify-between rounded-xl border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground select-none">
+                <span>Chặng {checkpoint.checkpointOrder}</span>
+                <span className="text-[10px] font-normal text-muted-foreground">
+                  Kéo thả ở ngoài để đổi
+                </span>
+              </div>
               <input
-                type="number"
-                min={0}
+                type="hidden"
+                value={checkpoint.checkpointOrder}
                 {...register('checkpointOrder', { valueAsNumber: true })}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
-              {errors.checkpointOrder && (
-                <p className="text-[10px] text-red-500">{errors.checkpointOrder.message}</p>
-              )}
             </div>
           </div>
 

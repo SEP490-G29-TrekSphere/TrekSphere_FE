@@ -1,5 +1,5 @@
-import { Loader2, RotateCcw, Send, X } from 'lucide-react';
-import { useState } from 'react';
+import { AlertCircle, Loader2, RotateCcw, Send, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { AppModalShell } from '@/shared/ui';
 
 interface ReapplyModalProps {
@@ -7,6 +7,7 @@ interface ReapplyModalProps {
   onClose: () => void;
   groupName: string;
   isPending: boolean;
+  errorMessage?: string | null;
   onConfirm: (message?: string) => void;
 }
 
@@ -17,9 +18,16 @@ export function ReapplyModal({
   onClose,
   groupName,
   isPending,
+  errorMessage,
   onConfirm,
 }: ReapplyModalProps) {
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setMessage('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -59,6 +67,13 @@ export function ReapplyModal({
       </div>
 
       <div className="space-y-4 p-6 text-xs">
+        {errorMessage && (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-destructive">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="leading-relaxed font-medium">{errorMessage}</span>
+          </div>
+        )}
+
         <p className="text-muted-foreground leading-relaxed">
           Bạn có thể bổ sung thêm thông tin về thể lực, kinh nghiệm hoặc lời nhắn mới để Trưởng nhóm
           dễ dàng xét duyệt lại đơn của bạn.

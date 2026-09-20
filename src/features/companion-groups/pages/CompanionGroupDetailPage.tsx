@@ -285,7 +285,10 @@ export default function CompanionGroupDetailPage({
       {/* Join Group Modal */}
       <JoinGroupModal
         isOpen={isJoinModalOpen}
-        onClose={() => setIsJoinModalOpen(false)}
+        onClose={() => {
+          setIsJoinModalOpen(false);
+          actions.resetJoinError?.();
+        }}
         group={{
           id: group.matchingGroupId,
           title: group.groupName,
@@ -302,6 +305,7 @@ export default function CompanionGroupDetailPage({
           await actions.joinGroup(message, () => setIsJoinModalOpen(false));
         }}
         isPending={actions.isJoining}
+        errorMessage={actions.joinError}
       />
 
       {/* Leader Edit Group Modal */}

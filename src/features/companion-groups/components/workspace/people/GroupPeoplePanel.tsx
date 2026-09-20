@@ -1,6 +1,6 @@
 import { Star, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
-import type { MatchingMemberItem } from '../../../types/matchingGroup';
+import type { MatchingGroupStatus, MatchingMemberItem } from '../../../types/matchingGroup';
 import { MembersCard } from '../../detail/MembersCard';
 import { GroupPeerReviewsTab } from '../reviews/GroupPeerReviewsTab';
 import { WorkspaceSubTabsNav } from '../WorkspaceSubTabsNav';
@@ -25,6 +25,7 @@ interface GroupPeoplePanelProps {
   joinRequestsSlot?: ReactNode;
   groupId: string;
   isTripEnded: boolean;
+  groupStatus?: MatchingGroupStatus;
   membersBadge?: Badge;
   requestsBadge?: Badge;
   reviewsBadge?: Badge;
@@ -47,10 +48,13 @@ export function GroupPeoplePanel({
   joinRequestsSlot,
   groupId,
   isTripEnded,
+  groupStatus,
   membersBadge,
   requestsBadge,
   reviewsBadge,
 }: GroupPeoplePanelProps) {
+  const isCancelled = groupStatus === 'CANCELLED';
+
   return (
     <div className="space-y-4">
       <WorkspaceSubTabsNav<PeopleSubTabKey>
@@ -58,7 +62,12 @@ export function GroupPeoplePanel({
         onTabChange={onSubTabChange}
         tabs={[
           { id: 'list', label: 'Danh sách', icon: Users },
-          { id: 'requests', label: 'Duyệt yêu cầu', icon: UserCheck, hidden: !isLeader },
+          {
+            id: 'requests',
+            label: 'Duyệt yêu cầu',
+            icon: UserCheck,
+            hidden: !isLeader || isCancelled,
+          },
           { id: 'reviews', label: 'Đánh giá', icon: Star },
         ]}
         badges={{ list: membersBadge, requests: requestsBadge, reviews: reviewsBadge }}
@@ -72,6 +81,7 @@ export function GroupPeoplePanel({
           currentUserId={currentUserId}
           role={role}
           hasConversation={hasConversation}
+          groupStatus={groupStatus}
           onDirectChat={onDirectChat}
           onAddMemberToChat={onAddMemberToChat}
           onRemoveMember={onRemoveMember}

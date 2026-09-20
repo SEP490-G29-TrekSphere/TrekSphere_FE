@@ -38,7 +38,7 @@ export interface GroupVoteResponse {
 /** Tạo bình chọn chung (voteType luôn là OTHER — election/dissolution do server tự dựng option). */
 export interface CreateGroupVotePayload {
   title: string;
-  reason: string;
+  reason?: string;
   closesAt: string;
   optionLabels: string[];
 }

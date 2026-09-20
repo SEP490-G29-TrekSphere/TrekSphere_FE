@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/store/useToastStore';
 import type { JoinRequestAction } from '../components/detail/JoinRequestsCard';
 import {
   MATCHING_GROUP_FEEDBACK_DURATION_MS,
@@ -173,10 +174,16 @@ export function useCompanionGroupDetailActions({
       {
         onSuccess: () => {
           showFeedback('Đã gửi yêu cầu tham gia nhóm ghép.');
+          toast.success(
+            'Đã gửi yêu cầu tham gia thành công! Trưởng nhóm sẽ xét duyệt yêu cầu của bạn.'
+          );
           onSuccessCallback?.();
         },
-        onError: (error) =>
-          showFeedback(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xin tham gia.'),
+        onError: (error) => {
+          const msg = error instanceof Error ? error.message : 'Có lỗi xảy ra khi xin tham gia.';
+          showFeedback(msg);
+          toast.error(msg);
+        },
       }
     );
   }
@@ -217,6 +224,8 @@ export function useCompanionGroupDetailActions({
     selectedRemoveMember,
     currentUserRole,
     isJoining: joinMutation.isPending,
+    joinError: joinMutation.error instanceof Error ? joinMutation.error.message : null,
+    resetJoinError: joinMutation.reset,
     isApprovePending: approveMutation.isPending,
     isRejectPending: rejectMutation.isPending,
     isRemoveMemberPending: removeMemberMutation.isPending,

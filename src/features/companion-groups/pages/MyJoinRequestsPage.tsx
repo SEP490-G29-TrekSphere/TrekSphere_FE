@@ -197,9 +197,13 @@ export default function MyJoinRequestsPage() {
       {/* Reapply Modal */}
       <ReapplyModal
         isOpen={Boolean(selectedReapplyApp)}
-        onClose={() => setSelectedReapplyApp(null)}
+        onClose={() => {
+          setSelectedReapplyApp(null);
+          joinMutation.reset();
+        }}
         groupName={selectedReapplyApp?.groupName ?? ''}
         isPending={joinMutation.isPending}
+        errorMessage={joinMutation.error instanceof Error ? joinMutation.error.message : null}
         onConfirm={handleConfirmReapply}
       />
     </div>

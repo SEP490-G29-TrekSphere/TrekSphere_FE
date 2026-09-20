@@ -135,7 +135,19 @@ export function GroupActionPanel({
         </div>
       )}
 
-      {role === 'guest' && myMembershipStatus === 'REJECTED' && (
+      {groupStatus === 'CANCELLED' && role === 'guest' && (
+        <div className="rounded-2xl bg-destructive/5 border border-destructive/20 p-5 space-y-2 shadow-xs">
+          <div className="flex items-center gap-2 text-destructive font-bold text-xs uppercase">
+            <AlertCircle className="h-4 w-4" />
+            <span>Nhóm đã bị hủy</span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Nhóm ghép này đã giải tán, không nhận đơn xin gia nhập mới.
+          </p>
+        </div>
+      )}
+
+      {groupStatus !== 'CANCELLED' && role === 'guest' && myMembershipStatus === 'REJECTED' && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3.5 shadow-xs">
           <div className="flex items-start gap-2.5">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive mt-0.5">
@@ -185,37 +197,40 @@ export function GroupActionPanel({
         </div>
       )}
 
-      {role === 'guest' && myMembershipStatus !== 'REJECTED' && canJoin && (
-        <div className="rounded-2xl bg-card border border-border p-5 space-y-3.5 shadow-xs">
-          <div>
-            <h3 className="text-sm font-bold text-foreground">Gửi Đơn Tham Gia Nhóm</h3>
-            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-              Hãy gửi lời giới thiệu về thể lực và kinh nghiệm để Trưởng nhóm xét duyệt.
-            </p>
-          </div>
+      {groupStatus !== 'CANCELLED' &&
+        role === 'guest' &&
+        myMembershipStatus !== 'REJECTED' &&
+        canJoin && (
+          <div className="rounded-2xl bg-card border border-border p-5 space-y-3.5 shadow-xs">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Gửi Đơn Tham Gia Nhóm</h3>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Hãy gửi lời giới thiệu về thể lực và kinh nghiệm để Trưởng nhóm xét duyệt.
+              </p>
+            </div>
 
-          <button
-            type="button"
-            disabled={isJoining || groupStatus !== 'OPEN'}
-            onClick={() => onJoin()}
-            className="w-full rounded-full bg-primary py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
-          >
-            {isJoining ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang xử lý...</span>
-              </>
-            ) : groupStatus === 'OPEN' ? (
-              <>
-                <Send className="w-3.5 h-3.5" />
-                <span>Gửi đơn tham gia</span>
-              </>
-            ) : (
-              <span>Đã đủ thành viên</span>
-            )}
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              disabled={isJoining || groupStatus !== 'OPEN'}
+              onClick={() => onJoin()}
+              className="w-full rounded-full bg-primary py-2.5 text-xs font-bold text-white hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
+            >
+              {isJoining ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Đang xử lý...</span>
+                </>
+              ) : groupStatus === 'OPEN' ? (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Gửi đơn tham gia</span>
+                </>
+              ) : (
+                <span>Đã đủ thành viên</span>
+              )}
+            </button>
+          </div>
+        )}
 
       {role === 'member' && (
         <div className="rounded-2xl bg-card border border-border p-5 text-center space-y-3 shadow-xs">
@@ -226,17 +241,21 @@ export function GroupActionPanel({
             <div>
               <h3 className="text-xs font-bold text-foreground">Bạn đã là thành viên</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Bạn đã tham gia nhóm ghép này.
+                {groupStatus === 'CANCELLED'
+                  ? 'Nhóm ghép này đã giải tán.'
+                  : 'Bạn đã tham gia nhóm ghép này.'}
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onLeave}
-            className="w-full rounded-full border border-destructive/30 bg-background py-2 text-xs font-bold text-destructive hover:bg-destructive/5 transition-colors shadow-xs cursor-pointer"
-          >
-            Rời khỏi nhóm ghép
-          </button>
+          {groupStatus !== 'CANCELLED' && (
+            <button
+              type="button"
+              onClick={onLeave}
+              className="w-full rounded-full border border-destructive/30 bg-background py-2 text-xs font-bold text-destructive hover:bg-destructive/5 transition-colors shadow-xs cursor-pointer"
+            >
+              Rời khỏi nhóm ghép
+            </button>
+          )}
         </div>
       )}
     </div>

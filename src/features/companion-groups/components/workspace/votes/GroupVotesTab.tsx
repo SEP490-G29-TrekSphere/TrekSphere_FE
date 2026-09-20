@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   AlertTriangle,
   CheckCircle2,
   ChevronLeft,
@@ -7,13 +8,13 @@ import {
   Plus,
   Vote as VoteIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AppButton } from '@/shared/ui';
 import { useCancelVote } from '../../../hooks/vote/useCancelVote';
 import { useCastBallot } from '../../../hooks/vote/useCastBallot';
 import { useCloseVote } from '../../../hooks/vote/useCloseVote';
 import { useGroupVotes } from '../../../hooks/vote/useGroupVotes';
-import type { MatchingMemberItem } from '../../../types/matchingGroup';
+import type { MatchingGroupStatus, MatchingMemberItem } from '../../../types/matchingGroup';
 import type { GroupVoteResponse, GroupVoteType } from '../../../types/vote';
 import { CreateGeneralPollModal } from './CreateGeneralPollModal';
 
@@ -22,6 +23,8 @@ interface GroupVotesTabProps {
   currentUserId?: string;
   isLeader: boolean;
   members: MatchingMemberItem[];
+  targetVoteId?: string | null;
+  groupStatus?: MatchingGroupStatus;
 }
 
 const VOTE_TYPE_LABELS: Record<GroupVoteType, string> = {
@@ -41,7 +44,10 @@ function VoteCard({
   onCancel,
   isClosing,
   isCancelling,
+  cardError,
   emphasized = false,
+  isTarget = false,
+  isCancelled = false,
 }: {
   vote: GroupVoteResponse;
   canManage: boolean;
@@ -51,22 +57,35 @@ function VoteCard({
   onCancel: (voteId: string) => void;
   isClosing: boolean;
   isCancelling: boolean;
+  cardError?: string | null;
   emphasized?: boolean;
+  isTarget?: boolean;
+  isCancelled?: boolean;
 }) {
   const totalBallots = vote.options.reduce((sum, o) => sum + o.ballotCount, 0);
-  const isOpen = vote.status === 'OPEN';
+  const isOpen = vote.status === 'OPEN' && !isCancelled;
   const winningOption = vote.options.find((o) => o.groupVoteOptionId === vote.winningOptionId);
 
   return (
     <div
-      className={`rounded-2xl border p-4 space-y-3 ${
-        emphasized ? 'border-2 border-amber-500/50 bg-amber-500/5' : 'border-border bg-background'
+      id={`vote-${vote.groupVoteId}`}
+      className={`rounded-2xl border p-4 space-y-3 transition-all scroll-mt-24 ${
+        isTarget
+          ? 'border-2 border-primary ring-4 ring-primary/20 bg-primary/5 shadow-md'
+          : emphasized
+            ? 'border-2 border-amber-500/50 bg-amber-500/5'
+            : 'border-border bg-background'
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-extrabold text-sm text-foreground">{vote.title}</span>
+            {isTarget && (
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground animate-pulse">
+                Đang xem từ thông báo
+              </span>
+            )}
             <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
               {VOTE_TYPE_LABELS[vote.voteType]}
             </span>
@@ -147,6 +166,14 @@ function VoteCard({
         </p>
       )}
 
+      {/* Card error message */}
+      {cardError && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-2.5 flex items-start gap-2 text-destructive text-xs">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <span className="font-semibold leading-relaxed">{cardError}</span>
+        </div>
+      )}
+
       {isOpen && canManage && (
         <div className="flex flex-wrap gap-2 border-border border-t pt-3">
           <button
@@ -173,10 +200,18 @@ function VoteCard({
   );
 }
 
-export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: GroupVotesTabProps) {
+export function GroupVotesTab({
+  groupId,
+  currentUserId,
+  isLeader,
+  members,
+  targetVoteId,
+  groupStatus,
+}: GroupVotesTabProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [historyPage, setHistoryPage] = useState(0);
 
+  const isCancelled = groupStatus === 'CANCELLED';
   const openVotesQuery = useGroupVotes(groupId, { status: 'OPEN', size: 50 });
   const historyQuery = useGroupVotes(groupId, {
     status: 'CLOSED',
@@ -191,7 +226,25 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
   const currentMemberId = members.find((m) => m.userId === currentUserId)?.matchingMemberId ?? null;
 
   function canManage(vote: GroupVoteResponse) {
+    if (isCancelled) return false;
     return isLeader || (currentMemberId != null && vote.createdByMemberId === currentMemberId);
+  }
+
+  function getCardError(voteId: string) {
+    if (closeVote.isError && closeVote.variables === voteId) {
+      return closeVote.error instanceof Error
+        ? closeVote.error.message
+        : 'Không thể đóng bình chọn';
+    }
+    if (cancelVote.isError && cancelVote.variables === voteId) {
+      return cancelVote.error instanceof Error
+        ? cancelVote.error.message
+        : 'Không thể huỷ bình chọn';
+    }
+    if (castBallot.isError && castBallot.variables?.voteId === voteId) {
+      return castBallot.error instanceof Error ? castBallot.error.message : 'Không thể bỏ phiếu';
+    }
+    return null;
   }
 
   const openVotes = openVotesQuery.data?.content ?? [];
@@ -199,13 +252,39 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
   const openPolls = openVotes.filter((v) => v.voteType === 'OTHER');
   const closedVotes = historyQuery.data?.content ?? [];
 
+  useEffect(() => {
+    if (!targetVoteId) return;
+
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`vote-${targetVoteId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [targetVoteId]);
+
   const cardHandlers = {
-    onCast: (voteId: string, optionId: string) => castBallot.mutate({ voteId, optionId }),
-    onClose: (voteId: string) => closeVote.mutate(voteId),
-    onCancel: (voteId: string) => cancelVote.mutate(voteId),
+    onCast: (voteId: string, optionId: string) => {
+      if (isCancelled) return;
+      closeVote.reset();
+      cancelVote.reset();
+      castBallot.mutate({ voteId, optionId });
+    },
+    onClose: (voteId: string) => {
+      if (isCancelled) return;
+      castBallot.reset();
+      cancelVote.reset();
+      closeVote.mutate(voteId);
+    },
+    onCancel: (voteId: string) => {
+      if (isCancelled) return;
+      castBallot.reset();
+      closeVote.reset();
+      cancelVote.mutate(voteId);
+    },
     castingOptionId: castBallot.isPending ? (castBallot.variables?.optionId ?? null) : null,
-    isClosing: closeVote.isPending,
-    isCancelling: cancelVote.isPending,
   };
 
   return (
@@ -223,6 +302,11 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
                 vote={vote}
                 canManage={canManage(vote)}
                 emphasized
+                isTarget={vote.groupVoteId === targetVoteId}
+                isCancelled={isCancelled}
+                isClosing={closeVote.isPending && closeVote.variables === vote.groupVoteId}
+                isCancelling={cancelVote.isPending && cancelVote.variables === vote.groupVoteId}
+                cardError={getCardError(vote.groupVoteId)}
                 {...cardHandlers}
               />
             ))}
@@ -236,19 +320,13 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
             <VoteIcon className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-bold text-foreground">Bình chọn trong nhóm</h3>
           </div>
-          <AppButton size="sm" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-1 h-3.5 w-3.5" />
-            Tạo bình chọn
-          </AppButton>
+          {!isCancelled && (
+            <AppButton size="sm" onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Tạo bình chọn
+            </AppButton>
+          )}
         </div>
-
-        {(castBallot.isError || closeVote.isError || cancelVote.isError) && (
-          <p className="text-xs font-semibold text-destructive">
-            {[castBallot.error, closeVote.error, cancelVote.error]
-              .filter((e): e is Error => e instanceof Error)
-              .map((e) => e.message)[0] ?? 'Thao tác thất bại, vui lòng thử lại.'}
-          </p>
-        )}
 
         {openVotesQuery.isLoading ? (
           <p className="text-xs text-muted-foreground">Đang tải...</p>
@@ -261,6 +339,11 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
                 key={vote.groupVoteId}
                 vote={vote}
                 canManage={canManage(vote)}
+                isTarget={vote.groupVoteId === targetVoteId}
+                isCancelled={isCancelled}
+                isClosing={closeVote.isPending && closeVote.variables === vote.groupVoteId}
+                isCancelling={cancelVote.isPending && cancelVote.variables === vote.groupVoteId}
+                cardError={getCardError(vote.groupVoteId)}
                 {...cardHandlers}
               />
             ))}
@@ -278,7 +361,17 @@ export function GroupVotesTab({ groupId, currentUserId, isLeader, members }: Gro
         ) : (
           <div className="space-y-3">
             {closedVotes.map((vote) => (
-              <VoteCard key={vote.groupVoteId} vote={vote} canManage={false} {...cardHandlers} />
+              <VoteCard
+                key={vote.groupVoteId}
+                vote={vote}
+                canManage={false}
+                isTarget={vote.groupVoteId === targetVoteId}
+                isCancelled={isCancelled}
+                isClosing={closeVote.isPending && closeVote.variables === vote.groupVoteId}
+                isCancelling={cancelVote.isPending && cancelVote.variables === vote.groupVoteId}
+                cardError={getCardError(vote.groupVoteId)}
+                {...cardHandlers}
+              />
             ))}
           </div>
         )}
