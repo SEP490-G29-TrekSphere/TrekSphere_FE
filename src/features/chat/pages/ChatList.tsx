@@ -100,24 +100,24 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           try {
             const parsed = JSON.parse(message.body);
 
-            // Cập nhật React Query cache
-            // biome-ignore lint/suspicious/noExplicitAny: React Query cache structure
-            queryClient.setQueryData(['chatMessages', selectedId, 1, 50], (oldData: any) => {
-              if (!oldData) return oldData;
+            queryClient.setQueryData(
+              ['chatMessages', selectedId, 1, 50],
+              (oldData: PaginationResponse<MessageResponse> | undefined) => {
+                if (!oldData) return oldData;
 
-              // Tránh duplicate tin nhắn
-              const isExist = oldData.content?.some(
-                (msg: MessageResponse) => msg.messageId === parsed.messageId
-              );
-              if (isExist) return oldData;
+                // Prevent duplicate message
+                const isExist = oldData.content?.some(
+                  (msg: MessageResponse) => msg.messageId === parsed.messageId
+                );
+                if (isExist) return oldData;
 
-              return {
-                ...oldData,
-                content: [parsed, ...oldData.content],
-              };
-            });
+                return {
+                  ...oldData,
+                  content: [parsed, ...oldData.content],
+                };
+              }
+            );
 
-            // Cập nhật last message trong danh sách conversation
             setConversations((prev) =>
               prev.map((c) =>
                 c.id === selectedId
@@ -232,7 +232,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const currentMessages = useMemo(() => {
     if (!selectedId) return [];
 
-    // API trả tin nhắn mới nhất trước, UI cần thứ tự tăng dần theo thời gian.
     return (messagesResponse?.content || [])
       .map<DetailMessage>((msg) => ({
         id: msg.messageId,
@@ -309,7 +308,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           matchingGroupId: selectedConversation.virtualData.matchingGroupId,
         });
 
-        // Xoá virtualConversation khỏi state và set conversationId mới
         navigate(location.pathname, {
           replace: true,
           state: {
@@ -322,7 +320,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           },
         });
 
-        // Cập nhật React Query cache để conversation không bị chớp/biến mất
         queryClient.setQueryData<PaginationResponse<ConversationResponse>>(
           ['chatConversations', page, size],
           (old) => {

@@ -82,8 +82,7 @@ export const vendorScheduleCancellationService = {
   },
 
   async cancel(schedule: TourSchedule, reason: string): Promise<ScheduleCancellationResult> {
-    // Preview chỉ dùng để xác nhận với Vendor. BE khóa schedule và cascade toàn bộ
-    // booking/refund trong cùng transaction khi nhận trạng thái CANCELLED.
+
     const preview = await loadPreview(schedule);
 
     if (preview.blockingBookings.length > 0) {

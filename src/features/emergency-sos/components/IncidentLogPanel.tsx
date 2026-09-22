@@ -6,11 +6,6 @@ interface IncidentLogPanelProps {
   alert?: SosAlert;
 }
 
-/**
- * Nhật ký xử lý sự cố — chỉ 2 mốc dữ liệu thật sự có từ `SosAlertResponse`
- * (lúc tạo + lúc xử lý xong). BE không trả `resolvedAt` nên mốc xử lý không
- * có giờ cụ thể, và không có nguồn nào cho các sự kiện dạng cảm biến/dispatcher.
- */
 export function IncidentLogPanel({ alert }: IncidentLogPanelProps) {
   return (
     <div className="rounded-[28px] p-6" style={{ backgroundColor: '#EFECE6' }}>

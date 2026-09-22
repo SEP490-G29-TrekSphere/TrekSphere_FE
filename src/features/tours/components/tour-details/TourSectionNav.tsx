@@ -9,12 +9,6 @@ interface TourSectionNavProps {
   sections: TourSection[];
 }
 
-/**
- * Thanh điều hướng dính theo section của trang chi tiết tour.
- *
- * Dính ở `top-16` — ngay dưới `PublicHeader` (fixed, cao 64px) — nên hai thanh
- * xếp chồng chứ không đè lên nhau.
- */
 export function TourSectionNav({ sections }: TourSectionNavProps) {
   const activeId = useSectionSpy(
     sections.map((section) => section.id),
@@ -24,8 +18,7 @@ export function TourSectionNav({ sections }: TourSectionNavProps) {
   function handleClick(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
     const target = document.getElementById(id);
     if (!target) return;
-    // Tự cuộn thay vì để trình duyệt nhảy anchor, vì cần trừ hao chiều cao của
-    // header + chính thanh nav này.
+
     event.preventDefault();
     window.scrollTo({
       top: target.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET + 16,

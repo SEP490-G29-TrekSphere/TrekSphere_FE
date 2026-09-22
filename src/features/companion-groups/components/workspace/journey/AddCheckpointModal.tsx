@@ -32,7 +32,7 @@ export function AddCheckpointModal({
   nextOrder,
 }: AddCheckpointModalProps) {
   const createCheckpoint = useCreateGroupCheckpoint(groupId);
-  // Cần ngày bắt đầu hành trình để ghép với giờ nhập trong form thành LocalDateTime
+
   const { data: journey } = useGroupJourney(groupId);
   const imageCleanup = useImageUploadCleanup();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -70,7 +70,7 @@ export function AddCheckpointModal({
   const imageUrl = watch('imageUrl');
 
   function handleClose() {
-    // Nếu có ảnh vừa upload lên mà người dùng hủy/đóng modal -> gọi API xóa ảnh dọn rác
+
     imageCleanup.discard();
     reset();
     onClose();
@@ -109,12 +109,16 @@ export function AddCheckpointModal({
       {
         onSuccess: () => {
           toast.success('Đã thêm điểm dừng mới vào hành trình!');
-          imageCleanup.commit(); // Đã lưu thành công, không xóa ảnh
+          imageCleanup.commit();
           reset();
           onClose();
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Không thể thêm điểm dừng. Vui lòng kiểm tra lại thông tin!');
+        onError: (err: unknown) => {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : 'Không thể thêm điểm dừng. Vui lòng kiểm tra lại thông tin!'
+          );
         },
       }
     );
@@ -153,7 +157,7 @@ export function AddCheckpointModal({
       {/* Form Body */}
       <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
         <div className="max-h-[70vh] space-y-3.5 overflow-y-auto px-5 py-4 text-xs">
-          {/* Row: Ngày & Thứ tự */}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">
@@ -187,7 +191,6 @@ export function AddCheckpointModal({
             </div>
           </div>
 
-          {/* Tên điểm dừng */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">
               Tên điểm dừng / Hoạt động <span className="text-red-500">*</span>
@@ -202,7 +205,6 @@ export function AddCheckpointModal({
             {errors.title && <p className="text-[10px] text-red-500">{errors.title.message}</p>}
           </div>
 
-          {/* Địa điểm */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Địa danh / Vị trí</label>
             <input
@@ -217,7 +219,6 @@ export function AddCheckpointModal({
             )}
           </div>
 
-          {/* Row: Giờ bắt đầu & Giờ kết thúc */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Bắt đầu dự kiến</label>
@@ -238,7 +239,6 @@ export function AddCheckpointModal({
             </div>
           </div>
 
-          {/* Row: Tọa độ Latitude / Longitude */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Vĩ độ (Latitude)</label>
@@ -263,7 +263,6 @@ export function AddCheckpointModal({
             </div>
           </div>
 
-          {/* Ảnh minh họa điểm dừng (Upload từ máy hoặc Nhập URL) */}
           <AppImageUploadField
             label="Ảnh minh họa điểm dừng (Tùy chọn)"
             value={imageUrl}
@@ -275,7 +274,6 @@ export function AddCheckpointModal({
             errorMessage={errors.imageUrl?.message}
           />
 
-          {/* Mô tả hoạt động */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Mô tả chi tiết hoạt động</label>
             <textarea

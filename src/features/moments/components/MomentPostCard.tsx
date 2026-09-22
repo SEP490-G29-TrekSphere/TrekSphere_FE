@@ -12,9 +12,9 @@ import { MomentPostMenu } from './MomentPostMenu';
 export interface MomentPostCardProps {
   moment: MomentItem;
   currentUserId?: string;
-  /** `group`: bài trong workspace nhóm · `personal`: bài trên trang hồ sơ. */
+
   scope: MomentScope;
-  /** Trưởng nhóm mới có quyền ẩn/bỏ ẩn bài vi phạm. */
+
   canModerate?: boolean;
   onSelectMoment: (moment: MomentItem) => void;
   onSelectImage: (moment: MomentItem, index: number) => void;
@@ -25,7 +25,6 @@ export interface MomentPostCardProps {
   onViewOnMap?: (moment: MomentItem) => void;
 }
 
-/** Một bài khoảnh khắc trên dòng thời gian (nhóm ghép hoặc hồ sơ cá nhân). */
 export function MomentPostCard({
   moment,
   currentUserId,

@@ -7,11 +7,11 @@ import { toast } from '@/store/useToastStore';
 export interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Mã hoặc ID của nội dung bị báo cáo, e.g. "#TREK-8829-BLOG" hoặc "CM-892" */
+
   targetId: string;
-  /** Loại nội dung bị báo cáo, e.g. "BLOG" | "COMMENT" | "TOUR" */
+
   targetType?: 'BLOG' | 'COMMENT' | 'TOUR';
-  /** Tên tiêu đề ngắn của nội dung (nếu có) */
+
   targetTitle?: string;
 }
 

@@ -12,12 +12,6 @@ interface TourVendorCardProps {
   tour: TourDetailFromApi;
 }
 
-/**
- * Thẻ nhà cung cấp — danh tính đơn vị tổ chức và các kênh liên hệ.
- *
- * Trước đây thẻ này gánh cả danh sách "bao gồm" (cắt còn 4 mục); giờ phần đó có
- * section riêng nên ở đây chỉ còn đúng thông tin về vendor.
- */
 export function TourVendorCard({ tour }: TourVendorCardProps) {
   const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
@@ -144,7 +138,6 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
         </ul>
       )}
 
-      {/* Hành động phụ → viền, để CTA đặt tour ở thẻ trên giữ vai trò nút đặc duy nhất */}
       <button
         type="button"
         onClick={handleChat}

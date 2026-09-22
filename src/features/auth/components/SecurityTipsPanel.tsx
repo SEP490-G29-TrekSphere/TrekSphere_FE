@@ -19,7 +19,6 @@ const TIPS = [
   },
 ];
 
-/** Panel gợi ý bảo mật hiển thị cạnh form đổi mật khẩu ở màn hình rộng. */
 export function SecurityTipsPanel({ className }: { className?: string }) {
   return (
     <aside className={cn('rounded-2xl border border-border bg-card/60 p-5', className)}>

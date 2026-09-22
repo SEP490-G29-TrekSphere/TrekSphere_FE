@@ -10,7 +10,6 @@ interface TourRouteSectionProps {
   isLoading?: boolean;
 }
 
-/** Toạ độ chỉ hiện khi có ít nhất một trong hai trục — tránh dòng meta trống. */
 function CheckpointCoordinates({ checkpoint }: { checkpoint: TourCheckpoint }) {
   const { latitude, longitude } = checkpoint;
   if (latitude == null && longitude == null) return null;
@@ -23,13 +22,6 @@ function CheckpointCoordinates({ checkpoint }: { checkpoint: TourCheckpoint }) {
   );
 }
 
-/**
- * Lộ trình các trạm dừng — timeline dọc dựng từ `GET /tours/{id}/checkpoints`.
- *
- * Đây là dữ liệu hành trình thật duy nhất mà API trả về; bản trước của trang tự
- * chia `highlights` thành "Ngày 1 / Ngày 2 / …" nên hiển thị một lịch trình không
- * hề tồn tại trong dữ liệu.
- */
 export function TourRouteSection({ checkpoints, isLoading }: TourRouteSectionProps) {
   if (isLoading) {
     return (
@@ -56,7 +48,7 @@ export function TourRouteSection({ checkpoints, isLoading }: TourRouteSectionPro
 
   return (
     <ol className="relative flex flex-col gap-6 pl-10">
-      {/* Đường trục dọc nối các trạm */}
+
       <span className="absolute bottom-4 left-[13px] top-4 w-0.5 bg-border" aria-hidden="true" />
 
       {sorted.map((checkpoint, index) => {
@@ -64,7 +56,7 @@ export function TourRouteSection({ checkpoints, isLoading }: TourRouteSectionPro
         const imageUrls = getCheckpointImageUrls(checkpoint);
         return (
           <li key={checkpoint.checkpointId} className="relative">
-            {/* Mốc số thứ tự; trạm cuối tô đặc để thấy rõ điểm kết thúc */}
+
             <span
               className={`absolute -left-10 top-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary text-[11px] font-bold ${
                 isLast ? 'bg-primary text-primary-foreground' : 'bg-background text-primary'

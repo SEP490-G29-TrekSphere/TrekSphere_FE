@@ -7,16 +7,6 @@ import type {
   VendorStaffRole,
 } from '../types';
 
-/**
- * Service gọi API "Vendor Staff" (BE tag `Vendor Staff`).
- *
- *   GET   /vendor-staff/me            — danh sách nhân viên của vendor hiện tại
- *   GET   /vendor-staff/coordinators  — chỉ các Coordinator đang hoạt động
- *   POST  /vendor-staff               — thêm nhân viên (kèm `role` tuỳ chọn)
- *   PUT   /vendor-staff/{id}/status   — khóa/mở khóa
- *   PATCH /vendor-staff/{id}/role     — chuyển vai trò VENDOR_STAFF ⇄ COORDINATOR
- */
-
 interface VendorStaffUserDto {
   id: string;
   email: string;
@@ -52,12 +42,10 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
   return response.data;
 }
 
-/** 8 ký tự đầu của id (bỏ dấu gạch ngang), viết hoa — BE không có mã nhân viên tuần tự. */
 export function formatShortId(id: string): string {
   return id.replace(/-/g, '').slice(0, 8).toUpperCase();
 }
 
-/** Vai trò nghiệp vụ suy ra từ `user.roles` — BE trả cả role hệ thống nên chỉ cần biết có COORDINATOR hay không. */
 function resolveRole(roles: string[]): VendorStaffRole {
   return roles.some((role) => role.toUpperCase() === 'COORDINATOR')
     ? 'COORDINATOR'
@@ -81,7 +69,6 @@ function mapVendorStaff(dto: VendorStaffResponseDto): VendorStaffMember {
   };
 }
 
-/** `/vendor-staff/me` và `/vendor-staff/coordinators` cùng shape response + query param. */
 async function fetchStaffPage(
   path: string,
   filter: VendorStaffFilter,
@@ -89,7 +76,7 @@ async function fetchStaffPage(
   pageSize: number
 ): Promise<VendorStaffListResponse> {
   const params: Record<string, string> = {
-    page: String(page - 1), // BE dùng page 0-based
+    page: String(page - 1),
     size: String(pageSize),
   };
   if (filter.search) {
@@ -113,7 +100,7 @@ async function fetchStaffPage(
 }
 
 export const vendorStaffService = {
-  /** Lấy danh sách nhân viên của vendor hiện tại (filter + pagination). */
+
   listMyStaff(
     filter: VendorStaffFilter = {},
     page = 1,
@@ -122,10 +109,6 @@ export const vendorStaffService = {
     return fetchStaffPage('/vendor-staff/me', filter, page, pageSize);
   },
 
-  /**
-   * Danh sách Coordinator đang hoạt động của vendor — BE đã lọc sẵn theo role
-   * và trạng thái, gọi được bởi cả Vendor Manager và Vendor Staff.
-   */
   listCoordinators(
     filter: VendorStaffFilter = {},
     page = 1,
@@ -134,13 +117,11 @@ export const vendorStaffService = {
     return fetchStaffPage('/vendor-staff/coordinators', filter, page, pageSize);
   },
 
-  /** Thêm nhân viên mới — BE tự gán user có sẵn hoặc tạo mới + gửi email kích hoạt. */
   async addStaff(payload: AddVendorStaffPayload): Promise<VendorStaffMember> {
     const response = await ApiService<VendorStaffResponseDto>('/vendor-staff', 'POST', payload);
     return mapVendorStaff(unwrapResponse(response));
   },
 
-  /** Khóa/mở khóa nhân viên. */
   async updateStatus(staffId: string, isActive: boolean): Promise<VendorStaffMember> {
     const response = await ApiService<VendorStaffResponseDto>(
       `/vendor-staff/${staffId}/status`,
@@ -150,7 +131,6 @@ export const vendorStaffService = {
     return mapVendorStaff(unwrapResponse(response));
   },
 
-  /** Chuyển vai trò nghiệp vụ giữa VENDOR_STAFF và COORDINATOR. */
   async updateRole(staffId: string, role: VendorStaffRole): Promise<VendorStaffMember> {
     const response = await ApiService<VendorStaffResponseDto>(
       `/vendor-staff/${staffId}/role`,

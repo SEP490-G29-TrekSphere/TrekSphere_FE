@@ -13,7 +13,7 @@ import { ScheduleConflictNotice } from '../ScheduleConflictNotice';
 
 interface JoinGroupApplicationPanelProps {
   existingStatus?: MatchingMemberStatus;
-  /** Nhóm đang xin tham gia — cần để đối chiếu trùng ngày với lịch hiện có. */
+
   matchingGroupId: string;
   targetDate?: string;
   endDate?: string | null;
@@ -40,7 +40,7 @@ export function JoinGroupApplicationPanel({
   const { findConflicts, isLoading: isCheckingSchedule } = useScheduleConflicts();
   const conflicts = findConflicts({ start: targetDate, end: endDate }, matchingGroupId);
   const hasConflict = conflicts.length > 0;
-  // Chưa tải xong lịch cũ thì chưa kết luận được, khoá tạm nút gửi.
+
   const isSubmitBlocked = hasConflict || isCheckingSchedule;
 
   if (existingStatus === 'PENDING' || existingStatus === 'ACCEPTED') {

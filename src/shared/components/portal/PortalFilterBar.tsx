@@ -68,7 +68,6 @@ export function PortalFilterBar<T = string, S = string>({
 }: PortalFilterBarProps<T, S>) {
   const hasSearch = searchValue !== undefined && onSearchChange !== undefined;
 
-  // Quản lý internal search state để gõ mượt mà và debounce
   const [internalSearch, setInternalSearch] = useState(searchValue ?? '');
 
   useEffect(() => {

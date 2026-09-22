@@ -42,7 +42,6 @@ export function useUserPeerReviews(userId?: string, enabled = true) {
   });
 }
 
-/** Ứng viên vừa được chấm điểm — so khớp theo memberId, dự phòng bằng userId. */
 function isSubmittedCandidate(candidate: PeerReviewCandidate, payload: PeerReviewPayload): boolean {
   if (payload.revieweeMemberId) return candidate.matchingMemberId === payload.revieweeMemberId;
   return Boolean(payload.revieweeUserId) && candidate.userId === payload.revieweeUserId;
@@ -57,8 +56,6 @@ export function useSubmitPeerReview(groupId: string) {
     onSuccess: (_review, payload) => {
       toast.success('Đã lưu đánh giá bạn đồng hành thành công!');
 
-      // Đánh dấu "đã chấm" ngay lập tức: nếu chỉ chờ refetch, trong lúc chờ người dùng
-      // vẫn bấm được nút "Đánh giá" lần hai cho cùng một thành viên.
       queryClient.setQueryData<PeerReviewCandidate[]>(
         peerReviewKeys.candidates(groupId),
         (candidates) =>
@@ -69,7 +66,6 @@ export function useSubmitPeerReview(groupId: string) {
           )
       );
 
-      // Chỉ làm mới đúng những nguồn dữ liệu bị ảnh hưởng bởi lượt chấm này.
       queryClient.invalidateQueries({ queryKey: peerReviewKeys.candidates(groupId) });
       queryClient.invalidateQueries({ queryKey: peerReviewKeys.list(groupId) });
 
@@ -77,7 +73,7 @@ export function useSubmitPeerReview(groupId: string) {
         queryClient.invalidateQueries({
           queryKey: peerReviewKeys.userReviews(payload.revieweeUserId),
         });
-        // Điểm uy tín (Trust Score) của người được chấm nằm trong hồ sơ công khai của họ.
+
         queryClient.invalidateQueries({ queryKey: profileKeys.detail(payload.revieweeUserId) });
       }
     },

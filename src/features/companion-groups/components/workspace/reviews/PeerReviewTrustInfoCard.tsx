@@ -24,7 +24,6 @@ const TRUST_RULES = [
   },
 ];
 
-/** Giải thích cơ chế ẩn danh và cách tính Điểm uy tín. */
 export function PeerReviewTrustInfoCard() {
   return (
     <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-xs">

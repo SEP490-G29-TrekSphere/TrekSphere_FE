@@ -109,7 +109,7 @@ export function EditActivityModal({
       className="max-w-xl"
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        {/* Hàng 1: Ngày & Buổi */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-foreground mb-1">
@@ -162,7 +162,6 @@ export function EditActivityModal({
           </div>
         </div>
 
-        {/* Tên hoạt động */}
         <div>
           <label className="block text-xs font-bold text-foreground mb-1">
             Tên hoạt động <span className="text-destructive">*</span>
@@ -177,7 +176,6 @@ export function EditActivityModal({
           )}
         </div>
 
-        {/* Liên kết Trạm Checkpoint */}
         <div>
           <label className="block text-xs font-bold text-foreground mb-1">
             <span className="flex items-center gap-1">
@@ -202,7 +200,6 @@ export function EditActivityModal({
           </select>
         </div>
 
-        {/* Khung giờ dự kiến */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-foreground mb-1">
@@ -239,7 +236,6 @@ export function EditActivityModal({
           </div>
         </div>
 
-        {/* Mô tả chi tiết */}
         <div>
           <label className="block text-xs font-bold text-foreground mb-1">
             Ghi chú / Chi tiết hoạt động

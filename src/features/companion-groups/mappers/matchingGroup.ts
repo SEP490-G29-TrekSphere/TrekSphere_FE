@@ -17,7 +17,7 @@ export interface MatchingGroupCardViewModel {
   maxSize: number;
   ownerName: string;
   ownerAvatarUrl?: string;
-  /** Trưởng nhóm HIỆN TẠI để hiển thị (fallback owner nếu BE chưa trả leaderName). */
+
   leaderName: string;
   leaderAvatarUrl?: string;
   matchingDeadline?: string;
@@ -140,11 +140,6 @@ export function toMatchingGroupCreateRequest(
 
 export const toTourMatchingGroupCreateRequest = toMatchingGroupCreateRequest;
 
-/**
- * Trả về member đang là Trưởng nhóm HIỆN TẠI (role có thể đổi qua bầu cử) — khác với "owner"
- * (người tạo nhóm, cố định vĩnh viễn ở BE, không phản ánh đúng ai đang thật sự cầm quyền sau khi
- * bầu Trưởng nhóm mới). Luôn ưu tiên tra `members` (dữ liệu chắc chắn đúng) làm nguồn chính.
- */
 export function resolveCurrentLeaderMember(group: {
   members?: import('../types/matchingGroup').MatchingMemberItem[];
 }): import('../types/matchingGroup').MatchingMemberItem | null {
@@ -154,10 +149,6 @@ export function resolveCurrentLeaderMember(group: {
   );
 }
 
-/**
- * Viewer hiện tại có đang là Trưởng nhóm không — theo role thật (members), không phải theo
- * `ownerId`/`isOwner` (chỉ là người tạo nhóm, không đổi khi bầu Trưởng nhóm mới).
- */
 export function isCurrentUserGroupLeader(
   group: {
     members?: import('../types/matchingGroup').MatchingMemberItem[];
@@ -168,7 +159,7 @@ export function isCurrentUserGroupLeader(
 ): boolean {
   const leader = resolveCurrentLeaderMember(group);
   if (leader) return String(leader.userId) === String(userId);
-  // Fallback khi response không kèm members (VD danh sách rút gọn) — chỉ là leader khi myMembershipStatus là ACCEPTED (hoặc không set trong list rút gọn)
+
   if (group.myMembershipStatus && group.myMembershipStatus !== 'ACCEPTED') {
     return false;
   }

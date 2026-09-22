@@ -14,11 +14,7 @@ export interface ProfileCompletionModalProps {
   title?: string;
   description?: string;
   warningOnClose?: string;
-  /**
-   * Khi bắt buộc hoàn thiện hồ sơ:
-   * - Không đóng khi bấm ra ngoài (click outside) hay bấm phím Esc.
-   * - Khi bấm nút Đóng/Quay lại, tự động chuyển về trang trước đó và hiện thông báo nhắc nhở.
-   */
+
   isMandatory?: boolean;
 }
 

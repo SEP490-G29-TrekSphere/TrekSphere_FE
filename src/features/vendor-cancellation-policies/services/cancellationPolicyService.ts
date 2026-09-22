@@ -1,17 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type { CancellationPolicy, CancellationPolicyPayload } from '../types';
 
-/**
- * Service gọi API "Vendor Cancellation Policy Management".
- *
- *   GET    /vendor/cancellation-policies       — danh sách chính sách của vendor hiện tại
- *   POST   /vendor/cancellation-policies       — tạo mới (Vendor Manager)
- *   PUT    /vendor/cancellation-policies/{id}  — cập nhật (Vendor Manager)
- *   DELETE /vendor/cancellation-policies/{id}  — xóa (Vendor Manager)
- *
- * Vendor Staff chỉ được gọi endpoint GET — UI ẩn các thao tác còn lại.
- */
-
 interface CancellationPolicyResponseDto {
   cancellationPolicyId: string;
   cancelBeforeDays: number;
@@ -41,7 +30,7 @@ function mapPolicy(dto: CancellationPolicyResponseDto): CancellationPolicy {
 }
 
 export const cancellationPolicyService = {
-  /** Toàn bộ chính sách hủy của vendor hiện tại (không phân trang). */
+
   async list(): Promise<CancellationPolicy[]> {
     const response = await ApiService<CancellationPolicyResponseDto[]>(
       '/vendor/cancellation-policies',
@@ -68,7 +57,6 @@ export const cancellationPolicyService = {
     return mapPolicy(unwrapResponse(response));
   },
 
-  /** Xóa chính sách — BE trả `ApiResponseVoid` nên không unwrap `data`. */
   async remove(id: string): Promise<void> {
     const response = await ApiService<void>(`/vendor/cancellation-policies/${id}`, 'DELETE');
     if (response.error) {

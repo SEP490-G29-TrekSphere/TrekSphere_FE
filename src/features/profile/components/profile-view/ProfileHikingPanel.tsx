@@ -6,14 +6,10 @@ import type { HikingProfileView } from '../../types';
 interface ProfileHikingPanelProps {
   summary: HikingProfileView | null;
   isOwnProfile: boolean;
-  /** Đường dẫn trang chỉnh sửa — chỉ dùng khi là hồ sơ của chính mình. */
+
   editPath: string;
 }
 
-/**
- * Thẻ "Hồ sơ leo núi" ở cột trái (Sidebar Info Card) — thiết kế dạng Intro giống Facebook:
- * Lời giới thiệu (Bio), Cấp độ kinh nghiệm, Độ khó ưa thích, Khu vực và Kỹ năng.
- */
 export function ProfileHikingPanel({ summary, isOwnProfile, editPath }: ProfileHikingPanelProps) {
   const experience = summary?.experienceLevel
     ? HIKING_EXPERIENCE_LEVEL_META[summary.experienceLevel]

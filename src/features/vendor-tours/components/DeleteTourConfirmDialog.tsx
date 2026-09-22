@@ -17,7 +17,6 @@ interface DeleteTourConfirmDialogProps {
   isPending?: boolean;
 }
 
-/** Xác nhận trước khi xóa mềm tour — mirror `LockStaffConfirmDialog`. */
 export function DeleteTourConfirmDialog({
   open,
   onOpenChange,
@@ -29,11 +28,8 @@ export function DeleteTourConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
-          <div
-            className="mb-2 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(220, 38, 38, 0.1)' }}
-          >
-            <Trash2 className="h-5 w-5" style={{ color: '#DC2626' }} />
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+            <Trash2 className="h-5 w-5 text-destructive" />
           </div>
           <DialogTitle className="text-xl font-bold">Xóa tour</DialogTitle>
           <DialogDescription className="text-center leading-relaxed">

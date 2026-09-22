@@ -24,16 +24,10 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
     stompClient.onConnect = () => {
       setIsConnected(true);
-      if (import.meta.env.DEV) {
-        console.log('[STOMP] Connected to WebSocket');
-      }
     };
 
     stompClient.onDisconnect = () => {
       setIsConnected(false);
-      if (import.meta.env.DEV) {
-        console.log('[STOMP] Disconnected from WebSocket');
-      }
     };
 
     stompClient.onWebSocketError = (error) => {
@@ -44,7 +38,6 @@ export const ChatWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error('[STOMP] Broker Error:', frame.headers.message, frame.body);
     };
 
-    // Bắt đầu kết nối
     stompClient.activate();
     setClient(stompClient);
 

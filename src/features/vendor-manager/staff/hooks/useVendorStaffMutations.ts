@@ -4,10 +4,6 @@ import type { AddVendorStaffPayload, VendorStaffRole } from '../types';
 import { vendorStaffKeys } from './useVendorStaffList';
 import { vendorStaffLockedCountKeys } from './useVendorStaffLockedCount';
 
-/**
- * Mutation cho "Thêm nhân viên", "Khóa/Mở khóa" và "Cập nhật vai trò" — cả 3
- * đều invalidate list + locked-count.
- */
 export function useVendorStaffMutations() {
   const queryClient = useQueryClient();
 

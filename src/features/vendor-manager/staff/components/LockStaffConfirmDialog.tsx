@@ -17,7 +17,6 @@ interface LockStaffConfirmDialogProps {
   isPending?: boolean;
 }
 
-/** Xác nhận trước khi khóa nhân viên — mở khóa thì gọi thẳng, không cần dialog này. */
 export function LockStaffConfirmDialog({
   open,
   onOpenChange,

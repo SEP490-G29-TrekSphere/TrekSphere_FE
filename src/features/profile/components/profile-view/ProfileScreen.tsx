@@ -24,17 +24,17 @@ import {
 } from './ProfileTabs';
 
 interface ProfileScreenProps {
-  /** `me`: hồ sơ của người đang đăng nhập. `public`: hồ sơ người khác theo `userId`. */
+  /** 'me': authenticated user profile. 'public': external profile by userId. */
   mode: 'me' | 'public';
-  /** Bắt buộc khi `mode = 'public'`. */
+  /** Target user id required when mode = 'public'. */
   userId?: string;
-  /** Đường dẫn trang chỉnh sửa — khác nhau giữa MainLayout và TrekkerLayout. */
+  /** Edit profile navigation path. */
   editPath?: string;
-  /** Đường dẫn trang đổi mật khẩu — khác nhau giữa MainLayout và TrekkerLayout. */
+  /** Change password navigation path. */
   changePasswordPath?: string;
-  /** Trải rộng 100% full-width và căn sát lề (dùng trong portal có sidebar). */
+  /** Render fluid 100% full-width in layouts with sidebar. */
   fluid?: boolean;
-  /** Sinh đường dẫn chi tiết nhóm ghép — khác nhau giữa MainLayout và TrekkerLayout. */
+  /** Companion group detail route generator. */
   groupDetailPath?: (groupId: string) => string;
 }
 
@@ -47,12 +47,8 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 /**
- * Khung màn hình hồ sơ dùng chung cho cả `/profile` và `/users/:userId` —
- * bố cục theo reference AllTrails: card định danh bên trái (sticky) và
- * cột nội dung có thanh tab bên phải.
- *
- * Hồ sơ người khác CHỈ hiển thị tên, ảnh đại diện và nội dung công khai.
- * Email / số điện thoại / ngày sinh chỉ xuất hiện ở hồ sơ của chính mình.
+ * Universal profile screen layout for self and public user views.
+ * Features an identity sidebar card on the left and tabbed panels on the right.
  */
 export function ProfileScreen({
   mode,
@@ -66,8 +62,7 @@ export function ProfileScreen({
 
   const meQuery = useProfile();
   const publicQuery = usePublicProfile(mode === 'public' ? userId : undefined);
-  // Hồ sơ leo núi của người khác: endpoint công khai thật, có cả tên và ảnh nên
-  // dùng luôn làm nguồn danh tính khi người đó chưa viết bài blog nào.
+  // Fallback identity data from public hiking summary
   const hikingQuery = usePublicHikingSummary(mode === 'public' ? userId : undefined);
 
   const isMeMode = mode === 'me';
@@ -76,14 +71,13 @@ export function ProfileScreen({
   const other = publicQuery.data ?? null;
 
   const resolvedUserId = isMeMode ? me?.id : userId;
-  // Mở hồ sơ công khai của chính mình vẫn nên thấy nút "Chỉnh sửa hồ sơ".
+  // Own profile detection in public view
   const isOwnProfile = isMeMode || (Boolean(currentUser?.id) && currentUser?.id === userId);
 
-  // Chỉ còn dùng cho số "Bài viết" trên card định danh — tab Bài viết/Ảnh đã gỡ khỏi hồ sơ.
+  // Total blogs count for identity badge
   const blogCount = useUserBlogs(resolvedUserId).data?.meta.totalElements;
 
-  // Hồ sơ của chính mình: giữ nguyên danh sách tabs và mở sẵn tab "Thông tin".
-  // Xem hồ sơ người khác: dùng PUBLIC_PROFILE_TABS và mở sẵn tab "Bài viết".
+  // Tabs setup based on mode
   const tabs = isMeMode ? MY_PROFILE_TABS : PUBLIC_PROFILE_TABS;
   const [activeTab, setActiveTab] = useState<ProfileTabId>(isMeMode ? 'info' : 'blogs');
 
@@ -175,10 +169,6 @@ export function ProfileScreen({
   };
 
   return (
-    // Ở chế độ thường, `pt-8` khớp với `lg:top-24` của card sticky bên trái
-    // (64px header + 32px) để hai cột bắt đầu ngang nhau thay vì thanh tab
-    // dính sát header. Ở chế độ `fluid` (portal có sidebar) không có header
-    // nổi nên card sticky bám `lg:top-0`.
     <div
       className={
         fluid
@@ -208,7 +198,7 @@ export function ProfileScreen({
           trustReviewCount={hikingSummary?.trustReviewCount}
         />
 
-        {/* Chỉ hiển thị thẻ Hồ sơ leo núi ở cột trái khi xem hồ sơ công khai của người khác */}
+        {/* Display hiking summary card on left column for other users */}
         {!isMeMode && (
           <ProfileHikingPanel
             summary={hikingSummary}

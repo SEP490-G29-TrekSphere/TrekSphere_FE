@@ -15,12 +15,9 @@ import type { CancellationPolicy, CancellationPolicyPayload } from '../types';
 interface CancellationPolicyFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Có giá trị = đang sửa; `null`/undefined = tạo mới. */
+
   policy?: CancellationPolicy | null;
-  /**
-   * Các mốc `cancelBeforeDays` đã tồn tại (trừ chính bản ghi đang sửa) — chặn
-   * trùng ngay ở FE thay vì đợi BE trả `POLICY_DUPLICATE_DAYS`.
-   */
+
   existingDays: number[];
   isPending?: boolean;
   onSubmit: (payload: CancellationPolicyPayload) => void;
@@ -31,18 +28,12 @@ interface FieldErrors {
   refundPercentage?: string;
 }
 
-/** Số nguyên không âm — chuỗi rỗng/không phải số đều coi là không hợp lệ. */
 function parseIntegerField(raw: string): number | null {
   const trimmed = raw.trim();
   if (!trimmed || !/^\d+$/.test(trimmed)) return null;
   return Number(trimmed);
 }
 
-/**
- * Dialog tạo/sửa 1 điều khoản hủy tour — `POST` hoặc `PUT
- * /vendor/cancellation-policies`. Validate đúng các ràng buộc BE công bố
- * (`cancelBeforeDays >= 0`, `refundPercentage` 0–100, không trùng mốc ngày).
- */
 export function CancellationPolicyFormDialog({
   open,
   onOpenChange,
@@ -58,7 +49,6 @@ export function CancellationPolicyFormDialog({
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  // Nạp lại giá trị mỗi lần mở dialog để không giữ dữ liệu của lần mở trước.
   useEffect(() => {
     if (!open) return;
     setCancelBeforeDays(policy ? String(policy.cancelBeforeDays) : '');

@@ -38,7 +38,7 @@ export function CheckpointTimelineItem({
 
   return (
     <div className="group relative flex gap-4 transition">
-      {/* Cột số thứ tự & Đường kẻ timeline */}
+
       <div className="flex flex-col items-center">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-background text-xs font-black text-primary shadow-xs transition group-hover:bg-primary group-hover:text-primary-foreground">
           {checkpoint.checkpointOrder ?? index + 1}
@@ -46,7 +46,6 @@ export function CheckpointTimelineItem({
         <div className="my-1.5 w-0.5 grow bg-border group-last:hidden" />
       </div>
 
-      {/* Thẻ nội dung Checkpoint */}
       <div className="mb-6 flex-1 rounded-2xl border border-border bg-card p-4 text-xs shadow-xs transition hover:border-primary/40 hover:shadow-sm sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1.5 flex-1">

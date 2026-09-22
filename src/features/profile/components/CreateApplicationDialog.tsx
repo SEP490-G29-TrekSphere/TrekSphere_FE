@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ExternalLink, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,27 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import type { VendorApplicationDetail } from '@/features/admin/services/vendorApplicationService';
+import { type ApplicationFormValues, applicationSchema } from '@/features/profile/validations';
 import { AppFormInput } from '@/shared/ui';
 import { AppLabel } from '@/shared/ui/primitives/AppLabel';
-
-const applicationSchema = z.object({
-  companyName: z.string().min(1, 'Vui lòng nhập tên công ty'),
-  contactEmail: z
-    .string()
-    .min(1, 'Vui lòng nhập email liên hệ')
-    .email('Email không đúng định dạng'),
-  contactPhone: z
-    .string()
-    .min(1, 'Vui lòng nhập số điện thoại')
-    .regex(
-      /^0[35789][0-9]{8}$/,
-      'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09)'
-    ),
-  businessDescription: z.string().optional(),
-  taxCode: z.string().min(1, 'Vui lòng nhập mã số thuế'),
-});
-
-type ApplicationFormValues = z.infer<typeof applicationSchema>;
 
 export interface CreateApplicationDialogProps {
   open: boolean;

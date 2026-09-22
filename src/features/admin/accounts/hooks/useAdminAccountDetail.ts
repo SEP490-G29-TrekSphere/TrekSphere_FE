@@ -7,9 +7,6 @@ export const adminAccountDetailKeys = {
   detail: (id: string) => [...adminAccountDetailKeys.all, id] as const,
 };
 
-/**
- * Hook lấy chi tiết 1 account cho màn admin account detail.
- */
 export function useAdminAccountDetail(id: string) {
   return useQuery<AdminAccountDetail>({
     queryKey: adminAccountDetailKeys.detail(id),

@@ -42,7 +42,7 @@ export function useCreateMoment(groupId: string) {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.map(groupId) });
-      // Bài đăng công khai xuất hiện luôn trên tab Khoảnh khắc của hồ sơ cá nhân.
+
       if (payload.visibility === 'PUBLIC_PROFILE') {
         queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
       }
@@ -81,7 +81,7 @@ export function useDeleteMoment(groupId: string) {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.map(groupId) });
-      // Bài bị xóa cũng phải biến mất khỏi trang hồ sơ nếu trước đó đang công khai.
+
       queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
     },
   });
@@ -95,7 +95,7 @@ export function useUpdateMomentVisibility(groupId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentKeys.list(groupId) });
       queryClient.invalidateQueries({ queryKey: momentKeys.album(groupId) });
-      // Đổi quyền hiển thị = thêm/bớt bài trên trang hồ sơ cá nhân.
+
       queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.personal });
     },
   });

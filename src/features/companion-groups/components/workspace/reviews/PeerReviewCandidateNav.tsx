@@ -9,7 +9,6 @@ interface PeerReviewCandidateNavProps {
   onSelect: (candidate: PeerReviewCandidate) => void;
 }
 
-/** Thanh chuyển nhanh giữa các bạn đồng hành cần chấm điểm. */
 export function PeerReviewCandidateNav({
   candidates,
   activeCandidateId,

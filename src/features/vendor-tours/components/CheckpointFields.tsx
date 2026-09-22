@@ -3,22 +3,18 @@ import { AppImageUploadGallery, type ImageUploadCleanup } from '@/shared/ui';
 
 export interface CheckpointDraft {
   key: string;
-  /** Có giá trị nếu đây là checkpoint đã tồn tại trên server (đổ từ GET khi Sửa). */
+
   checkpointId?: string;
   name: string;
   description: string;
-  /** Lat/lng/altitude để dạng string cho input — parse sang number lúc submit. */
+
   latitude: string;
   longitude: string;
   altitude: string;
-  /** URL ảnh của checkpoint — ảnh chọn từ máy được upload ngay nên ở đây luôn là URL. */
+
   imageUrls: string[];
 }
 
-/**
- * BE lưu toàn bộ ảnh của 1 checkpoint vào đúng 1 cột TEXT `checkpoint_image_url`,
- * nhiều ảnh thì nối URL lại phân tách bởi dấu phẩy. Tách ngược lại để hiển thị.
- */
 export function parseCheckpointImageUrls(raw: string | undefined | null): string[] {
   if (!raw) return [];
   return raw
@@ -42,14 +38,13 @@ export function createEmptyCheckpointDraft(): CheckpointDraft {
 interface CheckpointFieldsProps {
   checkpoints: CheckpointDraft[];
   onChange: (checkpoints: CheckpointDraft[]) => void;
-  /** Dùng chung với ảnh bìa tour để dọn ảnh đã upload nhưng form chưa lưu. */
+
   imageCleanup: ImageUploadCleanup;
   onUploadingChange?: (isUploading: boolean) => void;
 }
 
 const MAX_IMAGE_SIZE_MB = 5;
 
-/** Danh sách checkpoint có thể thêm/xóa/sửa — gửi lên API khi submit form Tạo/Sửa. */
 export function CheckpointFields({
   checkpoints,
   onChange,
@@ -88,8 +83,7 @@ export function CheckpointFields({
       <button
         type="button"
         onClick={handleAdd}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-3 text-sm font-semibold transition-colors"
-        style={{ borderColor: '#D8D3C4', color: '#6F7B75' }}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-3 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
       >
         <MapPin className="h-4 w-4" />
         Thêm checkpoint
@@ -114,15 +108,11 @@ function CheckpointRow({
   onRemove,
 }: CheckpointRowProps) {
   return (
-    <div
-      className="relative flex flex-col gap-3 rounded-2xl p-4"
-      style={{ backgroundColor: '#F0EEE6' }}
-    >
+    <div className="relative flex flex-col gap-3 rounded-2xl bg-muted/60 p-4">
       <button
         type="button"
         onClick={onRemove}
-        className="absolute right-3 top-3 transition-colors hover:text-red-500"
-        style={{ color: '#6F7B75' }}
+        className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-destructive"
         aria-label="Xóa checkpoint"
       >
         <X className="h-4 w-4" />
@@ -146,16 +136,14 @@ function CheckpointRow({
           value={checkpoint.name}
           onChange={(e) => onChange({ name: e.target.value })}
           placeholder="Tên checkpoint (VD: Trạm nghỉ 2000m)"
-          className="w-full rounded-xl border-none bg-white px-4 py-2.5 text-sm font-semibold focus:outline-none"
-          style={{ color: '#06261D' }}
+          className="w-full rounded-xl border-none bg-white px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none"
         />
         <textarea
           value={checkpoint.description}
           onChange={(e) => onChange({ description: e.target.value })}
           placeholder="Mô tả ngắn về checkpoint này..."
           rows={2}
-          className="w-full resize-none rounded-xl border-none bg-white px-4 py-2.5 text-sm focus:outline-none"
-          style={{ color: '#06261D' }}
+          className="w-full resize-none rounded-xl border-none bg-white px-4 py-2.5 text-sm text-foreground focus:outline-none"
         />
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <input
@@ -164,8 +152,7 @@ function CheckpointRow({
             value={checkpoint.latitude}
             onChange={(e) => onChange({ latitude: e.target.value })}
             placeholder="Vĩ độ (lat)"
-            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium focus:outline-none"
-            style={{ color: '#06261D' }}
+            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium text-foreground focus:outline-none"
           />
           <input
             type="number"
@@ -173,8 +160,7 @@ function CheckpointRow({
             value={checkpoint.longitude}
             onChange={(e) => onChange({ longitude: e.target.value })}
             placeholder="Kinh độ (lng)"
-            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium focus:outline-none"
-            style={{ color: '#06261D' }}
+            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium text-foreground focus:outline-none"
           />
           <input
             type="number"
@@ -182,8 +168,7 @@ function CheckpointRow({
             value={checkpoint.altitude}
             onChange={(e) => onChange({ altitude: e.target.value })}
             placeholder="Độ cao (m)"
-            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium focus:outline-none"
-            style={{ color: '#06261D' }}
+            className="w-full rounded-xl border-none bg-white px-3 py-2 text-xs font-medium text-foreground focus:outline-none"
           />
         </div>
       </div>

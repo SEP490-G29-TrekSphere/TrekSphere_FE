@@ -3,10 +3,6 @@ import { adminAccountService } from '../services/adminAccountService';
 import { adminAccountDetailKeys } from './useAdminAccountDetail';
 import { adminAccountKeys } from './useAdminAccounts';
 
-/**
- * Hook mutation cho thao tác khóa/mở khóa tài khoản (`PUT /users/{id}/status`).
- * Dùng chung cho AccountDetail.
- */
 export function useAccountMutations(accountId = '') {
   const queryClient = useQueryClient();
 

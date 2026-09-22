@@ -8,9 +8,6 @@ interface TourBookingRailProps {
   isLoggedIn?: boolean;
 }
 
-/**
- * Thẻ thông tin và liên hệ đặt tour ở cột phải trang chi tiết tour.
- */
 export function TourBookingRail({ tour }: TourBookingRailProps) {
   const contactHref = tour.vendorContactPhone
     ? `tel:${tour.vendorContactPhone}`

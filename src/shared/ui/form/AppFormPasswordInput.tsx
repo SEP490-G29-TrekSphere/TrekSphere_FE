@@ -11,31 +11,15 @@ const PASSWORD_INPUT_CLASSES =
 // are hidden globally in src/assets/css/global.css so only the custom
 // toggle button rendered by this component is visible.
 
-/**
- * Form-integrated password input với show/hide toggle.
- *
- * Drop-in replacement cho `AppFormInput` với `type="password"` — tích hợp sẵn
- * RHF Controller, label, helperText, error message và nút toggle hiện/ẩn.
- * State `visible` nội bộ: mỗi field có toggle độc lập, không ảnh hưởng field khác.
- *
- * Nếu cần style khác hẳn (vd: borderless underline như trang ChangePassword),
- * truyền `inputClassName` để override hoàn toàn classes mặc định của input.
- */
 export interface AppFormPasswordInputProps<TFieldValues extends FieldValues>
   extends Omit<AppInputProps, 'name' | 'type'> {
   name: Path<TFieldValues>;
   control: Control<TFieldValues>;
   label?: React.ReactNode;
   helperText?: string;
-  /**
-   * Override class cho thẻ <input>. Nếu truyền, classes mặc định của input
-   * (border, height, padding...) sẽ bị thay thế hoàn toàn — chỉ dùng khi cần
-   * style rất khác biệt (vd: underline-only).
-   */
+
   inputClassName?: string;
-  /**
-   * Class bổ sung cho wrapper ngoài cùng (mặc định có `space-y-2`).
-   */
+
   containerClassName?: string;
 }
 
@@ -96,7 +80,7 @@ export const AppFormPasswordInput = <TFieldValues extends FieldValues>({
 };
 
 // ---------------------------------------------------------------------------
-// Standalone variant — dùng khi KHÔNG có react-hook-form
+
 // ---------------------------------------------------------------------------
 
 export interface AppPasswordInputProps extends Omit<AppInputProps, 'type'> {

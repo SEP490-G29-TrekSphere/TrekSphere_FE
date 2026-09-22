@@ -31,7 +31,6 @@ interface GroupPeoplePanelProps {
   reviewsBadge?: Badge;
 }
 
-/** Gộp "Thành viên" + "Duyệt yêu cầu" + "Đánh giá" thành 1 tab có sub-tab bên trong. */
 export function GroupPeoplePanel({
   activeSubTab,
   onSubTabChange,

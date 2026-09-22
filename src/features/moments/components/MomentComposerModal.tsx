@@ -18,11 +18,10 @@ interface MomentComposerModalProps {
   visibilityOptions: MomentVisibilityOption[];
   defaultVisibility: MomentVisibility;
   isSubmitting: boolean;
-  /** Trả về Promise để modal chỉ đóng và dọn form khi lưu thành công. */
+
   onSubmit: (payload: MomentCreatePayload) => Promise<unknown>;
 }
 
-/** Form đăng khoảnh khắc dùng chung cho workspace nhóm và trang hồ sơ cá nhân. */
 export function MomentComposerModal({
   open,
   onClose,
@@ -54,7 +53,7 @@ export function MomentComposerModal({
       composer.resetFields();
       onClose();
     } catch {
-      // Lỗi đã được hook mutation hiển thị qua toast — giữ form để người dùng thử lại.
+
     }
   };
 

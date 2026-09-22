@@ -4,7 +4,7 @@
 
 export * from './components/modals/ProfileCompletionModal';
 export * from './components/ProfileSidebar';
-// Màn hình hồ sơ (dùng chung cho `/profile` và `/users/:userId`)
+
 export { ProfileBlogsPanel } from './components/profile-view/ProfileBlogsPanel';
 export { ProfileComingSoon } from './components/profile-view/ProfileComingSoon';
 export { ProfileCompletedTrips } from './components/profile-view/ProfileCompletedTrips';
@@ -40,3 +40,4 @@ export {
 } from './services/publicProfileService';
 export * from './types';
 export * from './utils/profileCompleteness';
+export * from './validations';

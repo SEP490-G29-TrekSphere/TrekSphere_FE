@@ -9,11 +9,10 @@ interface MomentsPanelHeaderProps {
   viewMode: MomentViewMode;
   onViewModeChange: (mode: MomentViewMode) => void;
   albumCount?: number;
-  /** Nút đăng khoảnh khắc — chỉ truyền khi người dùng có quyền đăng. */
+
   action?: ReactNode;
 }
 
-/** Tiêu đề + bộ chuyển kiểu hiển thị dùng chung cho khoảnh khắc nhóm và hồ sơ cá nhân. */
 export function MomentsPanelHeader({
   title,
   description,

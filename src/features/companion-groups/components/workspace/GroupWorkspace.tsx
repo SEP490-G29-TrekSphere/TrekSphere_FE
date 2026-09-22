@@ -29,14 +29,13 @@ interface GroupWorkspaceProps {
   role: UserRoleInGroup;
   pendingJoinRequestsCount?: number;
   joinRequestsSlot?: ReactNode;
-  /** Bảng quản lý vòng đời nhóm — chỉ Trưởng nhóm mới thấy tab này. */
+
   managementSlot?: ReactNode;
   onDirectChat: (memberId: string, memberName: string, memberAvatar?: string) => void;
   onAddMemberToChat: (memberId: string, memberName: string) => void;
   onRemoveMember: (memberId: string, memberName: string) => void;
 }
 
-/** Khu làm việc của nhóm ghép dành cho thành viên & trưởng nhóm. */
 export function GroupWorkspace({
   group,
   currentUserId,
@@ -131,7 +130,7 @@ export function GroupWorkspace({
 
   return (
     <div className="space-y-6">
-      {/* BANNER CẢNH BÁO NHÓM ĐÃ HỦY / GIẢI TÁN */}
+
       {isCancelled && (
         <div className="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-4 space-y-2 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2 text-destructive font-extrabold text-xs uppercase">
@@ -145,7 +144,6 @@ export function GroupWorkspace({
         </div>
       )}
 
-      {/* STICKY BANNER: BIỂU QUYẾT QUAN TRỌNG ĐANG MỞ (bầu Trưởng nhóm / giải tán nhóm) */}
       {!isCancelled && openGovernanceVotes.length > 0 && (
         <div className="rounded-2xl border-2 border-amber-500/60 bg-amber-500/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-extrabold text-xs uppercase">

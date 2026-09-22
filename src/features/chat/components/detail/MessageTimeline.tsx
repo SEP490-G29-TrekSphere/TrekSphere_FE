@@ -27,7 +27,7 @@ interface MessageTimelineProps {
   messages: DetailMessage[];
   isLoading: boolean;
   unreadMarkerId: string | null;
-  /** Đổi giá trị này để cuộn xuống cuối (thường là id cuộc hội thoại đang mở). */
+
   conversationId: string;
 }
 
@@ -178,7 +178,7 @@ function MessageGroupRow({
                   className={cn(
                     'bg-primary text-primary-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
                     'rounded-2xl',
-                    // Hiệu ứng bo góc Messenger: các tin nhắn liên tiếp ép sát nhau
+
                     group.messages.length > 1 && [
                       isFirst && 'rounded-br-sm',
                       !isFirst && !isLast && 'rounded-r-sm',
@@ -278,7 +278,7 @@ function MessageGroupRow({
                 className={cn(
                   'bg-muted/80 text-foreground px-3.5 py-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap shadow-xs transition-colors',
                   'rounded-2xl',
-                  // Hiệu ứng bo góc Messenger cho chuỗi tin nhắn bên trái
+
                   group.messages.length > 1 && [
                     isFirst && 'rounded-bl-sm',
                     !isFirst && !isLast && 'rounded-l-sm',
@@ -333,7 +333,6 @@ function EmptyConversation() {
   );
 }
 
-/** Cuộn xuống cuối mỗi khi danh sách tin nhắn hoặc cuộc hội thoại thay đổi. */
 function AutoScrollOnChange({ dependencies }: { dependencies: unknown[] }) {
   const { scrollToBottom } = useMessageScroller();
 
@@ -342,7 +341,7 @@ function AutoScrollOnChange({ dependencies }: { dependencies: unknown[] }) {
       const timeoutId = setTimeout(() => scrollToBottom(), 10);
       return () => clearTimeout(timeoutId);
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: mảng dependency được truyền từ ngoài vào
+    // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
     dependencies
   );
 

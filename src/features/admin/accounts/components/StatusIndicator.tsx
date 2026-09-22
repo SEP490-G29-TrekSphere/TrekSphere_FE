@@ -4,7 +4,6 @@ interface StatusIndicatorProps {
   status: AccountStatus;
 }
 
-/** Nhãn ngắn gọn dùng cho badge trong bảng (khác với nhãn đầy đủ ở trang chi tiết). */
 const STATUS_BADGE_CONFIG: Record<
   AccountStatus,
   { label: string; color: string; bgColor: string }
@@ -14,13 +13,6 @@ const STATUS_BADGE_CONFIG: Record<
   DEACTIVATED: { label: 'Bị khóa', color: '#DC2626', bgColor: 'rgba(220, 38, 38, 0.1)' },
 };
 
-/**
- * Hiển thị trạng thái tài khoản với dot indicator + text.
- * - ACTIVE: chấm xanh lá.
- * - LOCKED: chấm đỏ — trạng thái Admin khóa tài khoản (xem `useAccountMutations.lock`).
- * - DEACTIVATED: chấm đỏ — vô hiệu hoá, hiển thị cùng nhãn với LOCKED vì admin không cần
- *   phân biệt 2 khái niệm này trên UI.
- */
 export function StatusIndicator({ status }: StatusIndicatorProps) {
   const { label, color, bgColor } = STATUS_BADGE_CONFIG[status];
 

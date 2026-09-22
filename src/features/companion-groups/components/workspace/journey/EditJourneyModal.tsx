@@ -62,8 +62,8 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
           toast.success('Cập nhật thông tin lộ trình thành công!');
           onClose();
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Không thể cập nhật hành trình. Vui lòng thử lại!');
+        onError: (err: unknown) => {
+          toast.error(err instanceof Error ? err.message : 'Không thể cập nhật hành trình. Vui lòng thử lại!');
         },
       }
     );
@@ -102,7 +102,7 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
       {/* Form Body */}
       <form onSubmit={handleSubmit} className="flex flex-col">
         <div className="max-h-[70vh] space-y-3.5 overflow-y-auto px-5 py-4 text-xs">
-          {/* Tên hành trình */}
+
           <div className="space-y-1">
             <label className="font-bold text-foreground">
               Tên hành trình / Chuyến đi <span className="text-red-500">*</span>
@@ -117,7 +117,6 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
             />
           </div>
 
-          {/* Độ khó */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Độ khó của tuyến đường</label>
             <select
@@ -133,7 +132,6 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
             </select>
           </div>
 
-          {/* Row: Ngày bắt đầu & Ngày kết thúc */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Ngày bắt đầu</label>
@@ -156,7 +154,6 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
             </div>
           </div>
 
-          {/* Mô tả tổng quan */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Mô tả hành trình</label>
             <textarea

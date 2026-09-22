@@ -31,21 +31,12 @@ export default function Login() {
   const setUser = useAppStore((state) => state.setUser);
   const { isAuthenticated, isLoading: isAuthLoading } = useAuthCheck();
   const [rememberMe, setRememberMe] = useState(false);
-  // Nếu user vừa đăng ký xong, Register sẽ navigate sang kèm state.registeredEmail.
+
   const registeredEmail =
     (location.state as { registeredEmail?: string } | null)?.registeredEmail ?? '';
 
-  // Trường hợp user đã login rồi nhưng vẫn vào được /login (vd: bấm nút Back
-  // của trình duyệt quay lại entry /login cũ trong history). Redirect luôn
-  // thay vì hiển thị lại form, và dùng `replace` để /login biến mất khỏi
-  // history — tránh việc Back lại rơi vào đúng trang này lần nữa.
   //
-  // Luôn điều hướng theo `getPostLoginRoute(role)` — KHÔNG dùng `location.state.from`.
-  // Lý do: `from` là trang user từng cố vào lúc chưa đăng nhập (vd: gõ thẳng
-  // /dashboard khi chưa login), nếu ưu tiên nó thì effect này (chạy khi
-  // `isAuthenticated` vừa đổi thành true ngay sau khi login) sẽ ghi đè lên
-  // navigate đúng mà `handleGoogleSuccess`/`onSubmit` vừa gọi, khiến user luôn
-  // bị đẩy về trang cũ đó thay vì trang mặc định theo role.
+
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated) return;
 
@@ -133,16 +124,13 @@ export default function Login() {
           return;
         }
 
-        // Xoá cache React Query của phiên trước (nếu có) — tránh trường hợp
-        // đăng nhập tài khoản khác mà vẫn thấy dữ liệu cũ do staleTime 5 phút.
         queryClient.clear();
         setUser(toAppStoreUser(user));
         toast.success(`Chào mừng, ${user.fullName}!`);
 
         setIsRedirecting(true);
         navigate(getPostLoginRoute(user.roles), { replace: true });
-      } catch (err) {
-        console.error('Google login error:', err);
+      } catch {
         toast.error('Đăng nhập Google thất bại. Vui lòng thử lại.');
       } finally {
         setIsGoogleLoading(false);
@@ -154,7 +142,6 @@ export default function Login() {
     toast.error('Đăng nhập Google bị hủy hoặc thất bại.');
   };
 
-  // Forward click từ AppButton custom sang nút thật của Google (đang bị ẩn).
   const triggerGoogleLogin = () => {
     googleButtonRef.current?.click();
   };
@@ -185,9 +172,6 @@ export default function Login() {
       if (refreshToken) storage.set('refreshToken', refreshToken);
       else storage.remove('refreshToken');
 
-      // Dùng `extractRoles` để chuẩn hoá roles về lowercase + bỏ prefix
-      // `role_`. Cờ `ROLES.ADMIN = 'admin'` được khai báo lowercase, nên nếu
-      // giữ nguyên `["ADMIN"]` từ BE thì RequireRole sẽ từ chối truy cập.
       const normalizedRoles = extractRoles(userData);
 
       const user = {
@@ -209,23 +193,17 @@ export default function Login() {
         return;
       }
 
-      // Xoá cache React Query của phiên trước (nếu có) — tránh trường hợp
-      // đăng nhập tài khoản khác mà vẫn thấy dữ liệu cũ do staleTime 5 phút.
       queryClient.clear();
       setUser(toAppStoreUser(user));
       toast.success(`Chào mừng quay trở lại, ${user.fullName}!`);
 
-      setIsRedirecting(true);
-      // Điều hướng theo role (roles đã được normalize ở trên).
+      // Navigate according to user role
       navigate(getPostLoginRoute(user.roles), { replace: true });
-    } catch (err) {
-      console.error('Login error:', err);
+    } catch {
       toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
     }
   };
 
-  // Đang chờ hydrate hoặc đã login (chuẩn bị redirect ở effect trên) → không
-  // render form login để tránh flash lại màn hình đăng nhập.
   if (isAuthLoading || isAuthenticated) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
@@ -333,8 +311,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Nút Google thật của thư viện — render ẩn, chỉ dùng để mở popup
-              đăng nhập và lấy `credential` (id_token). Không hiển thị cho user. */}
             <div
               ref={(el) => {
                 googleButtonRef.current = el?.querySelector('div[role="button"]') ?? null;

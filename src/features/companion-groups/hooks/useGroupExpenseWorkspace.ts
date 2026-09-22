@@ -4,7 +4,6 @@ import type { GroupExpenseCreateRequest, GroupExpenseUpdateRequest } from '../ty
 import { companionGroupKeys } from './companionGroupKeys';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
-/** Hook lấy danh sách các khoản chi tiêu của nhóm */
 export function useGroupExpenses(
   groupId: string,
   page = 0,
@@ -19,7 +18,6 @@ export function useGroupExpenses(
   });
 }
 
-/** Hook lấy tổng kết chi tiêu thực tế của nhóm */
 export function useGroupExpenseSummary(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.expenseSummary(groupId),
@@ -29,7 +27,6 @@ export function useGroupExpenseSummary(groupId: string) {
   });
 }
 
-/** Hook lấy chi tiết một khoản chi tiêu */
 export function useGroupExpenseDetail(groupId: string, expenseId?: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.expenseDetail(groupId, expenseId ?? ''),
@@ -39,7 +36,6 @@ export function useGroupExpenseDetail(groupId: string, expenseId?: string) {
   });
 }
 
-/** Hook tạo mới khoản chi tiêu (Leader Only) */
 export function useCreateGroupExpense(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -57,7 +53,6 @@ export function useCreateGroupExpense(groupId: string) {
   });
 }
 
-/** Hook cập nhật khoản chi tiêu (Leader Only) */
 export function useUpdateGroupExpense(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -83,7 +78,6 @@ export function useUpdateGroupExpense(groupId: string) {
   });
 }
 
-/** Hook hủy / xóa mềm khoản chi tiêu (Leader Only) */
 export function useVoidGroupExpense(groupId: string) {
   const queryClient = useQueryClient();
 

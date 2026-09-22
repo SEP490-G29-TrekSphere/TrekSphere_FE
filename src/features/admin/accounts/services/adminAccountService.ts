@@ -9,16 +9,6 @@ import type {
 } from '../types';
 import type { AccountGender, AdminAccountDetail } from '../types.detail';
 
-/**
- * Service gọi API liên quan tới quản lý tài khoản (khu vực admin).
- *
- * Dùng 3 endpoint thật:
- *   GET  /users            — danh sách tài khoản (lọc, phân trang)
- *   GET  /users/{userId}   — chi tiết 1 tài khoản
- *   PUT  /users/{userId}/status — khóa/mở khóa tài khoản
- */
-
-/** Shape thô mà BE trả về trong `data` cho mỗi user (UserProfileResponse). */
 interface UserProfileResponseDto {
   userId: string;
   email: string;
@@ -51,7 +41,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
   return response.data;
 }
 
-/** Thứ tự ưu tiên khi 1 user có nhiều role — hiển thị role "cao" nhất. */
 const ROLE_PRIORITY: AccountRole[] = ['admin', 'vendor', 'trekker'];
 
 function pickPrimaryRole(roles: string[]): AccountRole {
@@ -87,14 +76,14 @@ function mapAccountDetail(dto: UserProfileResponseDto): AdminAccountDetail {
 }
 
 export const adminAccountService = {
-  /** Lấy danh sách accounts với filter + pagination. */
+
   async listAccounts(
     filter: AdminAccountFilter = {},
     page = 1,
     pageSize = 10
   ): Promise<AdminAccountsResponse> {
     const params: Record<string, string> = {
-      page: String(page - 1), // BE dùng page 0-based
+      page: String(page - 1),
       size: String(pageSize),
     };
     if (filter.role && filter.role !== 'ALL') {
@@ -120,7 +109,6 @@ export const adminAccountService = {
     };
   },
 
-  /** Lấy chi tiết 1 account theo id. */
   async getAccountDetailById(id: string): Promise<AdminAccountDetail | null> {
     const response = await ApiService<UserProfileResponseDto>(`/users/${id}`, 'GET');
     if (response.error) {
@@ -130,7 +118,6 @@ export const adminAccountService = {
     return mapAccountDetail(response.data);
   },
 
-  /** Khóa (`LOCKED`)/mở khóa (`ACTIVE`) tài khoản qua `PUT /users/{id}/status`. */
   async updateStatus(id: string, status: 'ACTIVE' | 'LOCKED' | 'DEACTIVATED'): Promise<void> {
     const response = await ApiService<void>(`/users/${id}/status`, 'PUT', undefined, { status });
     if (response.error) {

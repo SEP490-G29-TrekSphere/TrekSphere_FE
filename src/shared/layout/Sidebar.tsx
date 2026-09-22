@@ -17,7 +17,7 @@ export default function Sidebar() {
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
-      {/* Need spacing at the top on mobile so it doesn't overlap the fixed header. 
+      {/* Need spacing at the top on mobile so it doesn't overlap the fixed header.
           However, in this layout, the header is to the right of the sidebar, so pt-16 is unnecessary if the sidebar is full height */}
       <div className="flex h-16 items-center border-b px-6 md:hidden">
         <span className="font-bold text-lg">Menu</span>

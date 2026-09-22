@@ -5,7 +5,7 @@ import type { PeerReviewItem } from '../../../services/peerReviewService';
 
 interface PeerReviewCardProps {
   review: PeerReviewItem;
-  /** Hiện tên người ĐƯỢC đánh giá (danh sách toàn chuyến đi); người GỬI luôn ẩn danh. */
+
   showReviewee?: boolean;
 }
 
@@ -15,7 +15,6 @@ const CRITERIA = [
   { key: 'finance', label: 'Tài chính', icon: Coins, iconClass: 'text-emerald-500' },
 ] as const;
 
-/** Một lượt đánh giá ẩn danh trong chuyến đi. */
 export function PeerReviewCard({ review, showReviewee = false }: PeerReviewCardProps) {
   const scores: Record<(typeof CRITERIA)[number]['key'], number> = {
     endurance: review.actualEnduranceRating,

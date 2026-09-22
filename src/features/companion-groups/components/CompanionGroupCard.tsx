@@ -23,11 +23,11 @@ interface CompanionGroupCardProps {
   onJoinGroup?: (group: GroupCardData) => void;
   onViewDetail?: (group: GroupCardData) => void;
   layout?: 'list' | 'grid';
-  /** Func tạo link chi tiết nhóm — dùng khi cần trỏ sang portal khác (vd trekker). */
+
   getDetailPath?: (groupId: string) => string;
   hasJoined?: boolean;
   applicationStatus?: JoinApplicationStatus | null;
-  /** Cho phép xin gia nhập nhóm. Mặc định true. */
+
   canJoin?: boolean;
 }
 

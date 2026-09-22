@@ -74,7 +74,7 @@ export function GroupSosTab({ groupId, currentUserId, isLeader }: GroupSosTabPro
 
   return (
     <div className="space-y-6">
-      {/* Section: Đang mở */}
+
       <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
         <div className="flex items-center gap-2">
           <Siren className="h-4 w-4 text-destructive" />
@@ -112,7 +112,6 @@ export function GroupSosTab({ groupId, currentUserId, isLeader }: GroupSosTabPro
         )}
       </div>
 
-      {/* Section: Lịch sử */}
       <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4">
         <h3 className="text-sm font-bold text-foreground">Lịch sử tín hiệu SOS</h3>
 

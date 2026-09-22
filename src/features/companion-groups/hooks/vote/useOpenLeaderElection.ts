@@ -3,7 +3,6 @@ import { voteService } from '../../services/voteService';
 import type { OpenLeaderElectionPayload } from '../../types/vote';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/** Mở cuộc bầu Trưởng nhóm mới (voteType = LEADER_ELECTION). */
 export function useOpenLeaderElection(groupId: string) {
   const queryClient = useQueryClient();
 

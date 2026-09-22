@@ -152,7 +152,6 @@ export default function ApplicationDetails() {
     );
   }
 
-  // Quyền truy cập: Trekker (phải là người đã nộp đơn) hoặc Admin
   const isAdmin = currentUser?.roles?.some((role) => role.toLowerCase() === ROLES.ADMIN);
   const isApplicant = currentUser?.id && application.applicant.id === currentUser.id;
 
@@ -368,7 +367,7 @@ export default function ApplicationDetails() {
                   alt="Giấy phép kinh doanh"
                   className="max-h-72 w-full object-contain rounded-xl shadow-sm hover:scale-[1.02] transition-transform duration-300"
                   onError={(e) => {
-                    // Tránh vỡ ảnh nếu URL không phải là file image trực tiếp
+
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />

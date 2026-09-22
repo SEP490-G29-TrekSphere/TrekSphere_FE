@@ -12,7 +12,7 @@ import {
 import { CancellationPolicyFormDialog } from './CancellationPolicyFormDialog';
 
 interface VendorCancellationPolicyCardProps {
-  /** Chỉ Vendor Manager được thêm/sửa/xóa — Staff chỉ xem. */
+
   canManage: boolean;
 }
 
@@ -20,10 +20,6 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-/**
- * Khối "Chính sách hủy tour & Hoàn tiền" trên trang Tổng quan hồ sơ Vendor.
- * Tự quản lý dữ liệu qua `GET/POST/PUT/DELETE /vendor/cancellation-policies`.
- */
 export function VendorCancellationPolicyCard({ canManage }: VendorCancellationPolicyCardProps) {
   const { data: policies = [], isLoading, isError, error } = useCancellationPolicies();
   const { createPolicy, updatePolicy, deletePolicy } = useCancellationPolicyMutations();
@@ -33,7 +29,7 @@ export function VendorCancellationPolicyCard({ canManage }: VendorCancellationPo
   const [deleteTarget, setDeleteTarget] = useState<CancellationPolicy | null>(null);
 
   const sortedPolicies = sortPoliciesByDaysDesc(policies);
-  // Mốc ngày đã dùng, trừ bản ghi đang sửa (giữ nguyên mốc của chính nó là hợp lệ).
+
   const existingDays = policies
     .filter((p) => p.cancellationPolicyId !== editTarget?.cancellationPolicyId)
     .map((p) => p.cancelBeforeDays);

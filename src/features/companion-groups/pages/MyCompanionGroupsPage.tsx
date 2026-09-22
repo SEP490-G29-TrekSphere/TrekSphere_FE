@@ -59,7 +59,6 @@ export default function MyCompanionGroupsPage() {
     if (isGuest) navigate(PATHS.LOGIN);
   }, [isGuest, navigate]);
 
-  // Tự động nhắc nhở hoàn thiện hồ sơ nếu chưa đủ thông tin khi vào trang quản lý nhóm
   useEffect(() => {
     if (isGuest || isVendorOrAdmin || completeness.isComplete) {
       setIsProfileCompletionModalOpen(false);

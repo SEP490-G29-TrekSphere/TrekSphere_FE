@@ -2,10 +2,6 @@ import { ChevronLeft, Mountain, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 
-/**
- * Khung xương lúc tải trang — dựng đúng bố cục thật (hero, thanh nav, hai cột) để
- * nội dung không nhảy chỗ khi dữ liệu về.
- */
 export function TourDetailSkeleton() {
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -40,7 +36,6 @@ interface TourDetailErrorProps {
   isFetching?: boolean;
 }
 
-/** Lỗi tải dữ liệu — luôn kèm lối thoát là thử lại. */
 export function TourDetailError({ message, onRetry, isFetching }: TourDetailErrorProps) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 pt-16">
@@ -61,7 +56,6 @@ export function TourDetailError({ message, onRetry, isFetching }: TourDetailErro
   );
 }
 
-/** Tour không tồn tại hoặc đã bị gỡ. */
 export function TourNotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 pt-16">

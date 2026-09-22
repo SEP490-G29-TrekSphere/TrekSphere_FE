@@ -20,10 +20,6 @@ interface ChatDetailPaneProps {
   onRemoveMember: (conversationId: string, memberId: string) => void;
 }
 
-/**
- * Khung chat bên phải: header, dòng thời gian tin nhắn, ô soạn tin và
- * panel thành viên có thể ẩn/hiện.
- */
 export function ChatDetailPane({
   selectedConversation,
   currentMessages,
@@ -47,15 +43,12 @@ export function ChatDetailPane({
     selectedConversation?.tag?.text !== 'DIRECT' &&
     selectedConversation?.virtualData?.type !== 'DIRECT';
 
-  // Đóng panel thành viên khi chuyển sang chat 1v1
   useEffect(() => {
     if (!isGroup) {
       setIsMembersOpen(false);
     }
   }, [isGroup]);
 
-  // Chốt vị trí vạch "tin nhắn chưa đọc" một lần khi mở cuộc hội thoại, để nó
-  // không nhảy đi khi tin nhắn được đánh dấu đã đọc ngay sau đó.
   useEffect(() => {
     if (!conversationId || conversationId === markedConversationIdRef.current) return;
     if (currentMessages.length === 0) return;

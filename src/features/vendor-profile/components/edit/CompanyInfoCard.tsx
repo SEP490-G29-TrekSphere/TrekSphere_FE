@@ -16,11 +16,6 @@ interface CompanyInfoCardProps {
 const inputStyle = { backgroundColor: '#FFFFFF', border: '1px solid #E0DCD1', color: '#06261D' };
 const labelStyle = { color: '#6F7B75' };
 
-/**
- * Khối "Thông tin công ty". Tên công ty + MST là readonly (API không hỗ trợ
- * sửa 2 field này — xem spec). Mô tả + Email liên hệ được bổ sung thêm ngoài
- * mockup vì `VendorProfileUpdateRequest` hỗ trợ nhưng mockup không vẽ.
- */
 export function CompanyInfoCard({
   companyName,
   taxCode,

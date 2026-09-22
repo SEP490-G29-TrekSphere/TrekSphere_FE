@@ -28,10 +28,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-/**
- * Phần nội dung hồ sơ leo núi nâng cao: kinh nghiệm, độ khó ưa thích, điểm uy
- * tín, khu vực, kỹ năng và phần giới thiệu. Chỉ hiển thị — không gọi API.
- */
 export function ApplicantHikingSummary({ summary }: { summary: PublicHikingSummary }) {
   const experience = summary.experienceLevel
     ? HIKING_EXPERIENCE_LEVEL_META[summary.experienceLevel]

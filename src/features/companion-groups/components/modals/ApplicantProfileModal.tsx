@@ -11,15 +11,15 @@ import { ApplicantHikingSummary } from '../detail/ApplicantHikingSummary';
 import { MemberAvatar } from '../detail/MemberAvatar';
 
 interface ApplicantProfileModalProps {
-  /** `null` khi không có ứng viên nào đang được xem — modal sẽ không render. */
+  /** Target applicant user id. When `null`, modal will not render. */
   userId: string | null;
-  /** Tên/ảnh lấy từ đơn xin gia nhập, hiển thị ngay trong lúc chờ API trả về. */
+  /** Fallback applicant name displayed while summary query is in flight. */
   fallbackName: string;
   fallbackAvatarUrl?: string;
   onClose: () => void;
 }
 
-/** Hồ sơ chỉ được coi là "có thông tin nâng cao" khi ít nhất một mục được khai. */
+/** Check if the public hiking summary has meaningful custom fields. */
 function hasAdvancedInfo(
   summary: PublicHikingSummary | null | undefined
 ): summary is PublicHikingSummary {
@@ -35,8 +35,8 @@ function hasAdvancedInfo(
 }
 
 /**
- * Modal xem hồ sơ leo núi nâng cao của một ứng viên xin gia nhập nhóm ghép.
- * Chỉ đọc — leader dùng để đánh giá năng lực trước khi bấm Duyệt / Từ chối.
+ * Modal to preview applicant's public hiking profile and experience.
+ * Read-only view for group leaders before accepting/rejecting join requests.
  */
 export function ApplicantProfileModal({
   userId,

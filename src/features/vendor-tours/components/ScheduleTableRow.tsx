@@ -3,62 +3,59 @@ import { formatDate } from '@/utils/format';
 import type { TourSchedule } from '../types';
 import { ScheduleStatusBadge } from './ScheduleStatusBadge';
 
-/** Lịch đã hoàn thành hoặc đã hủy thì không sửa được nữa (khớp mã lỗi `SCHEDULE_NOT_EDITABLE` của BE). */
 const EDITABLE_SCHEDULE_STATUSES = new Set(['OPEN', 'CLOSED']);
 
 interface ScheduleTableRowProps {
   schedule: TourSchedule;
-  /** Chỉ truyền (màn Manager) nếu muốn hiện nút Sửa — Staff không có quyền này. */
+
   onEditClick?: (schedule: TourSchedule) => void;
-  /** Chỉ truyền (màn Manager) nếu muốn hiện nút Xóa lịch — Staff không có quyền này. */
+
   onDeleteClick?: (schedule: TourSchedule) => void;
 }
 
 export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: ScheduleTableRowProps) {
-  // Màn Staff không truyền hành động nào — khi đó bỏ hẳn ô "Thao tác" để số cột
-  // của dòng khớp với header (Staff cũng bỏ cột này khỏi `TABLE_COLUMNS`).
+
   const hasActions = Boolean(onEditClick || onDeleteClick);
   const hasBookings = schedule.bookedSlots > 0;
   const isEditable = EDITABLE_SCHEDULE_STATUSES.has(schedule.status);
   const remainingSlots = Math.max(0, schedule.availableSlots);
 
   return (
-    <tr className="border-b transition-colors last:border-b-0" style={{ borderColor: '#E6E2D1' }}>
-      <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
-        <span className="font-semibold" style={{ color: '#06261D' }}>
+    <tr className="border-b border-border transition-colors last:border-b-0">
+      <td className="px-6 py-4 align-middle">
+        <span className="font-semibold text-foreground">
           {formatDate(schedule.departureDate)}
         </span>
       </td>
 
-      <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
-        <span className="text-sm font-medium" style={{ color: '#6F7B75' }}>
+      <td className="px-6 py-4 align-middle">
+        <span className="text-sm font-medium text-muted-foreground">
           {formatDate(schedule.returnDate)}
         </span>
       </td>
 
-      <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
-        <span className="text-sm font-medium" style={{ color: '#06261D' }}>
+      <td className="px-6 py-4 align-middle">
+        <span className="text-sm font-medium text-foreground">
           Đã đặt {schedule.bookedSlots} chỗ
         </span>
-        <span className="block text-xs" style={{ color: '#6F7B75' }}>
+        <span className="block text-xs text-muted-foreground">
           Còn trống {remainingSlots} chỗ
         </span>
       </td>
 
-      <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
+      <td className="px-6 py-4 align-middle">
         <ScheduleStatusBadge status={schedule.status} />
       </td>
 
       {hasActions && (
-        <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
+        <td className="px-6 py-4 align-middle">
           <div className="flex items-center gap-3">
             {onEditClick && (
               <button
                 type="button"
                 onClick={() => onEditClick(schedule)}
                 disabled={!isEditable}
-                className="transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30"
-                style={{ color: '#06261D' }}
+                className="text-foreground transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30"
                 title={
                   isEditable
                     ? 'Sửa lịch khởi hành'
@@ -74,8 +71,7 @@ export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: Sched
                 onClick={() => onDeleteClick(schedule)}
                 disabled={hasBookings || !isEditable}
                 aria-label="Xóa lịch khởi hành"
-                className="transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30"
-                style={{ color: '#DC2626' }}
+                className="text-destructive transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-30"
                 title={
                   hasBookings
                     ? 'Không thể xóa lịch đã có khách đặt'

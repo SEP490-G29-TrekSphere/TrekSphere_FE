@@ -8,33 +8,33 @@ import {
 } from './TrekSphereLogo';
 
 export interface AppLogoProps extends Omit<TrekSphereLogoProps, 'variant' | 'tone' | 'height'> {
-  /** Loại hiển thị: full (icon + wordmark) hoặc mark (chỉ icon). */
+  /** Display mode: full (icon + wordmark) or mark (icon only). */
   variant?: TrekSphereLogoVariant;
-  /** Tone màu: dark (mặc định) hoặc light (dùng trên nền tối). */
+  /** Color tone: dark (default) or light (for dark backgrounds). */
   tone?: TrekSphereLogoTone;
-  /** Chiều cao logo (px). Mặc định 48. */
+  /** Height in pixels. Default is 48. */
   height?: number;
-  /** Link đích khi click vào logo. Mặc định `/`. */
+  /** Target link destination. Default is `/`. */
   to?: string;
-  /** Bọc logo trong <Link> hay không. Mặc định `true`. */
+  /** Whether to wrap the logo in a React Router <Link>. Default is `true`. */
   linkable?: boolean;
-  /** className bổ sung cho wrapper. */
+  /** Optional wrapper className. */
   wrapperClassName?: string;
-  /** aria-label cho link. */
+  /** Accessibility aria-label for the link. */
   ariaLabel?: string;
 }
 
 /**
- * `AppLogo` — wrapper chuẩn hoá việc sử dụng TrekSphereLogo trong app.
+ * Standardized application logo wrapper component.
  *
  * @example
- *   // Trên header nền sáng
+ *   // Light background header
  *   <AppLogo height={48} />
  *
- *   // Trên hero nền tối
+ *   // Dark hero background
  *   <AppLogo height={56} tone="light" />
  *
- *   // Chỉ hiển thị mark (icon) cho favicon / mobile
+ *   // Icon-only mode
  *   <AppLogo variant="mark" height={32} />
  */
 export const AppLogo: React.FC<AppLogoProps> = ({
@@ -44,7 +44,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   to = '/',
   linkable = true,
   wrapperClassName = 'inline-flex items-center shrink-0',
-  ariaLabel = 'TrekSphere — Trang chủ',
+  ariaLabel = 'TrekSphere — Home',
   ...logoProps
 }) => {
   const logo = <TrekSphereLogo variant={variant} tone={tone} height={height} {...logoProps} />;

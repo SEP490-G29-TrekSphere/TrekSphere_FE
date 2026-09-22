@@ -16,7 +16,7 @@ const MAX_IMAGES_PER_MESSAGE = 5;
 const MAX_TEXTAREA_HEIGHT_PX = 160;
 
 const composerSchema = z.object({
-  // Cho phép rỗng vì tin nhắn có thể chỉ gồm ảnh; nút gửi tự khoá khi không có gì để gửi.
+  // Allows empty message when only images are attached; send button is disabled when empty.
   message: z.string(),
 });
 
@@ -29,7 +29,7 @@ interface PendingImage {
 }
 
 interface ChatComposerProps {
-  /** Gửi một tin nhắn. Ảnh được gửi thành từng tin nhắn riêng chứa URL ảnh. */
+  /** Send message callback. Images are uploaded and sent as individual image URLs. */
   onSendMessage: (content: string) => void;
   isSending: boolean;
   placeholder?: string;
@@ -72,7 +72,7 @@ export function ChatComposer({
     element.style.height = `${Math.min(element.scrollHeight, MAX_TEXTAREA_HEIGHT_PX)}px`;
   }, []);
 
-  // Cập nhật draft message khi nhận prop mới
+  // Update draft message on prop change
   useEffect(() => {
     if (initialDraftMessage) {
       setValue('message', initialDraftMessage);
@@ -80,7 +80,7 @@ export function ChatComposer({
     }
   }, [initialDraftMessage, setValue, autoGrow]);
 
-  // Giải phóng object URL của các ảnh còn treo khi component unmount.
+  // Revoke pending object URLs on unmount
   const pendingImagesRef = useRef(pendingImages);
   useEffect(() => {
     pendingImagesRef.current = pendingImages;
@@ -133,7 +133,7 @@ export function ChatComposer({
     });
   };
 
-  // Vị trí con trỏ mong muốn sau khi chèn emoji, áp dụng lại khi picker đóng.
+  // Desired caret position after inserting emoji, applied when picker closes.
   const caretAfterInsertRef = useRef<number | null>(null);
 
   const focusTextareaAtCaret = useCallback(() => {
@@ -163,8 +163,7 @@ export function ChatComposer({
     setValue('message', `${current.slice(0, start)}${emoji}${current.slice(end)}`);
     caretAfterInsertRef.current = start + emoji.length;
 
-    // Base UI vẫn giữ focus bên trong popover một nhịp sau khi nó đóng về mặt
-    // hình ảnh, nên đặt lại focus vài lần để con trỏ chắc chắn quay về ô soạn tin.
+    // Retry focus after popup close animation
     for (const delay of [0, 120, 320]) setTimeout(focusTextareaAtCaret, delay);
   };
 
@@ -326,19 +325,14 @@ export function ChatComposer({
                   if (!isBusy && hasContent) handleSubmit(onSubmit)();
                 }
               }}
-              // Placeholder chứa tên hội thoại nên có thể rất dài — ép một dòng
-              // kèm ellipsis để không đội cao ô soạn tin trên màn hình hẹp.
+              // Ellipsis overflow handling for long placeholders
               className="max-h-40 flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed outline-none placeholder:overflow-hidden placeholder:text-ellipsis placeholder:whitespace-nowrap placeholder:text-muted-foreground disabled:opacity-50"
             />
 
             <Popover
               open={isEmojiOpen}
               onOpenChange={setIsEmojiOpen}
-              // Đợi picker đóng hẳn rồi mới trả con trỏ về ô soạn tin, nếu focus
-              // ngay thì Base UI sẽ ghi đè bằng focus nội bộ của popover.
               onOpenChangeComplete={(open) => {
-                // `caretAfterInsertRef` chỉ còn khác null khi lần focus ngay sau
-                // lúc chọn emoji bị Base UI giành mất.
                 if (!open && caretAfterInsertRef.current !== null) focusTextareaAtCaret();
               }}
             >

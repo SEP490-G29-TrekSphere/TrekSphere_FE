@@ -12,7 +12,6 @@ const mockUpdateStatus = adminAccountService.updateStatus as jest.MockedFunction
   typeof adminAccountService.updateStatus
 >;
 
-/** Wrapper React Query riêng cho mỗi test — tránh cache dùng chung giữa các case. */
 function createWrapper() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },

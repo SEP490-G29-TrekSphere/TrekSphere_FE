@@ -8,13 +8,6 @@ interface TourGallerySectionProps {
   tour: TourDetailFromApi;
 }
 
-/**
- * Thư viện ảnh: lưới mosaic (1 ảnh lớn + các ảnh nhỏ) và lightbox toàn màn hình.
- *
- * Lightbox tự viết thay vì dùng `Dialog` của base-ui vì cần khung trong suốt tràn
- * viền và điều hướng bằng phím mũi tên — Dialog mặc định gói nội dung trong popup
- * có nền và giới hạn `max-w-sm`.
- */
 export function TourGallerySection({ tour }: TourGallerySectionProps) {
   const images = [...tour.images].sort((a, b) => a.sortOrder - b.sortOrder);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -39,7 +32,7 @@ export function TourGallerySection({ tour }: TourGallerySectionProps) {
     }
 
     document.addEventListener('keydown', handleKeyDown);
-    // Khoá cuộn nền để bánh xe chuột không cuộn trang phía sau lightbox
+
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -75,7 +68,7 @@ export function TourGallerySection({ tour }: TourGallerySectionProps) {
             aria-label={image.caption || `Xem ảnh ${index + 1} của ${tour.tourName}`}
             className={cn(
               'group relative overflow-hidden rounded-xl bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-              // Ảnh đầu tiên chiếm ô đôi để lưới có điểm nhấn thay vì đều tăm tắp
+
               index === 0 && images.length > 1
                 ? 'col-span-2 row-span-2 aspect-[4/3]'
                 : 'aspect-square'
@@ -104,7 +97,7 @@ export function TourGallerySection({ tour }: TourGallerySectionProps) {
           aria-modal="true"
           aria-label="Xem ảnh phóng to"
         >
-          {/* Nền bấm để đóng — có nút đóng thật ở góc nên đây chỉ là lối tắt chuột */}
+
           <button
             type="button"
             aria-label="Đóng"

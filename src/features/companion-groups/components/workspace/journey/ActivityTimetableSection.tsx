@@ -101,7 +101,7 @@ export function ActivityTimetableSection({
             <tbody>
               {TIMETABLE_TIME_SLOTS.map((slot) => (
                 <tr key={slot.id} className="border-b border-border last:border-b-0 align-top">
-                  {/* Cột Label buổi */}
+
                   <td className="p-3 border-r border-border bg-muted/20">
                     <div className="space-y-1">
                       <span className="inline-block rounded-md px-2 py-0.5 text-[10px] font-black border bg-muted text-foreground border-border">
@@ -113,7 +113,6 @@ export function ActivityTimetableSection({
                     </div>
                   </td>
 
-                  {/* Các cột Ngày */}
                   {days.map((day) => {
                     const slotActivities = activities.filter((act) => {
                       const actDay = act.dayNo ?? 1;

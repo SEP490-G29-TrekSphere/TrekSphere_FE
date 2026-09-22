@@ -10,9 +10,6 @@ interface TourScheduleSectionProps {
   schedules: TourDetailScheduleApi[];
 }
 
-/**
- * Danh sách lịch khởi hành — chỉ dùng để xem thông tin lịch và giá.
- */
 export function TourScheduleSection({ schedules }: TourScheduleSectionProps) {
   const bookable = sortSchedulesByDeparture(schedules.filter(isBookableSchedule));
 

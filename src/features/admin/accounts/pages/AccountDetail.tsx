@@ -5,14 +5,6 @@ import { StatusIndicator } from '../components/StatusIndicator';
 import { useAdminAccountDetail } from '../hooks/useAdminAccountDetail';
 import { ACCOUNT_GENDER_LABELS } from '../types.detail';
 
-/**
- * Trang Chi tiết tài khoản — màn xem/thao tác 1 account trong Admin.
- *
- * Chỉ hiển thị các trường thật sự có trong `UserProfileResponse` của BE
- * (`GET /users/{userId}`) — không hiển thị số liệu giả (tour, chi tiêu,
- * đánh giá, vị trí bản đồ) vì BE chưa có API cung cấp các dữ liệu này.
- */
-/** Mảng id tĩnh cho skeleton — tránh dùng index làm key (Biome noArrayIndexKey). */
 const SKELETON_LINES = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'] as const;
 
 export default function AccountDetail() {
@@ -126,7 +118,6 @@ export default function AccountDetail() {
   );
 }
 
-/** Một trường thông tin trong profile card. */
 function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="mb-4 last:mb-0">

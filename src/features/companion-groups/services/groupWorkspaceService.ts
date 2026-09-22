@@ -42,6 +42,14 @@ import type {
   GroupPostUpdateRequest,
 } from '../types/workspace';
 
+export interface GroupMedicalInfo {
+  bloodType?: string;
+  allergies?: string[];
+  medicalConditions?: string[];
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+}
+
 export interface PeerReviewPayload {
   revieweeId?: string;
   targetMemberId?: string;
@@ -51,8 +59,6 @@ export interface PeerReviewPayload {
   teamworkScore?: number;
   safetyScore?: number;
   comment?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface WorkspaceMemberItem {
@@ -67,12 +73,8 @@ export interface WorkspaceMemberItem {
   isLeader?: boolean;
   trustScore?: number;
   completedTrips?: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  medicalInfo?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  skills?: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  medicalInfo?: GroupMedicalInfo | null;
+  skills?: string[];
 }
 
 export type GroupLifecyclePhase = 1 | 2 | 3 | 4 | 5;
@@ -89,8 +91,6 @@ export interface ActualExpenseItem {
   beneficiaryIds: string[];
   receiptImageUrl?: string;
   createdAt?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface DebtSettlementItem {
@@ -101,8 +101,6 @@ export interface DebtSettlementItem {
   toMemberName?: string;
   amount: number;
   isConfirmed: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export type CheckpointStatus = 'COMPLETED' | 'IN_PROGRESS' | 'UPCOMING' | 'SKIPPED' | string;
@@ -184,9 +182,6 @@ function toQueryParams(params: object): Record<string, string> {
 export const groupWorkspaceService = {
   // ==================== 1. CUSTOM JOURNEY & CHECKPOINTS ====================
 
-  /**
-   * Lấy chi tiết lộ trình Custom Journey của nhóm ghép.
-   */
   async getJourney(groupId: string): Promise<CustomJourneyDetailResponse> {
     const response = await ApiService<CustomJourneyDetailResponse>(
       `/matching-groups/${groupId}/journey`,
@@ -195,9 +190,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật thông tin tổng quan Custom Journey (chỉ Leader khi chưa khóa).
-   */
   async updateJourney(
     groupId: string,
     payload: CustomJourneyUpdateRequest
@@ -210,9 +202,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy danh sách điểm dừng / hoạt động theo ngày.
-   */
   async getCheckpoints(groupId: string): Promise<CustomJourneyCheckpointResponse[]> {
     const response = await ApiService<CustomJourneyCheckpointResponse[]>(
       `/matching-groups/${groupId}/journey/checkpoints`,
@@ -221,9 +210,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Thêm điểm dừng mới vào hành trình (chỉ Leader khi chưa khóa).
-   */
   async createCheckpoint(
     groupId: string,
     payload: CustomJourneyCheckpointCreateRequest
@@ -236,9 +222,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật điểm dừng trong hành trình (chỉ Leader khi chưa khóa).
-   */
   async updateCheckpoint(
     groupId: string,
     checkpointId: string,
@@ -252,9 +235,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xóa điểm dừng khỏi hành trình (chỉ Leader khi chưa khóa).
-   */
   async deleteCheckpoint(groupId: string, checkpointId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/journey/checkpoints/${checkpointId}`,
@@ -263,9 +243,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Đổi chéo thứ tự giữa 2 điểm dừng trong hành trình (chỉ Leader khi chưa khóa).
-   */
   async swapCheckpoints(
     groupId: string,
     checkpointId: string,
@@ -278,9 +255,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Leader cập nhật tiến độ 1 điểm dừng: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra).
-   */
   async updateCheckpointProgress(
     groupId: string,
     checkpointId: string,
@@ -294,9 +268,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Leader gỡ tiến độ điểm dừng về chưa cập nhật (sửa nhầm).
-   */
   async resetCheckpointProgress(
     groupId: string,
     checkpointId: string
@@ -308,9 +279,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy danh sách các hoạt động trong thời khóa biểu lộ trình của nhóm ghép.
-   */
   async getJourneyActivities(groupId: string): Promise<CustomJourneyActivityResponse[]> {
     const response = await ApiService<CustomJourneyActivityResponse[]>(
       `/matching-groups/${groupId}/journey/activities`,
@@ -319,9 +287,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Thêm hoạt động mới vào thời khóa biểu (chỉ Leader khi chưa khóa).
-   */
   async createJourneyActivity(
     groupId: string,
     payload: CustomJourneyActivityCreateRequest
@@ -334,9 +299,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật hoạt động trong thời khóa biểu (chỉ Leader khi chưa khóa).
-   */
   async updateJourneyActivity(
     groupId: string,
     activityId: string,
@@ -350,9 +312,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xóa hoạt động khỏi thời khóa biểu (chỉ Leader khi chưa khóa).
-   */
   async deleteJourneyActivity(groupId: string, activityId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/journey/activities/${activityId}`,
@@ -363,9 +322,6 @@ export const groupWorkspaceService = {
 
   // ==================== CUSTOM JOURNEY COST ITEMS (BUDGET) ====================
 
-  /**
-   * Lấy tổng quan dự toán chi phí và danh sách khoản chi của hành trình.
-   */
   async getCostSummary(groupId: string): Promise<CustomJourneyCostSummaryResponse> {
     const response = await ApiService<CustomJourneyCostSummaryResponse>(
       `/matching-groups/${groupId}/journey/cost-items/summary`,
@@ -374,9 +330,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy danh sách các khoản chi dự kiến của hành trình.
-   */
   async getCostItems(groupId: string): Promise<CustomJourneyCostItemResponse[]> {
     const response = await ApiService<CustomJourneyCostItemResponse[]>(
       `/matching-groups/${groupId}/journey/cost-items`,
@@ -385,9 +338,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Thêm khoản chi dự kiến mới vào hành trình (chỉ Leader khi chưa khóa).
-   */
   async createCostItem(
     groupId: string,
     payload: CustomJourneyCostItemCreateRequest
@@ -400,9 +350,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật khoản chi dự kiến trong hành trình (chỉ Leader khi chưa khóa).
-   */
   async updateCostItem(
     groupId: string,
     costItemId: string,
@@ -416,9 +363,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xoá khoản chi dự kiến khỏi hành trình (chỉ Leader khi chưa khóa).
-   */
   async deleteCostItem(groupId: string, costItemId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/journey/cost-items/${costItemId}`,
@@ -429,9 +373,6 @@ export const groupWorkspaceService = {
 
   // ==================== 2. GROUP CHECKLIST ====================
 
-  /**
-   * Lấy danh sách và thống kê tiến độ checklist của nhóm ghép.
-   */
   async getChecklistSummary(
     groupId: string,
     filter: GroupChecklistFilterRequest = {}
@@ -445,9 +386,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Tạo mới mục checklist trong nhóm ghép.
-   */
   async createChecklistItem(
     groupId: string,
     payload: GroupChecklistItemCreateRequest
@@ -475,9 +413,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật thông tin mục checklist.
-   */
   async updateChecklistItem(
     groupId: string,
     itemId: string,
@@ -506,9 +441,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật trạng thái mục checklist (PENDING <-> DONE).
-   */
   async updateItemStatus(
     groupId: string,
     itemId: string,
@@ -523,9 +455,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xóa mềm mục checklist.
-   */
   async deleteChecklistItem(groupId: string, itemId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/checklist-items/${itemId}`,
@@ -536,9 +465,6 @@ export const groupWorkspaceService = {
 
   // ==================== 3. GROUP FEED & POSTS ====================
 
-  /**
-   * Lấy danh sách bài đăng bảng tin của nhóm (phân trang, lọc theo loại).
-   */
   async getGroupPosts(
     groupId: string,
     params: GroupPostFilterRequest = {}
@@ -552,9 +478,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy chi tiết bài đăng cùng danh sách bình luận.
-   */
   async getGroupPostDetail(groupId: string, postId: string): Promise<GroupPostDetailResponse> {
     const response = await ApiService<GroupPostDetailResponse>(
       `/matching-groups/${groupId}/posts/${postId}`,
@@ -563,9 +486,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Đăng bài viết mới trong nhóm ghép.
-   */
   async createGroupPost(
     groupId: string,
     payload: GroupPostCreateRequest
@@ -578,9 +498,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Chỉnh sửa bài viết (chỉ tác giả hoặc Leader cập nhật ghim).
-   */
   async updateGroupPost(
     groupId: string,
     postId: string,
@@ -594,9 +511,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Ghim / Bỏ ghim bài viết (chỉ Leader).
-   */
   async togglePinGroupPost(groupId: string, postId: string): Promise<GroupPostResponse> {
     const response = await ApiService<GroupPostResponse>(
       `/matching-groups/${groupId}/posts/${postId}/toggle-pin`,
@@ -605,9 +519,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xóa mềm bài viết (tác giả hoặc Leader).
-   */
   async deleteGroupPost(groupId: string, postId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/posts/${postId}`,
@@ -616,9 +527,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Ẩn/Hiện bài viết (kiểm duyệt - chỉ Leader).
-   */
   async toggleHideGroupPost(groupId: string, postId: string): Promise<GroupPostResponse> {
     const response = await ApiService<GroupPostResponse>(
       `/matching-groups/${groupId}/posts/${postId}/toggle-hide`,
@@ -627,9 +535,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Gửi bình luận vào bài viết.
-   */
   async createComment(
     groupId: string,
     postId: string,
@@ -643,9 +548,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Chỉnh sửa bình luận (chỉ tác giả).
-   */
   async updateComment(
     groupId: string,
     postId: string,
@@ -660,9 +562,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Xóa mềm bình luận (tác giả hoặc Leader).
-   */
   async deleteComment(groupId: string, postId: string, commentId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/posts/${postId}/comments/${commentId}`,
@@ -671,9 +570,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Ẩn/Hiện bình luận (kiểm duyệt - chỉ Leader).
-   */
   async toggleHideComment(
     groupId: string,
     postId: string,
@@ -705,9 +601,6 @@ export const groupWorkspaceService = {
 
   async addCheckpoint(_groupId: string, _data: unknown): Promise<void> {},
   async skipCheckpoint(_groupId: string, _checkpointId: string): Promise<void> {},
-
-  // Dissolution request/vote: thay bằng voteService.ts (group_vote, voteType=GROUP_DISSOLUTION)
-  // theo BE Phase 4 — không dùng mô hình group_dissolution_request riêng.
 
   async getEquipment(_groupId: string): Promise<EquipmentItemDto[]> {
     return [];
@@ -747,14 +640,10 @@ export const groupWorkspaceService = {
   },
   async submitPeerReview(_groupId: string, _payload: PeerReviewPayload): Promise<void> {},
 
-  // Leader election/succession: thay bằng voteService.ts (group_vote, voteType=LEADER_ELECTION)
-  // theo BE Phase 4 — không có appointLeaderDirect (direct-transfer bị cấm, xem DG-23).
-
   // ==========================================
   // STAGE P6-S2: GROUP EXPENSE & SHARES
   // ==========================================
 
-  /** Lấy danh sách các khoản chi tiêu của nhóm (phân trang) */
   async getGroupExpenses(
     groupId: string,
     page = 0,
@@ -769,7 +658,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Lấy tổng kết chi tiêu thực tế của nhóm */
   async getExpenseSummary(groupId: string): Promise<GroupExpenseSummaryResponse> {
     const response = await ApiService<GroupExpenseSummaryResponse>(
       `/matching-groups/${groupId}/expenses/summary`,
@@ -778,7 +666,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Lấy chi tiết một khoản chi tiêu */
   async getExpenseDetail(groupId: string, expenseId: string): Promise<GroupExpenseResponse> {
     const response = await ApiService<GroupExpenseResponse>(
       `/matching-groups/${groupId}/expenses/${expenseId}`,
@@ -787,7 +674,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Tạo mới một khoản chi tiêu (Leader Only) */
   async createExpense(
     groupId: string,
     payload: GroupExpenseCreateRequest
@@ -800,7 +686,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Cập nhật khoản chi tiêu (Leader Only) */
   async updateExpense(
     groupId: string,
     expenseId: string,
@@ -814,7 +699,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Hủy / Xóa mềm khoản chi tiêu (Leader Only) */
   async voidExpense(groupId: string, expenseId: string): Promise<void> {
     const response = await ApiService<void>(
       `/matching-groups/${groupId}/expenses/${expenseId}`,
@@ -827,7 +711,6 @@ export const groupWorkspaceService = {
   // STAGE P6-S4: GROUP SETTLEMENT & WORKFLOW
   // ==========================================
 
-  /** Lấy tổng kết công nợ & gợi ý quyết toán (Netting) */
   async getSettlementSummary(groupId: string): Promise<GroupSettlementSummaryResponse> {
     const response = await ApiService<GroupSettlementSummaryResponse>(
       `/matching-groups/${groupId}/settlements/summary`,
@@ -836,7 +719,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Lấy danh sách lệnh quyết toán đã lưu */
   async getSettlements(groupId: string): Promise<GroupSettlementResponse[]> {
     const response = await ApiService<GroupSettlementResponse[]>(
       `/matching-groups/${groupId}/settlements`,
@@ -845,7 +727,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Khởi tạo các lệnh quyết toán từ gợi ý tối giản (Leader Only) */
   async generateSettlements(groupId: string): Promise<GroupSettlementResponse[]> {
     const response = await ApiService<GroupSettlementResponse[]>(
       `/matching-groups/${groupId}/settlements/generate`,
@@ -854,7 +735,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Debtor nộp chứng từ chuyển tiền */
   async submitSettlementProof(
     groupId: string,
     settlementId: string,
@@ -868,7 +748,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Payee xác nhận đã nhận tiền */
   async confirmSettlementPayment(
     groupId: string,
     settlementId: string
@@ -880,7 +759,6 @@ export const groupWorkspaceService = {
     return unwrapResponse(response);
   },
 
-  /** Payee từ chối chứng từ chuyển tiền */
   async rejectSettlementPayment(
     groupId: string,
     settlementId: string,

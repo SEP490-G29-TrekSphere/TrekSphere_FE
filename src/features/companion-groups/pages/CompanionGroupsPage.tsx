@@ -180,7 +180,7 @@ export default function CompanionGroupsPage() {
       const rawId = String(app.matchingGroupId);
       const lowerId = rawId.toLowerCase();
       const existing = map.get(lowerId);
-      // Ưu tiên trạng thái: PENDING > REJECTED > WITHDRAWN > ACCEPTED
+
       if (!existing || app.status === 'PENDING') {
         map.set(rawId, app.status as JoinApplicationStatus);
         map.set(lowerId, app.status as JoinApplicationStatus);
@@ -288,7 +288,6 @@ export default function CompanionGroupsPage() {
     const lowerId = rawId.toLowerCase();
     const appStatus = applicationStatusMap.get(lowerId) ?? applicationStatusMap.get(rawId);
 
-    // Không mở modal gửi đơn nếu đơn đang chờ duyệt
     if (appStatus === 'PENDING') {
       return;
     }

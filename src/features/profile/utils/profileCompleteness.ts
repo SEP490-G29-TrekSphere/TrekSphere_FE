@@ -6,14 +6,6 @@ export interface ProfileCompletenessResult {
   missingFieldLabels: string[];
 }
 
-/**
- * Kiểm tra các trường thông tin bắt buộc đối với người dùng khi tham gia hoặc tạo nhóm ghép:
- * 1. Họ và tên (`name`): Tối thiểu 2 ký tự
- * 2. Số điện thoại (`phone`): Có giá trị
- * 3. Ngày sinh (`dateOfBirth`): Có giá trị
- * 4. Cấp độ kinh nghiệm (`experienceLevel`): Có giá trị
- * 5. Độ khó ưa thích (`preferredDifficulty`): Có giá trị
- */
 export function checkProfileCompleteness(
   profile: UserProfile | null | undefined
 ): ProfileCompletenessResult {

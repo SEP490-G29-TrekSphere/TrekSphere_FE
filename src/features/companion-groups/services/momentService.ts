@@ -9,8 +9,6 @@ import type {
   MomentVisibility,
 } from '@/features/moments/types';
 
-// Domain model của Khoảnh khắc nằm ở `features/moments` vì được dùng chung
-// với trang hồ sơ cá nhân; re-export để các import cũ theo service vẫn chạy.
 export type {
   MomentCreatePayload,
   MomentItem,

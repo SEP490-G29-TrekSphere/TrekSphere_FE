@@ -22,11 +22,6 @@ import { toast } from '@/store/useToastStore';
 
 const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Chỗ (đã đặt/tổng)', 'Trạng thái', 'Thao tác'];
 
-/**
- * Quản lý lịch khởi hành của 1 tour — dùng chung layout bảng với TourList/TourApprovals.
- * Vào từ icon "Lịch khởi hành" trên mỗi dòng ở `TourList`. Chỉ màn Manager mới có nút
- * Hủy lịch (`DELETE .../schedules/{scheduleId}` yêu cầu quyền VendorManager).
- */
 export default function TourSchedules() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -94,8 +89,7 @@ export default function TourSchedules() {
     }
 
     try {
-      // `bookedSlots` không bao gồm booking đang giữ chỗ chờ thanh toán. Kiểm tra
-      // manifest trước khi xóa để các booking PAYMENT_PENDING cũng được xử lý.
+
       const preview = await vendorScheduleCancellationService.preview(schedule);
       if (preview.cancellableBookings.length > 0 || preview.blockingBookings.length > 0) {
         openBookedScheduleCancellation(schedule);
@@ -103,8 +97,7 @@ export default function TourSchedules() {
       }
       setDeleteTarget(schedule);
     } catch {
-      // Mở dialog an toàn (read-only) để hiển thị lỗi tải manifest; không gọi DELETE
-      // khi chưa chắc lịch thực sự không có booking.
+
       openBookedScheduleCancellation(schedule);
     }
   };
@@ -158,8 +151,7 @@ export default function TourSchedules() {
   }
 
   const isEditingExisting = formTarget !== null && formTarget !== 'create';
-  // Vào thẳng màn này bằng URL vẫn có thể lọt qua nút lịch (đã disable) ở bảng danh sách tour,
-  // nên phải kiểm tra lại trạng thái ngay tại đây — BE chặn bằng mã lỗi 4206.
+
   const canSchedule = SCHEDULABLE_STATUSES.has(tour.status);
 
   return (

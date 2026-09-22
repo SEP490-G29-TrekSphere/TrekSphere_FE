@@ -12,10 +12,6 @@ interface ProfileBlogsPanelProps {
   isOwnProfile: boolean;
 }
 
-/**
- * Tab "Bài viết" trong trang hồ sơ — hiển thị danh sách các bài viết / blog
- * mà người dùng đã chia sẻ trên cộng đồng TrekSphere.
- */
 export function ProfileBlogsPanel({ userId, isOwnProfile }: ProfileBlogsPanelProps) {
   const [page, setPage] = useState(1);
   const { data, isLoading, isError } = useUserBlogs(userId, page);

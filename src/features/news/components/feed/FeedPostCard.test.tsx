@@ -51,7 +51,6 @@ describe('FeedPostCard', () => {
   it('hiển thị "—" cho chỉ số BE chưa trả về', () => {
     render(<FeedPostCard post={post} />);
 
-    // `commentCount` chưa có trong response BE → ô Bình luận rơi về dấu gạch.
     expect(screen.getByText('—')).toBeTruthy();
   });
 

@@ -11,7 +11,6 @@ import { useAppStore } from './store/useAppStore';
 export default function App() {
   const _hasHydrated = useAppStore((state) => state._hasHydrated);
 
-  // Safety fallback: Nếu rehydrate bị treo quá 500ms, tự động bỏ qua để render UI
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!useAppStore.getState()._hasHydrated) {
@@ -21,7 +20,6 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Chờ Zustand hydrate xong từ localStorage trước khi render
   if (!_hasHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

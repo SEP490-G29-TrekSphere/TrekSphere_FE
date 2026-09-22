@@ -70,8 +70,6 @@ export default function TourFilterPanel({
   const locationContainerRef = useRef<HTMLDivElement>(null);
   const { locations } = useTourLocations();
 
-  // Đóng dropdown khi click ra ngoài — dropdown không dùng portal nên chỉ cần theo dõi
-  // trong phạm vi component này.
   useEffect(() => {
     if (!isLocationOpen) return;
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -97,7 +95,6 @@ export default function TourFilterPanel({
     <div className="rounded-2xl border border-border bg-white p-5 shadow-xs">
       <h3 className="mb-5 text-lg font-bold text-primary">Bộ lọc</h3>
 
-      {/* Section: Điểm đến */}
       <div className="mb-6">
         <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
           Điểm đến
@@ -176,7 +173,6 @@ export default function TourFilterPanel({
 
       <hr className="my-5 border-border" />
 
-      {/* Section: Ngày đi / Ngày về */}
       <div className="mb-6 flex flex-col gap-3">
         <div>
           <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -218,7 +214,6 @@ export default function TourFilterPanel({
 
       <hr className="my-5 border-border" />
 
-      {/* Section: Độ khó */}
       <div className="mb-6">
         <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
           Độ khó
@@ -262,7 +257,6 @@ export default function TourFilterPanel({
 
       <hr className="my-5 border-border" />
 
-      {/* Section: Khoảng giá */}
       <div className="mb-6">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">

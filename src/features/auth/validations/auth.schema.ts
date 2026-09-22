@@ -7,11 +7,6 @@ import {
 } from '@/constants';
 import { isValidVietnamesePhone, normalizePhoneNumber } from '@/utils/phone';
 
-/**
- * Zod schemas cho form login/register.
- * Mỗi schema đi kèm type `*FormValues` để dùng với react-hook-form.
- */
-
 export const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email').email('Địa chỉ email không hợp lệ'),
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
@@ -89,11 +84,8 @@ export const changePasswordSchema = z
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 /**
- * Schema cho form chỉnh sửa hồ sơ.
- * Email bị loại ra khỏi schema vì là field readonly.
- * Chỉ có các trường BE hỗ trợ: fullName, phone, dateOfBirth, gender và nhóm
- * hồ sơ leo núi (bio, experienceLevel, preferredDifficulty, preferredAreas, skills).
- * `trustScore` do BE chấm nên không nằm trong form.
+ * Schema for profile update validation.
+ * Includes personal details, contact info, date of birth, and hiking preferences.
  */
 export const updateProfileSchema = z
   .object({

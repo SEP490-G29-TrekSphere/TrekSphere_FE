@@ -4,12 +4,6 @@ import { useRecommendedTours } from '@/features/tours/hooks/useRecommendedTours'
 import { useMediaQuery } from '@/shared/hooks';
 import { ScrollReveal, Slider } from '@/shared/ui';
 
-/**
- * Gợi ý tour cá nhân hoá cho Trekker đã đăng nhập — chỉ render khi có `user`
- * (ẩn hẳn với Guest, không hiện section rỗng). Cùng bố cục slider với
- * `HomeTours.tsx`, khác ở nguồn dữ liệu (`GET /tours/recommended`) và có
- * thêm tag lý do gợi ý dưới tên tour.
- */
 export default function HomeRecommended() {
   const { tours, isLoading } = useRecommendedTours();
   const isMobile = useMediaQuery('(max-width: 767px)');

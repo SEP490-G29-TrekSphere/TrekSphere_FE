@@ -8,20 +8,19 @@ import { StaffStatusBadge } from './StaffStatusBadge';
 
 interface StaffTableRowProps {
   staff: VendorStaffMember;
-  /** Bấm "Khóa" chỉ mở confirm dialog ở component cha — không gọi API trực tiếp ở đây. */
+
   onLockClick: (staff: VendorStaffMember) => void;
-  /** Bấm "Mở khóa" gọi thẳng, không cần xác nhận (giống hành vi unlock bên Admin). */
+
   onUnlock: (staff: VendorStaffMember) => void;
-  /** Đổi vai trò nghiệp vụ — gọi `PATCH /vendor-staff/{id}/role` ở component cha. */
+
   onRoleChange: (staff: VendorStaffMember, role: VendorStaffRole) => void;
-  /** Đang chờ API đổi vai trò của riêng hàng này. */
+
   isRoleUpdating?: boolean;
 }
 
 const FALLBACK_AVATAR =
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
 
-/** 1 hàng trong bảng nhân viên — không có nút Sửa (BE chưa có API cập nhật thông tin). */
 export function StaffTableRow({
   staff,
   onLockClick,

@@ -76,10 +76,6 @@ const VendorProfileOverview = lazy(
 const VendorProfileEdit = lazy(() => import('@/features/vendor-profile/pages/VendorProfileEdit'));
 const NotFoundPage = lazy(() => import('@/shared/pages/NotFoundPage'));
 
-/**
- * Redirect `/blog/edit/:blogId` (path cũ, nằm ngoài portal) sang path trekker
- * tương ứng — `<Navigate>` không tự nội suy được param nên cần đọc qua hook.
- */
 function LegacyBlogEditRedirect() {
   const { blogId } = useParams();
   return (
@@ -98,11 +94,6 @@ function ChatRedirect() {
   return <Navigate to={getRoleChatPath(user.roles)} state={location.state} replace />;
 }
 
-/**
- * Redirect `/notifications` (path cũ, độc lập ngoài mọi bảng điều khiển) sang
- * trang "Thông báo" trong bảng điều khiển tương ứng role — giữ link/bookmark
- * cũ không vỡ, đồng thời không còn ai vào thẳng trang không có sidebar nữa.
- */
 function NotificationsRedirect() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
@@ -127,7 +118,7 @@ export default function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <ScrollManager />
       <Routes>
-        {/* Standalone routes — không qua layout chung (auth flow, notifications) */}
+
         <Route path={PATHS.LOGIN} element={<Login />} />
         <Route path={PATHS.REGISTER} element={<Register />} />
         <Route path={PATHS.VERIFY_EMAIL} element={<VerifyEmail />} />
@@ -151,9 +142,6 @@ export default function AppRoutes() {
         />
         <Route path={PATHS.CHAT} element={<ChatRedirect />} />
 
-        {/* Blog của tôi chỉ sống trong portal Trekker (TrekkerLayout có sidebar).
-            Các path `/blog*` cũ nằm trong MainLayout nên vào là mất sidebar —
-            giữ lại dưới dạng redirect để link/bookmark cũ không vỡ. */}
         <Route path={PATHS.BLOG_LIST} element={<Navigate to={PATHS.TREKKER_BLOG_LIST} replace />} />
         <Route
           path={PATHS.BLOG_CREATE}
@@ -177,7 +165,6 @@ export default function AppRoutes() {
           <Route path={PATHS.PUBLIC_PROFILE} element={<PublicProfile />} />
         </Route>
 
-        {/* Protected routes — yêu cầu đăng nhập, dùng MainLayout có Header/Sidebar */}
         <Route
           element={
             <ProtectedRoute>
@@ -191,7 +178,6 @@ export default function AppRoutes() {
           <Route path={PATHS.MY_VENDOR_APPLICATIONS} element={<MyApplications />} />
         </Route>
 
-        {/* Trekker routes — sidebar riêng (TrekSphere portal) */}
         <Route
           path={PATHS.TREKKER}
           element={
@@ -207,8 +193,7 @@ export default function AppRoutes() {
             element={<EditProfile returnPath={PATHS.TREKKER_PROFILE} />}
           />
           <Route path={PATHS.TREKKER_MY_GROUPS} element={<MyCompanionGroupsPage />} />
-          {/* Chi tiết nhóm ghép mở từ portal Trekker — giữ nguyên sidebar thay vì
-              nhảy sang `/groups/:groupId` (PublicLayout) làm mất điều hướng. */}
+
           <Route
             path={PATHS.TREKKER_GROUP_DETAIL}
             element={
@@ -219,8 +204,7 @@ export default function AppRoutes() {
               />
             }
           />
-          {/* Gửi yêu cầu tham gia mở từ portal Trekker — giữ sidebar thay vì
-              nhảy sang `/groups/:groupId/join` (PublicLayout). */}
+
           <Route
             path={PATHS.TREKKER_GROUPS_JOIN}
             element={
@@ -241,7 +225,6 @@ export default function AppRoutes() {
           <Route path={PATHS.TREKKER_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
-        {/* Admin routes — yêu cầu role admin, dùng AdminLayout với sidebar riêng */}
         <Route
           path={PATHS.ADMIN}
           element={
@@ -266,7 +249,6 @@ export default function AppRoutes() {
           <Route path={PATHS.ADMIN_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
-        {/* Vendor routes — yêu cầu role vendor, dùng VendorManagerLayout */}
         <Route
           path={PATHS.VENDOR}
           element={
@@ -289,7 +271,6 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_NOTIFICATIONS} element={<Notifications />} />
         </Route>
 
-        {/* Legacy redirect: /vendor-manager/* và /partner/* trỏ về /vendor/* */}
         <Route path="/vendor-manager/*" element={<Navigate to={PATHS.VENDOR} replace />} />
         <Route path="/partner/*" element={<Navigate to={PATHS.VENDOR} replace />} />
 

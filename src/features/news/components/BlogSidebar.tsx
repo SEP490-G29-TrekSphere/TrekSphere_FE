@@ -19,12 +19,6 @@ const formatDate = (iso?: string): string => {
   });
 };
 
-/**
- * Sidebar phải: 3 khối xếp dọc — Related / CTA / Newsletter.
- *
- * BE hiện không trả `related_blogs` trong detail → `relatedPosts` thường rỗng
- * hoặc được fill từ hook (xem useBlogRelated). Khi rỗng sẽ fallback text.
- */
 export function BlogSidebar({ relatedPosts, isLoggedIn }: BlogSidebarProps) {
   return (
     <aside className="flex flex-col gap-6">

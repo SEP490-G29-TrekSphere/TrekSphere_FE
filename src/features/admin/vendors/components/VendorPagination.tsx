@@ -1,23 +1,18 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface VendorPaginationProps {
-  /** Trang hiện tại (1-based). */
+
   currentPage: number;
-  /** Tổng số trang. */
+
   totalPages: number;
-  /** Callback khi chuyển trang. */
+
   onPageChange: (page: number) => void;
-  /** Tổng số item sau filter. */
+
   totalCount: number;
-  /** Page size đang dùng. */
+
   pageSize: number;
 }
 
-/**
- * Footer phân trang cho bảng vendor list.
- * - Trái: "Showing X to Y of Z vendors".
- * - Phải: 2 nút mũi tên + số trang. Trang hiện tại có nền xanh rêu đậm, chữ trắng.
- */
 export function VendorPagination({
   currentPage,
   totalPages,
@@ -108,10 +103,6 @@ export function VendorPagination({
   );
 }
 
-/**
- * Sinh danh sách số trang hiển thị, có ellipsis nếu quá nhiều.
- * Trả về tuple [value, key] với key ổn định (không phụ thuộc index) để làm React key.
- */
 function getPageNumbers(
   current: number,
   total: number

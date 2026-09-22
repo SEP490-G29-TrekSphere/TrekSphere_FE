@@ -1,13 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type { PaymentStatus } from '@/features/payments/types';
 
-/**
- * Manifest lịch khởi hành — phần duy nhất của nghiệp vụ booking mà luồng "hủy
- * lịch đã có khách đặt" (`vendorScheduleCancellationService`) còn cần. Tách ra
- * khỏi `features/vendor-bookings` khi màn Danh sách đơn đặt tour bị gỡ.
- *
- * Endpoint: GET /vendor/dashboard/schedules/{scheduleId}/manifest
- */
 export type ScheduleBookingStatus =
   | 'PAYMENT_PENDING'
   | 'PENDING_CONFIRMATION'
@@ -18,7 +11,6 @@ export type ScheduleBookingStatus =
   | 'REJECTED'
   | 'CANCELLED';
 
-/** Booking rút gọn được nhóm từ manifest của đúng một lịch khởi hành. */
 export interface ScheduleBookingItem {
   bookingId: string;
   bookingCode: string;
@@ -27,14 +19,12 @@ export interface ScheduleBookingItem {
   paymentStatus: PaymentStatus;
 }
 
-/** Dữ liệu đối chiếu dùng khi Vendor hủy toàn bộ một lịch khởi hành. */
 export interface ScheduleBookingManifest {
   scheduleId: string;
   bookedSlots: number;
   bookings: ScheduleBookingItem[];
 }
 
-/** BE trả thêm 'PENDING' — trạng thái trung gian được chuẩn hóa ngay khi đọc. */
 type ApiBookingStatus = ScheduleBookingStatus | 'PENDING';
 type ApiPaymentStatus = PaymentStatus | 'PENDING';
 
@@ -73,10 +63,6 @@ function normalizeBookingStatus(
   return paymentStatus === 'PAID' ? 'PENDING_CONFIRMATION' : 'PAYMENT_PENDING';
 }
 
-/**
- * Lấy booking theo chính xác `scheduleId` từ manifest, sau đó nhóm các dòng
- * hành khách về một booking. Không dùng cặp ngày vì hai lịch có thể trùng ngày.
- */
 export async function getScheduleBookingManifest(
   scheduleId: string
 ): Promise<ScheduleBookingManifest> {

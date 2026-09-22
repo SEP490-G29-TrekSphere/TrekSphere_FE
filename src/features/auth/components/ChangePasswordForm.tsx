@@ -16,14 +16,10 @@ const FIELD_INPUT =
 
 interface ChangePasswordFormProps {
   className?: string;
-  /** Gọi sau khi đổi mật khẩu thành công (vd: điều hướng về trang hồ sơ). */
+
   onSuccess?: () => void;
 }
 
-/**
- * Form đổi mật khẩu dùng chung cho trang công khai (`/change-password`) và
- * trang trong portal trekker — cùng một logic, cùng một giao diện.
- */
 export function ChangePasswordForm({ className, onSuccess }: ChangePasswordFormProps) {
   const methods = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),

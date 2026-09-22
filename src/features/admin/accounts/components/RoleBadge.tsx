@@ -4,12 +4,6 @@ interface RoleBadgeProps {
   role: AccountRole;
 }
 
-/**
- * Badge hiển thị loại tài khoản.
- * - Trekker: nền xanh ngọc nhạt, chữ xanh rêu.
- * - Vendor: nền xanh rêu tối, chữ sáng màu.
- * - Admin: nền đậm nhất.
- */
 export function RoleBadge({ role }: RoleBadgeProps) {
   const styles = getRoleBadgeStyles(role);
   return (

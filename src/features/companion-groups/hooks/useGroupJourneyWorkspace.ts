@@ -9,7 +9,6 @@ import type {
 } from '../types/workspace';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
-/** Hook đọc thông tin Custom Journey của nhóm */
 export function useGroupJourney(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.journey(groupId),
@@ -19,7 +18,6 @@ export function useGroupJourney(groupId: string) {
   });
 }
 
-/** Hook đọc danh sách Checkpoints của nhóm */
 export function useGroupCheckpoints(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.checkpoints(groupId),
@@ -29,7 +27,6 @@ export function useGroupCheckpoints(groupId: string) {
   });
 }
 
-/** Hook đọc danh sách Activities trong thời khóa biểu của nhóm */
 export function useGroupJourneyActivities(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.activities(groupId),
@@ -39,7 +36,6 @@ export function useGroupJourneyActivities(groupId: string) {
   });
 }
 
-/** Hook cập nhật Custom Journey tổng thể (Title, Itinerary Days, Description, Budget...) */
 export function useUpdateGroupJourney(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -52,7 +48,6 @@ export function useUpdateGroupJourney(groupId: string) {
   });
 }
 
-/** Hook tạo mới Checkpoint */
 export function useCreateGroupCheckpoint(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -66,7 +61,6 @@ export function useCreateGroupCheckpoint(groupId: string) {
   });
 }
 
-/** Hook cập nhật Checkpoint */
 export function useUpdateGroupCheckpoint(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -85,7 +79,6 @@ export function useUpdateGroupCheckpoint(groupId: string) {
   });
 }
 
-/** Hook xóa Checkpoint */
 export function useDeleteGroupCheckpoint(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -99,7 +92,6 @@ export function useDeleteGroupCheckpoint(groupId: string) {
   });
 }
 
-/** Hook đổi chéo thứ tự giữa 2 Checkpoint */
 export function useSwapGroupCheckpoints(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -118,7 +110,6 @@ export function useSwapGroupCheckpoints(groupId: string) {
   });
 }
 
-/** Hook Leader cập nhật tiến độ 1 checkpoint: đã đến hoặc bỏ qua (chỉ khi chuyến đi đang diễn ra) */
 export function useUpdateCheckpointProgress(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -137,7 +128,6 @@ export function useUpdateCheckpointProgress(groupId: string) {
   });
 }
 
-/** Hook Leader gỡ tiến độ checkpoint về chưa cập nhật (sửa nhầm) */
 export function useResetCheckpointProgress(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -151,7 +141,6 @@ export function useResetCheckpointProgress(groupId: string) {
   });
 }
 
-/** Hook tạo mới Hoạt động trong thời khóa biểu */
 export function useCreateGroupJourneyActivity(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -165,7 +154,6 @@ export function useCreateGroupJourneyActivity(groupId: string) {
   });
 }
 
-/** Hook cập nhật Hoạt động trong thời khóa biểu */
 export function useUpdateGroupJourneyActivity(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -179,7 +167,6 @@ export function useUpdateGroupJourneyActivity(groupId: string) {
   });
 }
 
-/** Hook xóa Hoạt động trong thời khóa biểu */
 export function useDeleteGroupJourneyActivity(groupId: string) {
   const queryClient = useQueryClient();
 

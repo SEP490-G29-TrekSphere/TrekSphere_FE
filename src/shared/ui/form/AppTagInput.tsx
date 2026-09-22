@@ -7,19 +7,15 @@ export interface AppTagInputProps {
   onChange: (next: string[]) => void;
   id?: string;
   placeholder?: string;
-  /** Số tag tối đa; khi đạt ngưỡng ô nhập bị khoá. */
+
   maxTags?: number;
   maxTagLength?: number;
-  /** Gợi ý bấm để thêm nhanh — tự ẩn khi tag đó đã được chọn. */
+
   suggestions?: string[];
   disabled?: boolean;
   className?: string;
 }
 
-/**
- * Ô nhập dạng thẻ (tag/chip): gõ rồi Enter hoặc dấu phẩy để thêm, Backspace ở ô
- * rỗng để xoá thẻ cuối. Trùng lặp (không phân biệt hoa thường) bị bỏ qua.
- */
 export function AppTagInput({
   value,
   onChange,
@@ -55,7 +51,7 @@ export function AppTagInput({
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter' || event.key === ',') {
-      // Enter trong ô tag không được submit cả form chỉnh sửa hồ sơ.
+
       event.preventDefault();
       addTag(draft);
       return;

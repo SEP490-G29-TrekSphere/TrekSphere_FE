@@ -24,22 +24,22 @@ import { getSafeImageUrl } from '@/utils/sanitize';
 interface ProfileIdentityCardProps {
   name: string;
   avatarUrl?: string;
-  /** Chỉ truyền ở chế độ hồ sơ của mình — không hiển thị email người khác. */
+
   email?: string;
-  /** Nhãn vai trò (Trekker, Đối tác, ...) — bỏ qua nếu không xác định được. */
+
   roleLabel?: string;
-  /** Số bài viết — lấy từ `/blogs?authorId=`, là số liệu thật. */
+
   blogCount?: number;
   isOwnProfile: boolean;
-  /** Đường dẫn trang chỉnh sửa (chỉ dùng ở hồ sơ của mình). */
+
   editPath: string;
-  /** Đường dẫn trang đổi mật khẩu (mặc định PATHS.CHANGE_PASSWORD). */
+
   changePasswordPath?: string;
-  /** Id người dùng — cần cho nút Theo dõi ở hồ sơ người khác. */
+
   userId?: string;
-  /** Cấp độ kinh nghiệm leo núi — hiện thành badge cạnh nhãn vai trò. */
+
   experienceLevel?: HikingExperienceLevel;
-  /** Điểm uy tín do BE chấm; bỏ qua cả cụm khi BE chưa có dữ liệu. */
+
   trustScore?: number;
   trustReviewCount?: number;
 }
@@ -58,13 +58,6 @@ function Stat({ label, value }: StatProps) {
   );
 }
 
-/**
- * Card bên trái trang hồ sơ — theo reference AllTrails:
- * avatar lớn, tên, hàng chỉ số, nút hành động chính rồi các nút phụ dạng pill.
- *
- * `Người theo dõi` / `Đang theo dõi` hiển thị `—` chừng nào `FEATURES.SOCIAL`
- * chưa bật: repo có nguyên tắc không bịa số liệu khi BE chưa trả về.
- */
 export function ProfileIdentityCard({
   name,
   avatarUrl,
@@ -173,12 +166,10 @@ export function ProfileIdentityCard({
 
         <h1 className="mt-3 text-center text-2xl font-bold leading-tight text-primary">{name}</h1>
 
-        {/* Email chỉ hiện ở hồ sơ của chính mình */}
         {isOwnProfile && email ? (
           <p className="mt-1 max-w-full truncate text-sm text-muted-foreground">{email}</p>
         ) : null}
 
-        {/* Chỉ số */}
         <div className="mt-5 flex w-full items-center justify-center rounded-2xl bg-muted/50 py-3">
           <Stat
             label="Bài viết"
@@ -201,7 +192,6 @@ export function ProfileIdentityCard({
           </div>
         ) : null}
 
-        {/* Hành động chính */}
         {isOwnProfile ? (
           <Link
             to={editPath}
@@ -238,7 +228,6 @@ export function ProfileIdentityCard({
           </div>
         )}
 
-        {/* Hành động phụ — chỉ có ý nghĩa với hồ sơ của mình */}
         {isOwnProfile ? (
           <div className="mt-3 flex w-full flex-col gap-2">
             <Link

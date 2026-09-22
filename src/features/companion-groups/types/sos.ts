@@ -1,5 +1,3 @@
-// Khớp đúng matching/enums/IncidentType.java, matching/enums/SosAlertStatus.java,
-// CreateSosAlertRequest.java, SosAlertResponse.java phía backend.
 
 export type IncidentType = 'INJURY' | 'LOST' | 'WEATHER' | 'SUPPLIES' | 'OTHER';
 

@@ -1,4 +1,4 @@
-/** "Xm trước" / "Xh trước" — dùng cho timestamp SOS, không cần chính xác tới giây. */
+
 export function formatRelativeTime(dateStr: string): string {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const diffMinutes = Math.floor(diffMs / 60000);
@@ -13,7 +13,6 @@ export function formatRelativeTime(dateStr: string): string {
   return `${diffDays} ngày trước`;
 }
 
-/** 8 ký tự đầu của id (bỏ dấu gạch ngang), viết hoa. */
 export function formatSosCode(sosAlertId: string): string {
   return `SOS-${sosAlertId.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
 }

@@ -8,7 +8,6 @@ interface PasswordRule {
   test: (password: string) => boolean;
 }
 
-/** Bám sát `newPasswordRules` trong `validations/auth.schema.ts`. */
 const PASSWORD_RULES: PasswordRule[] = [
   { id: 'length', label: 'Ít nhất 8 ký tự', test: (value) => value.length >= 8 },
   { id: 'uppercase', label: 'Có chữ hoa (A–Z)', test: (value) => /[A-Z]/.test(value) },
@@ -23,14 +22,13 @@ const PASSWORD_RULES: PasswordRule[] = [
 
 interface PasswordRequirementListProps {
   passwordFieldName?: string;
-  /** Nếu truyền, thêm điều kiện "khác mật khẩu hiện tại". */
+  /** If provided, adds a requirement that the new password must differ from current. */
   currentPasswordFieldName?: string;
   className?: string;
 }
 
 /**
- * Danh sách điều kiện mật khẩu tự tick khi người dùng gõ — cho thấy còn thiếu
- * gì thay vì bắt họ submit rồi mới đọc lỗi.
+ * Interactive checklist component validating password criteria in real-time.
  */
 export function PasswordRequirementList({
   passwordFieldName = 'newPassword',

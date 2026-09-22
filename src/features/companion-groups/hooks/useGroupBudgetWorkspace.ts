@@ -6,7 +6,6 @@ import type {
 } from '../types/workspace';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
-/** Hook lấy tổng quan dự toán chi phí */
 export function useGroupCostSummary(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.costSummary(groupId),
@@ -16,7 +15,6 @@ export function useGroupCostSummary(groupId: string) {
   });
 }
 
-/** Hook lấy danh sách các khoản chi dự kiến */
 export function useGroupCostItems(groupId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.costItems(groupId),
@@ -26,7 +24,6 @@ export function useGroupCostItems(groupId: string) {
   });
 }
 
-/** Hook thêm khoản chi dự toán mới (Leader Only) */
 export function useCreateGroupCostItem(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -40,7 +37,6 @@ export function useCreateGroupCostItem(groupId: string) {
   });
 }
 
-/** Hook cập nhật khoản chi dự toán (Leader Only) */
 export function useUpdateGroupCostItem(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -59,7 +55,6 @@ export function useUpdateGroupCostItem(groupId: string) {
   });
 }
 
-/** Hook xoá khoản chi dự toán (Leader Only) */
 export function useDeleteGroupCostItem(groupId: string) {
   const queryClient = useQueryClient();
 

@@ -14,11 +14,6 @@ import type { UpdateProfileFormValues } from '@/features/auth/validations/auth.s
 import { AppTagInput } from '@/shared/ui';
 import { EDIT_FIELD_CLASS, EDIT_LABEL_CLASS } from './fieldStyles';
 
-/**
- * Nhóm "Hồ sơ leo núi" — phần thông tin công khai mà trưởng nhóm ghép nhìn thấy
- * khi duyệt đơn: kinh nghiệm, độ khó ưa thích, khu vực, kỹ năng và giới thiệu.
- * Điểm uy tín do BE chấm nên không có trong form.
- */
 export function HikingProfileFields() {
   const {
     register,

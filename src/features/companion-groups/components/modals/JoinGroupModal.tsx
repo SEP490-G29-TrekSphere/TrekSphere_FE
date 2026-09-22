@@ -13,9 +13,9 @@ export interface JoinGroupModalGroupSummary {
   leaderAvatar?: string;
   coverImageUrl?: string;
   departureDate?: string;
-  /** Ngày đi dự kiến dạng ISO — dùng để đối chiếu trùng lịch. */
+
   targetDate?: string;
-  /** Ngày kết thúc dự kiến (hành trình tự tạo), nếu có. */
+
   endDate?: string | null;
   maxMembers?: number;
   currentMembers?: number;
@@ -56,7 +56,7 @@ export function JoinGroupModal({
     ? findConflicts({ start: group.targetDate, end: group.endDate }, group.id)
     : [];
   const hasConflict = conflicts.length > 0;
-  // Chưa tải xong lịch cũ thì chưa kết luận được, khoá tạm nút gửi.
+
   const isSubmitBlocked = hasConflict || isCheckingSchedule;
 
   if (!isOpen || !group) return null;
