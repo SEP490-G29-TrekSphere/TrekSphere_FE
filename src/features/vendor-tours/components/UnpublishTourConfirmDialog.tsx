@@ -17,7 +17,6 @@ interface UnpublishTourConfirmDialogProps {
   isPending?: boolean;
 }
 
-/** Xác nhận trước khi ngừng công khai 1 tour đang PUBLISHED, đưa về DRAFT. */
 export function UnpublishTourConfirmDialog({
   open,
   onOpenChange,
@@ -29,11 +28,8 @@ export function UnpublishTourConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
-          <div
-            className="mb-2 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(234, 88, 12, 0.1)' }}
-          >
-            <EyeOff className="h-5 w-5" style={{ color: '#EA580C' }} />
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500/10">
+            <EyeOff className="h-5 w-5 text-orange-600" />
           </div>
           <DialogTitle className="text-xl font-bold">Ngừng công khai tour</DialogTitle>
           <DialogDescription className="text-center leading-relaxed">
@@ -51,8 +47,7 @@ export function UnpublishTourConfirmDialog({
             Hủy
           </Button>
           <Button
-            className="flex-1 rounded-full text-white"
-            style={{ backgroundColor: '#EA580C' }}
+            className="flex-1 rounded-full bg-orange-600 text-white hover:bg-orange-700"
             onClick={onConfirm}
             disabled={isPending}
           >

@@ -26,11 +26,6 @@ interface AddStaffDialogProps {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Dialog "Thêm nhân viên" — gọi `POST /vendor-staff` (email bắt buộc, họ tên và
- * vai trò tuỳ chọn). Validate email đơn giản bằng regex, không cần
- * react-hook-form/zod cho 3 field.
- */
 export function AddStaffDialog({
   open,
   onOpenChange,

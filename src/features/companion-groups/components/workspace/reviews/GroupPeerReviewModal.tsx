@@ -12,17 +12,10 @@ interface GroupPeerReviewModalProps {
   allCandidates: PeerReviewCandidate[];
   isSubmitting: boolean;
   onSelectCandidate: (candidate: PeerReviewCandidate) => void;
-  /** Trả về Promise để modal chỉ đóng / chuyển người khi lưu thành công. */
+
   onSubmit: (payload: PeerReviewPayload) => Promise<unknown>;
 }
 
-/**
- * Form chấm điểm ẩn danh cho một bạn đồng hành.
- *
- * Mỗi thành viên chỉ được chấm MỘT lần: khi `candidate.isReviewed` thì modal hiển thị
- * trạng thái "đã đánh giá" thay vì form, tránh gửi trùng (BE sẽ trả lỗi).
- * Component được remount theo `key = matchingMemberId` nên state sao/nhận xét tự reset khi đổi người.
- */
 export function GroupPeerReviewModal({
   open,
   onClose,
@@ -59,7 +52,7 @@ export function GroupPeerReviewModal({
       }
       onClose();
     } catch {
-      // Lỗi đã hiển thị qua toast — giữ form để người dùng thử lại.
+
     }
   };
 

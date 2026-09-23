@@ -16,7 +16,6 @@ interface LeaderPostsWidgetProps {
   onViewFullFeed: () => void;
 }
 
-/** Widget rút gọn: chỉ hiển thị bài đăng của Trưởng nhóm trong tab Tổng quan. */
 export function LeaderPostsWidget({
   groupId,
   isLeader,

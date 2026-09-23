@@ -5,11 +5,6 @@ import { toast } from '@/store/useToastStore';
 import type { GroupVoteResponse } from '../../types/vote';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/**
- * Subscribe vào "/topic/matching-groups/{groupId}/votes" bằng chung 1 kết nối STOMP đã có
- * sẵn từ chat (không mở thêm SockJS connection thứ 2) — copy pattern từ `useSosSocket`.
- * Mount trong `GroupWorkspace` khi tab bình chọn (P5-S4) được thêm vào.
- */
 export function useVoteSocket(groupId?: string) {
   const { client, isConnected } = useChatWebSocket();
   const queryClient = useQueryClient();
@@ -39,7 +34,7 @@ export function useVoteSocket(groupId?: string) {
           });
         }
       } catch {
-        // Bỏ qua payload không đúng định dạng, không làm crash app.
+
       }
     });
 

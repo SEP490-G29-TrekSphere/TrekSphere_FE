@@ -31,10 +31,6 @@ export const JOURNEY_DIFFICULTY_OPTIONS = [
   { value: 'EXTREME', label: 'Cực hạn (Kinh nghiệm cao)' },
 ] as const satisfies ReadonlyArray<{ value: JourneyDifficulty; label: string }>;
 
-/**
- * Trạng thái nhóm được coi là đang chiếm lịch của thành viên. Nhóm đã hoàn thành
- * hoặc đã huỷ không còn ràng buộc nên không tính là trùng ngày.
- */
 export const MATCHING_GROUP_BUSY_STATUSES: MatchingGroupStatus[] = [
   'OPEN',
   'FULL',
@@ -43,7 +39,6 @@ export const MATCHING_GROUP_BUSY_STATUSES: MatchingGroupStatus[] = [
   'IN_PROGRESS',
 ];
 
-/** Nhãn giải thích vì sao một ngày đã bị chiếm. */
 export const SCHEDULE_CONFLICT_KIND_LABELS = {
   LEADER: 'bạn là trưởng nhóm',
   MEMBER: 'bạn đang là thành viên',

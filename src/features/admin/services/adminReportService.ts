@@ -62,8 +62,7 @@ export const adminReportService = {
       params
     );
     if (res.error || (res.status && res.status >= 400)) {
-      // Nếu BE gặp lỗi với status cụ thể (ví dụ DISMISSED chưa có data hoặc lỗi mapping trên BE),
-      // trả về cấu trúc rỗng thay vì làm crash toàn bộ bảng UI.
+
       if (filter.status === 'DISMISSED') {
         return {
           content: [],

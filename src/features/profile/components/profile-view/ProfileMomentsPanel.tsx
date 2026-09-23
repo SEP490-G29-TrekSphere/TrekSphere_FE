@@ -35,7 +35,6 @@ interface ProfileMomentsPanelProps {
   currentUserId?: string;
 }
 
-/** Tab "Khoảnh khắc" của trang hồ sơ — nhật ký check-in cá nhân. */
 export function ProfileMomentsPanel({
   userId,
   isOwnProfile,

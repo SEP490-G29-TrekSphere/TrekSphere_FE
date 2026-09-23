@@ -9,7 +9,6 @@ interface CompletedTripCardProps {
   detailPath: string;
 }
 
-/** Một chuyến đi ghép nhóm đã hoàn thành trên tab "Đã hoàn thành" của hồ sơ. */
 export function CompletedTripCard({ group, detailPath }: CompletedTripCardProps) {
   const coverUrl = getSafeImageUrl(group.tourImageUrl);
   const isLeader = group.isOwner || group.myRole === 'LEADER';

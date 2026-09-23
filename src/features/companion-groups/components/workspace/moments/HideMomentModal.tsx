@@ -9,7 +9,6 @@ interface HideMomentModalProps {
   onConfirm: (reason: string) => void;
 }
 
-/** Trưởng nhóm nhập lý do trước khi ẩn một khoảnh khắc vi phạm khỏi bảng tin nhóm. */
 export function HideMomentModal({ open, isPending, onClose, onConfirm }: HideMomentModalProps) {
   const [reason, setReason] = useState('');
 

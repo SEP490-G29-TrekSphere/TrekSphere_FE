@@ -16,7 +16,7 @@ export interface SearchableTourSelectProps {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  allOptionLabel?: string; // e.g. "-- Tất cả các Tour --"
+  allOptionLabel?: string;
   disabled?: boolean;
   isLoading?: boolean;
   className?: string;

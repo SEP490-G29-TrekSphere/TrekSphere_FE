@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { voteService } from '../../services/voteService';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/** Đóng khi đến hạn hoặc đã đủ phiếu; idempotent nếu vote đã CLOSED. */
 export function useCloseVote(groupId: string) {
   const queryClient = useQueryClient();
 

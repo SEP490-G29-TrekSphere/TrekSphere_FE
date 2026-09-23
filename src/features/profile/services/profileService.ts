@@ -1,80 +1,26 @@
-import { ApiService, ApiUpload } from '@/config/apiClient';
+import { ApiService } from '@/config/apiClient';
 import type { UserProfile } from '@/features/auth';
+import { fileService } from '@/shared/services';
 
 /**
- * Service gọi API liên quan tới profile.
- * Tách riêng khỏi authService để dễ mở rộng (upload avatar, change password, ...).
+ * Service for profile-related APIs.
  */
 export const profileService = {
-  /** Lấy thông tin cá nhân. */
+  /** Get current user profile. */
   getProfile: () => ApiService<UserProfile>('/users/me', 'GET'),
+
   /**
-   * Cập nhật thông tin cá nhân bằng multipart/form-data.
-   * API PUT /users/me yêu cầu Content-Type: multipart/form-data với các fields:
-   * - fullName: string
-   * - phone: string
-   * - dateOfBirth: string (format "yyyy-MM-dd")
-   * - gender: string (ví dụ "MALE")
-   * - avatar: File (binary) - optional, chỉ gửi khi user đổi ảnh
-   *
-   * KHÔNG set Content-Type header thủ công - axios sẽ tự set multipart boundary.
+   * Update profile information with multipart/form-data.
+   * API PUT /users/me
    */
   updateProfile: (data: FormData) => ApiService<UserProfile>('/users/me', 'PUT', data),
-  /**
-   * Upload 1 file (ảnh) lên BE → trả về URL string.
-   * Endpoint: POST /files/upload?folder=<folder>
-   * Body: FormData với field `file`.
-   *
-   * BE endpoint này KHÔNG theo đúng convention envelope chung (field `data`) —
-   * nó trả URL qua field `message`: `{ success, code, message: "<url>", timestamp }`,
-   * không có `data`. `handleResponse` không tìm thấy `data` nên rơi vào nhánh
-   * "phẳng", trả nguyên cả envelope làm `data`. Unwrap thủ công lại ở đây.
-   */
-  uploadFile: async (file: File, folder = 'avatars') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await ApiUpload<string>(
-      `/files/upload?folder=${encodeURIComponent(folder)}`,
-      formData
-    );
-    if (typeof res.data === 'string' && res.data) return res;
-    if (typeof res.message === 'string' && res.message) return { ...res, data: res.message };
-    return res;
-  },
-  /**
-   * Upload nhiều file trong 1 request → trả về mảng URL theo đúng thứ tự file gửi lên.
-   * Endpoint: POST /files/upload/batch?folder=<folder>, body FormData với field `files` lặp lại.
-   *
-   * Khác với `/files/upload` (trả URL qua `message`), endpoint này theo đúng envelope chuẩn
-   * (`ApiResponseListString`) nên `handleResponse` unwrap được `data` — không cần fallback.
-   */
-  uploadFiles: async (files: File[], folder = 'general') => {
-    const formData = new FormData();
-    for (const file of files) formData.append('files', file);
-    return ApiUpload<string[]>(
-      `/files/upload/batch?folder=${encodeURIComponent(folder)}`,
-      formData
-    );
-  },
-  /**
-   * Xóa file khỏi Cloudinary.
-   * Nhận vào Cloudinary publicId hoặc URL đầy đủ.
-   */
-  deleteFile: async (publicIdOrUrl: string) => {
-    let publicId = publicIdOrUrl;
-    if (publicIdOrUrl.includes('cloudinary.com/')) {
-      const uploadIdx = publicIdOrUrl.indexOf('/upload/');
-      if (uploadIdx !== -1) {
-        let pathAfterUpload = publicIdOrUrl.substring(uploadIdx + 8);
-        pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, '');
-        const dotIdx = pathAfterUpload.lastIndexOf('.');
-        if (dotIdx !== -1) {
-          publicId = pathAfterUpload.substring(0, dotIdx);
-        } else {
-          publicId = pathAfterUpload;
-        }
-      }
-    }
-    return ApiService<string>(`/files/delete?publicId=${encodeURIComponent(publicId)}`, 'DELETE');
-  },
+
+  /** @deprecated Use `fileService.uploadFile` from `@/shared/services` instead. */
+  uploadFile: fileService.uploadFile,
+
+  /** @deprecated Use `fileService.uploadFiles` from `@/shared/services` instead. */
+  uploadFiles: fileService.uploadFiles,
+
+  /** @deprecated Use `fileService.deleteFile` from `@/shared/services` instead. */
+  deleteFile: fileService.deleteFile,
 };

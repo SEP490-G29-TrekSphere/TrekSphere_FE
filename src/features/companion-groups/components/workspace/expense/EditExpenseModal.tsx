@@ -1,25 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  AlertCircle,
-  Calculator,
-  Calendar,
-  CheckCircle2,
-  FileText,
-  Image as ImageIcon,
-  Loader2,
-  Save,
-  Scale,
-  Users,
-  X,
-} from 'lucide-react';
+import { Calendar, CheckCircle2, FileText, Loader2, Save, UserCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import {
-  AppCurrencyInput,
-  AppImageUploadField,
-  AppModalShell,
-  useImageUploadCleanup,
-} from '@/shared/ui';
+import { AppCurrencyInput, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -33,7 +16,8 @@ import {
   type GroupExpenseUpdateFormValues,
   groupExpenseUpdateSchema,
 } from '../../../validations/expenseValidation';
-import { MemberAvatar } from '../../detail/MemberAvatar';
+import { ExpenseReceiptUpload } from './ExpenseReceiptUpload';
+import { ExpenseSplitFormFields } from './ExpenseSplitFormFields';
 
 interface EditExpenseModalProps {
   isOpen: boolean;
@@ -41,17 +25,6 @@ interface EditExpenseModalProps {
   groupId: string;
   expense: GroupExpenseResponse | null;
   members: MatchingMemberItem[];
-}
-
-function getLocalCurrentDatetime(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const year = now.getFullYear();
-  const month = pad(now.getMonth() + 1);
-  const day = pad(now.getDate());
-  const hours = pad(now.getHours());
-  const minutes = pad(now.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function EditExpenseModal({
@@ -74,6 +47,7 @@ export function EditExpenseModal({
   );
   const [splitMethod, setSplitMethod] = useState<SplitMethod>(expense?.splitMethod || 'EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
   const receiptCleanup = useImageUploadCleanup();
 
   const {
@@ -139,7 +113,6 @@ export function EditExpenseModal({
 
     const newMap: Record<string, number> = {};
     currentBeneficiaryMembers.forEach((m, idx) => {
-      // Add remainder to the first person so sum matches exact amount
       newMap[m.matchingMemberId] = idx === 0 ? baseAmount + remainder : baseAmount;
     });
     setCustomSharesMap(newMap);
@@ -157,519 +130,220 @@ export function EditExpenseModal({
       );
       setSplitMethod(expense.splitMethod || 'EQUAL');
 
-      // Initialize custom shares map if existing
-      const initialMap: Record<string, number> = {};
       if (expense.shares && expense.shares.length > 0) {
+        const initialMap: Record<string, number> = {};
         expense.shares.forEach((s) => {
           initialMap[s.member.matchingMemberId] = s.shareAmount;
         });
+        setCustomSharesMap(initialMap);
+      } else {
+        setCustomSharesMap({});
       }
-      setCustomSharesMap(initialMap);
 
       reset({
         title: expense.title,
         amount: expense.amount,
-        paidByMemberId: expense.payer?.matchingMemberId || '',
-        beneficiaryScope: expense.beneficiaryScope || 'ALL_MEMBERS',
-        splitMethod: expense.splitMethod || 'EQUAL',
-        spentAt: expense.spentAt
-          ? expense.spentAt.slice(0, 16)
-          : new Date().toISOString().slice(0, 16),
+        paidByMemberId: expense.payer.matchingMemberId,
+        beneficiaryScope: expense.beneficiaryScope,
+        splitMethod: expense.splitMethod,
+        spentAt: expense.spentAt ? expense.spentAt.slice(0, 16) : new Date().toISOString().slice(0, 16),
         receiptUrl: expense.receiptUrl || '',
         note: expense.note || '',
       });
     }
-  }, [isOpen, expense, reset, activeMembers.length]);
+  }, [isOpen, expense]);
 
-  const toggleMemberSelection = (memberId: string) => {
-    setSelectedMembers((prev) => {
-      if (prev.includes(memberId)) {
-        if (prev.length === 1) {
-          toast.warning('Khoản chi phải có ít nhất 1 thành viên thụ hưởng');
-          return prev;
-        }
-        return prev.filter((id) => id !== memberId);
-      }
-      return [...prev, memberId];
-    });
-  };
-
-  const handleCustomShareChange = (memberId: string, value?: number) => {
-    const num = value || 0;
-    setCustomSharesMap((prev) => ({
-      ...prev,
-      [memberId]: Math.max(0, num),
-    }));
-  };
-
-  const onFormError = (formErrors: typeof errors) => {
-    if (formErrors.title?.message) {
-      toast.error(formErrors.title.message);
-    } else if (formErrors.amount?.message) {
-      toast.error(formErrors.amount.message);
-    } else if (formErrors.spentAt?.message) {
-      toast.error(formErrors.spentAt.message);
-    } else if (formErrors.receiptUrl?.message) {
-      toast.error(formErrors.receiptUrl.message);
-    } else {
-      toast.error('Vui lòng kiểm tra lại thông tin biểu mẫu');
-    }
-  };
-
-  const onSubmit = async (data: GroupExpenseUpdateFormValues) => {
-    if (!expense) return;
-    try {
-      const amountVal = data.amount ? Number(data.amount) : undefined;
-      if (amountVal !== undefined && amountVal <= 0) {
-        toast.error('Số tiền chi tiêu phải lớn hơn 0');
-        return;
-      }
-
-      if (splitMethod === 'CUSTOM') {
-        if (!isCustomBalanced) {
-          toast.error(
-            difference > 0
-              ? `Số tiền chia còn thiếu ${difference.toLocaleString('vi-VN')} đ so với tổng tiền`
-              : `Số tiền chia vượt quá ${Math.abs(difference).toLocaleString('vi-VN')} đ so với tổng tiền`
-          );
-          return;
-        }
-
-        const customSharesList = currentBeneficiaryMembers.map((m) => ({
-          matchingMemberId: m.matchingMemberId,
-          amount: customSharesMap[m.matchingMemberId] || 0,
-        }));
-
-        const hasZeroShare = customSharesList.some((s) => s.amount <= 0);
-        if (hasZeroShare) {
-          toast.error('Mỗi thành viên thụ hưởng phải được phân bổ số tiền lớn hơn 0');
-          return;
-        }
-
-        const payload: GroupExpenseUpdateRequest = {
-          title: data.title?.trim(),
-          amount: amountVal,
-          paidByMemberId: data.paidByMemberId,
-          beneficiaryScope: scope,
-          beneficiaryMemberIds: scope === 'SELECTED_MEMBERS' ? selectedMembers : [],
-          splitMethod: 'CUSTOM',
-          customShares: customSharesList,
-          spentAt: data.spentAt ? new Date(data.spentAt).toISOString() : undefined,
-          receiptUrl: data.receiptUrl?.trim() || null,
-          note: data.note?.trim() || null,
-        };
-
-        await updateExpenseMutation.mutateAsync({
-          expenseId: expense.groupExpenseId,
-          payload,
-        });
-      } else {
-        const payload: GroupExpenseUpdateRequest = {
-          title: data.title?.trim(),
-          amount: amountVal,
-          paidByMemberId: data.paidByMemberId,
-          beneficiaryScope: scope,
-          beneficiaryMemberIds: scope === 'SELECTED_MEMBERS' ? selectedMembers : [],
-          splitMethod: 'EQUAL',
-          spentAt: data.spentAt ? new Date(data.spentAt).toISOString() : undefined,
-          receiptUrl: data.receiptUrl?.trim() || null,
-          note: data.note?.trim() || null,
-        };
-
-        await updateExpenseMutation.mutateAsync({
-          expenseId: expense.groupExpenseId,
-          payload,
-        });
-      }
-
-      receiptCleanup.commit();
-      toast.success('Cập nhật khoản chi tiêu thành công!');
-      onClose();
-    } catch (err: unknown) {
-      const errorMsg =
-        err instanceof Error ? err.message : 'Không thể cập nhật khoản chi. Vui lòng thử lại!';
-      toast.error(errorMsg);
-    }
-  };
+  if (!expense) return null;
 
   const handleClose = () => {
     receiptCleanup.discard();
     onClose();
   };
 
-  if (!expense) return null;
+  const onSubmit = (data: GroupExpenseUpdateFormValues) => {
+    if (scope === 'SELECTED_MEMBERS' && selectedMembers.length === 0) {
+      toast.error('Vui lòng chọn ít nhất 1 thành viên hưởng lợi');
+      return;
+    }
+
+    if (splitMethod === 'CUSTOM' && !isCustomBalanced) {
+      toast.error('Tổng tiền phân chia cho từng người chưa khớp với Tổng số tiền của hóa đơn');
+      return;
+    }
+
+    const payload: GroupExpenseUpdateRequest = {
+      title: data.title?.trim() || '',
+      amount: data.amount,
+      paidByMemberId: data.paidByMemberId,
+      beneficiaryScope: scope,
+      splitMethod: splitMethod,
+      spentAt: data.spentAt ? new Date(data.spentAt).toISOString() : new Date().toISOString(),
+      receiptUrl: data.receiptUrl?.trim() || null,
+      note: data.note?.trim() || null,
+      beneficiaryMemberIds:
+        scope === 'SELECTED_MEMBERS' ? selectedMembers : activeMembers.map((m) => m.matchingMemberId),
+      customShares:
+        splitMethod === 'CUSTOM'
+          ? currentBeneficiaryMembers.map((m) => ({
+              matchingMemberId: m.matchingMemberId,
+              amount: customSharesMap[m.matchingMemberId] || 0,
+            }))
+          : undefined,
+    };
+
+    updateExpenseMutation.mutate(
+      { expenseId: expense.groupExpenseId, payload },
+      {
+        onSuccess: () => {
+          receiptCleanup.commit();
+          toast.success('Đã cập nhật hóa đơn chi tiêu');
+          onClose();
+        },
+        onError: (err: unknown) => {
+          toast.error(err instanceof Error ? err.message : 'Có lỗi khi cập nhật hóa đơn');
+        },
+      }
+    );
+  };
 
   return (
     <AppModalShell
       open={isOpen}
       onClose={handleClose}
-      aria-label="Chỉnh sửa khoản chi tiêu"
-      className="flex max-w-xl flex-col overflow-hidden border border-border p-0"
+      className="max-w-xl p-6"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Save className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground">Chỉnh sửa khoản chi tiêu</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Cập nhật lại số tiền, người thanh toán hoặc phân bổ chia tiền của khoản chi
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleClose}
-          disabled={updateExpenseMutation.isPending}
-          className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50 cursor-pointer"
-        >
-          <X className="h-4 w-4" />
-        </button>
+      <div className="flex items-center gap-2 text-foreground font-extrabold text-base mb-4">
+        <Save className="h-5 w-5 text-primary" />
+        Chỉnh Sửa Hóa Đơn / Khoản Chi Thực Tế
       </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-xs">
 
-      <form
-        onSubmit={handleSubmit(onSubmit, onFormError)}
-        className="space-y-4 p-5 max-h-[80vh] overflow-y-auto"
-      >
-        {/* Title */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-foreground">
-            Tên khoản chi <span className="text-destructive">*</span>
+          <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+            <FileText className="h-3.5 w-3.5 text-primary" />
+            Tên khoản chi / Hóa đơn (*):
           </label>
           <input
             type="text"
-            placeholder="VD: Bữa tối lẩu cá hồi..."
+            placeholder="Ví dụ: Ăn tối lẩu gà lá é ngày 1, Mua nước suối & lương khô..."
             {...register('title')}
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
+            className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
           />
-          {errors.title && (
-            <p className="text-[11px] text-destructive font-medium">{errors.title.message}</p>
-          )}
+          {errors.title && <p className="text-destructive text-[11px] font-bold">{errors.title.message}</p>}
         </div>
 
-        {/* Amount & Paid By */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">
-              Số tiền (VNĐ) <span className="text-destructive">*</span>
+            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              Tổng số tiền (VND) (*):
             </label>
             <Controller
               name="amount"
               control={control}
               render={({ field }) => (
                 <AppCurrencyInput
-                  value={field.value}
+                  placeholder="0"
+                  value={field.value ?? 0}
                   onChange={field.onChange}
-                  placeholder="VD: 500.000"
-                  className="w-full rounded-xl border border-border bg-background pl-9 pr-14 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden font-bold"
+                  className="w-full p-3 text-sm font-extrabold text-primary"
                 />
               )}
             />
-            {errors.amount && (
-              <p className="text-[11px] text-destructive font-medium">{errors.amount.message}</p>
-            )}
+            {errors.amount && <p className="text-destructive text-[11px] font-bold">{errors.amount.message}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground">Người chi trả</label>
+            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <UserCheck className="h-3.5 w-3.5 text-primary" />
+              Người đã thanh toán / ứng trước:
+            </label>
             <select
               {...register('paidByMemberId')}
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+              className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary font-medium"
             >
               {activeMembers.map((m) => (
                 <option key={m.matchingMemberId} value={m.matchingMemberId}>
-                  {m.fullName} {m.role === 'LEADER' ? '(Trưởng nhóm)' : ''}
+                  {m.fullName} {m.role === 'LEADER' ? '👑 Trưởng nhóm' : ''}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Beneficiary Scope Selection */}
-        <div className="space-y-2 rounded-2xl border border-border bg-muted/20 p-3.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-primary" /> Phạm vi thụ hưởng
-            </label>
-            <div className="flex rounded-lg border border-border bg-background p-0.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setScope('ALL_MEMBERS');
-                  setValue('beneficiaryScope', 'ALL_MEMBERS');
-                }}
-                className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                  scope === 'ALL_MEMBERS'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Cả đoàn ({activeMembers.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setScope('SELECTED_MEMBERS');
-                  setValue('beneficiaryScope', 'SELECTED_MEMBERS');
-                }}
-                className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                  scope === 'SELECTED_MEMBERS'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Chọn người ({selectedMembers.length})
-              </button>
-            </div>
-          </div>
-
-          {scope === 'SELECTED_MEMBERS' && (
-            <div className="pt-2 space-y-1.5">
-              <p className="text-[11px] text-muted-foreground">
-                Chọn các thành viên cùng tham gia chi tiêu:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
-                {activeMembers.map((member) => {
-                  const isChecked = selectedMembers.includes(member.matchingMemberId);
-                  return (
-                    <label
-                      key={member.matchingMemberId}
-                      className={`flex items-center gap-2 rounded-xl border p-2 text-xs transition cursor-pointer ${
-                        isChecked
-                          ? 'border-primary/50 bg-primary/5 text-foreground font-semibold'
-                          : 'border-border bg-background text-muted-foreground'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleMemberSelection(member.matchingMemberId)}
-                        className="rounded border-border text-primary focus:ring-primary"
-                      />
-                      <span className="truncate">{member.fullName}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Split Method Selection */}
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-3.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Scale className="h-3.5 w-3.5 text-primary" /> Phương thức chia tiền
-            </label>
-            <div className="flex rounded-lg border border-border bg-muted/40 p-0.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setSplitMethod('EQUAL');
-                  setValue('splitMethod', 'EQUAL');
-                }}
-                className={`px-3 py-1 rounded-md font-bold transition cursor-pointer ${
-                  splitMethod === 'EQUAL'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Chia đều
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSplitMethod('CUSTOM');
-                  setValue('splitMethod', 'CUSTOM');
-                  if (Object.keys(customSharesMap).length === 0 && enteredAmount > 0) {
-                    handleAutoDistribute();
-                  }
-                }}
-                className={`px-3 py-1 rounded-md font-bold transition cursor-pointer ${
-                  splitMethod === 'CUSTOM'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Tùy chỉnh
-              </button>
-            </div>
-          </div>
-
-          {/* Equal split helper preview */}
-          {splitMethod === 'EQUAL' && (
-            <div className="rounded-xl bg-muted/30 p-2.5 text-[11px] text-muted-foreground flex items-center justify-between">
-              <span>Bình quân mỗi người ({currentBeneficiaryMembers.length} người):</span>
-              <strong className="text-foreground text-xs">
-                {enteredAmount > 0 && currentBeneficiaryMembers.length > 0
-                  ? `${Math.round(enteredAmount / currentBeneficiaryMembers.length).toLocaleString('vi-VN')} đ`
-                  : '0 đ'}
-              </strong>
-            </div>
-          )}
-
-          {/* Custom Split Inputs */}
-          {splitMethod === 'CUSTOM' && (
-            <div className="space-y-2.5 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-muted-foreground">
-                  Nhập số tiền chi trả cho từng người ({currentBeneficiaryMembers.length} người):
-                </span>
-                <button
-                  type="button"
-                  onClick={handleAutoDistribute}
-                  className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline cursor-pointer"
-                >
-                  <Calculator className="h-3 w-3" /> Tự động chia đều lại
-                </button>
-              </div>
-
-              {/* Members Input List */}
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {currentBeneficiaryMembers.map((member) => {
-                  const val = customSharesMap[member.matchingMemberId] ?? '';
-                  return (
-                    <div
-                      key={member.matchingMemberId}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-2.5"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <MemberAvatar
-                          fullName={member.fullName}
-                          avatarUrl={member.avatarUrl ?? undefined}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">
-                            {member.fullName}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {member.role === 'LEADER' ? 'Trưởng nhóm' : 'Thành viên'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <AppCurrencyInput
-                          showIcon={false}
-                          suffix="đ"
-                          value={val}
-                          onChange={(num) => handleCustomShareChange(member.matchingMemberId, num)}
-                          placeholder="0"
-                          className="w-32 rounded-lg border border-border bg-muted/20 px-2.5 py-1.5 text-right text-xs font-bold text-foreground focus:border-primary focus:outline-hidden"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Status Bar */}
-              <div
-                className={`flex items-center justify-between rounded-xl p-3 text-xs border ${
-                  isCustomBalanced
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                    : 'border-destructive/30 bg-destructive/10 text-destructive'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 font-bold">
-                  {isCustomBalanced ? (
-                    <>
-                      <CheckCircle2 className="h-4 w-4 shrink-0" />
-                      <span>Tổng tiền chia đã khớp chính xác</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>
-                        {difference > 0
-                          ? `Còn thiếu: ${difference.toLocaleString('vi-VN')} đ`
-                          : `Vượt quá: ${Math.abs(difference).toLocaleString('vi-VN')} đ`}
-                      </span>
-                    </>
-                  )}
-                </div>
-                <div className="text-[11px] font-semibold">
-                  {totalCustomSharesSum.toLocaleString('vi-VN')} /{' '}
-                  {(Number(enteredAmount) || 0).toLocaleString('vi-VN')} đ
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Spent At */}
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" /> Thời điểm chi tiền
+            <Calendar className="h-3.5 w-3.5 text-primary" />
+            Thời gian chi tiêu:
           </label>
           <input
             type="datetime-local"
-            max={getLocalCurrentDatetime()}
             {...register('spentAt')}
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+            className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
           />
-          {errors.spentAt && (
-            <p className="text-[11px] text-destructive font-medium">{errors.spentAt.message}</p>
-          )}
         </div>
 
-        {/* Receipt Image Upload & URL */}
-        <AppImageUploadField
-          label={
-            <span className="flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" /> Link ảnh hóa đơn (URL)
-            </span>
-          }
-          value={receiptUrl}
-          onChange={(url) => setValue('receiptUrl', url, { shouldValidate: true })}
-          folder="expense-receipts"
-          cleanup={receiptCleanup}
-          showOpenLink
-          previewClassName="max-h-48 w-full bg-background/50 object-contain"
-          urlPlaceholder="https://... (nếu có)"
-          errorMessage={errors.receiptUrl?.message}
-          disabled={updateExpenseMutation.isPending}
+        {/* Split Form Fields */}
+        <ExpenseSplitFormFields
+          activeMembers={activeMembers}
+          scope={scope}
+          setScope={setScope}
+          selectedMembers={selectedMembers}
+          setSelectedMembers={setSelectedMembers}
+          splitMethod={splitMethod}
+          setSplitMethod={setSplitMethod}
+          customSharesMap={customSharesMap}
+          setCustomSharesMap={setCustomSharesMap}
+          currentBeneficiaryMembers={currentBeneficiaryMembers}
+          enteredAmount={enteredAmount}
+          totalCustomSharesSum={totalCustomSharesSum}
+          difference={difference}
+          isCustomBalanced={isCustomBalanced}
+          onAutoDistribute={handleAutoDistribute}
         />
 
-        {/* Note */}
+        {/* Receipt Image Upload */}
+        <ExpenseReceiptUpload
+          receiptUrl={receiptUrl}
+          onReceiptChange={(url: string) => {
+            setValue('receiptUrl', url, { shouldValidate: true });
+            if (url) receiptCleanup.track(url);
+          }}
+          cleanup={receiptCleanup}
+          onUploadingChange={setIsUploadingReceipt}
+        />
+
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5 text-muted-foreground" /> Ghi chú thêm
-          </label>
+          <label className="text-xs font-bold text-foreground">Ghi chú thêm:</label>
           <textarea
             rows={2}
-            placeholder="Ghi chú chi tiết về khoản chi nếu cần..."
+            placeholder="Địa chỉ quán, chi tiết món gọi hoặc lưu ý thanh toán..."
             {...register('note')}
-            className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden resize-none"
+            className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary resize-none"
           />
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
           <button
             type="button"
             onClick={handleClose}
-            disabled={updateExpenseMutation.isPending}
-            className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition cursor-pointer"
+            className="rounded-xl px-4 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted/50 transition cursor-pointer"
           >
-            Hủy
+            Hủy bỏ
           </button>
           <button
             type="submit"
-            disabled={updateExpenseMutation.isPending}
-            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition cursor-pointer disabled:opacity-50"
+            disabled={updateExpenseMutation.isPending || isUploadingReceipt}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition shadow-sm cursor-pointer disabled:opacity-50"
           >
             {updateExpenseMutation.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Đang lưu thay đổi...
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Đang lưu...
               </>
             ) : (
-              <>
-                <Save className="h-4 w-4" /> Lưu thay đổi
-              </>
+              'Cập nhật hóa đơn'
             )}
           </button>
         </div>

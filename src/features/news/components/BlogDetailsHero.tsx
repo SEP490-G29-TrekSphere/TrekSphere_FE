@@ -14,10 +14,6 @@ const formatDate = (iso: string): string => {
   });
 };
 
-/**
- * Hero của trang chi tiết: full-screen ngang, ảnh nền + gradient overlay,
- * nội dung nằm ở góc dưới bên trái (badge, title, meta).
- */
 export function BlogDetailsHero({ post }: BlogDetailsHeroProps) {
   return (
     <section

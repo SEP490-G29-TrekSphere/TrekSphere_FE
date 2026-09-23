@@ -7,10 +7,7 @@ import type {
 } from '../types';
 
 export const vendorVoucherService = {
-  /**
-   * Lấy danh sách các mã giảm giá đang kích hoạt của Vendor.
-   * Endpoint: GET /vouchers/vendor/{vendorId}
-   */
+
   async getActiveVouchersByVendor(
     vendorId: string,
     filter: VendorActiveVouchersFilter
@@ -55,10 +52,6 @@ export const vendorVoucherService = {
     return response.data;
   },
 
-  /**
-   * Kiểm tra tính hợp lệ của mã giảm giá khi Trekker nhập đặt tour.
-   * Endpoint: POST /vouchers/validate
-   */
   async validateVoucher(data: ValidateVoucherRequest): Promise<VoucherValidationResponse> {
     const response: ApiResponse<VoucherValidationResponse> =
       await ApiService<VoucherValidationResponse>('/vouchers/validate', 'POST', data);

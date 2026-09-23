@@ -9,11 +9,6 @@ interface TourCategoriesRowProps {
   className?: string;
 }
 
-/**
- * TourCategoriesRow — section header + horizontally scrollable row of circular
- * category items ("Danh mục tour"). Each category is rendered as a circular image
- * with a label below, matching the reference design.
- */
 export default function TourCategoriesRow({
   categories,
   activeId,

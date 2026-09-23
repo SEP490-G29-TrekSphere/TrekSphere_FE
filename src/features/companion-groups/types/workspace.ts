@@ -22,8 +22,6 @@ export interface CustomJourneyCheckpointResponse {
   gps?: string;
   progressUpdatedByName?: string;
   progressUpdatedAt?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface CustomJourneyDetailResponse {
@@ -87,8 +85,6 @@ export interface CustomJourneyActivityResponse {
   checkpointId: string | null;
   checkpointTitle: string | null;
   checkpointLocationName: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface CustomJourneyActivityCreateRequest {
@@ -152,8 +148,6 @@ export interface GroupChecklistItemResponse {
   completedByName?: string | null;
   createdAt: string;
   updatedAt?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface GroupChecklistSummaryResponse {
@@ -185,7 +179,6 @@ export interface GroupChecklistItemCreateRequest {
   isRequired?: boolean;
   note?: string | null;
   assigneeMatchingMemberId?: string | null;
-  // Aliases for compatibility
   itemName?: string;
   category?: GroupChecklistCategory;
   itemType?: GroupChecklistItemType;
@@ -199,7 +192,6 @@ export interface GroupChecklistItemUpdateRequest {
   isRequired?: boolean;
   note?: string | null;
   assigneeMatchingMemberId?: string | null;
-  // Aliases for compatibility
   itemName?: string;
   category?: GroupChecklistCategory;
   itemType?: GroupChecklistItemType;
@@ -244,8 +236,6 @@ export interface GroupPostResponse {
   commentCount: number;
   createdAt: string;
   updatedAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface GroupPostCommentResponse {
@@ -273,8 +263,6 @@ export interface GroupPostCommentResponse {
   replies?: GroupPostCommentResponse[];
   createdAt: string;
   updatedAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface GroupPostDetailResponse {
@@ -296,8 +284,6 @@ export interface GroupPostDetailResponse {
   commentCount?: number;
   createdAt?: string;
   updatedAt?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 }
 
 export interface GroupPostFilterRequest {

@@ -3,7 +3,6 @@ import { voteService } from '../../services/voteService';
 import type { CreateGroupVotePayload } from '../../types/vote';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/** Mở bình chọn chung mới (voteType = OTHER) trong workspace nhóm. */
 export function useCreateVote(groupId: string) {
   const queryClient = useQueryClient();
 

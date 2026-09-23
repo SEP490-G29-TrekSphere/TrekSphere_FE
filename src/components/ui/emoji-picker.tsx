@@ -7,10 +7,6 @@ import {
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/**
- * Bộ chọn emoji dựng trên `frimousse` — headless, không phụ thuộc package nào
- * khác, dữ liệu emoji tải từ CDN jsdelivr khi mở lần đầu rồi được cache lại.
- */
 function EmojiPicker({ className, ...props }: EmojiPickerRootProps) {
   return (
     <EmojiPickerPrimitive.Root

@@ -21,14 +21,6 @@ const menuItems: MenuItem[] = [
 const ADMIN_AVATAR =
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
 
-/**
- * Sidebar của khu vực Admin.
- * - Nền xanh rêu đậm (#06261D), chiều cao full màn hình.
- * - Logo "Admin Portal" + "MANAGEMENT SUITE" ở trên cùng.
- * - Danh sách menu items dạng cột dọc với highlight cho item đang active.
- * - User info (avatar + name + email) ở dưới cùng, click mở dropdown
- *   với "Hồ sơ" và "Đăng xuất".
- */
 export default function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -121,7 +113,6 @@ export default function AdminSidebar() {
         })}
       </nav>
 
-      {/* User Info Footer — click mở dropdown Hồ sơ / Đăng xuất */}
       <div
         className="mt-auto shrink-0 border-t px-4 py-4"
         style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }}

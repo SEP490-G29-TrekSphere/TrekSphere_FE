@@ -65,7 +65,6 @@ export function GroupSOSModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Sinh idempotencyKey 1 lần khi modal mở, giữ nguyên qua các lần bấm gửi lại.
     if (!idempotencyKeyRef.current) {
       idempotencyKeyRef.current = crypto.randomUUID();
     }

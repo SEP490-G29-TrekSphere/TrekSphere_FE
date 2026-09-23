@@ -23,10 +23,6 @@ function InfoCell({ label, value }: { label: string; value?: string }) {
   );
 }
 
-/**
- * Tab "Thông tin" — gộp Thông tin cá nhân & Hồ sơ leo núi thành một màn hình duy nhất
- * cho hồ sơ của chính mình.
- */
 export function ProfileInfoPanel({
   profile,
   editPath = PATHS.EDIT_PROFILE,
@@ -44,7 +40,7 @@ export function ProfileInfoPanel({
 
   return (
     <div className="space-y-6">
-      {/* 1. Thông tin cá nhân cơ bản */}
+
       <section className="rounded-3xl bg-card p-6 shadow-sm border border-border">
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -71,7 +67,6 @@ export function ProfileInfoPanel({
         </div>
       </section>
 
-      {/* 2. Hồ sơ leo núi & Kỹ năng */}
       <section className="rounded-3xl bg-card p-6 shadow-sm border border-border space-y-5">
         <div className="flex items-center justify-between">
           <div>

@@ -13,7 +13,7 @@ export const spentAtSchema = z
     if (!val) return true;
     const spentDate = new Date(val);
     if (Number.isNaN(spentDate.getTime())) return false;
-    // Cho phép dung sai 1 phút để tránh chênh lệch mili giây khi submit
+
     const maxAllowed = new Date(Date.now() + 60 * 1000);
     return spentDate <= maxAllowed;
   }, 'Thời điểm chi thực tế không được vượt quá thời điểm hiện tại')

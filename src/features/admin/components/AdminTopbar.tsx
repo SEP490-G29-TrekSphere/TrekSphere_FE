@@ -6,11 +6,11 @@ import { useLogout } from '@/features/auth/hooks/useLogout';
 import { useAppStore } from '@/store/useAppStore';
 
 interface AdminTopbarProps {
-  /** Giá trị ô search hiện tại (controlled). */
+  /** Current controlled search value. */
   searchValue?: string;
-  /** Callback khi user gõ vào ô search. */
+  /** Callback triggered when user types in search input. */
   onSearchChange?: (value: string) => void;
-  /** Placeholder cho ô search. */
+  /** Placeholder text for search input. */
   searchPlaceholder?: string;
 }
 
@@ -21,11 +21,8 @@ const FALLBACK_AVATAR =
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face';
 
 /**
- * Topbar của khu vực Admin.
- * - Nền trắng kem nhạt (mặc định bg-card), đường viền mỏng phân cách bên dưới.
- * - Bên trái: ô search bo góc tròn với icon kính lúp.
- * - Bên phải: trợ giúp (chấm hỏi), chọn ngôn ngữ, avatar +
- *   dropdown "Hồ sơ" / "Đăng xuất".
+ * Admin portal top bar component.
+ * Features search input, language selector, and user profile/logout dropdown.
  */
 export default function AdminTopbar({
   searchValue = '',
@@ -164,7 +161,7 @@ export default function AdminTopbar({
           )}
         </div>
 
-        {/* Avatar + dropdown Hồ sơ / Đăng xuất */}
+        {/* Avatar + dropdown Profile / Logout */}
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"

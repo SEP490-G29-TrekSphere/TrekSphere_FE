@@ -8,36 +8,26 @@ import { TourStatusBadge } from './TourStatusBadge';
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=120&h=120&fit=crop';
 
-/**
- * Chỉ tour DRAFT hoặc PUBLISHED mới tạo được lịch khởi hành — tour đang HIDDEN (Admin ẩn vì
- * vi phạm) không cho thao tác lịch cho tới khi được mở lại.
- */
 export const SCHEDULABLE_STATUSES = new Set<ApiStatus>(['DRAFT', 'PUBLISHED']);
 
-/** Câu giải thích khi tour chưa đủ điều kiện mở lịch — dùng chung cho tooltip ở mọi màn. */
 export const NOT_SCHEDULABLE_REASON = 'Tour đang bị ẩn, không thể tạo lịch khởi hành';
 
-/**
- * Vendor sửa được tour ở mọi trạng thái (BE không giới hạn theo status khi cập nhật) — chỉ cần
- * lưu ý tour đã PUBLISHED có thêm ràng buộc cấu trúc tối thiểu (≥2 checkpoint, ≥1 lịch OPEN
- * tương lai) khi lưu, do BE tự validate lại, không phải do FE chặn sửa.
- */
 export const MANAGER_EDITABLE_STATUSES = new Set<ApiStatus>(['DRAFT', 'PUBLISHED', 'HIDDEN']);
 
 interface TourTableRowProps {
   tour: VendorTourListItem;
-  /** Đường dẫn màn Sửa cho đúng tour này — do trang cha tính sẵn. */
+
   editPath: string;
-  /** Đường dẫn màn xem trước (read-only) cho đúng tour này — do trang cha tính sẵn. */
+
   previewPath: string;
-  /** Đường dẫn màn Lịch khởi hành cho đúng tour này — do trang cha tính sẵn. */
+
   schedulesPath: string;
-  /** Set trạng thái được phép Sửa — page cha truyền vào. */
+
   editableStatuses: Set<ApiStatus>;
   onDeleteClick?: (tour: VendorTourListItem) => void;
-  /** Hiện khi tour đang DRAFT — Vendor tự công khai tour. */
+
   onPublishClick?: (tour: VendorTourListItem) => void;
-  /** Hiện khi tour đang PUBLISHED — Vendor tự đưa tour về DRAFT. */
+
   onUnpublishClick?: (tour: VendorTourListItem) => void;
 }
 

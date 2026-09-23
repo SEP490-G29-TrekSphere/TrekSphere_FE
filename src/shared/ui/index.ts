@@ -1,18 +1,3 @@
-/**
- * Shared UI components (barrel export).
- *
- * Import từ đây để import ngắn gọn:
- *   import { AppButton, AppInput } from '@/shared/ui';
- *
- * Cấu trúc bên trong:
- *   - primitives/  : button, input, label, icon, badge, spinner, slider, checkbox
- *   - form/        : AppFormInput (wrapper cho react-hook-form)
- *   - data-display/: AppCard, AppTable, AppEmptyState
- *   - feedback/    : AppGlobalToast, AppGlobalLoadingSpinner
- *
- * Mỗi folder con vẫn có thể import trực tiếp nếu cần:
- *   import { AppButton } from '@/shared/ui/primitives/AppButton';
- */
 
 // Portal Shared Blocks
 export * from '../components/portal';

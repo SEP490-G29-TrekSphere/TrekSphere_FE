@@ -36,7 +36,6 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
 
   if (!settlement) return null;
 
-  /** Đóng modal giữa chừng → xóa ảnh đã lỡ upload để không rác storage. */
   const handleClose = () => {
     proofCleanup.discard();
     setProofUrl('');
@@ -57,7 +56,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
         paymentMethod: paymentMethod.trim() || undefined,
         note: note.trim() || undefined,
       });
-      // Nộp thành công → ảnh đã thuộc về chứng từ, không xóa nữa.
+
       proofCleanup.commit();
       onClose();
       setProofUrl('');
@@ -104,7 +103,6 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             />
           </div>
 
-          {/* Proof Image — tải từ máy hoặc dán URL */}
           <AppImageUploadField
             label={
               <>

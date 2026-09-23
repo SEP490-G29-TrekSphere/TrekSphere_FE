@@ -23,11 +23,7 @@ import { AppButton, PortalFilterBar, PortalFilterSelect, PortalPageHeader } from
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
-/**
- * `GET /vendor/tours` không hỗ trợ lọc theo difficulty/status phía server
- * (đã xác nhận qua Swagger). Khi 1 trong 2 filter này đang active, chuyển
- * sang tải 1 mẻ lớn rồi lọc + phân trang phía client.
- */
+
 const CLIENT_FILTER_SAMPLE_SIZE = 200;
 
 const DIFFICULTY_OPTIONS: Array<{ value: ApiDifficulty | ''; label: string }> = [
@@ -52,7 +48,7 @@ export default function TourList() {
   const debouncedName = useDebounce(nameFilter, 400);
   const hasClientFilter = Boolean(difficulty || status);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ cần trigger reset khi filter đổi
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
   useEffect(() => {
     setPage(1);
   }, [debouncedName, difficulty, status]);

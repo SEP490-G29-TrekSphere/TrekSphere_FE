@@ -12,8 +12,8 @@ interface State {
 }
 
 /**
- * Key dùng chung cho mọi cơ chế auto-reload (vite:preload-error, ErrorBoundary).
- * Lưu JSON `{ ts: number, count: number }` trong sessionStorage để chống reload loop.
+ * Key used across automatic reload mechanisms (Vite preload error, ErrorBoundary).
+ * Stores `{ ts: number, count: number }` in sessionStorage to prevent infinite reload loops.
  */
 export const CHUNK_RELOAD_KEY = 'treksphere_chunk_reload';
 const MAX_AUTO_RELOADS = 2;
@@ -31,7 +31,7 @@ export function getReloadInfo(): { ts: number; count: number } {
 export function canAutoReload(): boolean {
   const info = getReloadInfo();
   const now = Date.now();
-  // Reset counter nếu lần reload cuối cách đây > 30s (session cũ, không phải loop)
+  // Reset counter if last reload occurred more than 30 seconds ago
   if (now - info.ts > 30_000) return true;
   return info.count < MAX_AUTO_RELOADS;
 }
@@ -56,6 +56,9 @@ function isChunkError(error: Error | null): boolean {
   );
 }
 
+/**
+ * Top-level React Error Boundary that catches runtime errors and handles stale chunk auto-reloads.
+ */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -74,7 +77,7 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught rendering error:', error, errorInfo);
 
-    // Chunk error + chưa vượt giới hạn reload → tự reload lấy asset mới
+    // Auto-reload on chunk error if limit is not exceeded
     if (isChunkError(error) && canAutoReload()) {
       recordReloadAndGo();
     }
@@ -86,10 +89,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleClearCacheAndReload = async () => {
     try {
-      // Chỉ xoá các key reload-tracking, GIỮ NGUYÊN auth/user data trong localStorage
       sessionStorage.removeItem(CHUNK_RELOAD_KEY);
 
-      // Xoá Service Worker caches (nếu có)
       if ('caches' in window) {
         const names = await caches.keys();
         await Promise.all(names.map((n) => caches.delete(n)));
@@ -97,7 +98,6 @@ export class ErrorBoundary extends Component<Props, State> {
     } catch (e) {
       console.error('Failed to clear caches:', e);
     }
-    // Sau khi cache đã xoá xong → navigate với cache-bust param
     window.location.href = `${window.location.origin}?nocache=${Date.now()}`;
   };
 
@@ -118,6 +118,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"

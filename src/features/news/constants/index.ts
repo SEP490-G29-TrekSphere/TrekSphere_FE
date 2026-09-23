@@ -1,6 +1,3 @@
-/**
- * Constants dùng chung cho feature News/Blog.
- */
 
 export const EMPTY_STAT = '—';
 

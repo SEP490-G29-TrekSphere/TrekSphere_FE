@@ -1,23 +1,18 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AccountPaginationProps {
-  /** Trang hiện tại (1-based). */
+
   currentPage: number;
-  /** Tổng số trang. */
+
   totalPages: number;
-  /** Callback khi chuyển trang. */
+
   onPageChange: (page: number) => void;
-  /** Tổng số item sau filter. */
+
   totalCount: number;
-  /** Page size đang dùng. */
+
   pageSize: number;
 }
 
-/**
- * Footer phân trang cho bảng account list.
- * - Trái: "Hiển thị X - Y của Z tài khoản".
- * - Phải: 2 nút mũi tên + số trang. Trang hiện tại có nền xanh rêu đậm, chữ trắng.
- */
 export function AccountPagination({
   currentPage,
   totalPages,
@@ -28,7 +23,6 @@ export function AccountPagination({
   const start = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, totalCount);
 
-  // Tạo danh sách số trang cần hiển thị (đơn giản: hiển thị tất cả nếu <= 5)
   const pageNumbers = getPageNumbers(currentPage, totalPages);
 
   return (
@@ -109,11 +103,6 @@ export function AccountPagination({
   );
 }
 
-/**
- * Sinh danh sách số trang hiển thị, có ellipsis nếu quá nhiều.
- * Trả về tuple [value, key] với key ổn định (không phụ thuộc index) để làm React key.
- * vd: totalPages=10, current=5 → [[1,1], ['ellipsis-left', -1], [4,4], [5,5], [6,6], ['ellipsis-right', -2], [10,10]]
- */
 function getPageNumbers(
   current: number,
   total: number
@@ -126,10 +115,8 @@ function getPageNumbers(
 
   const pages: Array<{ value: number | '...'; key: string | number }> = [];
 
-  // Luôn hiển thị trang đầu
   pages.push(toItem(1, 1));
 
-  // Tính range xung quanh current
   const start = Math.max(2, current - 1);
   const end = Math.min(total - 1, current + 1);
 
@@ -145,7 +132,6 @@ function getPageNumbers(
     pages.push(toItem('...', 'ellipsis-end'));
   }
 
-  // Luôn hiển thị trang cuối
   pages.push(toItem(total, total));
 
   return pages;

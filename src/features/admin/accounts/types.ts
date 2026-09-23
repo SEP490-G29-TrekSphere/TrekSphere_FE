@@ -1,14 +1,8 @@
-/**
- * Types cho khu vực Admin — Quản lý tài khoản.
- */
 
-/** Trạng thái tài khoản trong hệ thống (mirror enum BE trả về ở `/users`). */
 export type AccountStatus = 'ACTIVE' | 'LOCKED' | 'DEACTIVATED';
 
-/** Loại tài khoản (mirror các role trong `@/constants/roles`). */
 export type AccountRole = 'trekker' | 'vendor' | 'admin';
 
-/** Thông tin 1 tài khoản hiển thị trong bảng quản lý. */
 export interface AdminAccount {
   id: string;
   fullName: string;
@@ -19,7 +13,6 @@ export interface AdminAccount {
   createdAt?: string;
 }
 
-/** Payload trả về từ API list accounts (pagination). */
 export interface AdminAccountsResponse {
   accounts: AdminAccount[];
   total: number;
@@ -27,20 +20,17 @@ export interface AdminAccountsResponse {
   pageSize: number;
 }
 
-/** Filter cho màn account list. */
 export interface AdminAccountFilter {
   role?: AccountRole | 'ALL';
   search?: string;
 }
 
-/** Labels tiếng Việt cho các role, dùng để hiển thị badge. */
 export const ACCOUNT_ROLE_LABELS: Record<AccountRole, string> = {
   trekker: 'Khách du lịch',
   vendor: 'Nhà cung cấp',
   admin: 'Quản trị viên',
 };
 
-/** Labels cho filter "Lọc theo loại tài khoản". */
 export const ACCOUNT_FILTER_OPTIONS = [
   { value: 'ALL', label: 'Tất cả' },
   { value: 'trekker', label: 'Khách du lịch' },

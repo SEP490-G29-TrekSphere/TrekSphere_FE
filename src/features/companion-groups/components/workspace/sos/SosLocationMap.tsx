@@ -40,7 +40,6 @@ function createSosPopupContent(alert: SosAlertResponse): HTMLElement {
   return content;
 }
 
-/** Bản đồ hiển thị vị trí 1 hoặc nhiều tín hiệu SOS, dùng SDK VietMap GL JS. */
 export function SosLocationMap({
   alerts,
   className,

@@ -6,11 +6,6 @@ import { vendorTourDetailKeys } from './useVendorTourDetail';
 import { vendorTourKeys } from './useVendorTourList';
 import { vendorTourStatsKeys } from './useVendorTourStats';
 
-/**
- * Mutation cho "Tạo tour" (+ checkpoints), "Sửa tour" (+ reconcile checkpoints),
- * "Xóa tour" và "Publish/Unpublish" — invalidate list + stats (và detail/checkpoints
- * query khi liên quan) sau khi xong.
- */
 export function useVendorTourMutations() {
   const queryClient = useQueryClient();
 
@@ -28,7 +23,7 @@ export function useVendorTourMutations() {
       checkpoints: CheckpointSubmitItem[];
     }) => {
       const created = await vendorTourService.createTour(tour);
-      // Checkpoint chỉ tạo được sau khi tour đã có tourId — gọi tuần tự theo thứ tự nhập.
+
       for (const checkpoint of checkpoints) {
         await vendorTourService.createCheckpoint(created.id, checkpoint.payload);
       }
@@ -46,12 +41,6 @@ export function useVendorTourMutations() {
     },
   });
 
-  /**
-   * Sửa tour + đồng bộ checkpoints: checkpoint có `checkpointId` → PUT (sửa),
-   * không có → POST (mới thêm); checkpoint cũ nào không còn trong danh sách gửi
-   * lên → DELETE. Không diff field-by-field cho đơn giản — PUT lại nguyên payload
-   * hiện tại của mỗi checkpoint còn giữ, kể cả khi user không đổi gì.
-   */
   const updateTourWithCheckpoints = useMutation({
     mutationFn: async ({
       tourId,
@@ -65,11 +54,11 @@ export function useVendorTourMutations() {
       deletedCheckpointIds: string[];
     }) => {
       const updated = await vendorTourService.updateTour(tourId, tour);
-      // 1. Xóa các checkpoint cũ trước để giải phóng thứ tự (checkpointOrder) trong DB
+
       for (const checkpointId of deletedCheckpointIds) {
         await vendorTourService.deleteCheckpoint(checkpointId);
       }
-      // 2. Cập nhật các checkpoint đã có hoặc tạo mới
+
       for (const checkpoint of checkpoints) {
         if (checkpoint.checkpointId) {
           await vendorTourService.updateCheckpoint(checkpoint.checkpointId, checkpoint.payload);
@@ -107,7 +96,6 @@ export function useVendorTourMutations() {
     },
   });
 
-  /** Chưa có UI nào dùng — xem ghi chú tại `vendorTourService.restoreTour`. */
   const restoreTour = useMutation({
     mutationFn: (tourId: string) => vendorTourService.restoreTour(tourId),
     onSuccess: (_data, tourId) => {

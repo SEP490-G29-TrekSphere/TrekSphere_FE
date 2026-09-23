@@ -30,9 +30,6 @@ interface GroupModalsProps {
   onConfirmRemoveMember?: () => void;
 }
 
-/**
- * Nhóm modal xác nhận của trang chi tiết nhóm ghép.
- */
 export function GroupModals({
   activeModal,
   setActiveModal,

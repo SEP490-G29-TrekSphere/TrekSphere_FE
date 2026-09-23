@@ -8,17 +8,16 @@ import { useAppStore } from '@/store/useAppStore';
 interface RequireRoleProps {
   children: React.ReactNode;
   /**
-   * Danh sách role được phép truy cập.
-   * Mặc định: `[ROLES.ADMIN]` — dùng cho khu vực admin.
+   * List of roles authorized to access this route.
+   * Default: `[ROLES.ADMIN]`
    */
   allowedRoles?: Role[];
 }
 
 /**
- * Bọc các route yêu cầu role cụ thể.
- * - Chưa login → redirect về /login, lưu lại "from" để sau khi login có thể quay lại.
- * - Đợi store hydrated xong trước khi check auth (tránh race condition khi F5).
- * - Có login nhưng role không thuộc `allowedRoles` → redirect về trang phù hợp với role.
+ * Route guard component for role-based access control (RBAC).
+ * - Unauthenticated users are redirected to login with their intended location preserved.
+ * - Authenticated users with mismatched roles are redirected to their appropriate portal dashboard.
  */
 export default function RequireRole({ children, allowedRoles = [ROLES.ADMIN] }: RequireRoleProps) {
   const { isAuthenticated, isLoading } = useAuthCheck();
@@ -37,20 +36,12 @@ export default function RequireRole({ children, allowedRoles = [ROLES.ADMIN] }: 
     return <Navigate to={PATHS.LOGIN} state={{ from: location }} replace />;
   }
 
-  // Role "chính" theo độ ưu tiên (admin > vendor > trekker) — KHÔNG dùng
-  // roles[0] vì thứ tự mảng từ BE không đảm bảo (vd: user vốn là trekker được
-  // cấp thêm vendor thì role mới có thể nằm cuối mảng).
+  // Determine primary role by precedence (admin > vendor > trekker)
   const primaryRole = getPrimaryRole(user.roles);
-
-  // Nếu user có role nằm trong allowedRoles → cho vào
   const hasAccess = primaryRole !== null && allowedRoles.includes(primaryRole);
-
-  // Ngoài ra, dùng ROLE_PROTECTED_ROUTES để fallback khi user vào sai khu vực
-  // (vd: trekker gõ /admin/accounts → redirect về /dashboard).
   const pathAllowed = primaryRole !== null && canAccessPath(primaryRole, location.pathname);
 
   if (!hasAccess && !pathAllowed) {
-    // Tìm trang mặc định phù hợp với role của user
     const redirectPath =
       primaryRole === ROLES.TREKKER
         ? PATHS.TREKKER

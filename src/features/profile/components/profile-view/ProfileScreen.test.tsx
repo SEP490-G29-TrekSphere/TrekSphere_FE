@@ -100,7 +100,7 @@ describe('ProfileScreen', () => {
     expect(screen.getAllByText('Minh Tuấn').length).toBeGreaterThan(0);
     expect(screen.getAllByText('tuan@example.com').length).toBeGreaterThan(0);
     expect(screen.getByText('Trekker')).toBeTruthy();
-    expect(screen.getByText('3')).toBeTruthy(); // blogCount từ meta.totalElements
+    expect(screen.getByText('3')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Thông tin' })).toBeTruthy();
     expect(screen.getByText('Chỉnh sửa hồ sơ')).toBeTruthy();
     expect(screen.getByText('Thông tin cá nhân')).toBeTruthy();

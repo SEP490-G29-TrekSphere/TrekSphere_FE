@@ -4,9 +4,9 @@ import { getMomentImageUrls } from '../utils/momentMedia';
 
 interface MomentMediaGalleryProps {
   moment: MomentItem;
-  /** Mở lightbox tại vị trí ảnh được bấm. */
+
   onSelectImage: (index: number) => void;
-  /** Bấm vào ô "+N ảnh" — mở modal chi tiết để xem toàn bộ. */
+
   onShowAll: () => void;
 }
 
@@ -40,10 +40,6 @@ function GalleryTile({ url, index, label, className, onClick, overlay }: Gallery
 const TILE_BASE =
   'group relative w-full cursor-pointer overflow-hidden border-0 bg-black/10 p-0 text-left';
 
-/**
- * Lưới ảnh của một bài khoảnh khắc — bố cục đổi theo số lượng ảnh
- * (1 · 2 · 3 · 4+) giống bảng tin mạng xã hội.
- */
 export function MomentMediaGallery({ moment, onSelectImage, onShowAll }: MomentMediaGalleryProps) {
   const urls = getMomentImageUrls(moment);
   const total = urls.length;

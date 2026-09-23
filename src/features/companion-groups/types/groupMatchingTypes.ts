@@ -100,6 +100,6 @@ export interface ApplicationRow {
   trustScore: number;
   tripsCount: number;
   answer: string;
-  /** Đánh dấu đơn này thuộc về actor đang review dưới góc nhìn Applicant/Waitlisted (self-service). */
+
   isSelf?: boolean;
 }

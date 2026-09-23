@@ -8,14 +8,6 @@ interface UseMomentComposerOptions {
   defaultVisibility: MomentVisibility;
 }
 
-/**
- * Gom toàn bộ state của form "Đăng khoảnh khắc": ảnh đã upload, thông tin check-in,
- * tọa độ GPS và quyền hiển thị.
- *
- * Phần ảnh dùng cơ chế upload chung của app (`AppImageUploadGallery` +
- * `useImageUploadCleanup`): ảnh upload ngay khi chọn, URL vừa upload mà người dùng
- * gỡ đi hoặc hủy modal sẽ bị xóa khỏi storage.
- */
 export function useMomentComposer({ defaultVisibility }: UseMomentComposerOptions) {
   const [caption, setCaption] = useState('');
   const [locationName, setLocationName] = useState('');
@@ -39,10 +31,8 @@ export function useMomentComposer({ defaultVisibility }: UseMomentComposerOption
     setMediaUrls([]);
   }, [defaultVisibility]);
 
-  /** Người dùng đóng form giữa chừng → xóa các ảnh đã lỡ upload để không rác storage. */
   const discardUploads = mediaCleanup.discard;
 
-  /** Gửi thành công → các ảnh đã thuộc về khoảnh khắc, không được xóa nữa. */
   const commitUploads = mediaCleanup.commit;
 
   const fillCurrentLocation = useCallback(() => {

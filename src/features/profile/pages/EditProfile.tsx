@@ -19,7 +19,6 @@ import ProfileSidebar from '../components/ProfileSidebar';
 import { normalizeProfile, profileKeys, useProfile } from '../hooks/useProfile';
 import { profileService } from '../services/profileService';
 
-/** Map hồ sơ từ API sang giá trị mặc định của form (mọi field optional đều có fallback). */
 function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
   return {
     name: profile?.name ?? '',
@@ -35,13 +34,6 @@ function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
   };
 }
 
-/**
- * Dựng body multipart cho `PUT /users/me`.
- *
- * Danh sách (khu vực / kỹ năng) gửi bằng cách lặp lại field name. Khi người dùng
- * xoá hết thẻ, vẫn phải gửi field với giá trị rỗng — bỏ hẳn field thì BE hiểu là
- * "không đụng tới" và giữ nguyên dữ liệu cũ.
- */
 function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null): FormData {
   const formData = new FormData();
   formData.append('fullName', data.name);
@@ -49,14 +41,12 @@ function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null
   if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth);
   if (data.gender) formData.append('gender', data.gender.toUpperCase());
 
-  // Nhóm hồ sơ leo núi: Chỉ gửi enum khi có giá trị để tránh lỗi Type Mismatch của Spring WebDataBinder
   formData.append('bio', data.bio ?? '');
   if (data.experienceLevel) formData.append('experienceLevel', data.experienceLevel);
   if (data.preferredDifficulty) formData.append('preferredDifficulty', data.preferredDifficulty);
   appendList(formData, 'preferredAreas', data.preferredAreas);
   appendList(formData, 'skills', data.skills);
 
-  // Chỉ append avatar khi user đổi ảnh
   if (avatar) formData.append('avatar', avatar);
 
   return formData;
@@ -71,17 +61,6 @@ function appendList(formData: FormData, field: string, items?: string[]) {
   for (const value of values) formData.append(field, value);
 }
 
-/**
- * Màn hình 2: Chỉnh sửa hồ sơ.
- * - Cột trái (30%): Sidebar y hệt màn View nhưng mode="edit" (có nút "Thay đổi ảnh").
- * - Cột phải (70%): Form chỉnh sửa với input có nền xám ngà, focus viền xanh rêu.
- * - Cụm nút "Hủy" + "Lưu thay đổi" ở góc dưới bên phải form.
- *
- * Avatar flow đơn giản:
- * 1. User chọn ảnh → preview ngay bằng URL.createObjectURL
- * 2. User bấm "Lưu thay đổi" → tạo FormData với file + các fields khác → gửi 1 lần qua PUT /users/me
- * 3. Nếu user không đổi ảnh → không gửi field avatar
- */
 export default function EditProfile({ returnPath }: { returnPath?: string }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -90,15 +69,12 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
 
   const effectiveReturnPath = searchParams.get('returnUrl') || returnPath || PATHS.PROFILE;
 
-  // File object của avatar mới (null = không đổi ảnh)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
-  // Preview local để hiển thị ngay khi user vừa chọn file
+
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  // Load profile hiện tại qua hook
   const { data: profile, isLoading } = useProfile();
 
-  // Form — dùng empty object fallback để tránh crash khi profile đang null
   const methods = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: toFormValues(profile),
@@ -116,7 +92,6 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
     reset(toFormValues(profile));
   }, [profile, reset]);
 
-  // Mutation lưu thay đổi - gửi multipart/form-data
   const updateMutation = useMutation({
     mutationFn: (data: UpdateProfileFormValues) =>
       profileService.updateProfile(buildProfileFormData(data, selectedAvatarFile)),
@@ -132,15 +107,9 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
       }
       toast.success('Cập nhật hồ sơ thành công!');
 
-      // Cập nhật user trong store bằng data từ response — response là raw shape
-      // từ BE (fullName, avatarUrl, ...) nên phải chuẩn hoá qua normalizeProfile
-      // trước khi map sang AppUser, nếu không avatar/tên ở Header sẽ không đổi theo.
       if (res.data) {
         const updatedUser = normalizeProfile(res.data as unknown as Record<string, unknown>);
-        // Response của PUT không phải nguồn sự thật về danh tính/phân quyền:
-        // form này chỉ sửa được tên + avatar. Nếu BE trả thiếu field nào thì
-        // giữ giá trị của phiên đang đăng nhập, tuyệt đối không ghi đè rỗng —
-        // mất `roles` là user bị RequireRole đá khỏi portal ngay sau khi lưu.
+
         const currentUser = useAppStore.getState().user;
         setUser({
           id: updatedUser.id || (currentUser?.id ?? ''),
@@ -178,7 +147,6 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
     navigate(effectiveReturnPath);
   };
 
-  // Chọn avatar: preview ngay bằng createObjectURL, lưu file để gửi cùng form
   const handleAvatarChange = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Vui lòng chọn file ảnh.');
@@ -188,7 +156,7 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
       toast.error('Ảnh tối đa 5MB.');
       return;
     }
-    // Tạo preview URL
+
     const previewUrl = URL.createObjectURL(file);
     setAvatarPreview(previewUrl);
     setSelectedAvatarFile(file);
@@ -242,7 +210,6 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
 
               <HikingProfileFields />
 
-              {/* Cụm nút hành động — góc dưới bên phải */}
               <div className="flex items-center justify-end gap-3">
                 <button
                   type="button"

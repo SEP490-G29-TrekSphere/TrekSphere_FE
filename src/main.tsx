@@ -12,8 +12,6 @@ import {
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 
-// Bắt lỗi preload chunk từ Vite (xảy ra khi deploy bản mới xoá các chunk cũ).
-// Dùng chung key + counter với ErrorBoundary để chống reload loop.
 window.addEventListener('vite:preload-error', (event) => {
   event.preventDefault();
   if (canAutoReload()) {

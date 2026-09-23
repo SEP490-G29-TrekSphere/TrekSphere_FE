@@ -8,10 +8,6 @@ import { VendorProfileHeroCard } from '../components/VendorProfileHeroCard';
 import { VendorProfileKpiCards } from '../components/VendorProfileKpiCards';
 import { useVendorProfile } from '../hooks/useVendorProfile';
 
-/**
- * Trang Tổng quan Hồ sơ Vendor — dùng chung Vendor Manager & Vendor Staff.
- * Chỉ Manager thấy nút "Chỉnh sửa hồ sơ" (Staff chỉ xem).
- */
 export default function VendorProfileOverview() {
   const user = useAppStore((state) => state.user);
   const primaryRole = getPrimaryRole(user?.roles);
@@ -48,13 +44,11 @@ export default function VendorProfileOverview() {
       {/* KPI */}
       <VendorProfileKpiCards totalTours={tourStats?.total} />
 
-      {/* Bento chi tiết */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <VendorLegalCard profile={profile} />
         <VendorContactCard profile={profile} />
       </div>
 
-      {/* Chính sách hủy tour — full width vì có danh sách điều khoản + thao tác CRUD */}
       <VendorCancellationPolicyCard canManage={canManage} />
     </div>
   );

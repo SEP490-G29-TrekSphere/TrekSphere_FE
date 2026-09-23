@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 
 interface FeedSidebarProps {
-  /** Tag phổ biến rút từ các bài đang hiển thị trong feed. */
+  /** Popular topic tags extracted from the current feed items. */
   topics: string[];
-  /** Bấm một chủ đề sẽ đưa tag đó vào ô tìm kiếm. */
+  /** Callback when a topic tag is clicked. */
   onTopicSelect: (topic: string) => void;
 }
 
@@ -16,13 +16,13 @@ const footerLinks = [
 ];
 
 /**
- * Cột phải của community feed: chủ đề nổi bật và footer links.
- * Chỉ hiển thị từ breakpoint `lg` trở lên.
+ * Community feed right sidebar: featured topics and footer links.
+ * Visible on `lg` breakpoint and above.
  */
 export function FeedSidebar({ topics, onTopicSelect }: FeedSidebarProps) {
   return (
     <aside className="flex flex-col gap-4">
-      {/* Chủ đề nổi bật */}
+      {/* Featured topics */}
       {topics.length > 0 ? (
         <section className="rounded-2xl bg-card p-4 shadow-sm">
           <h2 className="text-sm font-bold text-primary">Chủ đề nổi bật</h2>

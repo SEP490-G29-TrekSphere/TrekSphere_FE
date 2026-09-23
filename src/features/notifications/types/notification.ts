@@ -1,6 +1,4 @@
-// Khớp đúng NotificationEventType.java / ReferenceType.java phía backend.
-// Dùng `| (string & {})` để các giá trị mới thêm ở BE (phase sau) không làm vỡ type ở FE
-// trong lúc vẫn giữ được gợi ý autocomplete cho các giá trị đã biết.
+
 export type NotificationEventType =
   | 'BOOKING_CONFIRMED'
   | 'BOOKING_CANCELLED'

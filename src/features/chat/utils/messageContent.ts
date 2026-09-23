@@ -3,15 +3,9 @@ import { vi } from 'date-fns/locale/vi';
 import { getSafeImageUrl } from '@/utils/sanitize';
 import type { DetailMessage } from '../types/types';
 
-/**
- * Backend chỉ lưu `content` dạng text nên ảnh được gửi bằng cách upload trước
- * (`POST /files/upload`) rồi gửi chính URL đó làm nội dung tin nhắn. Các helper
- * dưới đây là nơi duy nhất biết về quy ước đó.
- */
 const IMAGE_EXTENSION_PATTERN = /\.(?:png|jpe?g|gif|webp|avif|bmp|svg)(?:[?#]|$)/i;
 const SINGLE_URL_PATTERN = /^https?:\/\/[^\s]+$/i;
 
-/** Trả về URL ảnh nếu nội dung tin nhắn chính là một link ảnh, ngược lại `undefined`. */
 export function getMessageImageUrl(content?: string): string | undefined {
   if (!content) return undefined;
 
@@ -20,21 +14,19 @@ export function getMessageImageUrl(content?: string): string | undefined {
 
   const isImage =
     IMAGE_EXTENSION_PATTERN.test(trimmed) ||
-    // Cloudinary/S3 có thể trả URL không kèm đuôi file.
+
     trimmed.includes('/image/upload/');
   if (!isImage) return undefined;
 
   return getSafeImageUrl(trimmed);
 }
 
-/** Dòng preview trong danh sách hội thoại — ảnh hiện nhãn thay vì dán cả URL dài. */
 export function getConversationPreview(content?: string): string {
   if (!content) return '';
   if (getMessageImageUrl(content)) return '📷 Hình ảnh';
   return content.length > 60 ? `${content.slice(0, 60)}...` : content;
 }
 
-/** Nhãn ngăn cách ngày: "Hôm nay" / "Hôm qua" / "Thứ Hai, 12/05/2025". */
 export function formatDayLabel(isoDate: string): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return '';
@@ -49,7 +41,6 @@ export function formatMessageTime(isoDate: string): string {
   return format(date, 'HH:mm');
 }
 
-/** Hai tin nhắn liền nhau của cùng một người trong khoảng này sẽ gộp thành một nhóm. */
 const GROUP_WINDOW_MS = 5 * 60 * 1000;
 
 export interface MessageGroup {
@@ -59,7 +50,7 @@ export interface MessageGroup {
   senderName: string;
   avatarUrl?: string;
   isOwn: boolean;
-  /** Thời điểm tin nhắn đầu tiên trong nhóm — dùng làm timestamp hiển thị. */
+
   createdAt: string;
   messages: DetailMessage[];
 }
@@ -69,11 +60,6 @@ export type TimelineItem =
   | { kind: 'day'; id: string; label: string }
   | { kind: 'unread'; id: string };
 
-/**
- * Dựng danh sách hiển thị từ mảng tin nhắn đã sắp xếp tăng dần theo thời gian:
- * chèn vạch ngăn ngày, vạch "tin nhắn chưa đọc", và gộp tin nhắn liên tiếp
- * của cùng một người gửi.
- */
 export function buildTimeline(
   messages: DetailMessage[],
   unreadMarkerId?: string | null

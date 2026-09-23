@@ -20,7 +20,6 @@ interface VendorStatusDialogProps {
 
 const STATUS_OPTIONS: VendorStatus[] = ['ACTIVE', 'INACTIVE', 'REVOKED'];
 
-/** Modal đổi trạng thái Vendor — dùng `PUT /vendors/{vendorId}/status`. */
 export function VendorStatusDialog({
   vendor,
   onOpenChange,

@@ -8,7 +8,6 @@ interface TourStatsGridProps {
   tour: TourDetailFromApi;
 }
 
-/** Một ô thông số: nhãn nhỏ ở trên, giá trị lớn ở dưới, chú thích tuỳ chọn. */
 function StatTile({
   icon,
   label,
@@ -35,9 +34,6 @@ function StatTile({
   );
 }
 
-/**
- * Dải thông số tour — độ khó, thời gian chuyến đi, quy mô đoàn.
- */
 export function TourStatsGrid({ tour }: TourStatsGridProps) {
   const difficultyLabel = DIFFICULTY_LABELS[tour.difficulty] ?? tour.difficulty;
   const durationText = formatTourDuration(tour.durationDays);

@@ -11,7 +11,6 @@ const STATUS_BADGE_CONFIG: Record<VendorStatus, { label: string; color: string; 
     REVOKED: { label: 'Đã thu hồi', color: '#DC2626', bgColor: 'rgba(220, 38, 38, 0.1)' },
   };
 
-/** Hiển thị trạng thái Vendor với dot indicator + text, giống pattern StatusIndicator của accounts. */
 export function VendorStatusBadge({ status }: VendorStatusBadgeProps) {
   const { label, color, bgColor } = STATUS_BADGE_CONFIG[status];
 

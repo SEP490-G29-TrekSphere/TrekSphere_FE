@@ -174,7 +174,6 @@ export const companionGroupService = {
     return unwrapResponse(response);
   },
 
-  /** Trưởng nhóm xoá một Member (không thể xoá chính Trưởng nhóm) khỏi nhóm ghép. */
   async removeMember(groupId: string, memberId: string): Promise<MatchingMemberItem> {
     const response = await ApiService<MatchingMemberItem>(
       `/matching-groups/${groupId}/members/${memberId}/remove`,

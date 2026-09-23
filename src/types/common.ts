@@ -1,10 +1,3 @@
-/**
- * Common types dùng chung trong toàn project.
- *
- * Quy ước:
- * - Mỗi entity là 1 interface export riêng.
- * - Type riêng của feature KHÔNG đặt ở đây — đặt trong feature đó (features/<feature>/types.ts).
- */
 
 export interface AuthUser {
   id: string;
@@ -14,10 +7,6 @@ export interface AuthUser {
   role: import('@/constants').Role;
 }
 
-/**
- * Chuẩn response trả về từ Backend.
- * Đã được normalize qua `apiClient.handleResponse`.
- */
 export interface ApiSuccess<T> {
   data: T;
   status: number;

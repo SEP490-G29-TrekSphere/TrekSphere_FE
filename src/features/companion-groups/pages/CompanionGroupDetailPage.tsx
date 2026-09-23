@@ -118,9 +118,7 @@ export default function CompanionGroupDetailPage({
   return (
     <div className={shellClassName}>
       {actions.feedback && (
-        // z-[100]: cùng lớp với AppGlobalToast để nổi trên backdrop `z-50` của
-        // AppModalShell. Để z-50 thì banner bằng điểm với backdrop, portal của
-        // modal nằm sau #root nên vẽ đè lên và banner bị kéo vào vùng blur.
+
         <div className="fade-in slide-in-from-top-4 fixed top-6 right-6 z-[100] animate-in rounded-xl bg-primary px-6 py-3 font-semibold text-sm text-white shadow-lg">
           {actions.feedback}
         </div>

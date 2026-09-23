@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { voteService } from '../../services/voteService';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/** Huỷ sớm bởi người mở vote hoặc Leader, không tính kết quả. */
 export function useCancelVote(groupId: string) {
   const queryClient = useQueryClient();
 

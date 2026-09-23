@@ -6,7 +6,6 @@ interface SosStatusWidgetProps {
   onViewSosDetail: () => void;
 }
 
-/** Widget tóm tắt trạng thái SOS trong tab Tổng quan — banner sticky đã hiện chi tiết đầy đủ ở trên. */
 export function SosStatusWidget({ activeSosAlerts, onViewSosDetail }: SosStatusWidgetProps) {
   const hasActive = activeSosAlerts.length > 0;
 

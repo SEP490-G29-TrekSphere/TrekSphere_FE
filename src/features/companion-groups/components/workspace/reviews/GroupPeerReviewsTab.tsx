@@ -16,7 +16,6 @@ interface GroupPeerReviewsTabProps {
   isTripEnded: boolean;
 }
 
-/** Tab "Đánh giá" trong workspace nhóm ghép — chỉ mở sau khi chuyến đi hoàn thành. */
 export function GroupPeerReviewsTab({ groupId, isTripEnded }: GroupPeerReviewsTabProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<PeerReviewCandidate | null>(null);
 
@@ -30,8 +29,6 @@ export function GroupPeerReviewsTab({ groupId, isTripEnded }: GroupPeerReviewsTa
   );
   const submitReviewMutation = useSubmitPeerReview(groupId);
 
-  // Ứng viên trong modal phải lấy lại từ cache mới nhất, nếu giữ bản chụp lúc mở modal
-  // thì sau khi chấm xong trạng thái "đã đánh giá" không được phản ánh.
   const activeCandidate = selectedCandidate
     ? (candidates.find(
         (candidate) => candidate.matchingMemberId === selectedCandidate.matchingMemberId

@@ -2,19 +2,13 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 
 interface MomentLightboxProps {
-  /** Danh sách ảnh đã được lọc an toàn (`getSafeImageUrl`). */
+
   urls: string[];
   index: number;
   onIndexChange: (index: number) => void;
   onClose: () => void;
 }
 
-/**
- * Xem ảnh toàn màn hình có điều hướng trước/sau.
- *
- * Bản demo cũ chỉ mở đúng một ảnh nên người dùng phải đóng — mở lại để xem ảnh kế tiếp;
- * ở đây hỗ trợ phím ←/→/Esc và nút điều hướng cho cả chuột lẫn bàn phím.
- */
 export function MomentLightbox({ urls, index, onIndexChange, onClose }: MomentLightboxProps) {
   const total = urls.length;
   const hasMultiple = total > 1;

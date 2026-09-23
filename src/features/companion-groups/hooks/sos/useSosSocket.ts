@@ -5,12 +5,6 @@ import { toast } from '@/store/useToastStore';
 import type { SosAlertResponse } from '../../types/sos';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
-/**
- * Subscribe vào "/topic/matching-groups/{groupId}/sos" bằng chung 1 kết nối STOMP đã có
- * sẵn từ chat (không mở thêm SockJS connection thứ 2) — copy pattern từ
- * `useNotificationSocket`. Khi có alert mới/được đóng: invalidate cache active + history,
- * hiện toast tương ứng. Mount 1 lần trong `GroupWorkspace` (nơi đã biết `groupId`).
- */
 export function useSosSocket(groupId?: string) {
   const { client, isConnected } = useChatWebSocket();
   const queryClient = useQueryClient();
@@ -38,7 +32,7 @@ export function useSosSocket(groupId?: string) {
           });
         }
       } catch {
-        // Bỏ qua payload không đúng định dạng, không làm crash app.
+
       }
     });
 

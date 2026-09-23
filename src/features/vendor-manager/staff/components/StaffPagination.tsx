@@ -8,7 +8,6 @@ interface StaffPaginationProps {
   pageSize: number;
 }
 
-/** Footer phân trang cho bảng nhân viên — cùng UI với `AccountPagination` bên Admin. */
 export function StaffPagination({
   currentPage,
   totalPages,

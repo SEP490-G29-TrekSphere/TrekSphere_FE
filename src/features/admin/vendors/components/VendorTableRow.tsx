@@ -7,14 +7,6 @@ interface VendorTableRowProps {
   onChangeStatus: (vendor: AdminVendor) => void;
 }
 
-/**
- * Một hàng trong bảng vendor list.
- * - Cột 1: Logo tròn + tên công ty (đậm) + description rút gọn bên dưới (nếu có).
- * - Cột 2: VendorStatusBadge.
- * - Cột 3: Email liên hệ.
- * - Cột 4: Nút "Đổi trạng thái" (icon bút chì) — hành động admin duy nhất
- *   khả dụng, vì API không hỗ trợ sửa thông tin vendor hay xem chi tiết riêng.
- */
 export function VendorTableRow({ vendor, onChangeStatus }: VendorTableRowProps) {
   const initial = vendor.companyName.charAt(0).toUpperCase();
 

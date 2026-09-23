@@ -17,7 +17,6 @@ interface SubmitApprovalConfirmDialogProps {
   isPending?: boolean;
 }
 
-/** Xác nhận trước khi gửi tour lên cho Manager duyệt — mirror `DeleteTourConfirmDialog`. */
 export function SubmitApprovalConfirmDialog({
   open,
   onOpenChange,
@@ -29,11 +28,8 @@ export function SubmitApprovalConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
-          <div
-            className="mb-2 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(14, 124, 107, 0.1)' }}
-          >
-            <Send className="h-5 w-5" style={{ color: '#0E7C6B' }} />
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+            <Send className="h-5 w-5 text-primary" />
           </div>
           <DialogTitle className="text-xl font-bold">Gửi yêu cầu kiểm duyệt</DialogTitle>
           <DialogDescription className="text-center leading-relaxed">
@@ -51,8 +47,7 @@ export function SubmitApprovalConfirmDialog({
             Hủy
           </Button>
           <Button
-            className="flex-1 rounded-full text-white"
-            style={{ backgroundColor: '#06261D' }}
+            className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover"
             onClick={onConfirm}
             disabled={isPending}
           >

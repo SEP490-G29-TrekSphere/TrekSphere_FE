@@ -9,11 +9,10 @@ interface MomentAlbumGridProps {
   media: MomentMediaItem[];
   isLoading: boolean;
   emptyDescription: string;
-  /** Mở lightbox tại đúng vị trí ảnh được bấm. */
+
   onSelectImage: (index: number) => void;
 }
 
-/** Lưới ảnh gom từ toàn bộ khoảnh khắc. */
 export function MomentAlbumGrid({
   media,
   isLoading,

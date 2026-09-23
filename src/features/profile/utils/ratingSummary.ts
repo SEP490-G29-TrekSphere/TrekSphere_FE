@@ -2,12 +2,12 @@ import type { PeerReviewItem } from '@/features/companion-groups/services/peerRe
 
 export interface PeerReviewSummary {
   totalReviews: number;
-  /** `null` khi chưa có đánh giá nào — KHÔNG mặc định 5.0 để tránh hiểu nhầm. */
+
   overallAverage: number | null;
   enduranceAverage: number | null;
   punctualityAverage: number | null;
   financeAverage: number | null;
-  /** Số lượt đánh giá theo từng mức sao (1–5). */
+
   starCounts: Record<number, number>;
 }
 
@@ -17,7 +17,6 @@ function average(total: number, count: number): number | null {
   return count > 0 ? total / count : null;
 }
 
-/** Tổng hợp điểm trung bình và histogram từ danh sách đánh giá ẩn danh. */
 export function summarizePeerReviews(reviews: PeerReviewItem[]): PeerReviewSummary {
   const starCounts: Record<number, number> = { ...EMPTY_STAR_COUNTS };
   let sumOverall = 0;
@@ -54,7 +53,6 @@ export function summarizePeerReviews(reviews: PeerReviewItem[]): PeerReviewSumma
   };
 }
 
-/** Hiển thị điểm dạng "4.8", hoặc "—" khi chưa có dữ liệu. */
 export function formatRatingValue(value: number | null): string {
   return value === null ? '—' : value.toFixed(1);
 }

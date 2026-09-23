@@ -18,7 +18,6 @@ interface OpenLeaderElectionModalProps {
   onSuccess?: () => void;
 }
 
-/** Trả về datetime-local mặc định = hiện tại + 24 giờ, theo múi giờ local của trình duyệt. */
 function defaultClosesAtLocal(): string {
   const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
@@ -57,7 +56,7 @@ export function OpenLeaderElectionModal({
 
   const candidateIds = watch('candidateMemberIds') || [];
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ muốn reset form khi isOpen đổi (mở lại modal), không phải mỗi khi object mutation đổi identity giữa các render
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
   useEffect(() => {
     if (isOpen) {
       reset({

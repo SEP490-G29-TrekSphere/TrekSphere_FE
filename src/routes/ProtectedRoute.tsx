@@ -10,16 +10,14 @@ interface ProtectedRouteProps {
 }
 
 /**
- * Bọc các route cần đăng nhập.
- * - Chưa login → redirect về /login, lưu lại "from" để sau khi login có thể quay lại.
- * - Đợi store hydrated xong trước khi check auth (tránh race condition khi F5).
+ * Route guard component ensuring the user is authenticated before rendering children.
+ * Preserves the previous location state for redirection upon login.
  */
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthCheck();
   const user = useAppStore((state) => state.user);
   const location = useLocation();
 
-  // Đang loading (store chưa hydrated) → hiển thị spinner, không redirect
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">

@@ -21,16 +21,18 @@ interface AppState {
   setHasHydrated: (state: boolean) => void;
 }
 
+/**
+ * Global application store for session, user identity, and UI layout states.
+ */
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       isSidebarOpen: true,
       toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       user: null,
-      // Chuẩn hoá roles ngay tại cửa ngõ duy nhất ghi user vào store: mọi nơi
-      // check quyền (`RequireRole`, `getPrimaryRole`, `getRoleDashboardPath`)
-      // đều so khớp lowercase, nên chỉ cần một call site quên normalize là
-      // user mất quyền truy cập portal của chính mình.
+      /**
+       * Normalizes roles at store ingress to ensure uniform RBAC checks across portals.
+       */
       setUser: (user) =>
         set({ user: user ? { ...user, roles: normalizeRoleList(user.roles) } : null }),
       isLoading: false,

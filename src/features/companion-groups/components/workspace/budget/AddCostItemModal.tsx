@@ -1,51 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Bus,
-  CircleDollarSign,
-  Compass,
-  FileText,
-  Loader2,
-  Plus,
-  ShieldCheck,
-  Tent,
-  UtensilsCrossed,
-  X,
-} from 'lucide-react';
+import { FileText, Loader2, Plus, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { AppCurrencyInput, AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
+import { CATEGORY_OPTIONS } from '../../../constants';
 import { useCreateGroupCostItem } from '../../../hooks/useGroupBudgetWorkspace';
-import type { CostItemCategory } from '../../../types/matchingGroup';
+import { type CostItemFormValues, costItemSchema } from '../../../validations';
 
-const costItemSchema = z.object({
-  itemName: z
-    .string()
-    .min(1, 'Vui lòng nhập tên khoản chi dự toán')
-    .max(100, 'Tên khoản chi không được vượt quá 100 ký tự'),
-  category: z.enum(['PERMIT', 'GUIDE', 'FOOD', 'TRANSPORT', 'GEAR', 'OTHER']),
-  estimatedAmount: z
-    .number({ message: 'Số tiền không hợp lệ' })
-    .positive('Số tiền dự toán phải lớn hơn 0')
-    .max(1_000_000_000, 'Số tiền không được vượt quá 1 tỷ VNĐ'),
-  note: z.string().max(255, 'Ghi chú không được quá 255 ký tự').optional().nullable(),
-});
-
-type CostItemFormValues = z.infer<typeof costItemSchema>;
-
-export const CATEGORY_OPTIONS: {
-  value: CostItemCategory;
-  label: string;
-  icon: typeof CircleDollarSign;
-}[] = [
-  { value: 'PERMIT', label: 'Giấy phép & Phí bảo tồn', icon: ShieldCheck },
-  { value: 'GUIDE', label: 'Hướng dẫn viên & Porter', icon: Compass },
-  { value: 'FOOD', label: 'Ăn uống & Nước uống', icon: UtensilsCrossed },
-  { value: 'TRANSPORT', label: 'Di chuyển & Xe đưa đón', icon: Bus },
-  { value: 'GEAR', label: 'Thuê lều & Trang bị', icon: Tent },
-  { value: 'OTHER', label: 'Chi phí phát sinh khác', icon: CircleDollarSign },
-];
+export { CATEGORY_OPTIONS };
 
 interface AddCostItemModalProps {
   isOpen: boolean;

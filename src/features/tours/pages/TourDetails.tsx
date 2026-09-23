@@ -30,7 +30,6 @@ import { useTourSchedules } from '@/features/tours/hooks/useTourSchedules';
 import { ReportModal } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
-/** Thứ tự này phải khớp thứ tự các section trong DOM để scrollspy chạy đúng. */
 const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.overview, label: 'Tổng quan' },
   { id: SECTION_IDS.schedules, label: 'Lịch khởi hành' },
@@ -40,7 +39,6 @@ const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.requirements, label: 'Điều kiện' },
 ];
 
-/** Tiêu đề chung cho mọi khối nội dung ở cột trái. */
 function SectionHeading({ title, description }: { title: string; description?: string }) {
   return (
     <div className="mb-4">
@@ -50,14 +48,6 @@ function SectionHeading({ title, description }: { title: string; description?: s
   );
 }
 
-/**
- * Trang chi tiết tour — `GET /tours/{tourId}` cộng lịch khởi hành và checkpoint.
- *
- * Bố cục: hero → thanh nav dính theo section → hai cột, cột phải là thẻ đặt tour
- * dính theo màn hình. Trang chỉ giữ đúng một mẩu state dùng chung là lịch đang
- * chọn: danh sách lịch bên trái ghi vào, thẻ đặt tour bên phải và thanh mobile đọc
- * ra, nhờ vậy giá và ngày ở ba nơi luôn là một.
- */
 export default function TourDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAppStore((state) => state.user);
@@ -67,8 +57,6 @@ export default function TourDetailsPage() {
   const { data: apiSchedules } = useTourSchedules(id);
   const { data: checkpoints, isLoading: isLoadingCheckpoints } = useTourCheckpoints(id);
 
-  // `GET /tours/{id}` đã kèm `schedules`, endpoint riêng chỉ để làm mới; ưu tiên
-  // dữ liệu mới hơn nhưng vẫn có sẵn để render ngay lần đầu.
   const schedules = apiSchedules ?? tour?.schedules ?? [];
 
   const bookableSchedules = useMemo(
@@ -124,7 +112,7 @@ export default function TourDetailsPage() {
         )}
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
-          {/* Cột trái — nội dung tour */}
+
           <div className="flex min-w-0 flex-col gap-10">
             <section
               id={SECTION_IDS.overview}
@@ -178,14 +166,12 @@ export default function TourDetailsPage() {
             )}
           </div>
 
-          {/* Cột phải — thẻ đặt tour dính, ẩn trên mobile vì đã có thanh đáy */}
           <aside className="hidden flex-col gap-5 lg:sticky lg:top-32 lg:flex">
             <TourBookingRail tour={tour} schedules={schedules} isLoggedIn={!!user} />
             <TourVendorCard tour={tour} />
           </aside>
         </div>
 
-        {/* Nhà tổ chức trên mobile: đặt cuối trang, sau khi đã đọc hết nội dung */}
         <div className="mt-10 lg:hidden">
           <TourVendorCard tour={tour} />
         </div>
@@ -196,7 +182,7 @@ export default function TourDetailsPage() {
         hasSchedules={bookableSchedules.length > 0}
         isLoggedIn={!!user}
       />
-      {/* Chừa chỗ cho thanh đáy để không che mất nội dung cuối trang */}
+
       <div className="h-20 lg:hidden" aria-hidden="true" />
 
       <ReportModal

@@ -11,12 +11,6 @@ import type {
   UpdateBlogCommentPayload,
 } from '../types';
 
-/**
- * Query keys dùng chung cho blog feature.
- * Centralized để tránh typo và dễ invalidate.
- *
- * Identifier chính của blog là `blogId` (UUID từ BE).
- */
 export const blogKeys = {
   all: ['blogs'] as const,
   lists: () => [...blogKeys.all, 'list'] as const,
@@ -28,10 +22,6 @@ export const blogKeys = {
   comments: (blogId: string) => [...blogKeys.detail(blogId), 'comments'] as const,
 };
 
-/**
- * Hook lấy danh sách bài viết phân trang.
- * Khi params (keyword/page/size/sortBy/sortDir) đổi sẽ tự refetch.
- */
 export function useBlogList(params: BlogListParams) {
   return useQuery<{ items: BlogListItem[]; meta: BlogListMeta }>({
     queryKey: blogKeys.list(params),
@@ -41,15 +31,6 @@ export function useBlogList(params: BlogListParams) {
   });
 }
 
-/**
- * Hook lấy bài viết theo kiểu cuộn vô tận cho community feed.
- *
- * BE trả `totalPages` (Spring Data) nên `getNextPageParam` chỉ cần so trang hiện tại
- * với tổng số trang — hết trang thì trả `undefined` để React Query dừng.
- * `pageParam` ở đây là số trang 1-indexed (service tự trừ 1 khi gọi BE).
- *
- * Khi `keyword`/`sortBy`/`sortDir` đổi, query key đổi → danh sách reset về trang 1.
- */
 export function useInfiniteBlogList(params: Omit<BlogListParams, 'page'>) {
   return useInfiniteQuery({
     queryKey: blogKeys.infiniteList(params),
@@ -63,10 +44,6 @@ export function useInfiniteBlogList(params: Omit<BlogListParams, 'page'>) {
   });
 }
 
-/**
- * Hook lấy chi tiết bài viết theo `blogId`.
- * Trả về BlogPostDetail (content, coverImageUrl, comments tree, tags, ...).
- */
 export function useBlogDetail(blogId: string | undefined) {
   return useQuery<BlogPostDetail | null>({
     queryKey: blogKeys.detail(blogId ?? ''),
@@ -76,13 +53,6 @@ export function useBlogDetail(blogId: string | undefined) {
   });
 }
 
-/**
- * Hook lấy danh sách "bài viết liên quan" hiển thị sidebar.
- *
- * BE hiện KHÔNG trả `related_blogs` trong detail response → tạm thời
- * reuse list endpoint (cùng sort dir) làm "gợi ý" cho sidebar.
- * Khi BE bổ sung endpoint `/blogs/{blogId}/related` thì chỉ cần thay service.
- */
 export function useBlogRelated(currentBlogId: string | undefined) {
   return useQuery<BlogListItem[]>({
     queryKey: [...blogKeys.all, 'related', currentBlogId ?? ''] as const,
@@ -100,16 +70,6 @@ export function useBlogRelated(currentBlogId: string | undefined) {
   });
 }
 
-/**
- * Hook lấy comments của bài viết (gọi endpoint riêng `/blogs/{blogId}/comments`).
- *
- * Dùng `topLevelOnly: true` — mỗi bình luận gốc trả về kèm cây `replies` lồng nhau,
- * nên không cần phân trang riêng cho reply. `size` lấy lớn để tránh phải làm UI
- * phân trang comment (ngoài phạm vi hiện tại).
- *
- * Lưu ý: KHÔNG dùng `GET /blogs/{id}` (blog detail) làm nguồn comment vì endpoint đó
- * tăng viewCount mỗi lần gọi — refetch sau mỗi thao tác comment sẽ làm tăng view ảo.
- */
 export function useBlogComments(blogId: string | undefined) {
   return useQuery<{ items: BlogCommentItem[]; meta: BlogCommentListMeta }>({
     queryKey: blogKeys.comments(blogId ?? ''),
@@ -119,11 +79,6 @@ export function useBlogComments(blogId: string | undefined) {
   });
 }
 
-/**
- * Hook tạo comment mới hoặc trả lời (kèm `parentCommentId`).
- * - Yêu cầu user đã đăng nhập (BE check accessToken).
- * - Chỉ invalidate cache comments (KHÔNG đụng blog detail — tránh tăng viewCount ảo).
- */
 export function useCreateBlogComment(blogId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -142,9 +97,6 @@ export function useCreateBlogComment(blogId: string | undefined) {
   });
 }
 
-/**
- * Hook sửa nội dung comment (chỉ chủ comment — kiểm tra ở UI, BE cũng enforce).
- */
 export function useUpdateBlogComment(blogId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -163,9 +115,6 @@ export function useUpdateBlogComment(blogId: string | undefined) {
   });
 }
 
-/**
- * Hook xóa comment (chỉ chủ comment — kiểm tra ở UI, BE cũng enforce).
- */
 export function useDeleteBlogComment(blogId: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({

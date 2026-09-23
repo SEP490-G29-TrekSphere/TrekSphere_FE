@@ -25,7 +25,6 @@ import { useVendorTourCheckpoints } from '@/features/vendor-tours/hooks/useVendo
 import { useVendorTourDetail } from '@/features/vendor-tours/hooks/useVendorTourDetail';
 import type { VendorTourCheckpoint } from '@/features/vendor-tours/types';
 
-/** Thứ tự phải khớp DOM để scrollspy chạy đúng — bỏ mục Đánh giá (không áp dụng khi xem trước). */
 const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.overview, label: 'Tổng quan' },
   { id: SECTION_IDS.schedules, label: 'Lịch khởi hành' },
@@ -44,7 +43,6 @@ function SectionHeading({ title, description }: { title: string; description?: s
   );
 }
 
-/** Checkpoint vendor (field optional/undefined) → shape guest (field nullable) cho các section tái dùng. */
 function toGuestCheckpoint(checkpoint: VendorTourCheckpoint): TourCheckpoint {
   return {
     checkpointId: checkpoint.checkpointId,
@@ -60,13 +58,6 @@ function toGuestCheckpoint(checkpoint: VendorTourCheckpoint): TourCheckpoint {
   };
 }
 
-/**
- * Xem trước tour dạng đọc — dành riêng cho Vendor, khác trang `/tours/:id` (Guest) vì trang đó
- * chỉ trả về tour đã `PUBLISHED` (`findPublishedDetailById` phía BE). Trang này lấy dữ liệu qua
- * `GET /vendor/tours/{id}` (hoạt động ở mọi trạng thái DRAFT/PUBLISHED/HIDDEN) nên Vendor xem
- * trước được cả tour chưa công khai. Tái dùng nguyên các section hiển thị của trang Guest (đều là
- * component thuần, nhận props) — bỏ phần Đặt tour/Đánh giá/Thẻ vendor vì không áp dụng ở đây.
- */
 export default function TourPreview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

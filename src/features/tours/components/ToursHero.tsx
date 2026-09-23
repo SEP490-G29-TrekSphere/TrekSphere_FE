@@ -2,13 +2,6 @@ interface ToursHeroProps {
   className?: string;
 }
 
-/**
- * Hero section for the List Tours page.
- * Renders the "Khám phá / Du lịch" treatment with a mint/green gradient background.
- *
- * The hero sits inside the PublicLayout (fixed 64px header) and starts with a top
- * padding that leaves room for it.
- */
 export default function ToursHero({ className = '' }: ToursHeroProps) {
   return (
     <section

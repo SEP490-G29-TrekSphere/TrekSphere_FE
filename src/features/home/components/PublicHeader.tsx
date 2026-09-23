@@ -37,14 +37,12 @@ export default function PublicHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [location.pathname]);
 
-  // Điều hướng xong thì đóng mobile menu & dropdown
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
     setNotificationOpen(false);
   }, []);
 
-  // Đóng cả mobile menu lẫn dropdown khi click ra ngoài header
   useEffect(() => {
     const handler = (e: MouseEvent | TouchEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
@@ -91,7 +89,7 @@ export default function PublicHeader() {
     >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Nút hamburger — chuyển sang bên TRÁI trên mobile */}
+
           <button
             type="button"
             onClick={() => {
@@ -227,7 +225,7 @@ export default function PublicHeader() {
               </div>
             </>
           ) : (
-            /* Khách vãng lai: Đăng nhập / Đăng ký */
+
             <>
               <Link
                 to={PATHS.LOGIN}
@@ -252,7 +250,6 @@ export default function PublicHeader() {
         </div>
       </div>
 
-      {/* Mobile nav panel — trượt xuống khi mở, ẩn trên ≥ md */}
       {mobileMenuOpen && (
         <nav
           id="public-mobile-nav"

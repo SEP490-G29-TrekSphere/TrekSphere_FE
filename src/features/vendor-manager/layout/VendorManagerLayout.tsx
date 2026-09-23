@@ -34,8 +34,6 @@ export default function VendorManagerLayout() {
   const vendorName = user?.name || 'Nhà Cung Cấp';
   const vendorInitial = vendorName.charAt(0).toUpperCase();
 
-  // Nhiều mục có thể cùng khớp prefix (vd "Tour" và "Duyệt tour" đều bắt đầu bằng
-  // "/vendor/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
   const activeItem = navItems
     .filter((item) => !item.disabled && location.pathname.startsWith(item.path))
     .sort((a, b) => b.path.length - a.path.length)[0];

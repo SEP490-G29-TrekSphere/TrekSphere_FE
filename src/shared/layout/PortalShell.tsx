@@ -28,31 +28,28 @@ export function usePortalSidebar() {
 export type PortalShellRenderProp<T = void> = ReactNode | ((props: T) => ReactNode);
 
 interface PortalShellProps {
-  /** Khối logo + phụ đề ở đầu sidebar — dùng chung cho desktop và drawer mobile. */
+  /** Logo & branding section at the top of the sidebar. */
   brand: PortalShellRenderProp<{ collapsed: boolean; toggleCollapsed: () => void }>;
-  /** Danh sách điều hướng. */
+  /** Navigation item list. */
   nav: PortalShellRenderProp<{ collapsed: boolean }>;
-  /** Thẻ người dùng ở đáy sidebar. */
+  /** User profile card at the bottom of the sidebar. */
   userCard: PortalShellRenderProp<{ collapsed: boolean }>;
-  /** Nhãn ngắn hiển thị trên topbar mobile (thường là tên portal). */
+  /** Mobile header title. */
   mobileTitle: ReactNode;
   children: ReactNode;
   rootClassName?: string;
   rootStyle?: CSSProperties;
   sidebarClassName?: string;
   sidebarStyle?: CSSProperties;
-  /** Trang tự quản lý scroll/padding riêng (vd trang chat) — bỏ padding mặc định. */
+  /** Whether to render full width/height without outer padding (e.g. Chat pane). */
   fullBleed?: boolean;
-  /** Nội dung hiển thị bên phải thanh topbar desktop (vd NotificationBell). Không có thì không render thanh này — topbar mobile (md:hidden ở trên) không bị ảnh hưởng. */
+  /** Optional top-right desktop header actions (e.g. NotificationBell). */
   headerRight?: ReactNode;
 }
 
 /**
- * Khung dùng chung cho mọi portal có sidebar (Admin, Trekker, Vendor*, Coordinator).
- *
- * Trên `md` trở lên sidebar hỗ trợ 2 chế độ: mở rộng (w-72) và thu gọn (w-20),
- * có nút toggle lưu trạng thái vào localStorage. Dưới `md` nó trở thành drawer
- * trượt từ trái, mở bằng nút trên topbar mobile.
+ * Shared layout shell for admin, vendor, coordinator, and trekker portal views.
+ * Supports desktop collapsible sidebar and mobile drawer navigation.
  */
 export default function PortalShell({
   brand,
@@ -91,8 +88,8 @@ export default function PortalShell({
 
   const location = useLocation();
 
-  // Điều hướng xong thì đóng drawer, nếu không nó che mất trang vừa mở.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname chỉ dùng để trigger effect, không đọc giá trị trong body
+  // Close mobile drawer on route change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers drawer dismissal
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -103,7 +100,6 @@ export default function PortalShell({
       if (e.key === 'Escape') setOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
-    // Khoá scroll nền khi drawer mở để tránh cuộn xuyên qua lớp phủ.
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -136,11 +132,11 @@ export default function PortalShell({
   return (
     <PortalSidebarContext.Provider value={{ collapsed, toggleCollapsed, setCollapsed }}>
       <div className={`flex h-dvh w-full overflow-hidden ${rootClassName}`} style={rootStyle}>
-        {/* Lớp phủ chỉ tồn tại ở mobile khi drawer mở */}
+        {/* Mobile drawer backdrop */}
         {open && (
           <button
             type="button"
-            aria-label="Đóng menu điều hướng"
+            aria-label="Close navigation drawer"
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 bg-black/40 md:hidden"
           />
@@ -172,8 +168,8 @@ export default function PortalShell({
                   type="button"
                   onClick={toggleCollapsed}
                   className="hidden rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-black/5 hover:text-zinc-800 md:flex cursor-pointer"
-                  aria-label={collapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
-                  title={collapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
+                  aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                  title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
                   {collapsed ? (
                     <PanelLeftOpen className="h-5 w-5" />
@@ -187,7 +183,7 @@ export default function PortalShell({
                   type="button"
                   onClick={() => setOpen(false)}
                   className="-mr-2 rounded-lg p-2 text-zinc-500 transition-colors hover:bg-black/5 hover:text-zinc-800 md:hidden"
-                  aria-label="Đóng menu điều hướng"
+                  aria-label="Close navigation drawer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -198,7 +194,6 @@ export default function PortalShell({
           {renderUserCard()}
         </aside>
 
-        {/* `min-w-0` chặn nội dung rộng (bảng, ảnh) kéo giãn cột flex vượt màn hình */}
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <header
             className="flex h-14 shrink-0 items-center gap-3 border-b border-black/10 bg-white/80 px-4 backdrop-blur md:hidden"
@@ -208,7 +203,7 @@ export default function PortalShell({
               type="button"
               onClick={() => setOpen(true)}
               className="-ml-2 rounded-lg p-2 text-zinc-600 transition-colors hover:bg-black/5 hover:text-zinc-900"
-              aria-label="Mở menu điều hướng"
+              aria-label="Open navigation drawer"
               aria-expanded={open}
             >
               <Menu className="h-6 w-6" />

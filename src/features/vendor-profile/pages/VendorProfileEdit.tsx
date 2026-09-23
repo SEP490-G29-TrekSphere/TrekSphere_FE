@@ -6,9 +6,6 @@ import { CompanyInfoCard } from '../components/edit/CompanyInfoCard';
 import { useUpdateVendorProfile } from '../hooks/useUpdateVendorProfile';
 import { useVendorProfile } from '../hooks/useVendorProfile';
 
-/**
- * Trang "Chi tiết hồ sơ" — Vendor Manager cập nhật thông tin công ty và liên hệ.
- */
 export default function VendorProfileEdit() {
   const navigate = useNavigate();
   const { data: profile, isLoading, isError, error } = useVendorProfile();
@@ -18,12 +15,10 @@ export default function VendorProfileEdit() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
-  // File object của logo mới (null = không đổi)
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  // Preview local để hiển thị ngay khi user vừa chọn file
+
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  // Nạp giá trị hiện tại khi profile tải xong.
   useEffect(() => {
     if (!profile) return;
     setDescription(profile.description ?? '');

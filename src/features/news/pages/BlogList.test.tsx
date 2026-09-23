@@ -28,7 +28,6 @@ jest.mock('../hooks/useBlog', () => ({
   useInfiniteBlogList: () => mockQueryState,
 }));
 
-/** Bắt callback của IntersectionObserver để chủ động kích hoạt trong test. */
 let observerCallback: IntersectionObserverCallback | null = null;
 const observeSpy = jest.fn();
 
@@ -99,7 +98,7 @@ describe('BlogList (community feed)', () => {
 
     expect(observeSpy).toHaveBeenCalled();
     observerCallback?.([{ isIntersecting: true } as IntersectionObserverEntry], {
-      // biome-ignore lint/suspicious/noExplicitAny: chỉ cần callback, không dùng instance
+      // biome-ignore lint/suspicious/noExplicitAny: rule suppressed for specific design requirements
     } as any);
 
     expect(mockFetchNextPage).toHaveBeenCalled();

@@ -40,7 +40,6 @@ interface GroupMomentsTabProps {
   groupStatus?: MatchingGroupStatus;
 }
 
-/** Tab "Khoảnh khắc & Album" trong workspace nhóm ghép. */
 export function GroupMomentsTab({
   groupId,
   isLeader,

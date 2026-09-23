@@ -9,7 +9,6 @@ import type {
 } from '../types/workspace';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
-/** Hook đọc danh sách Post trong Group Feed (hỗ trợ phân trang, filter) */
 export function useGroupPosts(groupId: string, filter?: GroupPostFilterParams) {
   return useQuery({
     queryKey: [...groupWorkspaceKeys.posts(groupId), filter],
@@ -22,7 +21,6 @@ export function useGroupPosts(groupId: string, filter?: GroupPostFilterParams) {
   });
 }
 
-/** Hook đọc chi tiết 1 bài Post kèm danh sách bình luận */
 export function useGroupPostDetail(groupId: string, postId: string) {
   return useQuery({
     queryKey: groupWorkspaceKeys.postDetail(groupId, postId),
@@ -35,7 +33,6 @@ export function useGroupPostDetail(groupId: string, postId: string) {
   });
 }
 
-/** Hook tạo bài viết mới trong Feed */
 export function useCreateGroupPost(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -48,7 +45,6 @@ export function useCreateGroupPost(groupId: string) {
   });
 }
 
-/** Hook cập nhật bài viết */
 export function useUpdateGroupPost(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -64,7 +60,6 @@ export function useUpdateGroupPost(groupId: string) {
   });
 }
 
-/** Hook ghim / bỏ ghim bài viết (Chỉ Leader) */
 export function useTogglePinGroupPost(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -77,7 +72,6 @@ export function useTogglePinGroupPost(groupId: string) {
   });
 }
 
-/** Hook xóa bài viết */
 export function useDeleteGroupPost(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -90,7 +84,6 @@ export function useDeleteGroupPost(groupId: string) {
   });
 }
 
-/** Hook ẩn/hiện bài viết (Dành cho Leader hoặc tác giả) */
 export function useToggleHideGroupPost(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -103,7 +96,6 @@ export function useToggleHideGroupPost(groupId: string) {
   });
 }
 
-/** Hook gửi comment vào bài viết */
 export function useCreateGroupComment(groupId: string, postId: string) {
   const queryClient = useQueryClient();
 
@@ -117,7 +109,6 @@ export function useCreateGroupComment(groupId: string, postId: string) {
   });
 }
 
-/** Hook cập nhật comment */
 export function useUpdateGroupComment(groupId: string, postId: string) {
   const queryClient = useQueryClient();
 
@@ -135,7 +126,6 @@ export function useUpdateGroupComment(groupId: string, postId: string) {
   });
 }
 
-/** Hook xóa comment */
 export function useDeleteGroupComment(groupId: string, postId: string) {
   const queryClient = useQueryClient();
 
@@ -149,7 +139,6 @@ export function useDeleteGroupComment(groupId: string, postId: string) {
   });
 }
 
-/** Hook ẩn/hiện comment (Kiểm duyệt - chỉ Leader) */
 export function useToggleHideGroupComment(groupId: string, postId: string) {
   const queryClient = useQueryClient();
 

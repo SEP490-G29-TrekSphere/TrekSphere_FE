@@ -1,9 +1,3 @@
-/**
- * Các section của trang chi tiết tour.
- *
- * Trang `TourDetails` chỉ còn lo bố cục và state dùng chung (lịch đang chọn);
- * mỗi khối nội dung nằm trong một component riêng ở đây.
- */
 
 export * from './shared';
 export { TourBookingRail } from './TourBookingRail';

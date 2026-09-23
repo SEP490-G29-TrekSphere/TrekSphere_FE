@@ -2,7 +2,6 @@ interface StaffStatusBadgeProps {
   isActive: boolean;
 }
 
-/** Badge trạng thái nhân viên: dot + text, giống `StatusIndicator` bên Admin nhưng chỉ 2 trạng thái. */
 export function StaffStatusBadge({ isActive }: StaffStatusBadgeProps) {
   const color = isActive ? '#16A34A' : '#DC2626';
   const bgColor = isActive ? 'rgba(22, 163, 74, 0.1)' : 'rgba(220, 38, 38, 0.1)';

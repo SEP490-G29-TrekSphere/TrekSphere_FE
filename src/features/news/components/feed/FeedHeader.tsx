@@ -12,9 +12,6 @@ interface FeedHeaderProps {
   onTopicSelect?: (topic: string) => void;
 }
 
-/**
- * Phần đầu cột feed: tiêu đề lớn, ô tìm kiếm dạng pill, dropdown sắp xếp và tag chủ đề.
- */
 export function FeedHeader({
   searchQuery,
   onSearchChange,
@@ -36,14 +33,13 @@ export function FeedHeader({
 
   return (
     <header className="pt-6 sm:pt-8">
-      {/* Tiêu đề lớn */}
+
       <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-primary sm:text-5xl">
         Mới nhất
         <br />
         từ cộng đồng
       </h1>
 
-      {/* Tìm kiếm + sắp xếp */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex flex-1 items-center gap-2 rounded-full bg-muted px-4 py-2.5">
           <Search className="size-4 shrink-0 text-muted-foreground" />
@@ -71,7 +67,6 @@ export function FeedHeader({
         </Select>
       </div>
 
-      {/* Tags chủ đề nổi bật dạng pill */}
       {topics.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-muted-foreground mr-1">Chủ đề:</span>

@@ -1,12 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type { ApiStatus } from '../types';
 
-/**
- * Service gọi API "Vendor Tour Statistics" — `GET /vendors/profile/statistics`.
- * KPI tổng quan + thống kê theo từng tour của vendor hiện tại (số lịch khởi hành, số nhóm ghép
- * đã hình thành, tỷ lệ lấp đầy nhóm...). Chỉ đọc, không có action ghi nào ở màn này.
- */
-
 export interface VendorStatisticsOverview {
   totalTours: number;
   draftTours: number;
@@ -14,9 +8,9 @@ export interface VendorStatisticsOverview {
   hiddenTours: number;
   futureOpenSchedules: number;
   matchingGroupCount: number;
-  /** Tỷ lệ 0..1 — tự nhân 100 khi hiển thị. */
+
   averageFillRate: number;
-  /** Tỷ lệ 0..1 — tự nhân 100 khi hiển thị. */
+
   fullGroupRate: number;
 }
 

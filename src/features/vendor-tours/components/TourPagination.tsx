@@ -8,7 +8,6 @@ interface TourPaginationProps {
   pageSize: number;
 }
 
-/** Footer phân trang cho bảng tour — cùng UI với `StaffPagination`. */
 export function TourPagination({
   currentPage,
   totalPages,
