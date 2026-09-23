@@ -19,7 +19,6 @@ interface GroupSosVotesPanelProps {
   votesBadge?: Badge;
 }
 
-/** Gộp "SOS" + "Bình chọn" thành 1 tab có sub-tab bên trong — cả 2 loại "hiếm nhưng quan trọng". */
 export function GroupSosVotesPanel({
   activeSubTab,
   onSubTabChange,

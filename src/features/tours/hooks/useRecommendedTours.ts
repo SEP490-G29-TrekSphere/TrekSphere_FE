@@ -35,7 +35,6 @@ function formatPrice(price?: number | null): string {
 }
 
 export interface RecommendedTour extends Tour {
-  /** Nhãn tiếng Việt cho lý do gợi ý đầu tiên — hiển thị dưới dạng tag nhỏ trên card. */
   matchReasonLabel: string;
 }
 
@@ -80,10 +79,6 @@ export interface UseRecommendedToursResult {
   error: Error | null;
 }
 
-/**
- * Gợi ý tour cá nhân hoá cho Trekker đã đăng nhập (`GET /tours/recommended`).
- * BE yêu cầu role Trekker — không gọi cho Guest/Vendor/Admin.
- */
 export function useRecommendedTours(limit = DEFAULT_LIMIT): UseRecommendedToursResult {
   const user = useAppStore((state) => state.user);
   const isTrekker = getPrimaryRole(user?.roles) === ROLES.TREKKER;

@@ -8,7 +8,6 @@ export const vendorStaffKeys = {
     ['vendor-staff', 'list', filter, page, pageSize] as const,
 };
 
-/** Danh sách nhân viên (bảng chính) — phân trang theo filter/page hiện tại. */
 export function useVendorStaffList(filter: VendorStaffFilter, page: number, pageSize: number) {
   return useQuery({
     queryKey: vendorStaffKeys.list(filter, page, pageSize),

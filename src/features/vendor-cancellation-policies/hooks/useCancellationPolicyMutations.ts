@@ -3,13 +3,6 @@ import { cancellationPolicyService } from '../services/cancellationPolicyService
 import type { CancellationPolicyPayload } from '../types';
 import { cancellationPolicyKeys } from './useCancellationPolicies';
 
-/**
- * Mutation tạo/sửa/xóa chính sách hủy (chỉ Vendor Manager).
- *
- * Ngoài danh sách của vendor, còn invalidate `tourDetail` vì
- * `GET /tours/{id}` nhúng sẵn `cancellationPolicies` — nếu không làm mới,
- * màn Đặt tour sẽ hiển thị điều khoản cũ từ cache.
- */
 export function useCancellationPolicyMutations() {
   const queryClient = useQueryClient();
 

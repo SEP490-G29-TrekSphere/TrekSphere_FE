@@ -16,6 +16,7 @@ import { GroupJourneyTab } from './journey/GroupJourneyTab';
 import { GroupMomentsTab } from './moments/GroupMomentsTab';
 import { GroupOverviewTab } from './overview/GroupOverviewTab';
 import { GroupPeoplePanel, type PeopleSubTabKey } from './people/GroupPeoplePanel';
+import { GroupSosBanner } from './sos/GroupSosBanner';
 import { GroupSosTab } from './sos/GroupSosTab';
 import { GroupVotesTab } from './votes/GroupVotesTab';
 import { type WorkspaceTabKey, WorkspaceTabsNav } from './WorkspaceTabsNav';
@@ -29,11 +30,51 @@ interface GroupWorkspaceProps {
   role: UserRoleInGroup;
   pendingJoinRequestsCount?: number;
   joinRequestsSlot?: ReactNode;
-  /** Bảng quản lý vòng đời nhóm — chỉ Trưởng nhóm mới thấy tab này. */
   managementSlot?: ReactNode;
   onDirectChat: (memberId: string, memberName: string, memberAvatar?: string) => void;
   onAddMemberToChat: (memberId: string, memberName: string) => void;
   onRemoveMember: (memberId: string, memberName: string) => void;
+}
+
+function mapParamToWorkspaceTab(tab: string | null, isLeader: boolean): WorkspaceTabKey {
+  if (!tab) return 'overview';
+  const lower = tab.toLowerCase();
+  if (lower === 'votes' || lower === 'vote') return 'votes';
+  if (lower === 'sos' || lower === 'emergency' || lower === 'sosvotes') return 'sos';
+  if (
+    lower === 'members' ||
+    lower === 'people' ||
+    lower === 'requests' ||
+    lower === 'joinrequests' ||
+    lower === 'reviews'
+  ) {
+    return 'members';
+  }
+  if (
+    lower === 'budget' ||
+    lower === 'expenses' ||
+    lower === 'settlement' ||
+    lower === 'settlements' ||
+    lower === 'cost'
+  ) {
+    return 'budget';
+  }
+  if (lower === 'itinerary' || lower === 'journey' || lower === 'checkpoints') return 'itinerary';
+  if (lower === 'checklist' || lower === 'items') return 'checklist';
+  if (lower === 'moments' || lower === 'albums' || lower === 'photos') return 'moments';
+  if (lower === 'feed' || lower === 'workspace' || lower === 'posts' || lower === 'announcements') {
+    return 'feed';
+  }
+  if ((lower === 'management' || lower === 'settings') && isLeader) return 'management';
+  return 'overview';
+}
+
+function mapParamToPeopleSubTab(tab: string | null, subTab: string | null): PeopleSubTabKey {
+  const t = (tab || '').toLowerCase();
+  const st = (subTab || '').toLowerCase();
+  if (st === 'requests' || t === 'requests' || t === 'joinrequests') return 'requests';
+  if (st === 'reviews' || t === 'reviews') return 'reviews';
+  return 'list';
 }
 
 /** Khu làm việc của nhóm ghép dành cho thành viên & trưởng nhóm. */
@@ -49,47 +90,53 @@ export function GroupWorkspace({
   onAddMemberToChat,
   onRemoveMember,
 }: GroupWorkspaceProps) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const paramTab = searchParams.get('tab');
+  const paramSubTab = searchParams.get('subTab');
   const targetVoteId = searchParams.get('voteId');
 
-  const getInitialTab = (): WorkspaceTabKey => {
-    if (paramTab === 'votes' || paramTab === 'sosVotes') return 'votes';
-    if (paramTab === 'sos') return 'sos';
-    if (paramTab === 'members') return 'members';
-    if (paramTab === 'budget') return 'budget';
-    if (paramTab === 'itinerary') return 'itinerary';
-    if (paramTab === 'checklist') return 'checklist';
-    if (paramTab === 'moments') return 'moments';
-    if (paramTab === 'feed') return 'feed';
-    if (paramTab === 'management' && isLeader) return 'management';
-    return 'overview';
-  };
-
-  const [activeTab, setActiveTab] = useState<WorkspaceTabKey>(getInitialTab);
-  const [activePeopleSubTab, setActivePeopleSubTab] = useState<PeopleSubTabKey>('list');
+  const [activeTab, setActiveTab] = useState<WorkspaceTabKey>(() =>
+    mapParamToWorkspaceTab(paramTab, isLeader)
+  );
+  const [activePeopleSubTab, setActivePeopleSubTab] = useState<PeopleSubTabKey>(() =>
+    mapParamToPeopleSubTab(paramTab, paramSubTab)
+  );
 
   useEffect(() => {
-    if (paramTab === 'votes' || paramTab === 'sosVotes') {
-      setActiveTab('votes');
-    } else if (paramTab === 'sos') {
-      setActiveTab('sos');
-    } else if (paramTab === 'members') {
-      setActiveTab('members');
-    } else if (paramTab === 'budget') {
-      setActiveTab('budget');
-    } else if (paramTab === 'itinerary') {
-      setActiveTab('itinerary');
-    } else if (paramTab === 'checklist') {
-      setActiveTab('checklist');
-    } else if (paramTab === 'moments') {
-      setActiveTab('moments');
-    } else if (paramTab === 'feed') {
-      setActiveTab('feed');
-    } else if (paramTab === 'management' && isLeader) {
-      setActiveTab('management');
-    }
-  }, [paramTab, isLeader]);
+    const targetTab = mapParamToWorkspaceTab(paramTab, isLeader);
+    setActiveTab(targetTab);
+
+    const targetSubTab = mapParamToPeopleSubTab(paramTab, paramSubTab);
+    setActivePeopleSubTab(targetSubTab);
+  }, [paramTab, paramSubTab, isLeader]);
+
+  const handleTabChange = (newTab: WorkspaceTabKey) => {
+    setActiveTab(newTab);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', newTab);
+        if (newTab !== 'votes') {
+          next.delete('voteId');
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const handlePeopleSubTabChange = (newSubTab: PeopleSubTabKey) => {
+    setActivePeopleSubTab(newSubTab);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', 'members');
+        next.set('subTab', newSubTab);
+        return next;
+      },
+      { replace: true }
+    );
+  };
 
   useSosSocket(group.matchingGroupId);
   const { data: activeSosAlerts = [] } = useActiveSosAlerts(group.matchingGroupId);
@@ -97,6 +144,7 @@ export function GroupWorkspace({
   useVoteSocket(group.matchingGroupId);
   const { data: openVotesPage } = useGroupVotes(group.matchingGroupId, {
     status: 'OPEN',
+    page: 0,
     size: 50,
   });
   const openGovernanceVotes = (openVotesPage?.content ?? []).filter(
@@ -127,10 +175,12 @@ export function GroupWorkspace({
       : undefined;
 
   const peopleBadge = pickBadge(requestsBadge, reviewsBadge, membersBadge);
-  const sosVotesBadge = pickBadge(sosBadge, votesBadge);
 
   return (
     <div className="space-y-6">
+      {/* BANNER BÁO ĐỘNG SOS KHẨN CẤP */}
+      <GroupSosBanner alerts={activeSosAlerts} onViewSos={() => handleTabChange('sos')} />
+
       {/* BANNER CẢNH BÁO NHÓM ĐÃ HỦY / GIẢI TÁN */}
       {isCancelled && (
         <div className="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-4 space-y-2 animate-in fade-in slide-in-from-top-2">
@@ -145,7 +195,6 @@ export function GroupWorkspace({
         </div>
       )}
 
-      {/* STICKY BANNER: BIỂU QUYẾT QUAN TRỌNG ĐANG MỞ (bầu Trưởng nhóm / giải tán nhóm) */}
       {!isCancelled && openGovernanceVotes.length > 0 && (
         <div className="rounded-2xl border-2 border-amber-500/60 bg-amber-500/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-extrabold text-xs uppercase">
@@ -164,7 +213,7 @@ export function GroupWorkspace({
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveTab('votes');
+                    handleTabChange('votes');
                   }}
                   className="shrink-0 rounded-full border border-amber-500/40 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition cursor-pointer"
                 >
@@ -195,8 +244,7 @@ export function GroupWorkspace({
           <AppButton
             size="sm"
             onClick={() => {
-              setActiveTab('members');
-              setActivePeopleSubTab('reviews');
+              handlePeopleSubTabChange('reviews');
             }}
             className="shrink-0"
           >
@@ -207,13 +255,12 @@ export function GroupWorkspace({
 
       <WorkspaceTabsNav
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         isLeader={isLeader}
         badges={{
           members: peopleBadge,
           votes: votesBadge,
           sos: sosBadge,
-          sosVotes: sosVotesBadge,
         }}
       />
 
@@ -223,8 +270,8 @@ export function GroupWorkspace({
           isLeader={isLeader}
           currentUserId={currentUserId}
           activeSosAlerts={activeSosAlerts}
-          onViewFullFeed={() => setActiveTab('feed')}
-          onViewSosDetail={() => setActiveTab('sos')}
+          onViewFullFeed={() => handleTabChange('feed')}
+          onViewSosDetail={() => handleTabChange('sos')}
         />
       )}
 
@@ -268,7 +315,7 @@ export function GroupWorkspace({
       {activeTab === 'members' && (
         <GroupPeoplePanel
           activeSubTab={activePeopleSubTab}
-          onSubTabChange={setActivePeopleSubTab}
+          onSubTabChange={handlePeopleSubTabChange}
           isLeader={isLeader}
           members={group.members}
           maxSize={group.maxSize}
@@ -293,7 +340,7 @@ export function GroupWorkspace({
         <GroupBudgetTab group={group} isLeader={isLeader} currentUserId={currentUserId} />
       )}
 
-      {(activeTab === 'votes' || activeTab === 'sosVotes') && (
+      {activeTab === 'votes' && (
         <GroupVotesTab
           groupId={group.matchingGroupId}
           currentUserId={currentUserId}

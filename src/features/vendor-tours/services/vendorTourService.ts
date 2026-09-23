@@ -13,51 +13,6 @@ import type {
   VendorTourListResponse,
 } from '../types';
 
-/**
- * Service gọi API "Vendor Tour Management" (BE tag `Vendor Tour Management` +
- * `Tour & Schedule`) — dùng chung cho cả Vendor Manager và Vendor Staff.
- * Nguồn tham chiếu: `https://api.treksphere.io.vn/v3/api-docs`.
- *
- *   GET    /vendor/tours                      — danh sách tour do vendor hiện tại quản lý,
- *                                                bao gồm cả bản nháp. Chỉ hỗ trợ lọc `keyword`
- *                                                phía server — KHÔNG có param difficulty/status.
- *   POST   /vendor/tours                      — tạo tour mới (mặc định status DRAFT)
- *   PUT    /vendor/tours/{id}                 — cập nhật tour, cùng payload shape với POST
- *                                                (đã test qua Swagger)
- *   DELETE /vendor/tours/{id}                 — xóa mềm tour
- *   POST   /vendor/tours/{tourId}/checkpoints          — thêm 1 checkpoint (tour phải tồn tại trước)
- *   PUT    /vendor/tours/checkpoints/{checkpointId}     — sửa 1 checkpoint đã tồn tại
- *   DELETE /vendor/tours/checkpoints/{checkpointId}     — xóa 1 checkpoint
- *   PUT    /vendor/tours/{id}/publish                 — Vendor tự công khai tour DRAFT (yêu cầu:
- *                                                        đủ field, ảnh bìa, ≥2 checkpoint, ≥1 lịch
- *                                                        OPEN tương lai) — không qua Admin duyệt
- *   PUT    /vendor/tours/{id}/unpublish                — Vendor tự đưa tour PUBLISHED về DRAFT
- *                                                        (chặn nếu đang có nhóm ghép hoạt động)
- *   POST   /vendor/tours/{id}/restore                 — khôi phục tour đã xóa mềm, đưa về DRAFT
- *                                                        (chưa có UI gọi, xem ghi chú tại định
- *                                                        nghĩa hàm `restoreTour` bên dưới)
- *
- * `GET /vendor/tours/{id}` lấy chi tiết đầy đủ 1 tour (đúng schema `TourDetailResponse`) — dùng để
- * đổ vào form Sửa. Danh sách checkpoint của tour dùng bản public `GET /tours/{tourId}/checkpoints`
- * (không có bản `/vendor/...` riêng).
- *
- * LƯU Ý QUAN TRỌNG: `createTour`/`updateTour`/`createCheckpoint`/`updateCheckpoint`
- * bắt buộc `Content-Type: multipart/form-data` (đã xác nhận qua `/v3/api-docs` — cả
- * 4 request này khai báo `requestBody.content["multipart/form-data"]`, KHÔNG phải
- * JSON — gửi JSON thẳng sẽ bị BE từ chối 415/400, đây chính là lỗi tạo tour trước đây).
- *
- * ẢNH BÌA — vì sao gửi CẢ `coverImage` (file) LẪN `coverImageUrl` (string):
- * Hai nguồn tài liệu của BE đang mâu thuẫn nhau.
- *   - Tài liệu tích hợp FE (BE gửi) ghi form tạo tour gồm `coverImage` + `tourImages` dạng file.
- *   - Nhưng `/v3/api-docs` thì `CreateTourRequest`/`UpdateTourRequest` KHÔNG có field ảnh nào,
- *     kể cả `coverImageUrl` — trong khi springdoc rõ ràng ghi nhận được field file ở các DTO
- *     khác (`UpdateProfileRequest.avatar`, `VendorProfileUpdateRequest.logo`,
- *     `PorterProfileRequest.avatarFile` đều có `format: binary`).
- * Thực tế: tour tạo ngày 01/08 lưu được ảnh qua `coverImageUrl`, tour tạo ngày 04/08 thì mất ảnh.
- * Spring bỏ qua part lạ mà không báo lỗi, nên gửi cả hai là an toàn: BE đọc field nào cũng chạy.
- * Khi BE xác nhận tên field thật thì bỏ field thừa đi.
- */
-
 interface VendorTourResponseDto {
   tourId: string;
   tourName: string;
@@ -86,7 +41,6 @@ interface PaginationResponseDto<T> {
   last: boolean;
 }
 
-/** Build FormData cho các request multipart/form-data — bỏ qua field undefined/null. */
 function toFormData(
   fields: Record<string, string | number | boolean | File | undefined | null>
 ): FormData {
@@ -141,14 +95,13 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
 }
 
 export const vendorTourService = {
-  /** Lấy danh sách tour của vendor hiện tại (chỉ lọc `keyword` + phân trang phía server). */
   async listMyTours(
     filter: VendorTourFilter = {},
     page = 1,
     pageSize = 10
   ): Promise<VendorTourListResponse> {
     const params: Record<string, string> = {
-      page: String(page - 1), // BE dùng page 0-based
+      page: String(page - 1),
       size: String(pageSize),
     };
     if (filter.search) {
@@ -171,7 +124,6 @@ export const vendorTourService = {
     };
   },
 
-  /** Tạo tour mới — BE trả về status mặc định DRAFT. */
   async createTour(payload: CreateTourPayload): Promise<CreatedTour> {
     const formData = toFormData({
       tourName: payload.tourName,
@@ -195,16 +147,11 @@ export const vendorTourService = {
     return { id: data.tourId, status: data.status };
   },
 
-  /**
-   * Lấy chi tiết đầy đủ 1 tour — dùng để đổ vào form Sửa.
-   * `/vendor/tours/{id}` không có GET nên phải gọi endpoint public `/tours/{id}`.
-   */
   async getTourDetail(tourId: string): Promise<VendorTourDetail> {
     const response = await ApiService<VendorTourDetail>(`/vendor/tours/${tourId}`, 'GET');
     return unwrapResponse(response);
   },
 
-  /** Cập nhật tour đã tồn tại — gửi nguyên payload hiện tại của form (không diff field). */
   async updateTour(tourId: string, payload: UpdateTourPayload): Promise<CreatedTour> {
     const formData = toFormData({
       tourName: payload.tourName,
@@ -232,7 +179,6 @@ export const vendorTourService = {
     return { id: data.tourId, status: data.status };
   },
 
-  /** Thêm 1 checkpoint vào tour đã tồn tại. */
   async createCheckpoint(tourId: string, payload: TourCheckpointPayload): Promise<void> {
     const formData = toFormData({
       checkpointName: payload.checkpointName,
@@ -250,7 +196,6 @@ export const vendorTourService = {
     unwrapResponse(response);
   },
 
-  /** Lấy danh sách checkpoint hiện có của 1 tour — dùng public endpoint (không có bản `/vendor/...`). */
   async getCheckpoints(tourId: string): Promise<VendorTourCheckpoint[]> {
     const response = await ApiService<VendorTourCheckpoint[]>(
       `/tours/${tourId}/checkpoints`,
@@ -259,7 +204,6 @@ export const vendorTourService = {
     return unwrapResponse(response);
   },
 
-  /** Sửa 1 checkpoint đã tồn tại. */
   async updateCheckpoint(checkpointId: string, payload: TourCheckpointPayload): Promise<void> {
     const formData = toFormData({
       checkpointName: payload.checkpointName,
@@ -278,7 +222,6 @@ export const vendorTourService = {
     unwrapResponse(response);
   },
 
-  /** Xóa 1 checkpoint khỏi lộ trình. */
   async deleteCheckpoint(checkpointId: string): Promise<void> {
     const response = await ApiService<void>(`/vendor/tours/checkpoints/${checkpointId}`, 'DELETE');
     if (response.error) {
@@ -286,7 +229,6 @@ export const vendorTourService = {
     }
   },
 
-  /** Xóa mềm tour khỏi hệ thống. */
   async deleteTour(tourId: string): Promise<void> {
     const response = await ApiService<void>(`/vendor/tours/${tourId}`, 'DELETE');
     if (response.error) {
@@ -294,7 +236,6 @@ export const vendorTourService = {
     }
   },
 
-  /** Vendor tự công khai tour đang DRAFT — BE tự validate đủ điều kiện (checkpoint/lịch/ảnh bìa...). */
   async publishTour(tourId: string): Promise<CreatedTour> {
     const response = await ApiService<TourDetailResponseDto>(
       `/vendor/tours/${tourId}/publish`,
@@ -304,7 +245,6 @@ export const vendorTourService = {
     return { id: data.tourId, status: data.status };
   },
 
-  /** Vendor tự đưa tour PUBLISHED về DRAFT — BE chặn nếu đang có nhóm ghép hoạt động. */
   async unpublishTour(tourId: string): Promise<CreatedTour> {
     const response = await ApiService<TourDetailResponseDto>(
       `/vendor/tours/${tourId}/unpublish`,
@@ -314,12 +254,6 @@ export const vendorTourService = {
     return { id: data.tourId, status: data.status };
   },
 
-  /**
-   * Khôi phục 1 tour đã xóa mềm — đưa về DRAFT.
-   * LƯU Ý: chưa có UI nào gọi hàm này — BE chưa xác nhận cách FE xem được danh sách tour đã
-   * xóa mềm (không có param lọc hay field đánh dấu trên `GET /vendor/tours`). Thêm sẵn để dùng
-   * ngay khi có entry point.
-   */
   async restoreTour(tourId: string): Promise<CreatedTour> {
     const response = await ApiService<TourDetailResponseDto>(
       `/vendor/tours/${tourId}/restore`,

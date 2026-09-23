@@ -11,7 +11,6 @@ export interface BlogPreviewModalProps {
   onClose: () => void;
 }
 
-/** Modal xem trước — mô phỏng cách bài viết hiển thị trên trang đọc công khai. */
 export function BlogPreviewModal({
   title,
   content,

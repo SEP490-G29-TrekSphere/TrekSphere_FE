@@ -14,7 +14,6 @@ interface CheckpointProgressWidgetProps {
   isTripInProgress: boolean;
 }
 
-/** Widget "Nhật ký tiến trình hành trình" — member xem, leader check-in/bỏ qua từng checkpoint. */
 export function CheckpointProgressWidget({
   groupId,
   isLeader,

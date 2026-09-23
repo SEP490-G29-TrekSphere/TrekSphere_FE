@@ -7,17 +7,6 @@ import type {
   VendorStatus,
 } from '../types';
 
-/**
- * Service gọi API liên quan tới quản lý Vendor (khu vực admin).
- *
- * Dùng 2 endpoint thật:
- *   GET /vendors               — danh sách Vendor (lọc theo keyword, phân trang)
- *   PUT /vendors/{vendorId}/status — đổi trạng thái ACTIVE/INACTIVE/REVOKED
- *
- * `GET /vendors` hỗ trợ tìm kiếm, lọc theo trạng thái và phân trang.
- */
-
-/** Shape thô mà BE trả về trong `data` cho mỗi vendor (VendorResponse). */
 interface VendorResponseDto {
   vendorId: string;
   companyName: string;
@@ -91,7 +80,7 @@ function mapVendor(dto: VendorResponseDto): AdminVendor {
 
 function buildListParams(filter: AdminVendorFilter, page: number, pageSize: number) {
   const params: Record<string, string> = {
-    page: String(page - 1), // BE dùng page 0-based
+    page: String(page - 1),
     size: String(pageSize),
   };
   if (filter.search) {
@@ -104,7 +93,6 @@ function buildListParams(filter: AdminVendorFilter, page: number, pageSize: numb
 }
 
 export const adminVendorService = {
-  /** Lấy danh sách vendors với filter + pagination. */
   async listVendors(
     filter: AdminVendorFilter = {},
     page = 1,
@@ -128,7 +116,6 @@ export const adminVendorService = {
     };
   },
 
-  /** Tính thống kê bằng tổng số bản ghi của từng trạng thái do backend lọc. */
   async getStats(): Promise<VendorStatsResponse> {
     const fetchTotal = async (status?: VendorStatus) => {
       const response = await ApiService<PaginationResponseDto<VendorResponseDto>>(
@@ -159,7 +146,6 @@ export const adminVendorService = {
     };
   },
 
-  /** Đổi trạng thái Vendor — ACTIVE, INACTIVE hoặc REVOKED. */
   async updateStatus(vendorId: string, status: VendorStatus): Promise<AdminVendor> {
     const response = await ApiService<VendorResponseDto>(`/vendors/${vendorId}/status`, 'PUT', {
       status,

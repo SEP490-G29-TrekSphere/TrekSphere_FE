@@ -10,7 +10,6 @@ import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 
 const PAGE_SIZE = 10;
 
-/** Tỷ lệ 0..1 từ BE → chuỗi phần trăm hiển thị, VD 0.6543 → "65%". */
 function formatRate(rate: number): string {
   return `${Math.round(rate * 100)}%`;
 }
@@ -27,18 +26,13 @@ const STATUS_TABS: Array<{ key: ApiStatus | ''; label: string }> = [
   { key: 'HIDDEN', label: 'Đã ẩn' },
 ];
 
-/**
- * Thống kê Tour — KPI tổng quan + bảng thống kê theo từng tour của vendor hiện tại, lấy từ
- * `GET /vendors/profile/statistics` (khác hẳn 2 thẻ KPI đếm-thủ-công ở `TourList.tsx`, vốn chỉ
- * đếm số lượng theo trạng thái chứ không có số liệu về lịch/nhóm ghép/tỷ lệ lấp đầy).
- */
 export default function TourStatistics() {
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState('');
   const [status, setStatus] = useState<ApiStatus | ''>('');
   const debouncedKeyword = useDebounce(keyword, 400);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ cần trigger reset khi filter đổi
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
   useEffect(() => {
     setPage(1);
   }, [debouncedKeyword, status]);

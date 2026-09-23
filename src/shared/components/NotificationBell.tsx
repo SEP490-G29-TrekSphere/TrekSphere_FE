@@ -10,7 +10,9 @@ import { useNotifications } from '@/features/notifications/hooks/useNotification
 import { useUnreadCount } from '@/features/notifications/hooks/useUnreadCount';
 import type { NotificationResponse } from '@/features/notifications/types/notification';
 import { formatRelativeTime } from '@/features/notifications/utils/formatRelativeTime';
+import { resolveNotificationUrl } from '@/features/notifications/utils/resolveNotificationUrl';
 import { cn } from '@/lib/utils';
+import { usePushToastOnMenu } from '@/shared/hooks';
 import { useAppStore } from '@/store/useAppStore';
 
 const INITIAL_LIMIT = 5;
@@ -33,6 +35,8 @@ export default function NotificationBell({
   const queryClient = useQueryClient();
   const user = useAppStore((state) => state.user);
 
+  usePushToastOnMenu('notification-bell', Boolean(open), 550);
+
   const { data: unreadCount } = useUnreadCount();
   const { data: recent, isLoading } = useNotifications({ page: 1, size: limit });
   const { mutate: markAsRead } = useMarkAsRead();
@@ -50,8 +54,9 @@ export default function NotificationBell({
     handleOpenChange(false);
     queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+    const targetUrl = resolveNotificationUrl(notification);
+    if (targetUrl) {
+      navigate(targetUrl);
     }
   };
 
@@ -79,7 +84,7 @@ export default function NotificationBell({
         )}
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className="w-[calc(100vw-1.5rem)] sm:w-80 max-w-[360px] p-0">
         <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
           <Link
             to={notificationsPath}

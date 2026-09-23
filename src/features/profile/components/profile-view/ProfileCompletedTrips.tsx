@@ -8,13 +8,10 @@ import { CompletedTripCard } from './CompletedTripCard';
 
 interface ProfileCompletedTripsProps {
   isOwnProfile: boolean;
-  /** Sinh đường dẫn chi tiết nhóm theo layout đang hiển thị hồ sơ. */
+
   groupDetailPath: (groupId: string) => string;
 }
 
-/**
- * Tab "Đã hoàn thành" — các chuyến đi ghép nhóm đã chuyển sang trạng thái COMPLETED.
- */
 export function ProfileCompletedTrips({
   isOwnProfile,
   groupDetailPath,

@@ -65,7 +65,6 @@ export function GroupSOSModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Sinh idempotencyKey 1 lần khi modal mở, giữ nguyên qua các lần bấm gửi lại.
     if (!idempotencyKeyRef.current) {
       idempotencyKeyRef.current = crypto.randomUUID();
     }
@@ -107,12 +106,12 @@ export function GroupSOSModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         ref={modalRef}
-        className="w-full max-w-lg space-y-5 rounded-2xl border-2 border-destructive/80 bg-card p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
+        className="w-full max-w-lg space-y-5 rounded-2xl border-2 border-destructive/80 bg-card p-4 sm:p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive text-destructive-foreground shadow-md animate-pulse">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive text-destructive-foreground shadow-md animate-pulse shrink-0">
               <Siren className="h-6 w-6" />
             </div>
             <div>
@@ -127,7 +126,7 @@ export function GroupSOSModal({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -149,7 +148,7 @@ export function GroupSOSModal({
             <button
               type="button"
               onClick={handleClose}
-              className="mt-1 rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-600 transition"
+              className="mt-1 rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-600 transition cursor-pointer"
             >
               Đóng
             </button>
@@ -159,10 +158,10 @@ export function GroupSOSModal({
             {/* Section 1: Broadcast SOS to Group */}
             <form
               onSubmit={handleBroadcastSOS}
-              className="space-y-3.5 rounded-xl border border-destructive/30 bg-destructive/5 p-4"
+              className="space-y-3.5 rounded-xl border border-destructive/30 bg-destructive/5 p-3.5 sm:p-4"
             >
               <div className="flex items-center gap-2 text-destructive font-extrabold text-xs">
-                <Megaphone className="h-4 w-4" />
+                <Megaphone className="h-4 w-4 shrink-0" />
                 <span>1. PHÁT TÍN HIỆU SOS TỚI TOÀN NHÓM</span>
               </div>
 
@@ -170,7 +169,7 @@ export function GroupSOSModal({
                 <label className="text-[11px] font-bold text-foreground">
                   Loại sự cố đang gặp phải:
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {INCIDENT_TYPE_OPTIONS.map((type) => {
                     const Icon = type.icon;
                     return (
@@ -179,7 +178,7 @@ export function GroupSOSModal({
                         type="button"
                         onClick={() => setSelectedIncident(type.id)}
                         className={cn(
-                          'flex items-center gap-2 rounded-xl border p-2.5 text-left text-[11px] font-bold transition',
+                          'flex items-center gap-2 rounded-xl border p-2.5 text-left text-[11px] font-bold transition cursor-pointer',
                           selectedIncident === type.id
                             ? 'border-destructive bg-destructive text-destructive-foreground shadow-xs'
                             : 'border-border bg-background text-foreground hover:border-destructive/50'
@@ -196,32 +195,42 @@ export function GroupSOSModal({
               {/* GPS state */}
               {gps.status === 'loading' && (
                 <div className="flex items-center gap-2 rounded-lg bg-background p-2.5 border border-border text-[11px] text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
                   Đang lấy vị trí GPS hiện tại...
                 </div>
               )}
               {gps.status === 'success' && (
-                <SosLocationMap
-                  alerts={[
-                    {
-                      sosAlertId: 'preview',
-                      groupTripId: '',
-                      matchingGroupId: groupId,
-                      senderId: '',
-                      senderName: 'Vị trí của bạn',
-                      incidentTypeCode: selectedIncident,
-                      message: null,
-                      latitude: gps.latitude,
-                      longitude: gps.longitude,
-                      status: 'OPEN',
-                      resolvedById: null,
-                      resolvedByName: null,
-                      createdAt: new Date().toISOString(),
-                      updatedAt: new Date().toISOString(),
-                    },
-                  ]}
-                  heightClassName="h-[160px]"
-                />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] bg-background px-2.5 py-1 rounded-lg border border-border flex-wrap gap-1">
+                    <span className="text-muted-foreground flex items-center gap-1 font-bold">
+                      <MapPin className="h-3.5 w-3.5 text-rose-600 shrink-0" /> Tọa độ thiết bị:
+                    </span>
+                    <span className="font-mono font-bold text-foreground">
+                      {gps.latitude.toFixed(6)}, {gps.longitude.toFixed(6)}
+                    </span>
+                  </div>
+                  <SosLocationMap
+                    alerts={[
+                      {
+                        sosAlertId: 'preview',
+                        groupTripId: '',
+                        matchingGroupId: groupId,
+                        senderId: '',
+                        senderName: 'Vị trí của bạn',
+                        incidentTypeCode: selectedIncident,
+                        message: null,
+                        latitude: gps.latitude,
+                        longitude: gps.longitude,
+                        status: 'OPEN',
+                        resolvedById: null,
+                        resolvedByName: null,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                      },
+                    ]}
+                    heightClassName="h-[160px]"
+                  />
+                </div>
               )}
               {gps.status === 'error' && (
                 <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5 border border-amber-500/30 text-[11px] text-amber-700 dark:text-amber-400">
@@ -266,13 +275,13 @@ export function GroupSOSModal({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <PhoneCall className="h-3.5 w-3.5 text-primary" />
+                  <PhoneCall className="h-3.5 w-3.5 text-primary shrink-0" />
                   2. SỐ ĐIỆN THOẠI KHẨN CẤP & CỨU HỘ
                 </span>
               </div>
 
               {leaderPhone && (
-                <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-3 gap-2.5">
                   <div>
                     <span className="text-[10px] font-extrabold text-primary uppercase">
                       Trưởng Nhóm Đoàn
@@ -283,7 +292,7 @@ export function GroupSOSModal({
                   </div>
                   <a
                     href={`tel:${leaderPhone.replace(/\./g, '')}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-extrabold text-primary-foreground shadow-xs hover:bg-primary/90 transition"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-extrabold text-primary-foreground shadow-xs hover:bg-primary/90 transition self-start sm:self-auto"
                   >
                     <PhoneCall className="h-3.5 w-3.5" /> Gọi Leader
                   </a>
@@ -294,10 +303,10 @@ export function GroupSOSModal({
                 {NATIONAL_HOTLINES.map((h) => (
                   <div
                     key={h.number}
-                    className="flex items-center justify-between rounded-xl border border-border bg-background p-2.5 text-xs"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-border bg-background p-2.5 text-xs gap-2"
                   >
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-foreground">{h.name}</span>
                         <span className="rounded-md bg-muted px-1.5 py-0.2 text-[9.5px] font-bold text-muted-foreground">
                           {h.badge}
@@ -307,7 +316,7 @@ export function GroupSOSModal({
                     </div>
                     <a
                       href={`tel:${h.number}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1 text-xs font-extrabold text-destructive hover:bg-destructive/20 transition shrink-0"
+                      className="inline-flex items-center justify-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 sm:py-1 text-xs font-extrabold text-destructive hover:bg-destructive/20 transition shrink-0 self-start sm:self-auto"
                     >
                       <PhoneCall className="h-3 w-3" /> {h.number}
                     </a>

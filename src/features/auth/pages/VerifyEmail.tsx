@@ -25,10 +25,9 @@ export default function VerifyEmail() {
 
   const [status, setStatus] = useState<VerifyStatus>('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  // Lưu lại timeout id để huỷ nếu user unmount/click nút trước thời hạn.
+
   const redirectTimeoutRef = useRef<number | null>(null);
 
-  // Lưu / huỷ timeout khi component unmount.
   useEffect(() => {
     return () => {
       if (redirectTimeoutRef.current !== null) {
@@ -38,7 +37,6 @@ export default function VerifyEmail() {
   }, []);
 
   useEffect(() => {
-    // Nếu không có token -> không thực hiện verify token
     if (!token) {
       return;
     }
@@ -60,16 +58,11 @@ export default function VerifyEmail() {
           return;
         }
 
-        // ── Luồng sau verify (theo đúng BE spec) ───────────────────────────────
-        // BE /auth/verify CHỈ xác nhận email đã verified (trả data: "Email verified
-        // successfully"). BE KHÔNG cấp token trong body. User phải đăng nhập lại
-        // để lấy access/refresh token.
         const data = result.data;
         const accessToken = data?.access_token;
         const refreshToken = data?.refresh_token;
         const verifiedUser = data?.user;
 
-        // Lưu token + set user vào store nếu BE có trả về (backward-compat).
         if (accessToken) {
           storage.set('accessToken', accessToken);
         }
@@ -81,7 +74,6 @@ export default function VerifyEmail() {
           useAppStore.getState().setUser(toAppStoreUser(verifiedUser));
         }
 
-        // Render UI success — KHÔNG navigate ngay để user kịp đọc.
         setStatus('success');
       } catch (err) {
         console.error('[VerifyEmail] verify threw:', err);
@@ -93,7 +85,6 @@ export default function VerifyEmail() {
     verify();
   }, [token]);
 
-  // Hàm điều hướng dùng chung cho cả auto-redirect và nút bấm.
   const goToLogin = useCallback(() => {
     navigate(PATHS.LOGIN, {
       replace: true,
@@ -101,7 +92,6 @@ export default function VerifyEmail() {
     });
   }, [navigate, email]);
 
-  // Auto-redirect sau khi success (3 giây, đủ để user đọc thông báo).
   useEffect(() => {
     if (status !== 'success') return;
     redirectTimeoutRef.current = window.setTimeout(() => {
@@ -123,7 +113,6 @@ export default function VerifyEmail() {
     goToLogin();
   };
 
-  // TH 1: Không có token nhưng có email (vừa đăng ký xong hoặc vào chờ xác thực)
   if (!token && email) {
     return (
       <AuthLayout
@@ -139,7 +128,6 @@ export default function VerifyEmail() {
     );
   }
 
-  // TH 2: Không có token và cũng không có email
   if (!token && !email) {
     return (
       <AuthLayout
@@ -183,7 +171,6 @@ export default function VerifyEmail() {
     );
   }
 
-  // TH 3: Có token -> Hiển thị trạng thái xác thực token
   return (
     <AuthLayout
       title="Xác thực email"

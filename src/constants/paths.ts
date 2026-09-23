@@ -1,14 +1,3 @@
-/**
- * Centralized route paths.
- *
- * Mục đích:
- * - Tránh hard-code string '/login', '/dashboard' rải rác trong code.
- * - Khi đổi path chỉ cần sửa 1 chỗ.
- *
- * Quy ước:
- * - Tên hằng số: PATH_<TÊN_VIẾT_HOA>
- * - Giá trị: bắt đầu bằng '/' và không có trailing slash.
- */
 export const PATHS = {
   // Auth
   VERIFY_EMAIL: '/verify',
@@ -24,11 +13,10 @@ export const PATHS = {
   PRIVACY: '/privacy',
   CONTACT: '/contact',
 
-  // Customer (đăng nhập mới thấy)
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
   TOUR_DETAIL: '/tours/:id',
-  /** Hồ sơ công khai của 1 Vendor (Guest xem, không cần đăng nhập). */
+
   VENDOR_PUBLIC_PROFILE: '/vendors/:vendorId',
   MY_VENDOR_APPLICATIONS: '/my-vendor-applications',
   GROUPS: '/groups',
@@ -49,7 +37,7 @@ export const PATHS = {
   PROFILE: '/profile',
   PUBLIC_PROFILE: '/profile/user/:userId',
   EDIT_PROFILE: '/profile/edit',
-  /** Hồ sơ công khai của một người dùng khác (mở từ tên tác giả trong feed). */
+
   USER_PROFILE: '/users/:userId',
   // Trekker Community / Blog
   BLOG_LIST: '/blog',

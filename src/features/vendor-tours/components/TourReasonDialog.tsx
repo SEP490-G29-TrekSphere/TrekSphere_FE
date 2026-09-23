@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,12 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-const reasonSchema = z.object({
-  reason: z.string().trim().min(1, 'Vui lòng nhập lý do'),
-});
-
-type ReasonFormValues = z.infer<typeof reasonSchema>;
+import { type ReasonFormValues, reasonSchema } from '../validations';
 
 interface TourReasonDialogProps {
   open: boolean;
@@ -34,10 +28,6 @@ interface TourReasonDialogProps {
   isPending?: boolean;
 }
 
-/**
- * Dialog dùng chung cho Từ chối và Ẩn tour — cả 2 API (`PUT .../reject`, `PUT .../hide`) đều
- * bắt buộc gửi kèm `reason`.
- */
 export function TourReasonDialog({
   open,
   onOpenChange,
@@ -62,7 +52,6 @@ export function TourReasonDialog({
     defaultValues: { reason: '' },
   });
 
-  // Reset lại textarea mỗi lần dialog mở, tránh giữ lý do của lần mở trước (cho tour khác).
   useEffect(() => {
     if (open) reset();
   }, [open, reset]);

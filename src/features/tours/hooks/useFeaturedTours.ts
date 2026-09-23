@@ -3,9 +3,6 @@ import { mapApiItemToTour } from '@/features/tours/hooks/useTours';
 import { tourService } from '@/features/tours/services/tourService';
 import type { Tour } from '@/features/tours/types';
 
-/**
- * Số tour tối đa hiển thị ở section "Tour nổi bật".
- */
 const FEATURED_LIMIT = 6;
 
 async function fetchFeaturedTours(): Promise<Tour[]> {
@@ -25,9 +22,6 @@ export interface UseFeaturedToursResult {
   error: Error | null;
 }
 
-/**
- * Tour nổi bật cho HomePage: {@link FEATURED_LIMIT} tour mới đăng gần nhất.
- */
 export function useFeaturedTours(): UseFeaturedToursResult {
   const { data, isLoading, error } = useQuery({
     queryKey: ['featured-tours', FEATURED_LIMIT],

@@ -7,11 +7,10 @@ import { getMomentImageUrls } from '../utils/momentMedia';
 interface MomentDetailModalProps {
   moment: MomentItem;
   onClose: () => void;
-  /** Mở lightbox tại ảnh được bấm. */
+
   onSelectImage: (index: number) => void;
 }
 
-/** Chi tiết một khoảnh khắc: toàn bộ ảnh, mô tả và số liệu tương tác. */
 export function MomentDetailModal({ moment, onClose, onSelectImage }: MomentDetailModalProps) {
   const urls = getMomentImageUrls(moment);
   const likesCount = moment.likesCount ?? 0;

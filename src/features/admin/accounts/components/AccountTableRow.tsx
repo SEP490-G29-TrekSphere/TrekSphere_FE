@@ -10,14 +10,6 @@ interface AccountTableRowProps {
   isStatusPending?: boolean;
 }
 
-/**
- * Một hàng trong bảng account list.
- * - Cột 1: Avatar + Họ tên (in đậm).
- * - Cột 2: Email (màu xám rêu).
- * - Cột 3: RoleBadge.
- * - Cột 4: StatusIndicator (dot + text).
- * - Cột 5: Nút "Xem chi tiết" (bo tròn ovan).
- */
 export function AccountTableRow({
   account,
   onViewDetail,
@@ -29,7 +21,6 @@ export function AccountTableRow({
 
   return (
     <tr className="border-b transition-colors last:border-b-0" style={{ borderColor: '#E6E2D1' }}>
-      {/* Họ và tên */}
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <div className="flex items-center gap-3">
           <div
@@ -60,17 +51,14 @@ export function AccountTableRow({
         </span>
       </td>
 
-      {/* Loại tài khoản */}
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <RoleBadge role={account.role} />
       </td>
 
-      {/* Trạng thái */}
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <StatusIndicator status={account.status} />
       </td>
 
-      {/* Thao tác */}
       <td className="px-6 py-4 text-right" style={{ verticalAlign: 'middle' }}>
         <div className="flex items-center justify-end gap-2">
           <button

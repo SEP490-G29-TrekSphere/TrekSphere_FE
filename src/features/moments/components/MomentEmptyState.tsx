@@ -5,11 +5,10 @@ interface MomentEmptyStateProps {
   icon: LucideIcon;
   title: string;
   description: string;
-  /** Nút hành động (chỉ hiện với chủ sở hữu nội dung). */
+
   action?: ReactNode;
 }
 
-/** Khối rỗng dùng chung cho dòng thời gian và album khoảnh khắc. */
 export function MomentEmptyState({
   icon: Icon,
   title,

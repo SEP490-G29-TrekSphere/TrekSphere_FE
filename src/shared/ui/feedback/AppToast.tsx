@@ -183,12 +183,23 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
   );
 }
 
+const DEFAULT_TOP_OFFSET = 80; // 5rem = 80px (top-20)
+
 export function AppGlobalToast() {
   const toasts = useToastStore((state) => state.toasts);
+  const menuOffsets = useToastStore((state) => state.menuOffsets);
+
+  const activeOffsets = Object.values(menuOffsets);
+  const maxMenuOffset = activeOffsets.length > 0 ? Math.max(0, ...activeOffsets) : 0;
+  const currentTop = maxMenuOffset > 0 ? maxMenuOffset : DEFAULT_TOP_OFFSET;
 
   return (
     <div
-      className="fixed top-20 right-5 z-[100] flex max-h-[calc(100vh-6rem)] w-full flex-col items-end gap-2.5 p-0 sm:w-auto pointer-events-none"
+      style={{
+        top: `min(${currentTop}px, calc(100dvh - 120px))`,
+        maxHeight: `calc(100dvh - min(${currentTop}px, calc(100dvh - 120px)) - 16px)`,
+      }}
+      className="fixed inset-x-3 sm:inset-x-auto sm:right-5 sm:w-auto z-[100] flex flex-col items-center sm:items-end gap-2.5 p-0 pointer-events-none transition-[top,max-height] duration-300 ease-in-out overflow-y-auto"
       aria-live="polite"
     >
       {toasts.map((t) => (

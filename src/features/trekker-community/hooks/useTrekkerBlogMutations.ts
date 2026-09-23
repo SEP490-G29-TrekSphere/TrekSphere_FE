@@ -3,7 +3,6 @@ import { trekkerBlogService } from '../services/trekkerBlogService';
 import type { UpdateBlogPayload } from '../types';
 import { trekkerBlogKeys } from './useTrekkerBlog';
 
-/** Mutations cho feature Blog (tạo/sửa/ẩn-hiện/xóa) — dùng chung Trekker & Vendor Staff. */
 export function useTrekkerBlogMutations() {
   const queryClient = useQueryClient();
 

@@ -1,10 +1,5 @@
-/**
- * Types cho khu vực Vendor Profile — dùng chung Vendor Manager & Vendor Staff.
- */
-
 export type VendorProfileStatus = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
 
-/** Hồ sơ Vendor đầy đủ, mirror `VendorProfileResponse` từ BE (`GET /vendors/profile`). */
 export interface VendorProfileDetail {
   vendorId: string;
   companyName: string;
@@ -24,17 +19,12 @@ export interface UpdateVendorProfilePayload {
   logo?: File;
 }
 
-/** Labels tiếng Việt cho trạng thái Vendor. */
 export const VENDOR_PROFILE_STATUS_LABELS: Record<VendorProfileStatus, string> = {
   ACTIVE: 'Đang hoạt động',
   INACTIVE: 'Ngừng hoạt động',
   REVOKED: 'Đã thu hồi',
 };
 
-/**
- * Hồ sơ Vendor công khai — mirror `PublicVendorProfileResponse` từ BE
- * (`GET /vendors/{vendorId}/public`), dùng cho Guest xem trang hồ sơ 1 Vendor.
- */
 export interface PublicVendorProfile {
   vendorId: string;
   companyName: string;
@@ -44,7 +34,7 @@ export interface PublicVendorProfile {
   websiteUrl?: string;
   contactEmail?: string;
   contactPhone?: string;
-  /** ISO datetime — thời điểm Vendor gia nhập hệ thống. */
+
   partnerSince: string;
   publishedTourCount: number;
 }

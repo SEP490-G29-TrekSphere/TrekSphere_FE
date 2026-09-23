@@ -1,9 +1,3 @@
-/**
- * Helper utilities thuần (không phụ thuộc React).
- *
- * Format, convert, sanitize, slugify — những hàm dùng được ở mọi nơi.
- */
-
 export function formatDate(date: Date | string | null | undefined, locale = 'vi-VN'): string {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -24,12 +18,6 @@ export function formatDateTime(date: Date | string | null | undefined, locale = 
   });
 }
 
-/**
- * `Date` → chuỗi `yyyy-MM-dd` theo giờ địa phương.
- *
- * Không dùng `toISOString()` vì hàm đó quy về UTC — với GMT+7, ngày đã chọn
- * sẽ bị lùi 1 ngày ở mọi thời điểm trước 07:00.
- */
 export function toIsoDate(date: Date | null | undefined): string {
   if (!date || Number.isNaN(date.getTime())) return '';
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -37,12 +25,6 @@ export function toIsoDate(date: Date | null | undefined): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/**
- * Chuỗi `yyyy-MM-dd` → `Date` lúc 00:00 giờ địa phương.
- *
- * `new Date('2026-08-06')` được JS hiểu là UTC nên cũng lệch múi giờ — vì vậy
- * phải tách thủ công từng thành phần. Trả `null` nếu chuỗi rỗng/không hợp lệ.
- */
 export function parseIsoDate(value: string | null | undefined): Date | null {
   if (!value) return null;
   const [year, month, day] = value.split('-').map(Number);

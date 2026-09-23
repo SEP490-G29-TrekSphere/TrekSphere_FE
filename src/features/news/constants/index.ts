@@ -1,7 +1,3 @@
-/**
- * Constants dùng chung cho feature News/Blog.
- */
-
 export const EMPTY_STAT = '—';
 
 export const FEED_PAGE_SIZE = 8;

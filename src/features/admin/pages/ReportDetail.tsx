@@ -39,12 +39,9 @@ export default function ReportDetail() {
           setIsEditingDecision(false);
           toast.success('Xử lý báo cáo thành công!');
         },
-        // biome-ignore lint/suspicious/noExplicitAny: API error
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           console.error(error);
-          toast.error(
-            error.message || error.response?.data?.message || 'Có lỗi xảy ra khi xử lý báo cáo'
-          );
+          toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xử lý báo cáo');
         },
       }
     );

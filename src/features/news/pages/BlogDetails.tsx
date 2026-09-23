@@ -11,12 +11,6 @@ import { BlogSidebar } from '../components/BlogSidebar';
 import { useBlogComments, useBlogDetail, useBlogRelated } from '../hooks/useBlog';
 import { flattenComments } from '../types';
 
-/**
- * Màn hình 2: Chi tiết bài viết Blog.
- * - Hero
- * - 2 cột: nội dung 65% + sidebar 35%
- * - Comments full width phía dưới content
- */
 export default function BlogDetails() {
   const { blogId } = useParams<{ blogId: string }>();
   const navigate = useNavigate();
@@ -35,7 +29,6 @@ export default function BlogDetails() {
   const relatedPosts = relatedQuery.data ?? [];
   const totalComments = flattenComments(comments).length;
 
-  // Lắng nghe URL hash (ví dụ: #comment-uuid hoặc #blog-content), tự động cuộn đến và nháy highlight
   useEffect(() => {
     if (!location.hash) return;
     const targetId = location.hash.replace('#', '');
@@ -122,9 +115,7 @@ export default function BlogDetails() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Cột trái: Nội dung + Comment */}
           <div className="lg:col-span-8 flex flex-col gap-10">
-            {/* Nội dung bài viết */}
             <div className="min-w-0 rounded-2xl bg-white p-6 shadow-sm sm:p-8">
               <BlogContent post={post} />
             </div>
@@ -141,7 +132,6 @@ export default function BlogDetails() {
             </div>
           </div>
 
-          {/* Cột phải: Sidebar */}
           <div className="lg:col-span-4 h-fit sticky top-24">
             <BlogSidebar relatedPosts={relatedPosts} isLoggedIn={isLoggedIn} />
           </div>

@@ -31,13 +31,6 @@ const STATUS_LABELS: Partial<Record<MatchingGroupStatus, string>> = {
 const ACTION_BASE =
   'flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full py-2.5 font-bold text-xs shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
-/**
- * Bảng điều khiển vòng đời nhóm dành cho Trưởng nhóm.
- *
- * Trước đây nằm ở cột hành động bên phải nên luôn hiện trên mọi tab — các thao tác
- * nhạy cảm (dừng tuyển, ẩn nhóm, bắt đầu / hoàn thành chuyến đi) bị đặt ngay cạnh
- * nội dung đọc thường ngày. Nay gom vào tab "Quản lý nhóm" trong workspace.
- */
 export function GroupManagementPanel({
   groupStatus,
   matchingDeadline,

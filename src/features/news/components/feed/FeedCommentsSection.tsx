@@ -34,12 +34,6 @@ function formatCommentTime(iso?: string): string {
   return date.toLocaleDateString('vi-VN');
 }
 
-/**
- * Khối bình luận mở rộng trực tiếp trên thẻ feed.
- * - Header trên cùng: Tiêu đề kèm bộ chọn kiểu sắp xếp (Mới nhất / Cũ nhất).
- * - Ở giữa: Danh sách các bình luận gần đây.
- * - Dưới cùng: Khung nhập bình luận nhanh / CTA đăng nhập.
- */
 export function FeedCommentsSection({
   blogId,
   detailLink,
@@ -91,7 +85,6 @@ export function FeedCommentsSection({
 
   return (
     <div className="mt-4 border-t border-border pt-4">
-      {/* Thanh trên: Tiêu đề + Kiểu sắp xếp */}
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-xs font-bold text-primary sm:text-sm">
           Bình luận ({totalCommentsCount})
@@ -112,7 +105,6 @@ export function FeedCommentsSection({
         </div>
       </div>
 
-      {/* Danh sách bình luận */}
       <div className="space-y-2.5">
         {isLoadingComments ? (
           <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
@@ -169,7 +161,6 @@ export function FeedCommentsSection({
         )}
       </div>
 
-      {/* Thanh nhập bình luận đẩy xuống dưới cùng */}
       <div className="mt-3.5 border-t border-border/60 pt-3">
         {isLoggedIn ? (
           <form onSubmit={handleCommentSubmit} className="flex items-start gap-2.5">

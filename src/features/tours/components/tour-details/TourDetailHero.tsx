@@ -13,12 +13,6 @@ interface TourDetailHeroProps {
   tour: TourDetailFromApi;
 }
 
-/**
- * Hero của trang chi tiết tour: ảnh bìa + breadcrumb + tên tour + dải meta nhanh.
- *
- * Cao 60vh (không phải full-bleed) để phần nội dung phía dưới lộ ra ngay khi tải
- * trang — người dùng thấy được trang còn gì để đọc mà không cần cuộn mò.
- */
 export function TourDetailHero({ tour }: TourDetailHeroProps) {
   const coverImage = tour.coverImageUrl || tour.images[0]?.imageUrl || null;
 
@@ -38,7 +32,6 @@ export function TourDetailHero({ tour }: TourDetailHeroProps) {
         <div className="absolute inset-0 bg-primary" />
       )}
 
-      {/* Lớp phủ tối dần về đáy để chữ trắng luôn đủ tương phản dù ảnh bìa sáng */}
       <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/70 to-primary-dark/20" />
 
       <div className="absolute inset-0 flex flex-col justify-end">
@@ -68,7 +61,6 @@ export function TourDetailHero({ tour }: TourDetailHeroProps) {
             {tour.tourName}
           </h1>
 
-          {/* Dải meta nhanh — nhắc lại các thông số quyết định ngay trên màn hình đầu */}
           <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/90">
             <span className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />

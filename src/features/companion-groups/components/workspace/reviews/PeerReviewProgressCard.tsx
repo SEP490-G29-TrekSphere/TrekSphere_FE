@@ -8,7 +8,6 @@ interface PeerReviewProgressCardProps {
   onReview: (candidate: PeerReviewCandidate) => void;
 }
 
-/** Tiến độ chấm điểm của người dùng hiện tại + danh sách bạn đồng hành. */
 export function PeerReviewProgressCard({
   candidates,
   isLoading,

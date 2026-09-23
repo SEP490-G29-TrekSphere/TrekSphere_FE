@@ -53,7 +53,6 @@ describe('findDuplicateCheckpointError', () => {
     expect(result).toContain('toạ độ');
   });
 
-  // "21.50" và "21.5" là cùng một vị trí — so sánh phải theo giá trị số, không theo chuỗi.
   test('toạ độ ghi khác định dạng nhưng cùng giá trị vẫn tính là trùng', () => {
     const result = findDuplicateCheckpointError([
       draft({ name: 'Trạm 1', latitude: '21.50', longitude: '103.80' }),
@@ -73,7 +72,6 @@ describe('findDuplicateCheckpointError', () => {
     expect(result).toBeNull();
   });
 
-  // Thiếu 1 trong 2 giá trị thì chưa xác định được vị trí nên không đem ra so sánh.
   test('chỉ nhập vĩ độ, bỏ trống kinh độ → không coi là trùng', () => {
     const result = findDuplicateCheckpointError([
       draft({ name: 'Trạm 1', latitude: '21.5' }),

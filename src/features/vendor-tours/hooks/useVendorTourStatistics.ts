@@ -9,7 +9,6 @@ export const vendorTourStatisticsKeys = {
   list: (filter: VendorTourStatisticsFilter) => [...vendorTourStatisticsKeys.all, filter] as const,
 };
 
-/** KPI tổng quan + thống kê theo từng tour của vendor hiện tại. */
 export function useVendorTourStatistics(filter: VendorTourStatisticsFilter) {
   return useQuery({
     queryKey: vendorTourStatisticsKeys.list(filter),

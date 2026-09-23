@@ -5,10 +5,6 @@ export interface ProfileTabDef {
   label: string;
 }
 
-/**
- * Tab cho hồ sơ cá nhân của chính mình (`/profile`):
- * Tab "Thông tin" gộp cả thông tin cá nhân lẫn hồ sơ leo núi & kỹ năng.
- */
 export const MY_PROFILE_TABS: ProfileTabDef[] = [
   { id: 'info', label: 'Thông tin' },
   { id: 'blogs', label: 'Bài viết' },
@@ -17,10 +13,6 @@ export const MY_PROFILE_TABS: ProfileTabDef[] = [
   { id: 'completed', label: 'Đã hoàn thành' },
 ];
 
-/**
- * Tab khi xem hồ sơ công khai của người khác (`/users/:userId`):
- * Hồ sơ leo núi đã chuyển sang cột trái làm Intro Card, nên tab hiển thị Bài viết làm trang chính.
- */
 export const PUBLIC_PROFILE_TABS: ProfileTabDef[] = [
   { id: 'blogs', label: 'Bài viết' },
   { id: 'moments', label: 'Khoảnh khắc' },
@@ -34,13 +26,8 @@ interface ProfileTabsProps {
   onTabChange: (tab: ProfileTabId) => void;
 }
 
-/** Thanh tab của cột phải trang hồ sơ — cuộn ngang trên màn hình hẹp. */
 export function ProfileTabs({ tabs, activeTab, onTabChange }: ProfileTabsProps) {
   return (
-    // `overflow-y-hidden`: `-mb-px` của nút làm nội dung cao hơn nav đúng 1px,
-    // đủ để trình duyệt vẽ một thanh cuộn dọc bên phải thanh tab.
-    // `hide-scrollbar` (utility sẵn có trong global.css) giấu thanh cuộn ngang
-    // trên màn hình hẹp — nó nằm đè lên đường viền dưới trông rất lộ.
     <nav
       aria-label="Nội dung hồ sơ"
       className="hide-scrollbar flex gap-6 overflow-x-auto overflow-y-hidden border-b border-border"

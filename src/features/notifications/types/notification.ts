@@ -1,6 +1,3 @@
-// Khớp đúng NotificationEventType.java / ReferenceType.java phía backend.
-// Dùng `| (string & {})` để các giá trị mới thêm ở BE (phase sau) không làm vỡ type ở FE
-// trong lúc vẫn giữ được gợi ý autocomplete cho các giá trị đã biết.
 export type NotificationEventType =
   | 'BOOKING_CONFIRMED'
   | 'BOOKING_CANCELLED'
@@ -19,11 +16,14 @@ export type NotificationEventType =
   | 'GROUP_TRIP_STARTED'
   | 'GROUP_TRIP_ENDED'
   | 'GROUP_MOMENT_CREATED'
+  | 'GROUP_POST_CREATED'
   | 'GROUP_POST_ANNOUNCEMENT'
   | 'GROUP_POST_COMMENT_ADDED'
   | 'GROUP_EXPENSE_CREATED'
+  | 'GROUP_SETTLEMENT_CREATED'
   | 'GROUP_SETTLEMENT_PROOF_SUBMITTED'
   | 'GROUP_SETTLEMENT_CONFIRMED'
+  | 'GROUP_SETTLEMENT_REJECTED'
   | 'SCHEDULE_UPDATED'
   | 'TOUR_REJECTED'
   | 'REFUND_PENDING'
@@ -36,6 +36,20 @@ export type NotificationEventType =
   | 'GROUP_VOTE_CLOSED'
   | 'GROUP_LEADER_CHANGED'
   | 'MATCHING_GROUP_CANCELLED'
+  | 'GROUP_CHECKPOINT_CHECKED_IN'
+  | 'GROUP_CHECKPOINT_SKIPPED'
+  | 'BLOG_COMMENT_ADDED'
+  | 'BLOG_HIDDEN'
+  | 'BLOG_DELETED'
+  | 'VENDOR_APPLICATION_SUBMITTED'
+  | 'VENDOR_APPLICATION_APPROVED'
+  | 'VENDOR_APPLICATION_REJECTED'
+  | 'VENDOR_STATUS_CHANGED'
+  | 'CONVERSATION_MEMBER_ADDED'
+  | 'REPORT_SUBMITTED'
+  | 'REPORT_RESOLVED'
+  | 'REPORT_WARNING_ISSUED'
+  | 'USER_STATUS_CHANGED'
   | (string & {});
 
 export type NotificationReferenceType =

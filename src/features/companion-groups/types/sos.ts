@@ -1,6 +1,3 @@
-// Khớp đúng matching/enums/IncidentType.java, matching/enums/SosAlertStatus.java,
-// CreateSosAlertRequest.java, SosAlertResponse.java phía backend.
-
 export type IncidentType = 'INJURY' | 'LOST' | 'WEATHER' | 'SUPPLIES' | 'OTHER';
 
 export type SosAlertStatus = 'OPEN' | 'RESOLVED';
@@ -19,6 +16,8 @@ export interface SosAlertResponse {
   matchingGroupId: string;
   senderId: string;
   senderName: string;
+  senderPhone?: string | null;
+  senderAvatarUrl?: string | null;
   incidentTypeCode: IncidentType;
   message: string | null;
   latitude: number | null;

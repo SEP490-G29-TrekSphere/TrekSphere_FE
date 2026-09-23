@@ -3,52 +3,25 @@ import { extractRoles } from '@/constants/roles';
 import type { UserProfile } from '@/features/auth';
 import { profileService } from '../services/profileService';
 
-/**
- * Query keys dùng chung cho profile feature.
- * Centralized để tránh typo và dễ invalidate.
- */
 export const profileKeys = {
   all: ['profile'] as const,
   lists: () => [...profileKeys.all, 'list'] as const,
-  /** Lấy profile của user hiện tại (chính mình). */
+
   me: () => [...profileKeys.all, 'me'] as const,
-  /** Lấy profile của user khác theo userId. */
+
   detail: (userId: string) => [...profileKeys.all, 'detail', userId] as const,
 };
 
-/** Ép về mảng chuỗi đã bỏ giá trị rỗng; trả `undefined` khi BE không gửi field. */
 function toStringList(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
 }
 
-/**
- * Shape thô mà BE `GET /users/me` trả về trong `data`:
- * {
- *   userID: string,
- *   email: string,
- *   fullName: string,
- *   phone: string | null,
- *   dateOfBirth: string | null,
- *   gender: string | null,
- *   avatarUrl: string | null,
- *   status: 'ACTIVE' | ...,
- *   emailVerified: boolean,
- *   roles: string[],
- * }
- *
- * FE dùng camelCase khác (`id`, `name`, `avatar`). Hàm này map từ shape
- * BE sang shape FE đang dùng.
- */
 export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
   const fullName = (raw.fullName as string | undefined) ?? '';
-  // BE trả roles UPPERCASE (`["TREKKER"]`) còn `ROLES`/`getPrimaryRole`/
-  // `RequireRole` đều so khớp lowercase. Bắt buộc đi qua `extractRoles` —
-  // nếu để nguyên, `EditProfile` ghi roles uppercase vào store và user bị
-  // RequireRole đá khỏi khu vực role của mình sau khi lưu hồ sơ.
+
   const roles = extractRoles(raw);
 
-  // Map gender từ BE (MALE/FEMALE/OTHER) sang FE (male/female/other)
   const rawGender = (raw.gender as string | null | undefined) ?? '';
   const genderMap: Record<string, UserProfile['gender']> = {
     MALE: 'male',
@@ -58,8 +31,6 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
   const gender = genderMap[rawGender.toUpperCase()] ?? undefined;
 
   return {
-    // Swagger `UserProfileResponse` dùng `userId`; giữ thêm `userID`/`id` cho
-    // các endpoint/phiên bản BE cũ.
     id:
       (raw.userId as string | undefined) ??
       (raw.userID as string | undefined) ??
@@ -73,8 +44,7 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
     dateOfBirth: (raw.dateOfBirth as string | null | undefined) ?? undefined,
     roles,
     role: roles[0] ?? '',
-    // Phần hồ sơ leo núi — BE trả cùng `UserProfileResponse`, có thể null khi
-    // người dùng chưa khai báo.
+
     bio: (raw.bio as string | null | undefined) ?? undefined,
     experienceLevel: (raw.experienceLevel as UserProfile['experienceLevel']) ?? undefined,
     preferredDifficulty:
@@ -86,14 +56,6 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
   };
 }
 
-/**
- * Hook lấy profile của user hiện tại (user đang đăng nhập).
- * Dùng cho các màn ViewProfile, EditProfile.
- *
- * Lưu ý: ApiService không throw mà trả về `{ error, status }` khi HTTP lỗi.
- * Ta throw để React Query chuyển `isError = true` và giữ message BE trên
- * `error.message` để UI hiển thị được nguyên nhân (vd: "Access Denied").
- */
 export function useProfile() {
   const query = useQuery<UserProfile | null>({
     queryKey: profileKeys.me(),
@@ -108,7 +70,6 @@ export function useProfile() {
     },
     staleTime: 60 * 1000,
     retry: (failureCount, error) => {
-      // 401/403 là lỗi xác thực/phân quyền — không retry, tránh spam BE
       const msg = error instanceof Error ? error.message : '';
       if (/denied|unauthorized|forbidden/i.test(msg)) return false;
       return failureCount < 1;

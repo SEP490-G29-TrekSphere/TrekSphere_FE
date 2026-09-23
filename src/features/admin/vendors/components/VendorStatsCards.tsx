@@ -5,11 +5,6 @@ interface VendorStatsCardsProps {
   stats?: VendorStatsResponse;
 }
 
-/**
- * 4 thẻ thống kê tổng quan cho màn Vendor Management.
- * Total Vendors dùng tổng thật từ API; Active/Inactive/Revoked dùng số
- * liệu tính qua `getStats()` (best-effort, xem ghi chú ở adminVendorService).
- */
 export function VendorStatsCards({ stats }: VendorStatsCardsProps) {
   const cards = [
     {

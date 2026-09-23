@@ -7,6 +7,7 @@ import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
 import NotificationBell from '@/shared/components/NotificationBell';
+import { usePushToastOnMenu } from '@/shared/hooks';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
@@ -64,6 +65,9 @@ export default function Header() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+
+  usePushToastOnMenu('header-avatar', dropdownOpen, 260);
+  usePushToastOnMenu('header-mobile', mobileMenuOpen, 220);
 
   useEffect(() => {
     const handler = (e: MouseEvent | TouchEvent) => {

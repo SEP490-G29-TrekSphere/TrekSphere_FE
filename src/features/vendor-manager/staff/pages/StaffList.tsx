@@ -17,7 +17,7 @@ export default function StaffList() {
   const [page, setPage] = useState(1);
   const [isAddOpen, setAddOpen] = useState(false);
   const [lockTarget, setLockTarget] = useState<VendorStaffMember | null>(null);
-  /** Hàng đang chờ API đổi vai trò — chỉ disable select của chính hàng đó, không phải cả bảng. */
+
   const [roleUpdatingId, setRoleUpdatingId] = useState<string | null>(null);
 
   const [searchValue, setSearchValue] = useState('');

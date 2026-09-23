@@ -4,11 +4,6 @@ import { vendorScheduleService } from '../services/vendorScheduleService';
 import type { CreateSchedulePayload, TourSchedule, UpdateSchedulePayload } from '../types';
 import { vendorTourDetailKeys } from './useVendorTourDetail';
 
-/**
- * Mutation cho "Tạo lịch khởi hành", "Sửa lịch" và "Hủy lịch" — cả 3 chỉ cần
- * invalidate lại `vendorTourDetailKeys.detail(tourId)` vì danh sách lịch hiển
- * thị trên trang lấy trực tiếp từ `schedules` nhúng trong chi tiết tour.
- */
 export function useVendorScheduleMutations(tourId: string) {
   const queryClient = useQueryClient();
 

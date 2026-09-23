@@ -64,7 +64,7 @@ export function useUpdatePersonalMomentVisibility() {
       userMomentService.updatePersonalMomentVisibility(momentId, visibility),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userMomentKeys.all });
-      // Bài gốc có thể thuộc một nhóm ghép — bảng tin nhóm phải phản ánh quyền hiển thị mới.
+
       queryClient.invalidateQueries({ queryKey: MOMENT_QUERY_ROOTS.group });
     },
   });

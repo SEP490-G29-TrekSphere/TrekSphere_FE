@@ -30,10 +30,6 @@ const formatRelativeTime = (iso: string): string => {
   return date.toLocaleDateString('vi-VN');
 };
 
-/**
- * Một node bình luận hiển thị nội dung, avatar, các nút phản hồi/sửa/xóa/báo cáo,
- * và danh sách trả lời lồng nhau (replies tree).
- */
 export function BlogCommentItemNode({
   comment,
   depth,

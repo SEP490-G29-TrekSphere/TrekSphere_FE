@@ -5,15 +5,11 @@ import type { ScheduleConflict } from '../types/matchingGroup';
 
 interface ScheduleConflictNoticeProps {
   conflicts: ScheduleConflict[];
-  /** Câu hướng dẫn người dùng nên làm gì tiếp theo. */
+
   hint: string;
   className?: string;
 }
 
-/**
- * Cảnh báo trùng ngày đi dự kiến: liệt kê các nhóm đang chiếm ngày đó để người
- * dùng biết phải rút đơn hoặc rời nhóm nào trước khi đăng ký chuyến mới.
- */
 export function ScheduleConflictNotice({
   conflicts,
   hint,

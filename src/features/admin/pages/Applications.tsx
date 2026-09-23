@@ -23,7 +23,6 @@ export default function Applications() {
   const [currentPage, setCurrentPage] = useState(0); // 0-based page number cho BE API
   const pageSize = 10;
 
-  // Lấy dữ liệu danh sách từ API qua React Query hook
   const {
     data: responseData,
     isLoading,
@@ -39,7 +38,6 @@ export default function Applications() {
     sortDir: 'desc',
   });
 
-  // Lấy dữ liệu thống kê
   const { data: statsData } = useVendorApplicationStats();
 
   const handleTabChange = (status: ApplicationStatus | 'ALL') => {

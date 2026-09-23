@@ -29,12 +29,6 @@ function Stat({ label, value }: StatProps) {
   );
 }
 
-/**
- * Thẻ bài viết trong community feed:
- * - Header tác giả → ảnh lớn bo góc → tiêu đề → tags → chỉ số.
- * - Nút "Bình luận": điều hướng trực tiếp vào trang chi tiết bài viết.
- * - Nhấp vào ảnh, tiêu đề: điều hướng vào trang xem chi tiết bài viết.
- */
 export function FeedPostCard({ post }: FeedPostCardProps) {
   const detailLink = PATHS.NEWS_DETAIL.replace(':blogId', post.blogId);
   const authorLink = getUserProfilePath(post.authorId);
@@ -69,7 +63,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
 
   return (
     <article className="rounded-2xl bg-card p-4 shadow-sm sm:p-5">
-      {/* Header tác giả */}
       <div className="flex items-start gap-3">
         {post.authorId ? (
           <Link to={authorLink} aria-label={`Hồ sơ của ${post.authorName}`}>
@@ -106,7 +99,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
         </button>
       </div>
 
-      {/* Ảnh bìa */}
       <div className="relative mt-3 overflow-hidden rounded-xl bg-muted">
         <Link to={detailLink} aria-label={post.title} className="block aspect-[4/3]">
           {coverUrl ? (
@@ -129,7 +121,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
         ) : null}
       </div>
 
-      {/* Tiêu đề */}
       <h2 className="mt-3 text-base font-bold leading-snug text-primary sm:text-lg">
         <Link to={detailLink} className="transition-colors hover:text-primary-hover">
           {post.title}
@@ -148,7 +139,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
         </p>
       ) : null}
 
-      {/* Chỉ số */}
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat
           label="Lượt xem"
@@ -166,7 +156,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
         />
       </div>
 
-      {/* Hàng hành động */}
       <div className="mt-4 flex items-center gap-1 border-t border-border pt-3">
         <button
           type="button"

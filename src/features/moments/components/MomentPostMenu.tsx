@@ -5,9 +5,9 @@ interface MomentPostMenuProps {
   isAuthor: boolean;
   canModerate: boolean;
   isHidden: boolean;
-  /** Nhãn hành động đổi quyền hiển thị, phụ thuộc ngữ cảnh nhóm hay cá nhân. */
+
   visibilityActionLabel?: string;
-  /** `true` khi khoảnh khắc đang công khai — quyết định icon của mục đổi quyền hiển thị. */
+
   isPublic: boolean;
   onToggleVisibility?: () => void;
   onHide?: () => void;
@@ -18,7 +18,6 @@ interface MomentPostMenuProps {
 const ITEM_CLASS =
   'flex w-full cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 text-left transition';
 
-/** Menu "..." của một bài khoảnh khắc: đổi quyền hiển thị, kiểm duyệt, xóa. */
 export function MomentPostMenu({
   isAuthor,
   canModerate,

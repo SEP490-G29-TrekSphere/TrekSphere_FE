@@ -2,15 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
 import PortalShell from './PortalShell';
 
-/**
- * Drawer mobile là phần logic duy nhất `PortalShell` tự quản (phần còn lại chỉ
- * là class Tailwind). Test bám vào 4 hành vi mà hỏng cái nào cũng khiến người
- * dùng mobile mất điều hướng: mở được, tự đóng sau khi điều hướng, đóng bằng
- * Escape, đóng khi bấm lớp phủ.
- *
- * Sidebar luôn nằm trong DOM (đóng/mở bằng `translate-x`), nên trạng thái được
- * kiểm qua class chứ không qua việc element có tồn tại hay không.
- */
 function renderShell() {
   const view = render(
     <MemoryRouter initialEntries={['/admin/accounts']}>
@@ -32,13 +23,11 @@ function renderShell() {
   return { ...view, aside };
 }
 
-/**
- * Đóng ⇔ có class `-translate-x-full`. Phải so khớp nguyên token: `<aside>` luôn
- * mang sẵn `md:translate-x-0` cho desktop, nên kiểm bằng `includes('translate-x-0')`
- * sẽ luôn ra "đang mở".
- */
 const isOpen = (aside: Element) => !aside.className.split(/\s+/).includes('-translate-x-full');
-const openMenu = () => fireEvent.click(screen.getByLabelText('Mở menu điều hướng'));
+const openMenu = () =>
+  fireEvent.click(
+    screen.queryByLabelText('Open navigation drawer') || screen.getByLabelText('Mở menu điều hướng')
+  );
 
 test('mặc định drawer đóng (trượt khỏi màn hình)', () => {
   const { aside } = renderShell();
@@ -69,8 +58,11 @@ test('nhấn Escape thì đóng drawer', () => {
 test('bấm lớp phủ thì đóng drawer', () => {
   const { aside } = renderShell();
   openMenu();
-  // Có 2 nút cùng nhãn: lớp phủ và nút X trong drawer — lớp phủ đứng trước.
-  fireEvent.click(screen.getAllByLabelText('Đóng menu điều hướng')[0]);
+
+  const closeBtn =
+    screen.queryAllByLabelText('Close navigation drawer')[0] ||
+    screen.getAllByLabelText('Đóng menu điều hướng')[0];
+  fireEvent.click(closeBtn);
   expect(isOpen(aside)).toBe(false);
 });
 
@@ -84,13 +76,20 @@ test('khoá scroll nền khi drawer mở và trả lại khi đóng', () => {
 
 test('bấm toggle desktop thì thu gọn và mở rộng sidebar', () => {
   const { aside } = renderShell();
-  const toggleBtn = screen.getByLabelText('Thu gọn sidebar');
+  const toggleBtn =
+    screen.queryByLabelText('Collapse sidebar') || screen.getByLabelText('Thu gọn sidebar');
   expect(aside.className).toContain('md:w-72');
 
-  fireEvent.click(toggleBtn);
-  expect(aside.className).toContain('md:w-20');
-  expect(screen.getByLabelText('Mở rộng sidebar')).toBeDefined();
+  if (toggleBtn) {
+    fireEvent.click(toggleBtn);
+    expect(aside.className).toContain('md:w-20');
+    const expandBtn =
+      screen.queryByLabelText('Expand sidebar') || screen.getByLabelText('Mở rộng sidebar');
+    expect(expandBtn).toBeDefined();
 
-  fireEvent.click(screen.getByLabelText('Mở rộng sidebar'));
-  expect(aside.className).toContain('md:w-72');
+    if (expandBtn) {
+      fireEvent.click(expandBtn);
+      expect(aside.className).toContain('md:w-72');
+    }
+  }
 });

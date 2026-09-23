@@ -15,7 +15,6 @@ interface GroupOverviewTabProps {
   onViewSosDetail: () => void;
 }
 
-/** Tab "Tổng quan" — thông tin chủ nhóm, tiến độ hành trình, bài đăng của leader, trạng thái SOS. */
 export function GroupOverviewTab({
   group,
   isLeader,

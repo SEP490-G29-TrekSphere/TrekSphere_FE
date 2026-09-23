@@ -25,7 +25,6 @@ function createSosPopupContent(alert: SosAlert): HTMLElement {
   return content;
 }
 
-/** Bản đồ SOS dùng SDK và vector tiles chính thức của VietMap. */
 export function SosMapPanel({ alert }: SosMapPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapLoadFailed, setMapLoadFailed] = useState(false);

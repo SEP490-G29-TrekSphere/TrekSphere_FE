@@ -11,7 +11,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const sosService = {
-  /** Phát tín hiệu SOS mới trong Group Trip đang diễn ra. */
   async createSosAlert(groupId: string, payload: CreateSosAlertPayload): Promise<SosAlertResponse> {
     const response = await ApiService<SosAlertResponse>(
       `/matching-groups/${groupId}/sos-alerts`,
@@ -21,7 +20,6 @@ export const sosService = {
     return unwrapResponse(response);
   },
 
-  /** Danh sách tín hiệu SOS đang mở (OPEN) của nhóm. */
   async getActiveSosAlerts(groupId: string): Promise<SosAlertResponse[]> {
     const response = await ApiService<SosAlertResponse[]>(
       `/matching-groups/${groupId}/sos-alerts/active`,
@@ -30,7 +28,6 @@ export const sosService = {
     return unwrapResponse(response);
   },
 
-  /** Lịch sử tín hiệu SOS của nhóm (phân trang). */
   async getSosAlertHistory(
     groupId: string,
     page = 0,
@@ -45,7 +42,6 @@ export const sosService = {
     return unwrapResponse(response);
   },
 
-  /** Đóng tín hiệu SOS (Sender của chính alert đó, hoặc Leader). */
   async resolveSosAlert(groupId: string, sosAlertId: string): Promise<SosAlertResponse> {
     const response = await ApiService<SosAlertResponse>(
       `/matching-groups/${groupId}/sos-alerts/${sosAlertId}/resolve`,

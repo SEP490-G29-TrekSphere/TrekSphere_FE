@@ -159,13 +159,7 @@ export interface TourFilter {
   location?: string;
   /** Difficulty enum sent as the `difficulty` query param. */
   difficulty?: ApiDifficulty;
-  /**
-   * Map-friendly UI sort key. Each value translates to a (sortBy, sortDir)
-   * pair sent to the API.
-   *
-   * Không có key `rating`: backend không sort được theo điểm đánh giá
-   * (xem ghi chú ở `ApiSortField`).
-   */
+
   sortBy?: 'price-asc' | 'price-desc' | 'newest' | 'duration-asc' | 'duration-desc' | 'name-asc';
   departureDate?: string;
   returnDate?: string;
@@ -190,14 +184,6 @@ export type ApiStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN';
  */
 export type ApiSortDir = 'asc' | 'desc';
 
-/**
- * Allowed sort fields. The API defaults to `createdAt`.
- *
- * `averageRating` KHÔNG có trong danh sách này: entity `Tour` phía backend
- * không khai báo thuộc tính đó (điểm trung bình tính từ bảng review), nên
- * `sortBy=averageRating` khiến Hibernate ném `UnknownPathException` → 500.
- * Muốn xếp theo điểm đánh giá thì phải sort ở client.
- */
 export type ApiSortField = 'createdAt' | 'price' | 'durationDays' | 'tourName';
 
 /**
@@ -224,7 +210,7 @@ export interface TourListParams {
   difficulty?: ApiDifficulty;
   departureDate?: string;
   returnDate?: string;
-  /** Lọc tour theo 1 vendor cụ thể — dùng cho trang hồ sơ Vendor công khai. */
+
   vendorId?: string;
   page?: number;
   size?: number;
@@ -314,7 +300,7 @@ export interface TourDetailScheduleApi {
   tourId: string;
   departureDate: string;
   returnDate: string;
-  /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
+
   availableSlots: number;
   bookedSlots: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
@@ -362,17 +348,13 @@ export interface TourDetailFromApi {
   creatorEmail: string;
   images: TourDetailImageApi[];
   schedules: TourDetailScheduleApi[];
-  /**
-   * Điều khoản hủy tour & hoàn tiền của vendor sở hữu tour. BE nhúng sẵn vào
-   * `GET /tours/{id}` nên trekker đọc được mà không cần gọi endpoint vendor.
-   * Optional vì vendor có thể chưa cấu hình chính sách nào.
-   */
+
   cancellationPolicies?: CancellationPolicy[];
-  /** Policy thanh toán của riêng tour, được BE nhúng vào tour detail. */
+
   paymentPolicy?: TourPaymentPolicy;
-  /** Điều kiện tham gia do vendor cấu hình riêng cho tour. */
+
   participationPolicy?: TourParticipationPolicy | null;
-  /** Chi phí đã phát sinh và không hoàn lại khi tính yêu cầu hủy. */
+
   nonRefundableCost?: number;
 }
 
@@ -384,7 +366,6 @@ export interface TourSearchValues {
 // API Types for Recommended Tours (GET /api/v1/tours/recommended)
 // ============================================================
 
-/** Lý do BE gợi ý tour này — khớp enum `RecommendationReason` phía backend. */
 export type RecommendationReason =
   | 'AREA'
   | 'BEHAVIOR'
@@ -397,10 +378,6 @@ export type RecommendationReason =
   | 'POPULAR'
   | 'DISCOVERY';
 
-/**
- * Tour rút gọn nhúng trong response gợi ý — khớp `TourSummaryResponse` phía
- * backend, khác `TourApiItem` (list thường): không có `averageRating`/`totalReviews`.
- */
 export interface RecommendedTourSummaryApi {
   tourId: string;
   tourName: string;
@@ -446,6 +423,6 @@ export interface TourCheckpoint {
   altitude: number | null;
   checkpointOrder: number;
   checkpointImageUrl: string | null;
-  /** Danh sách URL ảnh checkpoint đã được backend tách từ trường lưu trữ. */
+
   checkpointImageUrls?: string[];
 }

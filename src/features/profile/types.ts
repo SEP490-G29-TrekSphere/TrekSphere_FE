@@ -1,10 +1,5 @@
 import type { HikingExperienceLevel, HikingPreferredDifficulty } from '@/constants';
 
-/**
- * Types riêng cho feature profile.
- * Lưu ý: UserProfile / UpdateProfilePayload nằm trong features/auth/types.ts
- * vì chúng là payload của auth service. Ở đây chỉ chứa các type UI-only.
- */
 export interface ProfileStat {
   label: string;
   value: string | number;
@@ -16,21 +11,14 @@ export const GENDER_LABELS: Record<'male' | 'female' | 'other', string> = {
   other: 'Khác',
 };
 
-/** Giới tính theo đúng enum BE trả về (khác `GENDER_LABELS` đang dùng key lowercase). */
 export type HikingSummaryGender = 'MALE' | 'FEMALE' | 'OTHER';
 
-/** Nhãn giới tính theo enum BE — dùng khi hiển thị dữ liệu chưa qua `normalizeProfile`. */
 export const GENDER_API_LABELS: Record<HikingSummaryGender, string> = {
   MALE: 'Nam',
   FEMALE: 'Nữ',
   OTHER: 'Khác',
 };
 
-/**
- * Phần hồ sơ leo núi dùng để hiển thị — tập field chung giữa `UserProfile`
- * (`GET /users/me`) và `PublicHikingSummary` (`GET /users/{id}/hiking-summary`),
- * nên một component view phục vụ được cả hồ sơ của mình lẫn hồ sơ người khác.
- */
 export interface HikingProfileView {
   bio?: string;
   experienceLevel?: HikingExperienceLevel;
@@ -41,13 +29,6 @@ export interface HikingProfileView {
   trustReviewCount?: number;
 }
 
-/**
- * Hồ sơ leo núi công khai — `GET /users/{userId}/hiking-summary`.
- *
- * Đây là phần "thông tin nâng cao" của một Trekker mà người khác được phép xem:
- * kinh nghiệm, sở thích cung đường, kỹ năng và điểm uy tín. BE đã lọc sẵn, KHÔNG
- * chứa email / số điện thoại / ngày sinh / thông tin y tế.
- */
 export interface PublicHikingSummary {
   userId: string;
   fullName: string;
@@ -62,7 +43,6 @@ export interface PublicHikingSummary {
   trustReviewCount?: number;
 }
 
-/** Thông tin Y tế & Khẩn cấp bắt buộc (Phục vụ SOS & Cứu hộ) */
 export interface EmergencyMedicalInfo {
   bloodType: 'A+' | 'A-' | 'B+' | 'B-' | 'O+' | 'O-' | 'AB+' | 'AB-' | 'unknown';
   medicalConditions: string;
@@ -74,7 +54,6 @@ export interface EmergencyMedicalInfo {
   insuranceId?: string;
 }
 
-/** Hồ sơ Nâng cao & Sở thích Kế hoạch Trekking (Dùng đề xuất ghép nhóm) */
 export interface TrekkingPreferences {
   fitnessLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'other';
   fitnessLevelCustom?: string;
@@ -165,7 +144,6 @@ export const TERRAIN_OPTIONS = [
   { id: 'other', label: 'Địa hình khác (Đồi cỏ, Biển/Đảo, Thảm rêu...)' },
 ];
 
-/** Khoảnh khắc Check-in công khai của User (Locket/Moments style) */
 export interface UserMoment {
   id: string;
   locationName: string;
@@ -179,7 +157,6 @@ export interface UserMoment {
   coordinates?: string;
 }
 
-/** Bài viết / Kinh nghiệm chia sẻ công khai */
 export interface UserPublicPost {
   id: string;
   title: string;
@@ -191,7 +168,6 @@ export interface UserPublicPost {
   category: string;
 }
 
-/** Chuyến đi & Nhóm đồng hành công khai */
 export interface UserPublicTrip {
   id: string;
   title: string;
@@ -203,7 +179,6 @@ export interface UserPublicTrip {
   location: string;
 }
 
-/** Dữ liệu Trang cá nhân Công khai đầy đủ (Public User Profile) */
 export interface UserPublicProfileData {
   id: string;
   fullName: string;
@@ -215,8 +190,7 @@ export interface UserPublicProfileData {
   location: string;
   joinedDate: string;
   verifiedBadge?: boolean;
-  /** Điểm tin cậy 0-100 — CÙNG thang với Trust Score ở companion-groups (không dùng thang 5 sao
-   * riêng cho trang cá nhân), luôn lấy qua `computeTrustScore(userId)` từ `@/shared/utils/trustScore`. */
+
   trustScore: number;
   reviewCount: number;
   stats: {

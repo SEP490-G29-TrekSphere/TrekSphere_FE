@@ -9,26 +9,17 @@ import type {
 import { useMyJoinRequests } from './useMyJoinRequests';
 import { useMyMatchingGroups } from './useMyMatchingGroups';
 
-/** Khoảng ngày của chuyến định đăng ký; `end` bỏ trống nghĩa là đi trong ngày. */
 export interface ScheduleRange {
   start?: string | null;
   end?: string | null;
 }
 
-/** Cắt phần giờ để so sánh theo ngày (`yyyy-MM-dd` so sánh chuỗi là đủ). */
 function toDayKey(value?: string | null): string | null {
   if (!value) return null;
   const day = value.slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
 }
 
-/**
- * Lọc ra các nhóm đang chiếm ngày trong khoảng `range`.
- *
- * Mỗi cam kết cũ chỉ biết đúng một ngày đi (`targetDate`) vì API danh sách không
- * trả ngày kết thúc, nên quy tắc là: ngày đó rơi vào khoảng của chuyến mới thì
- * tính là trùng. Tách riêng khỏi hook để test được mà không cần dựng React.
- */
 export function collectScheduleConflicts(
   groups: MatchingGroupItem[],
   applications: MyMatchingJoinRequestItem[],
@@ -74,14 +65,6 @@ export function collectScheduleConflicts(
   });
 }
 
-/**
- * Các ngày đi mà người dùng hiện tại đã cam kết: nhóm đang làm trưởng, nhóm đang
- * tham gia và đơn xin tham gia còn chờ duyệt.
- *
- * Dùng để chặn đăng ký hai chuyến trùng ngày — BE chưa kiểm tra ràng buộc này.
- * Chỉ gọi API khi đã đăng nhập: các endpoint `my-*` trả 401 cho khách, và 401 sẽ
- * kích hoạt luồng refresh token rồi có thể đá người đang xem ra ngoài.
- */
 export function useScheduleConflicts() {
   const user = useAppStore((state) => state.user);
   const enabled = Boolean(user?.id);
@@ -106,7 +89,7 @@ export function useScheduleConflicts() {
 
   return {
     findConflicts,
-    /** Chưa biết lịch cũ thì không thể kết luận là trùng hay không. */
+
     isLoading: enabled && (myGroupsQuery.isLoading || myApplicationsQuery.isLoading),
     isEnabled: enabled,
   };

@@ -1,7 +1,3 @@
-/**
- * Khung xám thay chỗ post card trong lúc tải lần đầu.
- * Giữ đúng nhịp chiều cao của `FeedPostCard` để feed không bị nhảy layout.
- */
 export function FeedPostSkeleton() {
   return (
     <div className="rounded-2xl bg-card p-4 shadow-sm sm:p-5" aria-hidden>

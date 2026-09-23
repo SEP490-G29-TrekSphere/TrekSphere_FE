@@ -6,7 +6,6 @@ interface MomentGeoBadgesProps {
   onViewOnMap?: (moment: MomentItem) => void;
 }
 
-/** Địa điểm check-in, độ cao và tọa độ GPS của một khoảnh khắc. */
 export function MomentGeoBadges({ moment, onViewOnMap }: MomentGeoBadgesProps) {
   const placeLabel = moment.locationName || moment.placeName;
   const hasCoordinates = moment.latitude !== undefined && moment.longitude !== undefined;

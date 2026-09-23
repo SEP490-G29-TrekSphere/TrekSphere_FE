@@ -12,9 +12,6 @@ export const myVendorApplicationKeys = {
     [...myVendorApplicationKeys.lists(), { filter }] as const,
 };
 
-/**
- * Hook lấy danh sách đơn đăng ký Vendor của chính user (Trekker).
- */
 export function useMyVendorApplications(filter: VendorApplicationFilter) {
   return useQuery<VendorApplicationsResponse>({
     queryKey: myVendorApplicationKeys.list(filter),
@@ -22,9 +19,6 @@ export function useMyVendorApplications(filter: VendorApplicationFilter) {
   });
 }
 
-/**
- * Hook mutation tạo đơn đăng ký bản nháp Vendor (Trekker).
- */
 export function useCreateDraftApplication() {
   const queryClient = useQueryClient();
 
@@ -36,9 +30,6 @@ export function useCreateDraftApplication() {
   });
 }
 
-/**
- * Hook mutation nộp đơn đăng ký Vendor từ DRAFT -> PENDING (Trekker).
- */
 export function useSubmitVendorApplication() {
   const queryClient = useQueryClient();
 
@@ -50,9 +41,6 @@ export function useSubmitVendorApplication() {
   });
 }
 
-/**
- * Hook mutation cập nhật thông tin đơn đăng ký (Trekker).
- */
 export function useUpdateVendorApplication() {
   const queryClient = useQueryClient();
 
@@ -65,9 +53,6 @@ export function useUpdateVendorApplication() {
   });
 }
 
-/**
- * Hook mutation nộp lại đơn đăng ký Vendor từ REJECTED -> PENDING (Trekker).
- */
 export function useResubmitVendorApplication() {
   const queryClient = useQueryClient();
 

@@ -20,13 +20,6 @@ interface GroupActionPanelProps {
   rejectReason?: string | null;
 }
 
-/**
- * Cột hành động bên phải trang chi tiết nhóm: chat nhóm và hành động theo vai trò.
- *
- * Các thao tác quản lý vòng đời của Trưởng nhóm đã chuyển sang tab "Quản lý nhóm"
- * trong workspace (`GroupManagementPanel`) để không nằm lẫn với nội dung đọc hằng ngày.
- */
-
 export function GroupActionPanel({
   role,
   groupStatus,
@@ -104,7 +97,6 @@ export function GroupActionPanel({
         </div>
       )}
 
-      {/* SOS card: Leader hoặc Member, chỉ hiện khi chuyến đi đang IN_PROGRESS */}
       {canSendSos && (
         <button
           type="button"

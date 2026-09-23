@@ -21,7 +21,6 @@ interface ConfirmDialogProps {
   isPending?: boolean;
 }
 
-/** Icon + màu theo từng variant. */
 const VARIANT_CONFIG: Record<
   ConfirmDialogVariant,
   {
@@ -52,9 +51,6 @@ const DESCRIPTIONS: Record<
   },
 };
 
-/**
- * Popup xác nhận cho thao tác khóa tài khoản trong Admin.
- */
 export function ConfirmDialog({
   open,
   onOpenChange,

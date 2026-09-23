@@ -6,12 +6,6 @@ interface TourInclusionsSectionProps {
   tour: TourDetailFromApi;
 }
 
-/**
- * "Bao gồm / Không bao gồm" — hai cột đối xứng.
- *
- * Trước đây `includes` chỉ hiện 4 mục đầu chen trong thẻ nhà cung cấp và `excludes`
- * nằm tách rời ở cuối trang; đặt cạnh nhau giúp so sánh trực tiếp.
- */
 export function TourInclusionsSection({ tour }: TourInclusionsSectionProps) {
   const includes = splitField(tour.includes);
   const excludes = splitField(tour.excludes);

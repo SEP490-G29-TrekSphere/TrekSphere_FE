@@ -73,7 +73,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { client, isConnected } = useChatWebSocket();
+  const { client, isConnected, connectionEpoch } = useChatWebSocket();
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
   const { mutateAsync: createConversationAsync } = useCreateConversation();
 
@@ -93,6 +93,12 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   useEffect(() => {
     if (!client || !isConnected || !selectedId || isVirtualSelected) return;
 
+    if (import.meta.env.DEV) {
+      console.log(
+        `[STOMP] Subscribing to chat conversation ${selectedId} (epoch ${connectionEpoch})`
+      );
+    }
+
     const subscription = client.subscribe(
       `/topic/chat/conversations/${selectedId}/messages`,
       (message) => {
@@ -100,24 +106,24 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           try {
             const parsed = JSON.parse(message.body);
 
-            // Cập nhật React Query cache
-            // biome-ignore lint/suspicious/noExplicitAny: React Query cache structure
-            queryClient.setQueryData(['chatMessages', selectedId, 1, 50], (oldData: any) => {
-              if (!oldData) return oldData;
+            queryClient.setQueryData(
+              ['chatMessages', selectedId, 1, 50],
+              (oldData: PaginationResponse<MessageResponse> | undefined) => {
+                if (!oldData) return oldData;
 
-              // Tránh duplicate tin nhắn
-              const isExist = oldData.content?.some(
-                (msg: MessageResponse) => msg.messageId === parsed.messageId
-              );
-              if (isExist) return oldData;
+                // Prevent duplicate message
+                const isExist = oldData.content?.some(
+                  (msg: MessageResponse) => msg.messageId === parsed.messageId
+                );
+                if (isExist) return oldData;
 
-              return {
-                ...oldData,
-                content: [parsed, ...oldData.content],
-              };
-            });
+                return {
+                  ...oldData,
+                  content: [parsed, ...oldData.content],
+                };
+              }
+            );
 
-            // Cập nhật last message trong danh sách conversation
             setConversations((prev) =>
               prev.map((c) =>
                 c.id === selectedId
@@ -143,7 +149,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, isConnected, selectedId, isVirtualSelected]);
+  }, [client, isConnected, connectionEpoch, selectedId, isVirtualSelected]);
 
   // Sync API response to local state
   useEffect(() => {
@@ -232,7 +238,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const currentMessages = useMemo(() => {
     if (!selectedId) return [];
 
-    // API trả tin nhắn mới nhất trước, UI cần thứ tự tăng dần theo thời gian.
     return (messagesResponse?.content || [])
       .map<DetailMessage>((msg) => ({
         id: msg.messageId,
@@ -309,7 +314,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           matchingGroupId: selectedConversation.virtualData.matchingGroupId,
         });
 
-        // Xoá virtualConversation khỏi state và set conversationId mới
         navigate(location.pathname, {
           replace: true,
           state: {
@@ -322,7 +326,6 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
           },
         });
 
-        // Cập nhật React Query cache để conversation không bị chớp/biến mất
         queryClient.setQueryData<PaginationResponse<ConversationResponse>>(
           ['chatConversations', page, size],
           (old) => {

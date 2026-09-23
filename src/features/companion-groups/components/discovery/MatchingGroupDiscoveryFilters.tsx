@@ -88,7 +88,6 @@ export function MatchingGroupDiscoveryFilters({
 
         <hr className="my-5 border-border" />
 
-        {/* Section: Ngày khởi hành */}
         <div className="mb-6">
           <span className="mb-3 block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
             Ngày khởi hành
@@ -103,7 +102,6 @@ export function MatchingGroupDiscoveryFilters({
 
         <hr className="my-5 border-border" />
 
-        {/* Section: Độ khó */}
         <fieldset className="mb-6">
           <legend className="mb-3 block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
             Độ khó
@@ -145,7 +143,6 @@ export function MatchingGroupDiscoveryFilters({
 
         <hr className="my-5 border-border" />
 
-        {/* Section: Khoảng giá (VND) */}
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
@@ -175,7 +172,6 @@ export function MatchingGroupDiscoveryFilters({
 
         <hr className="my-5 border-border" />
 
-        {/* Section: Tùy chọn hiển thị */}
         {onAvailableSlotsChange && (
           <>
             <div className="mb-6">
@@ -209,7 +205,6 @@ export function MatchingGroupDiscoveryFilters({
           </>
         )}
 
-        {/* Section: Trạng thái */}
         <fieldset className="mb-6">
           <legend className="mb-3 block font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
             Trạng thái

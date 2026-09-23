@@ -18,11 +18,6 @@ import { usePublicVendorProfile } from '../hooks/usePublicVendorProfile';
 
 const TOURS_PAGE_SIZE = 9;
 
-/**
- * Trang "Hồ sơ Vendor công khai" — Guest xem thông tin 1 đơn vị tổ chức tour + các tour đang mở
- * của họ. Cố tình KHÔNG dùng lại bố cục `ListTours` (không hero ảnh lớn/search/filter/sort) — đây
- * là trang thương hiệu của riêng 1 vendor, không phải 1 khung tìm kiếm tour lọc theo vendor.
- */
 export default function PublicVendorProfilePage() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
@@ -78,7 +73,6 @@ export default function PublicVendorProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pt-16">
-      {/* Banner nhận diện thương hiệu Vendor — nền gradient riêng, không phải hero ảnh của ListTours */}
       <section className="w-full bg-gradient-to-br from-primary/95 via-primary to-primary-hover">
         <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6 lg:px-8 sm:py-14">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -161,7 +155,6 @@ export default function PublicVendorProfilePage() {
         </div>
       </section>
 
-      {/* Danh sách tour đang mở của vendor này */}
       <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6 lg:px-8">
         <h2 className="mb-6 text-lg font-bold text-foreground sm:text-xl">
           Các tour đang mở của {profile.companyName}

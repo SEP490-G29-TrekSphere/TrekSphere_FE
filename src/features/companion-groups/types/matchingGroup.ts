@@ -80,7 +80,7 @@ export interface MatchingGroupItem {
   ownerId: string;
   ownerName: string;
   ownerAvatarUrl: string | null;
-  /** Trưởng nhóm HIỆN TẠI (role có thể đổi qua bầu cử) — khác owner (người tạo nhóm, cố định). */
+
   leaderId?: string | null;
   leaderName?: string | null;
   leaderAvatarUrl?: string | null;
@@ -192,10 +192,8 @@ export interface MyMatchingJoinRequestItem {
   canWithdraw: boolean;
 }
 
-/** Nguồn gốc của một lịch đã chiếm chỗ của người dùng. */
 export type ScheduleConflictKind = 'LEADER' | 'MEMBER' | 'PENDING_APPLICATION';
 
-/** Một nhóm đang chiếm ngày đi mà người dùng định đăng ký trùng vào. */
 export interface ScheduleConflict {
   matchingGroupId: string;
   groupName: string;

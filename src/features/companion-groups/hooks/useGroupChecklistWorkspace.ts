@@ -8,7 +8,6 @@ import type {
 } from '../types/workspace';
 import { groupWorkspaceKeys } from './groupWorkspaceKeys';
 
-/** Hook đọc danh sách và tóm tắt Checklist của nhóm */
 export function useGroupChecklist(groupId: string, filter?: ChecklistFilterParams) {
   return useQuery({
     queryKey: [...groupWorkspaceKeys.checklist(groupId), filter],
@@ -18,7 +17,6 @@ export function useGroupChecklist(groupId: string, filter?: ChecklistFilterParam
   });
 }
 
-/** Hook tạo mới Checklist item */
 export function useCreateGroupChecklistItem(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -31,7 +29,6 @@ export function useCreateGroupChecklistItem(groupId: string) {
   });
 }
 
-/** Hook cập nhật thông tin Checklist item */
 export function useUpdateGroupChecklistItem(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -44,7 +41,6 @@ export function useUpdateGroupChecklistItem(groupId: string) {
   });
 }
 
-/** Hook cập nhật trạng thái checklist item (Pending / Completed) */
 export function useUpdateGroupChecklistItemStatus(groupId: string) {
   const queryClient = useQueryClient();
 
@@ -57,7 +53,6 @@ export function useUpdateGroupChecklistItemStatus(groupId: string) {
   });
 }
 
-/** Hook xóa Checklist item */
 export function useDeleteGroupChecklistItem(groupId: string) {
   const queryClient = useQueryClient();
 

@@ -1,12 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 
-/**
- * Layout cho toàn bộ khu vực Admin.
- * - 2 cột: Sidebar cố định (20% width) + Main content (80% width).
- * - Sidebar nền xanh rêu đậm, full height.
- * - Main content nền trắng kem nhạt.
- */
 export default function AdminLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ backgroundColor: '#FAF8F1' }}>

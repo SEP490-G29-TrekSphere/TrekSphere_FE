@@ -15,12 +15,6 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-/**
- * Trang Quản lý Cảnh báo Khẩn cấp & Cứu hộ — dùng chung cho Vendor Manager và
- * Admin (2 role duy nhất được BE cấp quyền gọi `GET /tracking/sos/active`).
- * Tab "Đã xử lý" chỉ chứa các SOS được resolve trong phiên làm việc hiện tại
- * (BE không có API liệt kê lịch sử SOS đã xử lý).
- */
 export default function EmergencySosPage() {
   const pageSize = 10;
   const [page, setPage] = useState(0);

@@ -15,7 +15,6 @@ interface MembersPanelProps {
   onClose: () => void;
 }
 
-/** Panel thành viên bên phải khung chat (ẩn/hiện bằng nút trên header). */
 export function MembersPanel({ conversationId, open, onClose }: MembersPanelProps) {
   const { user } = useAppStore();
   const { data: members, isLoading, error } = useConversationMembers(conversationId, open);

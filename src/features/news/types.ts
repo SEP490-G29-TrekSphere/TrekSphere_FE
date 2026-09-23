@@ -1,30 +1,9 @@
-/**
- * Types riêng cho feature News/Blog.
- * Bám theo response BE thực tế:
- *   GET /api/v1/blogs?keyword=&page=&size=&sortBy=&sortDir=
- *     → { success, code, message, data: { content: BlogItem[], pageNumber, pageSize,
- *                                         totalElements, totalPages, ... }, timestamp }
- *   GET /api/v1/blogs/{id}
- *     → { success, code, message, data: BlogPostDetail (id, title, content, coverImageUrl,
- *                                                       comments (nested), tags, ...) }
- *   GET /api/v1/blogs/{id}/comments?page=&size=
- *     → { success, code, message, data: { content: BlogComment[], ...meta }, timestamp }
- *   POST /api/v1/blogs/{id}/comments  (auth)
- *     body: { content, parentCommentId? }
- *     → { success, code, message, data: BlogComment }
- *
- * Lưu ý: BE dùng `id` (UUID/string), KHÔNG có `slug`.
- *       BE unwrap 1 cấp: `ApiService<T>` đã trả `res.data` = phần `data` bên trong envelope.
- *       → Service đọc thẳng `res.data.content`, `res.data.pageNumber`...
- */
-
-/** Một bài viết trong list endpoint. */
 export interface BlogListItem {
   blogId: string;
   title: string;
   excerpt: string;
   coverImageUrl: string;
-  /** Tên category do BE trả về (string). */
+
   categoryName?: string;
   authorId: string;
   authorName: string;
@@ -35,9 +14,6 @@ export interface BlogListItem {
   tags?: string[];
   viewCount: number;
 
-  /**
-   * Các field mạng xã hội của community feed.
-   */
   totalComments?: number;
   likeCount?: number;
   likedByMe?: boolean;
@@ -45,24 +21,18 @@ export interface BlogListItem {
   isFollowingAuthor?: boolean;
 }
 
-/**
- * Một người dùng trong khối "Gợi ý theo dõi" ở sidebar feed.
- * BE chưa có endpoint `/users/suggested` — shape này là hợp đồng dự kiến.
- */
 export interface SuggestedUser {
   userId: string;
   fullName: string;
   avatarUrl: string;
-  /** Dòng phụ dưới tên — địa điểm hoặc mô tả ngắn. */
+
   subtitle?: string;
   isFollowing?: boolean;
 }
 
-/** Một bài viết trong detail endpoint — mở rộng từ list item. */
 export interface BlogPostDetail extends BlogListItem {
-  /** Nội dung bài viết — BE trả về markdown/string thuần. */
   content: string;
-  /** BE trả về nested tree (replies). */
+
   comments: BlogCommentItem[];
   totalComments: number;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | string;
@@ -70,11 +40,6 @@ export interface BlogPostDetail extends BlogListItem {
   updatedAt: string;
 }
 
-/**
- * Một comment — BE trả nested tree qua `replies`.
- * Field định danh thật của BE là `commentId` (KHÔNG phải `id`).
- * BE không trả `blogId`/`parentCommentId` trong response comment (chỉ dùng khi tạo mới).
- */
 export interface BlogCommentItem {
   commentId: string;
   userId: string;
@@ -86,7 +51,6 @@ export interface BlogCommentItem {
   replies?: BlogCommentItem[];
 }
 
-/** Pagination meta (chuẩn Spring Data `Page<T>`). */
 export interface BlogListMeta {
   pageNumber: number;
   pageSize: number;
@@ -94,24 +58,20 @@ export interface BlogListMeta {
   totalPages: number;
 }
 
-/** Pagination meta cho comments (cũng theo Spring Data). */
 export interface BlogCommentListMeta extends BlogListMeta {}
 
-/** Payload khi tạo comment mới. */
 export interface CreateBlogCommentPayload {
   content: string;
   parentCommentId?: string | null;
 }
 
-/** Payload khi sửa nội dung comment. */
 export interface UpdateBlogCommentPayload {
   content: string;
 }
 
-/** Tham số query cho list endpoint — bám đúng param BE hỗ trợ. */
 export interface BlogListParams {
   keyword?: string;
-  /** Lọc theo tác giả — dùng cho tab "Bài viết" ở trang hồ sơ. */
+
   authorId?: string;
   page?: number;
   size?: number;
@@ -119,10 +79,6 @@ export interface BlogListParams {
   sortDir?: 'asc' | 'desc';
 }
 
-/**
- * Backward-compatible alias cho code cũ (giữ để tránh phải sửa nhiều chỗ ngoài feature).
- * Code mới nên dùng `BlogListItem` / `BlogPostDetail` / `BlogCommentItem`.
- */
 export interface BlogPost extends BlogListItem {}
 
 export interface BlogComment extends BlogCommentItem {}
@@ -134,7 +90,6 @@ export interface BlogCategory {
   label: string;
 }
 
-/** Helper: flatten nested comments → danh sách phẳng để render. */
 export function flattenComments(comments: BlogCommentItem[]): BlogCommentItem[] {
   const flat: BlogCommentItem[] = [];
   for (const c of comments) {

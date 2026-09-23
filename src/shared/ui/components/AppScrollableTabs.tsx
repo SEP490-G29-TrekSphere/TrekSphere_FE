@@ -23,7 +23,7 @@ export function AppScrollableTabs({
     if (!el) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    // Cho phép dung sai 2px do làm tròn sub-pixel
+
     setCanScrollLeft(scrollLeft > 2);
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
   }, []);
@@ -34,7 +34,6 @@ export function AppScrollableTabs({
 
     checkScrollability();
 
-    // Lắng nghe resize & scroll
     const resizeObserver = new ResizeObserver(() => {
       checkScrollability();
     });
@@ -58,7 +57,6 @@ export function AppScrollableTabs({
 
   return (
     <div className={cn('relative flex items-center group/tabscroll w-full', className)}>
-      {/* Nút cuộn trái */}
       {canScrollLeft && (
         <div className="absolute left-1 z-20 flex items-center">
           <button
@@ -72,7 +70,6 @@ export function AppScrollableTabs({
         </div>
       )}
 
-      {/* Hiệu ứng gradient fade bên trái */}
       {canScrollLeft && (
         <div
           aria-hidden="true"
@@ -80,7 +77,6 @@ export function AppScrollableTabs({
         />
       )}
 
-      {/* Container cuộn danh sách tabs */}
       <div
         ref={containerRef}
         className="scrollbar-none flex w-full overflow-x-auto rounded-2xl border border-border bg-card p-1.5 shadow-xs scroll-smooth"
@@ -88,7 +84,6 @@ export function AppScrollableTabs({
         {children}
       </div>
 
-      {/* Hiệu ứng gradient fade bên phải */}
       {canScrollRight && (
         <div
           aria-hidden="true"
@@ -96,7 +91,6 @@ export function AppScrollableTabs({
         />
       )}
 
-      {/* Nút cuộn phải */}
       {canScrollRight && (
         <div className="absolute right-1 z-20 flex items-center">
           <button

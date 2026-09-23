@@ -6,23 +6,14 @@ import type { UserProfile } from '@/features/auth';
 
 interface ProfileSidebarProps {
   profile: UserProfile;
-  /** Chế độ hiện tại: view hay edit. */
+
   mode?: 'view' | 'edit';
-  /** Override đường dẫn trang edit (mặc định PATHS.EDIT_PROFILE). */
+
   editPath?: string;
-  /** Khi user bấm "Thay đổi ảnh" — handler nhận file vừa chọn. */
+
   onAvatarChange?: (file: File) => void;
 }
 
-/**
- * Cột trái của màn hình Profile — hiển thị avatar, tên, email, nút hành động.
- * Dùng chung cho cả màn View và Edit để đảm bảo nhất quán layout 30%-70%.
- *
- * Chỉ render dữ liệu `GET /users/me` thật sự trả về (`UserProfileResponse`:
- * fullName, email, phone, dateOfBirth, gender, avatarUrl, roles). BE không có
- * username, ngày tham gia hay số liệu tour/bài viết/người theo dõi — trước đây
- * các mục đó hiển thị bằng số liệu bịa, nay đã bỏ hẳn thay vì hiện sai.
- */
 export default function ProfileSidebar({
   profile,
   mode = 'view',
@@ -40,7 +31,7 @@ export default function ProfileSidebar({
     if (file && onAvatarChange) {
       onAvatarChange(file);
     }
-    // Reset value để chọn lại cùng 1 file vẫn trigger onChange
+
     e.target.value = '';
   };
 
@@ -63,8 +54,6 @@ export default function ProfileSidebar({
               loading="lazy"
             />
           ) : (
-            // Chưa có ảnh đại diện → hiện chữ cái đầu của tên, không dùng ảnh
-            // stock của người lạ làm mặc định.
             <span className="flex h-full w-full items-center justify-center bg-primary text-4xl font-bold text-primary-foreground">
               {initial}
             </span>

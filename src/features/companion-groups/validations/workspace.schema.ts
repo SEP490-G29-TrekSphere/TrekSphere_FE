@@ -12,7 +12,6 @@ import {
   TIME_SLOT_BOUNDARIES,
 } from '../constants/workspace';
 
-// Helper so sánh giờ dạng "HH:mm"
 function timeToMinutes(timeStr: string): number {
   const [h, m] = timeStr.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
@@ -84,7 +83,6 @@ export const activityFormSchema = z
     const boundaryStartMin = timeToMinutes(boundary.start);
     const boundaryEndMin = timeToMinutes(boundary.end);
 
-    // Validate giờ bắt đầu nằm trong buổi
     if (startMin < boundaryStartMin || startMin > boundaryEndMin) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -93,7 +91,6 @@ export const activityFormSchema = z
       });
     }
 
-    // Validate giờ kết thúc nằm trong buổi
     if (endMin < boundaryStartMin || endMin > boundaryEndMin) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -102,7 +99,6 @@ export const activityFormSchema = z
       });
     }
 
-    // Validate giờ bắt đầu < giờ kết thúc
     if (startMin >= endMin) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

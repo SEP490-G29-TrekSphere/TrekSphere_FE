@@ -91,12 +91,10 @@ export function GroupJourneyTab({
     groupStatus === 'IN_PROGRESS' || groupStatus === 'COMPLETED' || groupStatus === 'CANCELLED';
   const canEdit = isLeader && !isLocked && !isTripActiveOrEnded;
 
-  // Sắp xếp checkpoints theo thứ tự chặng
   const sortedCheckpoints = useMemo(() => {
     return [...checkpoints].sort((a, b) => (a.checkpointOrder ?? 0) - (b.checkpointOrder ?? 0));
   }, [checkpoints]);
 
-  // Tổng số ngày của hành trình tính từ startDate -> endDate
   const totalJourneyDays = useMemo(() => {
     if (journey?.startDate && journey?.endDate) {
       const start = parseLocalDate(journey.startDate);
@@ -107,7 +105,6 @@ export function GroupJourneyTab({
     return 1;
   }, [journey?.startDate, journey?.endDate]);
 
-  // Danh sách các cột ngày theo thời gian của hành trình
   const days = useMemo(() => {
     const result: number[] = [];
     for (let i = 1; i <= totalJourneyDays; i++) {
@@ -123,7 +120,6 @@ export function GroupJourneyTab({
     setIsAddActivityModalOpen(true);
   };
 
-  // Xóa checkpoint an toàn
   function handleConfirmDelete(checkpointId: string) {
     deleteCheckpointMutation.mutate(checkpointId, {
       onSuccess: () => {
@@ -136,7 +132,6 @@ export function GroupJourneyTab({
     });
   }
 
-  // Xóa activity an toàn
   function handleConfirmDeleteActivity() {
     if (!deletingActivity) return;
     const actId = deletingActivity.customJourneyActivityId || deletingActivity.id || '';
@@ -181,7 +176,7 @@ export function GroupJourneyTab({
 
   return (
     <div className="space-y-8">
-      {/* 1. THÔNG TIN CHUNG VỀ HÀNH TRÌNH (HEADER BANNER) */}
+      {/* 1. General Journey Header Banner */}
       <JourneyHeaderCard
         journey={journey}
         checkpointCount={checkpoints.length}
@@ -191,7 +186,7 @@ export function GroupJourneyTab({
         onEditJourney={() => setIsEditJourneyModalOpen(true)}
       />
 
-      {/* 2. CHECKPOINT DỰ KIẾN (WAYPOINTS GRID) */}
+      {/* 2. Planned Waypoints / Checkpoints Grid */}
       <CheckpointListSection
         groupId={groupId}
         checkpoints={sortedCheckpoints}
@@ -202,7 +197,7 @@ export function GroupJourneyTab({
         onDeleteCheckpoint={setDeletingCheckpoint}
       />
 
-      {/* 3. THỜI KHÓA BIỂU LỘ TRÌNH (TIMETABLE MATRIX) */}
+      {/* 3. Timetable Matrix / Activities */}
       <ActivityTimetableSection
         activities={activities}
         days={days}

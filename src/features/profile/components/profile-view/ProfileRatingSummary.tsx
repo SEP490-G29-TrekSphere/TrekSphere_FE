@@ -10,10 +10,6 @@ interface ProfileRatingSummaryProps {
   isOwnProfile?: boolean;
 }
 
-/**
- * Tab "Đánh giá" — tổng hợp điểm uy tín và danh sách nhận xét ẩn danh từ bạn đồng hành
- * nhận được sau các chuyến đi ghép nhóm.
- */
 export function ProfileRatingSummary({ userId, isOwnProfile = true }: ProfileRatingSummaryProps) {
   const { data: reviews = [], isLoading } = useUserPeerReviews(userId);
 

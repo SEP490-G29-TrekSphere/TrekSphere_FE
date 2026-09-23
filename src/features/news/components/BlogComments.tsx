@@ -18,18 +18,12 @@ interface BlogCommentsProps {
   comments: BlogCommentItem[];
   total?: number;
   isLoggedIn: boolean;
-  /** userId của người đang đăng nhập — dùng để hiện nút Sửa/Xóa đúng chủ bình luận. */
+
   currentUserId?: string;
-  /** ID bài viết — dùng để invalidate cache + gọi API comment. */
+
   blogId?: string;
 }
 
-/**
- * Khu vực bình luận cho trang chi tiết bài viết.
- * - Header trên cùng: Tiêu đề + Bộ chọn kiểu sắp xếp (Mới nhất / Cũ nhất).
- * - Danh sách bình luận dạng cây (replies).
- * - Form nhập bình luận / CTA đăng nhập chuyển xuống dưới cùng.
- */
 export function BlogComments({
   comments,
   total,
@@ -104,7 +98,6 @@ export function BlogComments({
 
   return (
     <section className="mt-12 rounded-3xl bg-card p-6 sm:p-8 border border-border shadow-xs">
-      {/* Header + Kiểu sắp xếp */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-primary sm:text-2xl">Bình luận ({count})</h2>
         <div className="flex items-center gap-2">
@@ -123,7 +116,6 @@ export function BlogComments({
         </div>
       </div>
 
-      {/* Danh sách bình luận */}
       {displayedComments.length > 0 ? (
         <>
           <ul className="mt-8 flex flex-col gap-4">
@@ -160,7 +152,6 @@ export function BlogComments({
         </p>
       )}
 
-      {/* Form bình luận đẩy xuống dưới cùng */}
       <div className="mt-8 border-t border-border pt-6">
         {isLoggedIn ? (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -199,7 +190,6 @@ export function BlogComments({
         )}
       </div>
 
-      {/* Modal Báo cáo Comment */}
       {reportingComment && (
         <ReportModal
           isOpen={Boolean(reportingComment)}
@@ -210,7 +200,6 @@ export function BlogComments({
         />
       )}
 
-      {/* Modal xác nhận xóa comment */}
       {deletingComment && (
         <ConfirmActionDialog
           title="Xóa bình luận?"

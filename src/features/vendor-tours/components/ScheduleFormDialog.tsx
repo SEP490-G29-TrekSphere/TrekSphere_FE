@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,15 +12,14 @@ import {
 } from '@/components/ui/dialog';
 import { parseIsoDate, toIsoDate } from '@/lib';
 import { AppDatePicker } from '@/shared/ui';
+import { SCHEDULE_STATUS_OPTIONS } from '../constants';
 import type { ApiScheduleStatus, CreateSchedulePayload, UpdateSchedulePayload } from '../types';
+import {
+  type ScheduleFormInput,
+  type ScheduleFormValues,
+  scheduleFormSchema,
+} from '../validations';
 
-const STATUS_OPTIONS: Array<{ value: ApiScheduleStatus; label: string }> = [
-  { value: 'OPEN', label: 'Đang mở' },
-  { value: 'CLOSED', label: 'Đã đóng' },
-  { value: 'COMPLETED', label: 'Đã hoàn thành' },
-];
-
-/** Hôm nay dạng `yyyy-MM-dd` — cùng định dạng với giá trị lưu trong form nên so sánh chuỗi là đủ. */
 function todayIso(): string {
   return toIsoDate(new Date());
 }
@@ -34,24 +32,6 @@ export function getLatestReturnDate(departureDate: string, durationDays: number)
   latestReturnDate.setDate(latestReturnDate.getDate() + durationDays - 1);
   return latestReturnDate;
 }
-
-const scheduleFormSchema = z
-  .object({
-    departureDate: z.string().min(1, 'Vui lòng chọn ngày khởi hành'),
-    returnDate: z.string().min(1, 'Vui lòng chọn ngày kết thúc'),
-    availableSlots: z.coerce.number().int().min(1, 'Tối thiểu 1 chỗ'),
-    status: z.enum(['OPEN', 'CLOSED', 'CANCELLED', 'COMPLETED']),
-    reason: z.string().trim().optional(),
-  })
-  .refine((data) => data.returnDate >= data.departureDate, {
-    message: 'Ngày kết thúc phải sau ngày khởi hành',
-    path: ['returnDate'],
-  });
-
-/** Giá trị sau khi zod coerce (số thật) — dùng khi submit. */
-type ScheduleFormValues = z.output<typeof scheduleFormSchema>;
-/** Giá trị trước khi coerce (khớp kiểu input HTML) — dùng cho defaultValues/register. */
-type ScheduleFormInput = z.input<typeof scheduleFormSchema>;
 
 export interface ScheduleFormDefaultValues {
   departureDate: string;
@@ -72,26 +52,18 @@ export interface ScheduleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: 'create' | 'edit';
-  /** Giá trị có sẵn để đổ vào form — merge lên trên `EMPTY_DEFAULTS`. */
+
   defaultValues?: Partial<ScheduleFormDefaultValues>;
-  /** Số chỗ đã đặt của lịch đang sửa — dùng để yêu cầu lý do điều chỉnh. */
+
   bookedSlots?: number;
-  /** Sức chứa tối đa của tour (`tour.maxCapacity`) — chặn không cho đặt `availableSlots` vượt quá. */
+
   maxCapacity: number;
-  /** Thời lượng tour tính theo ngày — dùng để giới hạn ngày kết thúc của lịch khởi hành. */
+
   durationDays: number;
   isPending?: boolean;
   onSubmit: (payload: CreateSchedulePayload | UpdateSchedulePayload) => void;
 }
 
-/**
- * Dialog dùng chung cho Tạo lịch khởi hành (`POST .../schedules`) và Sửa lịch
- * (`PUT .../schedules/{scheduleId}`) — chỉ mode 'edit' mới hiện ô Trạng thái,
- * vì `CreateScheduleRequest` không có field này (BE luôn tạo mới ở OPEN).
- *
- * Khi sửa lịch đã có khách đặt (`bookedSlots > 0`), bắt buộc thêm lý do điều chỉnh — BE dùng
- * để gửi notification cho từng khách đã đặt (mã lỗi `SCHEDULE_CHANGE_REASON_REQUIRED` nếu thiếu).
- */
 export function ScheduleFormDialog({
   open,
   onOpenChange,
@@ -120,19 +92,15 @@ export function ScheduleFormDialog({
     defaultValues: { ...EMPTY_DEFAULTS, ...defaultValues },
   });
 
-  // Ngày kết thúc không được chọn trước ngày khởi hành (cùng ràng buộc với `.refine` của zod).
   const departureDate = watch('departureDate');
   const latestReturnDate = getLatestReturnDate(departureDate, durationDays);
 
-  // Đổ lại giá trị mỗi lần dialog mở, tránh giữ dữ liệu của lịch/lần mở trước (cho lịch khác).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ cần trigger reset khi mở dialog
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
   useEffect(() => {
     if (open) reset({ ...EMPTY_DEFAULTS, ...defaultValues });
   }, [open]);
 
   const submit = handleSubmit((values) => {
-    // Chỉ chặn ngày quá khứ khi TẠO lịch mới — lịch cũ (đã khởi hành) vẫn phải sửa được
-    // các thông tin khác như giá/số chỗ/trạng thái, không thể bắt dời ngày lên tương lai.
     if (!isEdit && values.departureDate < todayIso()) {
       setError('departureDate', { message: 'Ngày khởi hành không được ở trong quá khứ' });
       return;
@@ -196,10 +164,9 @@ export function ScheduleFormDialog({
             <div>
               <label
                 htmlFor="departureDate"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
+                className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                Ngày khởi hành <span className="text-red-500">*</span>
+                Ngày khởi hành <span className="text-destructive">*</span>
               </label>
               <Controller
                 name="departureDate"
@@ -210,25 +177,22 @@ export function ScheduleFormDialog({
                     selected={parseIsoDate(field.value)}
                     onChange={(date: Date | null) => field.onChange(toIsoDate(date))}
                     onBlur={field.onBlur}
-                    // Lịch cũ (đã khởi hành) vẫn phải sửa được thông tin khác nên không chặn quá khứ khi edit.
                     minDate={isEdit ? undefined : new Date()}
-                    className="w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                    style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                    className="w-full cursor-pointer rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholderText="Chọn ngày khởi hành"
                   />
                 )}
               />
               {errors.departureDate && (
-                <p className="mt-1 text-xs text-red-500">{errors.departureDate.message}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.departureDate.message}</p>
               )}
             </div>
             <div>
               <label
                 htmlFor="returnDate"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
+                className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                Ngày kết thúc <span className="text-red-500">*</span>
+                Ngày kết thúc <span className="text-destructive">*</span>
               </label>
               <Controller
                 name="returnDate"
@@ -249,14 +213,13 @@ export function ScheduleFormDialog({
                     }}
                     onBlur={field.onBlur}
                     minDate={parseIsoDate(departureDate) ?? undefined}
-                    className="w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                    style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                    className="w-full cursor-pointer rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholderText="Chọn ngày kết thúc"
                   />
                 )}
               />
               {errors.returnDate && (
-                <p className="mt-1 text-xs text-red-500">{errors.returnDate.message}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.returnDate.message}</p>
               )}
             </div>
           </div>
@@ -264,11 +227,10 @@ export function ScheduleFormDialog({
           <div>
             <label
               htmlFor="availableSlots"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: '#06261D' }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               {isEdit ? 'Chỗ còn trống hiện tại' : 'Số chỗ mở bán'}{' '}
-              <span className="text-red-500">*</span>
+              <span className="text-destructive">*</span>
             </label>
             <input
               id="availableSlots"
@@ -277,16 +239,15 @@ export function ScheduleFormDialog({
               max={maxCapacity}
               disabled={isEdit}
               {...register('availableSlots')}
-              className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+              className="w-full rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
             />
             {isEdit && (
-              <p className="mt-1 text-xs" style={{ color: '#6F7B75' }}>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Đã đặt: {bookedSlots} chỗ. Số chỗ mở bán chỉ được thiết lập khi tạo lịch.
               </p>
             )}
             {errors.availableSlots && (
-              <p className="mt-1 text-xs text-red-500">{errors.availableSlots.message}</p>
+              <p className="mt-1 text-xs text-destructive">{errors.availableSlots.message}</p>
             )}
           </div>
 
@@ -294,18 +255,16 @@ export function ScheduleFormDialog({
             <div>
               <label
                 htmlFor="status"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
+                className="mb-1.5 block text-sm font-semibold text-foreground"
               >
                 Trạng thái
               </label>
               <select
                 id="status"
                 {...register('status')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                className="w-full rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                {STATUS_OPTIONS.map((opt) => (
+                {SCHEDULE_STATUS_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -318,21 +277,19 @@ export function ScheduleFormDialog({
             <div>
               <label
                 htmlFor="reason"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
+                className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                Lý do điều chỉnh <span className="text-red-500">*</span>
+                Lý do điều chỉnh <span className="text-destructive">*</span>
               </label>
               <textarea
                 id="reason"
                 {...register('reason')}
                 rows={3}
                 placeholder="Vd: Điều chỉnh do dự báo thời tiết xấu..."
-                className="w-full resize-none rounded-2xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                className="w-full resize-none rounded-2xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
               {errors.reason && (
-                <p className="mt-1 text-xs text-red-500">{errors.reason.message}</p>
+                <p className="mt-1 text-xs text-destructive">{errors.reason.message}</p>
               )}
             </div>
           )}
@@ -347,8 +304,7 @@ export function ScheduleFormDialog({
             Hủy
           </Button>
           <Button
-            className="flex-1 rounded-full text-white"
-            style={{ backgroundColor: '#06261D' }}
+            className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover"
             onClick={submit}
             disabled={isPending}
           >

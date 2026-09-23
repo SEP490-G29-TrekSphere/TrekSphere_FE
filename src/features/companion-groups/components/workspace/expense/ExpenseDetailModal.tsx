@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { AppModalShell } from '@/shared/ui';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { GroupExpenseResponse } from '../../../types/expense';
 import { MemberAvatar } from '../../detail/MemberAvatar';
 
@@ -124,14 +125,14 @@ export function ExpenseDetailModal({ isOpen, onClose, expense }: ExpenseDetailMo
         )}
 
         {/* Receipt Link if present */}
-        {expense.receiptUrl && (
+        {getSafeImageUrl(expense.receiptUrl) && (
           <div className="flex items-center justify-between rounded-xl border border-border bg-background p-3 text-xs">
             <div className="flex items-center gap-2 text-foreground font-semibold">
               <Receipt className="h-4 w-4 text-primary" />
               <span>Hóa đơn / Ảnh chứng từ</span>
             </div>
             <a
-              href={expense.receiptUrl}
+              href={getSafeImageUrl(expense.receiptUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-bold text-primary hover:underline text-[11px]"

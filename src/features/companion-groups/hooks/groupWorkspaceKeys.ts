@@ -1,6 +1,3 @@
-/**
- * Query key factory cho `groupWorkspaceService.ts` (Workspace nhóm).
- */
 export const groupWorkspaceKeys = {
   all: ['group-workspace'] as const,
 

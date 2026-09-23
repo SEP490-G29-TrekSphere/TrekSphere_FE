@@ -1,9 +1,3 @@
-/**
- * Lấy toạ độ GPS hiện tại của trình duyệt — dùng cho các API tracking yêu cầu
- * `latitude`/`longitude` bắt buộc (bắt đầu/kết thúc tour, check-in trạm dừng, SOS).
- *
- * Reject với message tiếng Việt dễ hiểu để component chỉ cần `toast.error(err.message)`.
- */
 export function getCurrentPosition(): Promise<{ latitude: number; longitude: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {

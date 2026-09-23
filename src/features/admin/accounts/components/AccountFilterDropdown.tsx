@@ -15,10 +15,6 @@ const LABEL_BY_VALUE: Record<AccountRole | 'ALL', string> = ACCOUNT_FILTER_OPTIO
   {} as Record<AccountRole | 'ALL', string>
 );
 
-/**
- * Dropdown filter "Lọc theo loại tài khoản: <giá trị>".
- * - Nền trắng, bo góc tròn, viền mỏng, có icon bộ lọc và mũi tên drop-down.
- */
 export function AccountFilterDropdown({ value, onChange }: AccountFilterDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -15,7 +15,6 @@ export interface JoinRequestAction {
   trustScore?: number | null;
 }
 
-/** Ứng viên đang được leader mở xem hồ sơ nâng cao. */
 interface ViewingApplicant {
   userId: string;
   fullName: string;

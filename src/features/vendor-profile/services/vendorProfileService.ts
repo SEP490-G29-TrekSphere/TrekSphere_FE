@@ -5,14 +5,6 @@ import type {
   VendorProfileStatus,
 } from '../types';
 
-/**
- * Service gọi API hồ sơ Vendor hiện tại (Vendor Manager / Vendor Staff).
- *
- *   GET /vendors/profile — xem hồ sơ chi tiết
- *   PUT /vendors/profile — cập nhật hồ sơ (multipart/form-data)
- */
-
-/** Shape thô mà BE trả về trong `data` (VendorProfileResponse). */
 interface VendorProfileResponseDto {
   vendorId: string;
   companyName: string;
@@ -50,17 +42,11 @@ function mapProfile(dto: VendorProfileResponseDto): VendorProfileDetail {
 }
 
 export const vendorProfileService = {
-  /** Lấy hồ sơ Vendor hiện tại. */
   async getProfile(): Promise<VendorProfileDetail> {
     const response = await ApiService<VendorProfileResponseDto>('/vendors/profile', 'GET');
     return mapProfile(unwrapResponse(response));
   },
 
-  /**
-   * Cập nhật hồ sơ Vendor — multipart/form-data.
-   * Chỉ append field nào có giá trị (không đổi thì không gửi field đó),
-   * KHÔNG set Content-Type thủ công — axios tự set boundary khi `data` là FormData.
-   */
   async updateProfile(payload: UpdateVendorProfilePayload): Promise<VendorProfileDetail> {
     const formData = new FormData();
     if (payload.description !== undefined) formData.append('description', payload.description);

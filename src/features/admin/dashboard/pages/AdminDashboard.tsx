@@ -1,12 +1,6 @@
 import AdminTopbar from '../../components/AdminTopbar';
 
-/**
- * Stub Admin Dashboard — sẽ được bổ sung nội dung sau.
- * Tạm thời hiển thị placeholder để layout chạy đúng khi user navigate tới.
- */
 export default function AdminDashboard() {
-  // Không tự đặt `h-screen`/padding riêng: `<main>` của AdminLayout đã lo scroll
-  // và padding responsive — lồng thêm sẽ tạo scroll đôi và thừa lề trên mobile.
   return (
     <div className="flex flex-col gap-6">
       <AdminTopbar />

@@ -20,11 +20,6 @@ const PAGE_SIZE = 8;
 
 type PendingAction = { blog: TrekkerBlogItem; type: 'hide' | 'delete' };
 
-/**
- * Trang "Blog của tôi" — màn hình quản lý blog của Trekker.
- * Render bên trong TrekkerLayout (sidebar portal), nên mọi điều hướng phải
- * dùng path `/trekker/blog*` để không rơi ra ngoài layout.
- */
 export default function MyBlogList() {
   const navigate = useNavigate();
   const userId = useAppStore((state) => state.user?.id);
@@ -116,21 +111,15 @@ export default function MyBlogList() {
 
       {/* Data Table */}
       {isLoading ? (
-        <div
-          className="flex items-center justify-center rounded-2xl py-20"
-          style={{ backgroundColor: '#FFFFFF', borderRadius: '24px' }}
-        >
+        <div className="flex items-center justify-center rounded-[24px] bg-card py-20">
           <AppSpinner size="lg" className="text-primary" />
         </div>
       ) : isError ? (
-        <div
-          className="flex flex-col items-center justify-center rounded-2xl py-20 text-center"
-          style={{ backgroundColor: '#FFFFFF', borderRadius: '24px' }}
-        >
+        <div className="flex flex-col items-center justify-center rounded-[24px] bg-card py-20 text-center">
           <p className="text-base font-semibold text-destructive">
             Không thể tải danh sách bài viết
           </p>
-          <p className="mt-2 max-w-sm text-sm" style={{ color: '#6F7B75' }}>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             Vui lòng thử lại sau. Nếu lỗi vẫn tiếp diễn, hãy liên hệ hỗ trợ.
           </p>
         </div>
@@ -145,14 +134,7 @@ export default function MyBlogList() {
 
           {/* Pagination Footer */}
           {total > 0 && (
-            <div
-              className="mt-0 overflow-hidden rounded-b-3xl"
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderTop: '1px solid #E6E2D1',
-                borderRadius: '0 0 24px 24px',
-              }}
-            >
+            <div className="mt-0 overflow-hidden rounded-b-[24px] border-t border-border bg-card">
               <MyBlogPagination
                 currentPage={page}
                 totalPages={totalPages}

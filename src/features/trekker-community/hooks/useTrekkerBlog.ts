@@ -11,7 +11,6 @@ export const trekkerBlogKeys = {
   detail: (blogId: string) => [...trekkerBlogKeys.details(), blogId] as const,
 };
 
-/** Hook lấy danh sách blog (phân trang). Truyền `authorId` để lọc theo tác giả. */
 export function useTrekkerBlogList(params: TrekkerBlogListParams, options?: { enabled?: boolean }) {
   return useQuery<TrekkerBlogListResponse, Error>({
     queryKey: trekkerBlogKeys.list(params),
@@ -20,7 +19,6 @@ export function useTrekkerBlogList(params: TrekkerBlogListParams, options?: { en
   });
 }
 
-/** Hook lấy chi tiết 1 bài viết — dùng để load dữ liệu cho màn Sửa. */
 export function useTrekkerBlogDetail(blogId: string | undefined) {
   return useQuery({
     queryKey: trekkerBlogKeys.detail(blogId ?? ''),

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { isVendorOrAdminRole, PATHS } from '@/constants';
 import { useAppStore } from '@/store/useAppStore';
 import { EditMatchingGroupModal } from '../components/create/EditMatchingGroupModal';
@@ -26,6 +26,24 @@ import { useMatchingGroupDetail } from '../hooks/useMatchingGroupDetail';
 import { useRequireLogin } from '../hooks/useRequireLogin';
 import { isCurrentUserGroupLeader } from '../mappers/matchingGroup';
 
+function mapParamToDetailTab(tab: string | null): GroupDetailTabKey {
+  if (!tab) return 'overview';
+  const lower = tab.toLowerCase();
+  if (
+    lower === 'budget' ||
+    lower === 'expenses' ||
+    lower === 'settlement' ||
+    lower === 'settlements' ||
+    lower === 'cost'
+  ) {
+    return 'budget';
+  }
+  if (lower === 'itinerary' || lower === 'journey' || lower === 'checkpoints') {
+    return 'itinerary';
+  }
+  return 'overview';
+}
+
 interface CompanionGroupDetailPageProps {
   embedded?: boolean;
   backPath?: string;
@@ -39,6 +57,7 @@ export default function CompanionGroupDetailPage({
 }: CompanionGroupDetailPageProps = {}) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { groupId } = useParams<{ groupId: string }>();
   const user = useAppStore((state) => state.user);
   const requireLogin = useRequireLogin();
@@ -46,7 +65,27 @@ export default function CompanionGroupDetailPage({
   const effectiveBackPath = locationState?.backPath ?? backPath;
   const { data: group, isLoading, isError, error, refetch } = useMatchingGroupDetail(groupId);
   const isOwner = Boolean(group && isCurrentUserGroupLeader(group, user?.id));
-  const [activeTab, setActiveTab] = useState<GroupDetailTabKey>('overview');
+
+  const paramTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<GroupDetailTabKey>(() =>
+    mapParamToDetailTab(paramTab)
+  );
+
+  useEffect(() => {
+    setActiveTab(mapParamToDetailTab(paramTab));
+  }, [paramTab]);
+
+  const handleDetailTabChange = (newTab: GroupDetailTabKey) => {
+    setActiveTab(newTab);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', newTab);
+        return next;
+      },
+      { replace: true }
+    );
+  };
   const [applicationPage, setApplicationPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -118,9 +157,6 @@ export default function CompanionGroupDetailPage({
   return (
     <div className={shellClassName}>
       {actions.feedback && (
-        // z-[100]: cùng lớp với AppGlobalToast để nổi trên backdrop `z-50` của
-        // AppModalShell. Để z-50 thì banner bằng điểm với backdrop, portal của
-        // modal nằm sau #root nên vẽ đè lên và banner bị kéo vào vùng blur.
         <div className="fade-in slide-in-from-top-4 fixed top-6 right-6 z-[100] animate-in rounded-xl bg-primary px-6 py-3 font-semibold text-sm text-white shadow-lg">
           {actions.feedback}
         </div>
@@ -203,7 +239,7 @@ export default function CompanionGroupDetailPage({
               <>
                 <GroupDetailTabs
                   activeTab={activeTab}
-                  onTabChange={setActiveTab}
+                  onTabChange={handleDetailTabChange}
                   checkpointCount={group.checkpoints?.length}
                   costItemCount={group.costItems?.length}
                 />

@@ -8,7 +8,6 @@ export const vendorTourKeys = {
     ['vendor-tours', 'list', filter, page, pageSize] as const,
 };
 
-/** Danh sách tour (bảng chính) — phân trang theo filter/page hiện tại. */
 export function useVendorTourList(filter: VendorTourFilter, page: number, pageSize: number) {
   return useQuery({
     queryKey: vendorTourKeys.list(filter, page, pageSize),

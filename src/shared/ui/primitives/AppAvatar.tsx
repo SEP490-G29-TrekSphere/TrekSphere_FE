@@ -5,11 +5,10 @@ import { getSafeImageUrl } from '@/utils/sanitize';
 export type AppAvatarSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export interface AppAvatarProps {
-  /** Họ tên dùng để sinh chữ cái viết tắt khi không có ảnh. */
   name?: string;
   src?: string | null;
   size?: AppAvatarSize;
-  /** Huy hiệu nhỏ ở góc dưới phải (vd: dấu tick trưởng nhóm). */
+
   badge?: ReactNode;
   className?: string;
 }
@@ -21,7 +20,6 @@ const SIZE_STYLES: Record<AppAvatarSize, string> = {
   lg: 'h-14 w-14 text-sm',
 };
 
-/** Chữ cái viết tắt: lấy chữ đầu của tối đa 2 từ đầu tiên trong tên. */
 export function getAvatarInitials(name?: string): string {
   return (
     (name || '')
@@ -35,7 +33,6 @@ export function getAvatarInitials(name?: string): string {
   );
 }
 
-/** Ảnh đại diện dùng chung — tự động fallback sang chữ cái viết tắt khi thiếu ảnh. */
 export function AppAvatar({ name = '', src, size = 'md', badge, className }: AppAvatarProps) {
   const safeSrc = getSafeImageUrl(src);
 

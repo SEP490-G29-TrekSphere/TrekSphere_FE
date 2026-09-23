@@ -31,7 +31,6 @@ const CRITERIA = [
   },
 ] as const;
 
-/** Tổng quan điểm uy tín: histogram, điểm trung bình và 3 tiêu chí. */
 export function ProfileRatingOverview({ summary }: ProfileRatingOverviewProps) {
   const { totalReviews, overallAverage, starCounts } = summary;
   const criteriaValues: Record<(typeof CRITERIA)[number]['key'], number | null> = {

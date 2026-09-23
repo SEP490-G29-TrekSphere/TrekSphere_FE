@@ -6,7 +6,7 @@ export interface SubTabDef<K extends string> {
   id: K;
   label: string;
   icon: LucideIcon;
-  /** Ẩn hẳn mục này khỏi sub-nav, VD: "Duyệt yêu cầu" chỉ Leader mới thấy. */
+
   hidden?: boolean;
 }
 
@@ -17,10 +17,6 @@ interface WorkspaceSubTabsNavProps<K extends string> {
   badges?: Partial<Record<K, { value: number; tone: 'warning' | 'danger' | 'muted' }>>;
 }
 
-/**
- * Sub-nav bên trong 1 tab cấp 1 đã gộp (VD "Thành viên", "SOS & Biểu quyết") — chỉ 2-3 mục nên
- * không cần cuộn như `WorkspaceTabsNav`, pill nhỏ hơn 1 bậc để phân biệt rõ cha/con.
- */
 export function WorkspaceSubTabsNav<K extends string>({
   tabs,
   activeTab,

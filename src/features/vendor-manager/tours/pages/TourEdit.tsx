@@ -19,14 +19,12 @@ import { toast } from '@/store/useToastStore';
 type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 const FORM_DIFFICULTIES: readonly FormDifficulty[] = ['EASY', 'MODERATE', 'HARD', 'EXTREME'];
 
-/** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó — fallback về EASY nếu BE trả giá trị khác. */
 function toFormDifficulty(value: ApiDifficulty): FormDifficulty {
   return (FORM_DIFFICULTIES as readonly string[]).includes(value)
     ? (value as FormDifficulty)
     : 'EASY';
 }
 
-/** Checkpoint từ server → draft cho form, giữ lại `checkpointId` để PUT/DELETE đúng chỗ. */
 function toCheckpointDraft(checkpoint: VendorTourCheckpoint): CheckpointDraft {
   return {
     key: checkpoint.checkpointId,
@@ -36,8 +34,7 @@ function toCheckpointDraft(checkpoint: VendorTourCheckpoint): CheckpointDraft {
     latitude: checkpoint.latitude?.toString() ?? '',
     longitude: checkpoint.longitude?.toString() ?? '',
     altitude: checkpoint.altitude?.toString() ?? '',
-    // BE trả cả `checkpointImageUrls` (mảng) lẫn `checkpointImageUrl` (chuỗi gộp bởi dấu phẩy) —
-    // ưu tiên mảng, không có thì tự tách chuỗi.
+
     imageUrls:
       checkpoint.checkpointImageUrls ?? parseCheckpointImageUrls(checkpoint.checkpointImageUrl),
   };
@@ -47,7 +44,7 @@ export default function TourEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: tour, isLoading: isTourLoading, isError, error } = useVendorTourDetail(id);
-  // Lỗi tải checkpoint không chặn cả màn Sửa — coi như tour chưa có checkpoint nào nếu fail.
+
   const { data: checkpoints, isLoading: isCheckpointsLoading } = useVendorTourCheckpoints(id);
   const { updateTourWithCheckpoints } = useVendorTourMutations();
 

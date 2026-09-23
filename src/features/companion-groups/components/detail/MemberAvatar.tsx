@@ -16,7 +16,6 @@ const BADGE_SIZE_STYLES: Record<AppAvatarSize, string> = {
   lg: 'h-5 w-5',
 };
 
-/** Ảnh đại diện thành viên nhóm ghép — `AppAvatar` kèm huy hiệu Trưởng nhóm. */
 export function MemberAvatar({
   fullName = '',
   avatarUrl,

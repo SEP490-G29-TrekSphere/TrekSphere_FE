@@ -9,11 +9,6 @@ interface VendorFilterToolbarProps {
   onStatusChange: (value: VendorStatus | 'ALL') => void;
 }
 
-/**
- * Thanh tìm kiếm + lọc trạng thái + placeholder cho More Filters/Export.
- * More Filters và Export bị disable vì API hiện chưa hỗ trợ (không có field
- * filter nào khác ngoài keyword/status, không có endpoint export).
- */
 export function VendorFilterToolbar({
   search,
   onSearchChange,
@@ -40,7 +35,6 @@ export function VendorFilterToolbar({
   return (
     <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-        {/* Ô tìm kiếm */}
         <div className="relative flex-1 sm:max-w-sm">
           <span
             className="absolute inset-y-0 left-4 flex items-center"
@@ -59,7 +53,6 @@ export function VendorFilterToolbar({
           />
         </div>
 
-        {/* Dropdown trạng thái */}
         <div className="relative" ref={statusRef}>
           <button
             type="button"
@@ -105,31 +98,7 @@ export function VendorFilterToolbar({
             </div>
           )}
         </div>
-
-        {/* More Filters — placeholder, chưa có API hỗ trợ */}
-        {/* <button
-          type="button"
-          disabled
-          title="Sắp ra mắt"
-          className="flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium opacity-50 cursor-not-allowed"
-          style={{ backgroundColor: '#F0EEE6', color: '#06261D' }}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          More Filters
-        </button> */}
       </div>
-
-      {/* Export — placeholder, chưa có API hỗ trợ */}
-      {/* <button
-        type="button"
-        disabled
-        title="Sắp ra mắt"
-        aria-label="Export"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full opacity-50 cursor-not-allowed"
-        style={{ backgroundColor: '#F0EEE6', color: '#06261D' }}
-      >
-        <Download className="h-4 w-4" />
-      </button> */}
     </div>
   );
 }

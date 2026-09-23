@@ -15,14 +15,10 @@ interface PublishTourConfirmDialogProps {
   tourName: string;
   onConfirm: () => void;
   isPending?: boolean;
-  /**
-   * Lỗi từ BE khi tour chưa đủ điều kiện công khai (VD `TOUR_PUBLISH_REQUIREMENTS_NOT_MET`) —
-   * hiện rõ trong dialog thay vì chỉ có toast chung chung, để Vendor biết chính xác cần bổ sung gì.
-   */
+
   errorMessage?: string | null;
 }
 
-/** Xác nhận trước khi công khai 1 tour đang DRAFT. */
 export function PublishTourConfirmDialog({
   open,
   onOpenChange,
@@ -35,11 +31,8 @@ export function PublishTourConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader className="items-center text-center">
-          <div
-            className="mb-2 flex h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: 'rgba(22, 163, 74, 0.1)' }}
-          >
-            <Send className="h-5 w-5" style={{ color: '#16A34A' }} />
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10">
+            <Send className="h-5 w-5 text-emerald-600" />
           </div>
           <DialogTitle className="text-xl font-bold">Công khai tour</DialogTitle>
           <DialogDescription className="text-center leading-relaxed">
@@ -64,8 +57,7 @@ export function PublishTourConfirmDialog({
             Hủy
           </Button>
           <Button
-            className="flex-1 rounded-full text-white"
-            style={{ backgroundColor: '#16A34A' }}
+            className="flex-1 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={onConfirm}
             disabled={isPending}
           >

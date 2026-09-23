@@ -1,6 +1,5 @@
 export type SosAlertStatus = 'PENDING' | 'RESOLVED';
 
-/** 1 tín hiệu SOS — mirror `SosAlertResponse` (BE tag "Tracking Management"). */
 export interface SosAlert {
   sosAlertId: string;
   tourSessionId: string;

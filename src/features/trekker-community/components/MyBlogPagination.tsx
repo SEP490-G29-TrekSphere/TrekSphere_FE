@@ -1,23 +1,17 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface MyBlogPaginationProps {
-  /** Trang hiện tại (1-based). */
   currentPage: number;
-  /** Tổng số trang. */
+
   totalPages: number;
-  /** Callback khi chuyển trang. */
+
   onPageChange: (page: number) => void;
-  /** Tổng số item sau filter. */
+
   totalCount: number;
-  /** Page size đang dùng. */
+
   pageSize: number;
 }
 
-/**
- * Footer phân trang cho bảng "Blog của tôi".
- * - Trái: "Hiển thị X - Y trong số Z bài viết".
- * - Phải: 2 nút mũi tên + số trang. Trang hiện tại có nền xanh rêu đậm, chữ trắng.
- */
 export function MyBlogPagination({
   currentPage,
   totalPages,
@@ -108,9 +102,6 @@ export function MyBlogPagination({
   );
 }
 
-/**
- * Sinh danh sách số trang hiển thị, có ellipsis nếu quá nhiều.
- */
 function getPageNumbers(
   current: number,
   total: number

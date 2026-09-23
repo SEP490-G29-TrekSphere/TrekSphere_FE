@@ -50,7 +50,7 @@ interface WorkspaceTabsNavProps {
   activeTab: WorkspaceTabKey;
   onTabChange: (tab: WorkspaceTabKey) => void;
   isLeader: boolean;
-  /** Huy hiệu số hiển thị bên phải nhãn tab. */
+
   badges?: Partial<
     Record<WorkspaceTabKey, { value: number; tone: 'warning' | 'danger' | 'muted' }>
   >;
@@ -62,7 +62,6 @@ export const BADGE_TONES = {
   muted: 'bg-muted text-muted-foreground',
 };
 
-/** Thanh tab của workspace nhóm ghép. */
 export function WorkspaceTabsNav({
   activeTab,
   onTabChange,

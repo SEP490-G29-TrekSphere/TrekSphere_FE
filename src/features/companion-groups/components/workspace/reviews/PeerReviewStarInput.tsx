@@ -16,7 +16,6 @@ const SCORE_LABELS: Record<number, string> = {
   1: 'Kém',
 };
 
-/** Một tiêu chí chấm điểm 1–5 sao kèm mô tả ngắn. */
 export function PeerReviewStarInput({ label, hint, value, onChange }: PeerReviewStarInputProps) {
   return (
     <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">

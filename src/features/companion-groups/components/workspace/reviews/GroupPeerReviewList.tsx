@@ -7,13 +7,6 @@ interface GroupPeerReviewListProps {
   isLoading: boolean;
 }
 
-/**
- * Danh sách đánh giá của cả chuyến đi.
- *
- * API `/matching-groups/{id}/peer-reviews` trả về đánh giá của NHIỀU thành viên
- * (kèm `revieweeFullName`), nên tiêu đề phải nói rõ là toàn đoàn thay vì
- * "đánh giá bạn nhận được" như bản demo.
- */
 export function GroupPeerReviewList({ reviews, isLoading }: GroupPeerReviewListProps) {
   return (
     <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-xs">

@@ -7,7 +7,6 @@ interface PeerReviewCandidateCardProps {
   onReview: (candidate: PeerReviewCandidate) => void;
 }
 
-/** Một bạn đồng hành trong danh sách chấm điểm — đã chấm thì KHÔNG còn nút "Đánh giá". */
 export function PeerReviewCandidateCard({ candidate, onReview }: PeerReviewCandidateCardProps) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/20 p-3.5 transition hover:bg-muted/40">

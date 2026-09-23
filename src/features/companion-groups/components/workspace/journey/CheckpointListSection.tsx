@@ -53,8 +53,10 @@ export function CheckpointListSection({
         onSuccess: () => {
           toast.success('Đã đổi thứ tự chặng thành công!');
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Không thể đổi thứ tự chặng. Vui lòng thử lại!');
+        onError: (err: unknown) => {
+          toast.error(
+            err instanceof Error ? err.message : 'Không thể đổi thứ tự chặng. Vui lòng thử lại!'
+          );
         },
       }
     );
@@ -77,7 +79,6 @@ export function CheckpointListSection({
   }
 
   function handleDragLeave(_e: React.DragEvent, id: string) {
-    // Chỉ reset khi rời khỏi chính phần tử đích
     if (dragOverId === id) {
       setDragOverId(null);
     }

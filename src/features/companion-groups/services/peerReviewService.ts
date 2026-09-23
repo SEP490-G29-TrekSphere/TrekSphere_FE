@@ -16,7 +16,7 @@ export interface PeerReviewCandidate {
   avatarUrl?: string;
   role: 'LEADER' | 'MEMBER';
   roleLabel: string;
-  /** `true` khi người dùng hiện tại ĐÃ chấm điểm thành viên này. */
+
   isReviewed: boolean;
   existingReviewId?: string;
 }
@@ -37,12 +37,6 @@ export interface PeerReviewItem {
   createdAt: string;
 }
 
-/**
- * DTO thô của BE. Cờ "đã đánh giá" từng được trả về dưới nhiều tên khác nhau
- * (`isReviewed` / `reviewed` / `hasReviewed` / `alreadyReviewed` / `reviewedByCurrentUser`);
- * nếu không chuẩn hóa thì FE luôn coi là CHƯA chấm và hiện lại nút "Đánh giá"
- * cho người đã chấm rồi.
- */
 interface RawPeerReviewCandidate {
   matchingMemberId?: string;
   memberId?: string;
@@ -94,7 +88,6 @@ function mapRawCandidate(raw: RawPeerReviewCandidate): PeerReviewCandidate {
         raw.hasReviewed ??
         raw.alreadyReviewed ??
         raw.reviewedByCurrentUser ??
-        // Có `existingReviewId` nghĩa là bản ghi đánh giá đã tồn tại.
         Boolean(existingReviewId)
     ),
     existingReviewId,

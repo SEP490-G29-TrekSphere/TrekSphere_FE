@@ -72,13 +72,6 @@ export interface RegisterResponseData {
   fullName: string;
 }
 
-/**
- * Detailed user profile (used for the View/Edit profile screens).
- *
- * Chỉ gồm các field `GET /users/me` (`UserProfileResponse`) thật sự trả về.
- * KHÔNG thêm username / ngày tham gia / stats (tour đã đi, bài viết, người theo
- * dõi) — BE không có, trước đây FE tự bịa số liệu và hiển thị lên UI.
- */
 export interface UserProfile {
   id: string;
   email: string;
@@ -87,17 +80,17 @@ export interface UserProfile {
   avatar?: string;
   gender?: 'male' | 'female' | 'other';
   dateOfBirth?: string;
-  /** Vai trò người dùng (API trả về `roles` là array). */
+
   roles: string[];
-  /** Vai trò chính (lấy từ roles[0]). Dùng cho các check hiển thị. */
+
   role: string;
-  /** Giới thiệu bản thân, hiển thị công khai trong hồ sơ leo núi. */
+
   bio?: string;
   experienceLevel?: HikingExperienceLevel;
   preferredDifficulty?: HikingPreferredDifficulty;
   preferredAreas?: string[];
   skills?: string[];
-  /** Điểm uy tín do BE chấm — chỉ đọc, FE không gửi lên. */
+
   trustScore?: number;
   trustReviewCount?: number;
 }

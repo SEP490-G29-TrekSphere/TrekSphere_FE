@@ -1,9 +1,3 @@
-/**
- * Domain model dùng chung cho Khoảnh khắc — được chia sẻ giữa workspace nhóm ghép
- * (`features/companion-groups`) và trang hồ sơ cá nhân (`features/profile`).
- */
-
-/** `GROUP_ONLY`: chỉ trong nhóm · `PUBLIC_PROFILE`: công khai hồ sơ · `ONLY_ME`: riêng tư. */
 export type MomentVisibility = 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
 
 export type MomentStatus = 'VISIBLE' | 'HIDDEN' | 'ACTIVE';
@@ -78,5 +72,4 @@ export interface MomentPaginationResponse<T = MomentItem> {
   hasMore: boolean;
 }
 
-/** Ngữ cảnh hiển thị của một khoảnh khắc — quyết định cặp quyền hiển thị được phép đổi qua lại. */
 export type MomentScope = 'group' | 'personal';

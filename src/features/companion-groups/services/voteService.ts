@@ -26,7 +26,6 @@ function toQueryParams(params: object): Record<string, string> {
 }
 
 export const voteService = {
-  /** Mở bình chọn chung mới (voteType luôn là OTHER). */
   async createGeneralPoll(
     groupId: string,
     payload: CreateGroupVotePayload
@@ -39,7 +38,6 @@ export const voteService = {
     return unwrapResponse(response);
   },
 
-  /** Mở cuộc bầu Trưởng nhóm mới (voteType luôn là LEADER_ELECTION). */
   async openLeaderElectionVote(
     groupId: string,
     payload: OpenLeaderElectionPayload
@@ -52,7 +50,6 @@ export const voteService = {
     return unwrapResponse(response);
   },
 
-  /** Mở biểu quyết giải tán nhóm (voteType luôn là GROUP_DISSOLUTION). */
   async openDissolutionVote(
     groupId: string,
     payload: OpenDissolutionVotePayload
@@ -99,7 +96,6 @@ export const voteService = {
     return unwrapResponse(response);
   },
 
-  /** Đóng khi đến hạn hoặc đã đủ phiếu; idempotent nếu vote đã CLOSED. */
   async closeVote(groupId: string, voteId: string): Promise<GroupVoteResponse> {
     const response = await ApiService<GroupVoteResponse>(
       `/matching-groups/${groupId}/votes/${voteId}/close`,
@@ -108,7 +104,6 @@ export const voteService = {
     return unwrapResponse(response);
   },
 
-  /** Huỷ sớm bởi người mở vote hoặc Leader, không tính kết quả. */
   async cancelVote(groupId: string, voteId: string): Promise<GroupVoteResponse> {
     const response = await ApiService<GroupVoteResponse>(
       `/matching-groups/${groupId}/votes/${voteId}/cancel`,

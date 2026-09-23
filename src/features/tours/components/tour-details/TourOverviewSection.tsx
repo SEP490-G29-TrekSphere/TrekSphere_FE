@@ -7,12 +7,6 @@ interface TourOverviewSectionProps {
   tour: TourDetailFromApi;
 }
 
-/**
- * Khối "Tổng quan": các điểm nổi bật dạng chip + đoạn giới thiệu formatted như blog/notion.
- *
- * `highlights` đứng trước phần mô tả dài vì đó là thứ người dùng quét mắt đầu tiên
- * khi cân nhắc giữa nhiều tour.
- */
 export function TourOverviewSection({ tour }: TourOverviewSectionProps) {
   const highlights = splitField(tour.highlights);
 

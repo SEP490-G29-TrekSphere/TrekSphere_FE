@@ -1,17 +1,9 @@
-/**
- * Hằng số & helper dùng chung cho các section của trang chi tiết tour.
- *
- * Tách riêng khỏi component để mọi section nói cùng một "ngôn ngữ" (ảnh fallback,
- * nhãn độ khó, cách tách chuỗi CSV từ API) mà không import chéo lẫn nhau.
- */
-
 import type { SyntheticEvent } from 'react';
 import type { ApiDifficulty, TourCheckpoint, TourDetailScheduleApi } from '@/features/tours/types';
 
 export const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80';
 
-/** Nhãn tiếng Việt cho enum `difficulty` của API. */
 export const DIFFICULTY_LABELS: Record<ApiDifficulty | string, string> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
@@ -19,10 +11,6 @@ export const DIFFICULTY_LABELS: Record<ApiDifficulty | string, string> = {
   EXTREME: 'Cực khó',
 };
 
-/**
- * Thang điểm 1-4 cho độ khó — dùng để vẽ meter ở khối thông số.
- * Là thang thứ tự (ordinal) nên chỉ tô đậm dần trên cùng một hue, không đổi màu.
- */
 export const DIFFICULTY_LEVEL: Record<ApiDifficulty | string, number> = {
   EASY: 1,
   MODERATE: 2,
@@ -30,7 +18,6 @@ export const DIFFICULTY_LEVEL: Record<ApiDifficulty | string, number> = {
   EXTREME: 4,
 };
 
-/** Nhãn ngắn hiển thị dạng chip trên hero. */
 export const DIFFICULTY_TAGS: Record<ApiDifficulty | string, string> = {
   EASY: 'Cung đường dễ',
   MODERATE: 'Cung đường trung bình',
@@ -38,10 +25,6 @@ export const DIFFICULTY_TAGS: Record<ApiDifficulty | string, string> = {
   EXTREME: 'Cung đường cực khó',
 };
 
-/**
- * API trả `highlights` / `includes` / `excludes` dưới dạng chuỗi ngăn cách bởi dấu
- * phẩy. Tách thành mảng, bỏ khoảng trắng thừa và phần tử rỗng.
- */
 export function splitField(value: string | null | undefined): string[] {
   if (!value) return [];
   return value
@@ -50,13 +33,6 @@ export function splitField(value: string | null | undefined): string[] {
     .filter(Boolean);
 }
 
-/**
- * Chuẩn hóa ảnh checkpoint từ API.
- *
- * API mới trả `checkpointImageUrls`; dữ liệu/response cũ chỉ có một chuỗi URL phân tách bằng
- * dấu phẩy trong `checkpointImageUrl`. Ưu tiên mảng đã tách để không đưa cả chuỗi nhiều URL
- * vào thuộc tính `src` của một thẻ ảnh.
- */
 export function getCheckpointImageUrls(
   checkpoint: Pick<TourCheckpoint, 'checkpointImageUrl' | 'checkpointImageUrls'>
 ): string[] {
@@ -68,23 +44,15 @@ export function getCheckpointImageUrls(
   return [...new Set(urls.map((url) => url.trim()).filter(Boolean))];
 }
 
-/** Gắn vào `onError` của `<img>` để rơi về ảnh mặc định đúng một lần. */
 export function handleImageFallback(event: SyntheticEvent<HTMLImageElement>): void {
   const img = event.currentTarget;
   if (img.src !== FALLBACK_IMAGE) img.src = FALLBACK_IMAGE;
 }
 
-/**
- * Lịch còn nhận khách: BE đã tự lọc `status=OPEN AND departureDate>=today` ở
- * endpoint chi tiết tour, nên ở đây chỉ cần khớp lại đúng điều kiện status —
- * không dựa vào `availableSlots`/`bookedSlots` (chưa có domain Booking thật ở
- * BE nên 2 field này không phản ánh dữ liệu thật).
- */
 export function isBookableSchedule(schedule: TourDetailScheduleApi): boolean {
   return schedule.status === 'OPEN';
 }
 
-/** Sắp xếp lịch theo ngày khởi hành tăng dần. */
 export function sortSchedulesByDeparture(
   schedules: TourDetailScheduleApi[]
 ): TourDetailScheduleApi[] {
@@ -93,16 +61,11 @@ export function sortSchedulesByDeparture(
   );
 }
 
-/** Một mục trong thanh điều hướng dính của trang. */
 export interface TourSection {
   id: string;
   label: string;
 }
 
-/**
- * ID của các section — dùng chung giữa thanh nav và chính các section, nên khai báo
- * một chỗ duy nhất để không lệch anchor.
- */
 export const SECTION_IDS = {
   overview: 'tong-quan',
   schedules: 'lich-khoi-hanh',
@@ -113,8 +76,4 @@ export const SECTION_IDS = {
   policy: 'chinh-sach',
 } as const;
 
-/**
- * Khoảng trừ hao khi cuộn tới một section: header cố định (64px) + thanh nav dính
- * (~56px) + một chút thở. Dùng cả cho `scroll-mt` lẫn scrollspy để hai bên khớp nhau.
- */
 export const SECTION_SCROLL_OFFSET = 140;

@@ -1,14 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { newsletterService } from '@/features/home/services/newsletterService';
-
-const newsletterSchema = z.object({
-  email: z.string().min(1, 'Vui lòng nhập email').email('Địa chỉ email không hợp lệ'),
-});
-
-type NewsletterFormValues = z.infer<typeof newsletterSchema>;
+import { type NewsletterFormValues, newsletterSchema } from '@/features/home/validations';
 
 export default function HomeNewsletter() {
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');

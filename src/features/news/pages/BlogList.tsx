@@ -7,13 +7,8 @@ import { FeedPostSkeleton } from '../components/feed/FeedPostSkeleton';
 import { FEED_MAX_TOPICS, FEED_PAGE_SIZE, SEARCH_DEBOUNCE_MS } from '../constants';
 import { useInfiniteBlogList } from '../hooks/useBlog';
 
-/** Nạp trước khi sentinel còn cách viewport ngần này — cuộn thấy liền mạch. */
 const PREFETCH_MARGIN = '400px';
 
-/**
- * Màn hình 1: Community feed (`/news`).
- * Bố cục trung tâm 1 cột trực quan, cuộn vô tận, tích hợp tìm kiếm & chủ đề nổi bật.
- */
 export default function BlogList() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
@@ -41,7 +36,6 @@ export default function BlogList() {
     return raw;
   }, [data, sortBy, sortDir]);
 
-  /** Tag xuất hiện nhiều nhất trong các bài đang tải — dùng cho khối "Chủ đề nổi bật". */
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
     for (const post of posts) {
@@ -55,7 +49,6 @@ export default function BlogList() {
       .map(([tag]) => tag);
   }, [posts]);
 
-  // Cuộn vô tận: nạp trang kế khi sentinel cuối feed lọt vào tầm nhìn.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -146,7 +139,6 @@ export default function BlogList() {
   };
 
   return (
-    // pt-16 chừa chỗ cho PublicHeader (fixed, h-16) — cùng quy ước với ListTours.
     <div className="min-h-screen bg-background pt-16">
       <div className="mx-auto w-full max-w-[760px] px-4 pb-16 sm:px-6">
         <FeedHeader

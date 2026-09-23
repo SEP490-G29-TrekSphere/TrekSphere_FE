@@ -31,7 +31,7 @@ export function EditCheckpointModal({
   checkpoint,
 }: EditCheckpointModalProps) {
   const updateCheckpoint = useUpdateGroupCheckpoint(groupId);
-  // Cần ngày bắt đầu hành trình để ghép với giờ nhập trong form thành LocalDateTime
+
   const { data: journey } = useGroupJourney(groupId);
   const imageCleanup = useImageUploadCleanup();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -64,7 +64,6 @@ export function EditCheckpointModal({
   const imageUrl = watch('imageUrl');
 
   function handleClose() {
-    // Nếu có ảnh mới upload mà bấm hủy -> dọn rác Cloudinary
     imageCleanup.discard();
     if (checkpoint) {
       reset({
@@ -141,11 +140,13 @@ export function EditCheckpointModal({
       {
         onSuccess: () => {
           toast.success('Cập nhật điểm dừng thành công!');
-          imageCleanup.commit(); // Đã lưu thành công
+          imageCleanup.commit();
           handleClose();
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Không thể cập nhật điểm dừng. Vui lòng thử lại!');
+        onError: (err: unknown) => {
+          toast.error(
+            err instanceof Error ? err.message : 'Không thể cập nhật điểm dừng. Vui lòng thử lại!'
+          );
         },
       }
     );
@@ -184,7 +185,6 @@ export function EditCheckpointModal({
       {/* Form Body */}
       <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
         <div className="max-h-[70vh] space-y-3.5 overflow-y-auto px-5 py-4 text-xs">
-          {/* Row: Ngày & Thứ tự */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">
@@ -215,7 +215,6 @@ export function EditCheckpointModal({
             </div>
           </div>
 
-          {/* Tên điểm dừng */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">
               Tên điểm dừng / Hoạt động <span className="text-red-500">*</span>
@@ -229,7 +228,6 @@ export function EditCheckpointModal({
             {errors.title && <p className="text-[10px] text-red-500">{errors.title.message}</p>}
           </div>
 
-          {/* Địa điểm */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Địa danh / Vị trí</label>
             <input
@@ -243,7 +241,6 @@ export function EditCheckpointModal({
             )}
           </div>
 
-          {/* Row: Giờ bắt đầu & Giờ kết thúc */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Bắt đầu dự kiến</label>
@@ -264,7 +261,6 @@ export function EditCheckpointModal({
             </div>
           </div>
 
-          {/* Row: Tọa độ Latitude / Longitude */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Vĩ độ (Latitude)</label>
@@ -287,7 +283,6 @@ export function EditCheckpointModal({
             </div>
           </div>
 
-          {/* Ảnh minh họa điểm dừng (Upload từ máy hoặc Nhập URL) */}
           <AppImageUploadField
             label="Ảnh minh họa điểm dừng (Tùy chọn)"
             value={imageUrl}
@@ -299,7 +294,6 @@ export function EditCheckpointModal({
             errorMessage={errors.imageUrl?.message}
           />
 
-          {/* Mô tả hoạt động */}
           <div className="space-y-1">
             <label className="font-bold text-foreground">Mô tả chi tiết hoạt động</label>
             <textarea

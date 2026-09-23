@@ -7,16 +7,12 @@ import { FeedAvatar } from './FeedAvatar';
 
 interface SuggestedUserRowProps {
   user: SuggestedUser;
-  /** Tắt khi `FEATURES.SOCIAL` chưa bật — nút vẫn hiển thị nhưng không bấm được. */
+
   disabled?: boolean;
   onToggleFollow?: (user: SuggestedUser, following: boolean) => void;
   onDismiss?: (user: SuggestedUser) => void;
 }
 
-/**
- * Một dòng trong khối "Gợi ý theo dõi": avatar, tên, dòng phụ,
- * nút Theo dõi và nút bỏ qua — theo reference AllTrails.
- */
 export function SuggestedUserRow({
   user,
   disabled = false,

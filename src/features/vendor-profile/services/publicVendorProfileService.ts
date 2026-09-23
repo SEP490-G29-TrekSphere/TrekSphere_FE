@@ -1,13 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type { PublicVendorProfile } from '../types';
 
-/**
- * Service gọi API hồ sơ Vendor công khai (Guest xem, không cần đăng nhập).
- *
- *   GET /vendors/{vendorId}/public
- */
-
-/** Shape thô mà BE trả về trong `data` (PublicVendorProfileResponse). */
 interface PublicVendorProfileDto {
   vendorId: string;
   companyName: string;
@@ -47,7 +40,6 @@ function mapPublicProfile(dto: PublicVendorProfileDto): PublicVendorProfile {
 }
 
 export const publicVendorProfileService = {
-  /** Lấy hồ sơ công khai của 1 Vendor theo id. */
   async getPublicProfile(vendorId: string): Promise<PublicVendorProfile> {
     const response = await ApiService<PublicVendorProfileDto>(`/vendors/${vendorId}/public`, 'GET');
     return mapPublicProfile(unwrapResponse(response));

@@ -13,6 +13,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AppModalShell } from '@/shared/ui';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { GroupSettlementResponse } from '../../../types/settlement';
 import { MemberAvatar } from '../../detail/MemberAvatar';
 
@@ -189,7 +190,7 @@ export function SettlementDetailModal({
         )}
 
         {/* Proof Document Preview */}
-        {settlement.proofUrl && (
+        {getSafeImageUrl(settlement.proofUrl) && (
           <div className="rounded-xl border border-border bg-background p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 font-bold text-foreground">
@@ -197,9 +198,9 @@ export function SettlementDetailModal({
                 <span>Ảnh chứng từ chuyển khoản</span>
               </div>
               <a
-                href={settlement.proofUrl}
+                href={getSafeImageUrl(settlement.proofUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-primary hover:underline flex items-center gap-1 text-[11px] font-semibold"
               >
                 Xem ảnh gốc <ExternalLink className="h-3 w-3" />
@@ -207,7 +208,7 @@ export function SettlementDetailModal({
             </div>
             <div className="relative rounded-lg border border-border overflow-hidden max-h-48 bg-black/5 flex items-center justify-center p-1">
               <img
-                src={settlement.proofUrl}
+                src={getSafeImageUrl(settlement.proofUrl)}
                 alt="Proof document"
                 className="max-h-48 w-full object-contain rounded"
                 onError={(e) => {

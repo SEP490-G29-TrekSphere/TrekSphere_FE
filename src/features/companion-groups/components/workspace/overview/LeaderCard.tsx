@@ -10,7 +10,6 @@ interface LeaderCardProps {
   descriptionText?: string;
 }
 
-/** Card giới thiệu Trưởng nhóm + mô tả nhóm / hành trình — phần nội dung gốc của tab Tổng quan. */
 export function LeaderCard({
   ownerName,
   ownerAvatarUrl,

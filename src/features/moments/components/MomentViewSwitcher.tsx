@@ -5,7 +5,7 @@ import type { MomentViewMode } from '../types';
 interface MomentViewSwitcherProps {
   value: MomentViewMode;
   onChange: (mode: MomentViewMode) => void;
-  /** Số ảnh trong album — hiển thị ngay trên nút để người dùng biết có gì bên trong. */
+
   albumCount?: number;
 }
 
@@ -15,7 +15,6 @@ const VIEW_OPTIONS = [
   { id: 'map', label: 'Bản đồ', icon: Compass },
 ] as const satisfies ReadonlyArray<{ id: MomentViewMode; label: string; icon: typeof Layers }>;
 
-/** Chuyển đổi 3 cách xem khoảnh khắc: dòng thời gian · album · bản đồ. */
 export function MomentViewSwitcher({ value, onChange, albumCount }: MomentViewSwitcherProps) {
   return (
     <div

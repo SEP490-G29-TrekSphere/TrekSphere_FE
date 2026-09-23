@@ -2,6 +2,7 @@ import { CheckCircle2, ExternalLink, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { GroupSettlementResponse } from '../../../types/settlement';
 
 interface ConfirmSettlementModalProps {
@@ -73,14 +74,14 @@ export const ConfirmSettlementModal: React.FC<ConfirmSettlementModalProps> = ({
             )}
           </div>
 
-          {settlement.proofUrl && (
+          {getSafeImageUrl(settlement.proofUrl) && (
             <div className="space-y-1.5">
               <span className="text-xs font-bold text-foreground flex items-center justify-between">
                 <span>Chứng từ đính kèm:</span>
                 <a
-                  href={settlement.proofUrl}
+                  href={getSafeImageUrl(settlement.proofUrl)}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="text-primary hover:underline flex items-center gap-1 text-[11px]"
                 >
                   Xem ảnh gốc <ExternalLink className="h-3 w-3" />
@@ -88,7 +89,7 @@ export const ConfirmSettlementModal: React.FC<ConfirmSettlementModalProps> = ({
               </span>
               <div className="relative rounded-lg border border-border overflow-hidden max-h-40 bg-black/5 flex items-center justify-center">
                 <img
-                  src={settlement.proofUrl}
+                  src={getSafeImageUrl(settlement.proofUrl)}
                   alt="Proof"
                   className="max-h-40 object-contain"
                   onError={(e) => {

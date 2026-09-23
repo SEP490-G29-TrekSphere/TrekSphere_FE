@@ -53,7 +53,6 @@ export function CreateMatchingGroupForm({
   const endDate = form.watch('endDate');
   const { findConflicts, isLoading: isCheckingSchedule } = useScheduleConflicts();
 
-  // Ngày đi của nhóm sắp tạo không được đụng lịch mà người dùng đã cam kết.
   const conflicts = findConflicts({ start: targetDate, end: endDate });
 
   function handleCancel() {
@@ -83,7 +82,7 @@ export function CreateMatchingGroupForm({
 
   const isPending = createMutation.isPending;
   const hasConflict = conflicts.length > 0;
-  // Chưa tải xong lịch cũ hoặc đang upload ảnh thì khoá tạm nút tạo.
+
   const isSubmitBlocked = hasConflict || isCheckingSchedule || isUploadingImage;
 
   return (

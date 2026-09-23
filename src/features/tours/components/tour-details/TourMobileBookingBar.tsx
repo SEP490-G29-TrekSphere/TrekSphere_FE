@@ -7,9 +7,6 @@ interface TourMobileBookingBarProps {
   isLoggedIn?: boolean;
 }
 
-/**
- * Thanh liên hệ dính đáy màn hình cho mobile trên trang chi tiết tour.
- */
 export function TourMobileBookingBar({ tour, hasSchedules }: TourMobileBookingBarProps) {
   const contactHref = tour.vendorContactPhone
     ? `tel:${tour.vendorContactPhone}`

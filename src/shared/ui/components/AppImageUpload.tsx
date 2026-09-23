@@ -1,39 +1,33 @@
 import { ExternalLink, ImagePlus, Loader2, X } from 'lucide-react';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
-// `profileService` là transport upload file dùng chung (/files/upload) của toàn hệ thống,
-// không phải API riêng của hồ sơ — mọi feature dùng lại thay vì gọi axios trực tiếp.
+// profileService provides shared file upload transport (/files/upload) for the entire app.
 import { profileService } from '@/features/profile/services/profileService';
 import { toast } from '@/store/useToastStore';
 import { getSafeImageUrl } from '@/utils/sanitize';
 
 /**
- * Cơ chế upload ảnh dùng chung cho toàn app (chuẩn hoá theo modal "Thêm điểm dừng"):
- *
- * 1. Chọn ảnh từ máy → upload NGAY lên storage, form chỉ giữ URL string.
- * 2. Hoặc dán thẳng URL ảnh có sẵn vào ô bên dưới.
- * 3. Ảnh vừa upload nhưng người dùng gỡ đi / hủy form → gọi API xóa để không rác storage.
- *    Lưu thành công → `commit()` để đánh dấu ảnh đã thuộc về bản ghi, không xóa nữa.
- *
- * Luồng (3) là lý do mọi màn dùng component này đều phải cầm 1 `ImageUploadCleanup`
- * (qua `useImageUploadCleanup`) và gọi `discard()` ở nút Hủy / lúc unmount.
+ * Universal image upload component for the entire app:
+ * 1. File selection from device immediately uploads to storage, form state holds URL.
+ * 2. Alternatively accepts raw image URLs directly.
+ * 3. Lifecycle management via `ImageUploadCleanup` (calls delete API on discard/unmount).
  */
 
 const DEFAULT_MAX_SIZE_MB = 5;
 
 export interface ImageUploadCleanup {
-  /** Các URL vừa upload trong phiên này mà chưa được lưu vào bản ghi nào. */
+  /** Uploaded URLs in current session not yet committed to a saved record. */
   pendingUrls: React.MutableRefObject<string[]>;
-  /** Đánh dấu 1 URL là vừa upload (component tự gọi). */
+  /** Track a newly uploaded URL. */
   track: (url: string) => void;
-  /** Bỏ theo dõi + xóa khỏi storage nếu URL đó là ảnh vừa upload. */
+  /** Untrack and release/delete from storage if uploaded during this session. */
   release: (url: string) => void;
-  /** Người dùng hủy form → xóa toàn bộ ảnh đã lỡ upload. */
+  /** Discard all uncommitted uploads. */
   discard: () => void;
-  /** Lưu thành công → ảnh đã thuộc về bản ghi, không xóa nữa. */
+  /** Commit all pending uploads (marks as persisted). */
   commit: () => void;
 }
 
-/** Quản lý vòng đời "ảnh đã upload nhưng form chưa lưu" cho 1 màn hình/modal. */
+/** Manage lifecycle of uncommitted uploaded images for a form/modal. */
 export function useImageUploadCleanup(): ImageUploadCleanup {
   const pendingUrls = useRef<string[]>([]);
 
@@ -85,34 +79,31 @@ async function uploadOne(file: File, { folder, maxSizeMb, cleanup }: UploadOptio
 }
 
 /* -------------------------------------------------------------------------- */
-/*  1 ảnh                                                                      */
+/*  Single image upload                                                       */
 /* -------------------------------------------------------------------------- */
 
 export interface AppImageUploadFieldProps {
-  /** URL ảnh hiện tại ('' hoặc null = chưa có ảnh). */
+  /** Current image URL. */
   value?: string | null;
   onChange: (url: string) => void;
-  /** Thư mục lưu trên storage, ví dụ 'checkpoints' | 'tours' | 'refund-receipts'. */
+  /** Storage target folder (e.g. 'checkpoints' | 'tours' | 'refund-receipts'). */
   folder: string;
   cleanup: ImageUploadCleanup;
   label?: ReactNode;
-  /** Gợi ý hiển thị dưới ô nhập URL. */
+  /** Helper text displayed below input. */
   hint?: ReactNode;
   urlPlaceholder?: string;
   maxSizeMb?: number;
   disabled?: boolean;
   errorMessage?: string;
-  /** Hiện nút mở ảnh gốc ở tab mới (dùng cho ảnh hóa đơn / biên nhận). */
+  /** Enable open original image button in a new tab. */
   showOpenLink?: boolean;
-  /** Class của khung ảnh xem trước. */
+  /** Preview image container classes. */
   previewClassName?: string;
   className?: string;
-  /** Báo cho form cha biết đang upload để khóa nút Lưu. */
+  /** Loading state callback to disable submit buttons. */
   onUploadingChange?: (isUploading: boolean) => void;
-  /**
-   * Trả về File thô vừa upload (null khi ảnh bị gỡ / khi người dùng dán URL).
-   * Chỉ cần cho vài API còn nhận ảnh dạng multipart song song với URL.
-   */
+  /** Raw File callback for multipart endpoints. */
   onFileSelected?: (file: File | null) => void;
 }
 
@@ -153,7 +144,7 @@ export function AppImageUploadField({
     try {
       const uploadedUrl = await uploadOne(file, { folder, maxSizeMb, cleanup });
       if (uploadedUrl) {
-        // Ảnh cũ trong ô này nếu cũng vừa upload ở phiên này thì đã bị thay thế → dọn luôn.
+        // Release previous session upload when replaced
         if (value && value !== uploadedUrl) cleanup.release(value);
         onChange(uploadedUrl);
         onFileSelected?.(file);
@@ -180,7 +171,7 @@ export function AppImageUploadField({
     <div className={className ?? 'space-y-1.5'}>
       {label && <span className="block text-xs font-bold text-foreground">{label}</span>}
 
-      {/* Ảnh xem trước — chỉ hiện khi URL hợp lệ, nên gõ URL dở dang không làm nhảy layout. */}
+      {/* Preview image - only rendered when URL is valid */}
       {safePreview && (
         <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
           <img src={safePreview} alt="Ảnh đã chọn" className={previewClassName} />
@@ -243,7 +234,7 @@ export function AppImageUploadField({
         value={value ?? ''}
         disabled={disabled}
         onChange={(event) => {
-          // Tự gõ/dán URL khác → ảnh vừa upload trong phiên này thành rác, dọn luôn.
+          // Release previous session upload when manually entering a URL
           if (value) cleanup.release(value);
           onChange(event.target.value);
           onFileSelected?.(null);
@@ -259,11 +250,11 @@ export function AppImageUploadField({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Nhiều ảnh                                                                  */
+/*  Multiple images gallery upload                                            */
 /* -------------------------------------------------------------------------- */
 
 export interface AppImageUploadGalleryProps {
-  /** Danh sách URL ảnh hiện tại. */
+  /** Current list of image URLs. */
   value: string[];
   onChange: (urls: string[]) => void;
   folder: string;
@@ -272,16 +263,16 @@ export interface AppImageUploadGalleryProps {
   hint?: ReactNode;
   urlPlaceholder?: string;
   maxSizeMb?: number;
-  /** Số ảnh tối đa (bỏ trống = không giới hạn). */
+  /** Max images limit (undefined = unlimited). */
   maxImages?: number;
   disabled?: boolean;
   errorMessage?: string;
-  /** Gắn nhãn "Ảnh bìa" cho ảnh đầu tiên. */
+  /** Show cover badge for first image. */
   showCoverBadge?: boolean;
-  /** Class của lưới ảnh xem trước. */
+  /** Preview grid container classes. */
   gridClassName?: string;
   className?: string;
-  /** Báo cho form cha biết đang upload để khóa nút Lưu. */
+  /** Loading state callback to disable submit buttons. */
   onUploadingChange?: (isUploading: boolean) => void;
 }
 

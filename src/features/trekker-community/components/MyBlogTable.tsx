@@ -8,42 +8,27 @@ interface MyBlogTableProps {
   onHide?: (blog: TrekkerBlogItem) => void;
 }
 
-/**
- * Bảng danh sách bài viết cho trang "Blog của tôi".
- * Gồm 5 cột: HÌNH ẢNH & TIÊU ĐỀ | TRẠNG THÁI | NGÀY TẠO | LƯỢT XEM | THAO TÁC
- */
 export function MyBlogTable({ blogs, onEdit, onDelete, onHide }: MyBlogTableProps) {
   return (
-    <div
-      style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: '24px',
-        border: '1px solid #E6E2D1',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Bọc riêng lớp cuộn ngang — `overflow: hidden` ở ngoài chỉ để bo góc,
-          nếu để bảng trực tiếp trong đó thì trên mobile các cột bị cắt mất. */}
+    <div className="overflow-hidden rounded-[24px] border border-border bg-card">
       <div className="overflow-x-auto">
         {/* Table Header */}
         <table className="w-full min-w-[720px]">
           <thead>
-            <tr style={{ backgroundColor: '#F0EEE6' }}>
-              <HeaderCell style={{ padding: '14px 20px', textAlign: 'left' }}>
-                HÌNH ẢNH & TIÊU ĐỀ
-              </HeaderCell>
+            <tr className="bg-muted/60">
+              <HeaderCell className="px-5 py-3.5 text-left">HÌNH ẢNH & TIÊU ĐỀ</HeaderCell>
               <HeaderCell>TRẠNG THÁI</HeaderCell>
               <HeaderCell>NGÀY TẠO</HeaderCell>
               <HeaderCell>LƯỢT XEM</HeaderCell>
-              <HeaderCell style={{ textAlign: 'center' }}>THAO TÁC</HeaderCell>
+              <HeaderCell className="text-center">THAO TÁC</HeaderCell>
             </tr>
           </thead>
           <tbody>
             {blogs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-16 text-center" style={{ color: '#6F7B75' }}>
+                <td colSpan={5} className="py-16 text-center text-muted-foreground">
                   <div className="flex flex-col items-center gap-3">
-                    <FileImage className="h-10 w-10 opacity-30" style={{ color: '#6F7B75' }} />
+                    <FileImage className="h-10 w-10 opacity-30 text-muted-foreground" />
                     <p className="font-medium">Chưa có bài viết nào</p>
                     <p className="text-sm">Bắt đầu chia sẻ hành trình của bạn ngay hôm nay!</p>
                   </div>
@@ -70,17 +55,14 @@ export function MyBlogTable({ blogs, onEdit, onDelete, onHide }: MyBlogTableProp
 
 function HeaderCell({
   children,
-  style,
   className = '',
 }: {
   children: React.ReactNode;
-  style?: React.CSSProperties;
   className?: string;
 }) {
   return (
     <th
-      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider ${className}`}
-      style={{ color: '#6F7B75', ...style }}
+      className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground ${className}`}
     >
       {children}
     </th>
@@ -100,44 +82,26 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
 
   return (
     <tr
-      style={{
-        borderBottom: index < 10 ? '1px solid #E6E2D1' : 'none',
-        backgroundColor: index % 2 === 1 ? '#FAFAF8' : 'transparent',
-      }}
+      className={`transition-colors ${index < 10 ? 'border-b border-border' : ''} ${index % 2 === 1 ? 'bg-muted/20' : 'bg-transparent'}`}
     >
-      {/* Cột 1: Hình ảnh & Tiêu đề */}
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
           {/* Thumbnail */}
-          <div
-            style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              flexShrink: 0,
-              backgroundColor: '#F0EEE6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <div className="flex h-[60px] w-[60px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
             {blog.coverImageUrl ? (
               <img
                 src={blog.coverImageUrl}
                 alt={blog.title}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
-              <FileImage className="h-6 w-6 opacity-30" style={{ color: '#6F7B75' }} />
+              <FileImage className="h-6 w-6 opacity-30 text-muted-foreground" />
             )}
           </div>
 
-          {/* Tiêu đề */}
           <div className="min-w-0 flex-1">
             <p
-              className="font-semibold leading-tight line-clamp-2"
-              style={{ color: '#06261D' }}
+              className="font-semibold leading-tight line-clamp-2 text-foreground"
               title={blog.title}
             >
               {blog.title}
@@ -146,34 +110,27 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
         </div>
       </td>
 
-      {/* Cột 2: Trạng thái */}
       <td className="px-4 py-4 text-center">
         <StatusBadge status={blog.status} />
       </td>
 
-      {/* Cột 3: Ngày tạo */}
-      <td className="px-4 py-4 text-center" style={{ color: '#6F7B75' }}>
-        {formatDate(blog.createdAt)}
-      </td>
+      <td className="px-4 py-4 text-center text-muted-foreground">{formatDate(blog.createdAt)}</td>
 
-      {/* Cột 4: Lượt xem */}
       <td className="px-4 py-4 text-center">
-        <span className="inline-flex items-center gap-1" style={{ color: '#6F7B75' }}>
+        <span className="inline-flex items-center gap-1 text-muted-foreground">
           <Eye className="h-3.5 w-3.5" />
           {formatViewCount(blog.viewCount)}
         </span>
       </td>
 
-      {/* Cột 5: Thao tác — chỉ hiện nút nếu có handler tương ứng (đọc-only khi không truyền gì) */}
       <td className="px-4 py-4 text-center">
         <div className="flex items-center justify-center gap-2">
           {onHide && (
             <button
               type="button"
               onClick={() => onHide(blog)}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
               title={isHidden ? 'Hiển thị lại' : 'Ẩn bài viết'}
-              style={{ color: '#6F7B75' }}
             >
               {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
@@ -183,9 +140,8 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
             <button
               type="button"
               onClick={() => onEdit(blog)}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
               title="Sửa bài viết"
-              style={{ color: '#6F7B75' }}
             >
               <Pencil className="h-4 w-4" />
             </button>
@@ -195,9 +151,8 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
             <button
               type="button"
               onClick={() => onDelete(blog)}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-red-50"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-destructive transition-colors hover:bg-destructive/10"
               title="Xóa vĩnh viễn"
-              style={{ color: '#EF4444' }}
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -208,17 +163,10 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
   );
 }
 
-/** Badge trạng thái: Đã xuất bản / Đã ẩn */
 function StatusBadge({ status }: { status: TrekkerBlogItem['status'] }) {
   if (status === 'PUBLISHED') {
     return (
-      <span
-        className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
-        style={{
-          backgroundColor: '#A2EBD2',
-          color: '#06261D',
-        }}
-      >
+      <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
         Đã xuất bản
       </span>
     );
@@ -226,32 +174,19 @@ function StatusBadge({ status }: { status: TrekkerBlogItem['status'] }) {
 
   if (status === 'HIDDEN') {
     return (
-      <span
-        className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
-        style={{
-          backgroundColor: '#F0EEE6',
-          color: '#6F7B75',
-        }}
-      >
+      <span className="inline-block rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
         Đã ẩn
       </span>
     );
   }
 
   return (
-    <span
-      className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
-      style={{
-        backgroundColor: '#F0EEE6',
-        color: '#6F7B75',
-      }}
-    >
+    <span className="inline-block rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
       {status}
     </span>
   );
 }
 
-/** Format số view: 2400 → "2.4k" */
 function formatViewCount(count: number): string {
   if (count >= 1000) {
     return `${(count / 1000).toFixed(1)}k`;

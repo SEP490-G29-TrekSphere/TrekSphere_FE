@@ -12,7 +12,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const sosService = {
-  /** `GET /tracking/sessions/sos/active` — danh sách SOS đang chờ xử lý (PENDING), phân trang. */
   async getActiveAlerts(page = 0, size = 20): Promise<SosAlertPage> {
     const response = await ApiService<SosAlertPage>(
       '/tracking/sessions/sos/active',
@@ -23,7 +22,6 @@ export const sosService = {
     return unwrapResponse(response);
   },
 
-  /** `PUT /tracking/sessions/sos/{sosId}/resolve` — đánh dấu đã tiếp nhận và cứu hộ thành công. */
   async resolveAlert(sosId: string): Promise<SosAlert> {
     const response = await ApiService<SosAlert>(`/tracking/sessions/sos/${sosId}/resolve`, 'PUT');
     return unwrapResponse(response);

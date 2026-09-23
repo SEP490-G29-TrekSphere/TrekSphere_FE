@@ -1,20 +1,12 @@
-/**
- * Enum, nhãn hiển thị và giới hạn của phần "hồ sơ leo núi" trong profile người dùng.
- *
- * Dùng chung cho nhiều feature (profile, companion-groups, validation của auth)
- * nên đặt ở constants toàn cục thay vì trong một feature cụ thể.
- * Giá trị enum khớp đúng với BE (`UserProfileResponse` / `UpdateProfileRequest`).
- */
-
 export type HikingExperienceLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
 
 export type HikingPreferredDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 interface LevelMeta {
   label: string;
-  /** Mô tả ngắn dùng cho dropdown khi chỉnh sửa hồ sơ. */
+
   hint: string;
-  /** Class badge (nền + chữ + viền) theo token của theme. */
+
   className: string;
 }
 
@@ -59,14 +51,12 @@ export const HIKING_PREFERRED_DIFFICULTY_OPTIONS = (
   Object.keys(HIKING_PREFERRED_DIFFICULTY_LABELS) as HikingPreferredDifficulty[]
 ).map((value) => ({ value, label: HIKING_PREFERRED_DIFFICULTY_LABELS[value] }));
 
-/** Giới hạn của `UpdateProfileRequest` phía BE — FE chặn trước để không bị 400. */
 export const HIKING_BIO_MAX_LENGTH = 2_000;
 export const HIKING_PREFERRED_AREAS_MAX = 20;
 export const HIKING_SKILLS_MAX = 30;
-/** BE không giới hạn độ dài từng tag; chặn ở FE để tránh tag dài phá vỡ layout. */
+
 export const HIKING_TAG_MAX_LENGTH = 60;
 
-/** Gợi ý nhập nhanh cho ô khu vực ưa thích. */
 export const HIKING_PREFERRED_AREA_SUGGESTIONS = [
   'Tây Bắc',
   'Đông Bắc',
@@ -76,7 +66,6 @@ export const HIKING_PREFERRED_AREA_SUGGESTIONS = [
   'Tây Nguyên',
 ];
 
-/** Gợi ý nhập nhanh cho ô kỹ năng. */
 export const HIKING_SKILL_SUGGESTIONS = [
   'Sơ cứu',
   'Định vị bản đồ',

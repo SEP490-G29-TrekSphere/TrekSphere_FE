@@ -121,7 +121,6 @@ export const tourService = {
     };
   },
 
-  /** `POST /tracking/sos` — gửi tín hiệu cấp cứu kèm toạ độ GPS thực tế. */
   async sendSos(payload: {
     tourSessionId: string;
     latitude: number;
@@ -146,7 +145,6 @@ export const tourService = {
     return unwrapResponse(response);
   },
 
-  /** `GET /tours/recommended` — gợi ý tour cá nhân hoá, chỉ role Trekker gọi được. */
   async getRecommendedTours(page = 0, size = 6): Promise<RecommendedTourListApiResponse> {
     const response = await ApiService<RecommendedTourListApiResponse>(
       `/tours/recommended?page=${page}&size=${size}`,

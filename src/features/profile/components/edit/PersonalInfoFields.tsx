@@ -3,7 +3,6 @@ import type { UpdateProfileFormValues } from '@/features/auth/validations/auth.s
 import { AppDatePicker } from '@/shared/ui';
 import { EDIT_FIELD_CLASS, EDIT_LABEL_CLASS } from './fieldStyles';
 
-/** Nhóm thông tin định danh: họ tên, số điện thoại, email (khoá), ngày sinh, giới tính. */
 export function PersonalInfoFields({ email }: { email?: string }) {
   const {
     register,

@@ -1,13 +1,7 @@
 import { type ApiResponse, ApiService, ApiUpload } from '@/config/apiClient';
 
-/**
- * Trạng thái của đơn đăng ký Vendor.
- */
 export type ApplicationStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
 
-/**
- * Thông tin Applicant (người nộp đơn).
- */
 export interface Applicant {
   id: string;
   email: string;
@@ -16,9 +10,6 @@ export interface Applicant {
   roles: string[];
 }
 
-/**
- * Item Đơn đăng ký Vendor (VendorApplicationResponse).
- */
 export interface VendorApplication {
   vendorApplicationId: string;
   applicant: Applicant;
@@ -35,9 +26,6 @@ export interface VendorApplication {
 
 export type VendorApplicationDetail = VendorApplication;
 
-/**
- * Payload phân trang trả về từ GET /vendors/applications.
- */
 export interface VendorApplicationsResponse {
   content: VendorApplication[];
   pageNumber: number;
@@ -47,9 +35,6 @@ export interface VendorApplicationsResponse {
   last: boolean;
 }
 
-/**
- * Params lọc và phân trang cho API GET /vendors/applications.
- */
 export interface VendorApplicationFilter {
   status?: ApplicationStatus | 'ALL';
   keyword?: string;
@@ -70,10 +55,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const vendorApplicationService = {
-  /**
-   * Lấy danh sách đơn đăng ký với bộ lọc status, search keyword và phân trang (Admin).
-   * GET /vendors/applications
-   */
   async getApplications(filter: VendorApplicationFilter = {}): Promise<VendorApplicationsResponse> {
     const { status, keyword, page = 0, size = 10, sortBy = 'createdAt', sortDir = 'desc' } = filter;
 
@@ -101,10 +82,6 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy số liệu thống kê cho các tab/card theo từng trạng thái bằng cách gọi song song
-   * GET /vendors/applications?size=1 với từng status.
-   */
   async getStats(): Promise<{
     all: number;
     draft: number;
@@ -129,10 +106,6 @@ export const vendorApplicationService = {
     };
   },
 
-  /**
-   * Lấy chi tiết 1 đơn đăng ký theo ID (Admin & Trekker chính chủ).
-   * GET /vendors/applications/{id}
-   */
   async getApplicationById(id: string): Promise<VendorApplicationDetail> {
     const response = await ApiService<VendorApplicationDetail>(
       `/vendors/applications/${id}`,
@@ -141,10 +114,6 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Lấy danh sách đơn đăng ký làm Vendor của chính user hiện tại (Trekker).
-   * GET /vendors/applications/my-history
-   */
   async getMyApplications(
     filter: VendorApplicationFilter = {}
   ): Promise<VendorApplicationsResponse> {
@@ -174,19 +143,11 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Tạo đơn đăng ký bản nháp (Trekker).
-   * POST /vendors/applications
-   */
   async createDraftApplication(formData: FormData): Promise<VendorApplicationDetail> {
     const response = await ApiUpload<VendorApplicationDetail>('/vendors/applications', formData);
     return unwrapResponse(response);
   },
 
-  /**
-   * Cập nhật thông tin đơn đăng ký (Trekker).
-   * PUT /vendors/applications/{id}
-   */
   async updateApplication(id: string, formData: FormData): Promise<VendorApplicationDetail> {
     const response = await ApiUpload<VendorApplicationDetail>(
       `/vendors/applications/${id}`,
@@ -196,10 +157,6 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Nộp đơn đăng ký (DRAFT -> PENDING).
-   * POST /vendors/applications/{id}/submit
-   */
   async submitApplication(id: string): Promise<VendorApplicationDetail> {
     const response = await ApiService<VendorApplicationDetail>(
       `/vendors/applications/${id}/submit`,
@@ -208,10 +165,6 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Nộp lại đơn đăng ký bị từ chối (REJECTED -> PENDING).
-   * POST /vendors/applications/{id}/resubmit
-   */
   async resubmitApplication(id: string): Promise<VendorApplicationDetail> {
     const response = await ApiService<VendorApplicationDetail>(
       `/vendors/applications/${id}/resubmit`,
@@ -220,10 +173,6 @@ export const vendorApplicationService = {
     return unwrapResponse(response);
   },
 
-  /**
-   * Phê duyệt hoặc từ chối đơn đăng ký (Admin).
-   * POST /vendors/applications/{id}/review
-   */
   async reviewApplication(
     id: string,
     payload: { status: ApplicationStatus; rejectionReason?: string }
