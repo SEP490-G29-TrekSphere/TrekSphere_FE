@@ -54,7 +54,6 @@ export default function ProfileSidebar({
               loading="lazy"
             />
           ) : (
-
             <span className="flex h-full w-full items-center justify-center bg-primary text-4xl font-bold text-primary-foreground">
               {initial}
             </span>

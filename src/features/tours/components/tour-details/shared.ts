@@ -1,4 +1,3 @@
-
 import type { SyntheticEvent } from 'react';
 import type { ApiDifficulty, TourCheckpoint, TourDetailScheduleApi } from '@/features/tours/types';
 

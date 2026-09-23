@@ -20,10 +20,7 @@ export function VendorProfileKpiCards({ totalTours }: VendorProfileKpiCardsProps
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <div
-            key={card.title}
-            className="flex items-center gap-4 rounded-3xl bg-muted/60 p-5"
-          >
+          <div key={card.title} className="flex items-center gap-4 rounded-3xl bg-muted/60 p-5">
             <div
               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${card.iconBg} ${card.iconColor}`}
             >

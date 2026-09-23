@@ -13,9 +13,7 @@ export function VendorContactCard({ profile }: VendorContactCardProps) {
 
   return (
     <div className="rounded-[32px] bg-muted/60 p-6 sm:p-8">
-      <h3 className="text-lg font-bold text-foreground">
-        Thông tin liên hệ
-      </h3>
+      <h3 className="text-lg font-bold text-foreground">Thông tin liên hệ</h3>
 
       <ul className="mt-5 space-y-4">
         {items.map(({ icon: Icon, label, value }) => (
@@ -27,9 +25,7 @@ export function VendorContactCard({ profile }: VendorContactCardProps) {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {label}
               </p>
-              <p className="truncate text-sm font-semibold text-foreground">
-                {value}
-              </p>
+              <p className="truncate text-sm font-semibold text-foreground">{value}</p>
             </div>
           </li>
         ))}

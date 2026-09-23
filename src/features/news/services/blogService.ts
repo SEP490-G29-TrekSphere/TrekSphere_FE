@@ -11,7 +11,6 @@ import type {
 } from '../types';
 
 export const blogService = {
-
   async getPosts(
     params: BlogListParams = {}
   ): Promise<{ items: BlogListItem[]; meta: BlogListMeta }> {

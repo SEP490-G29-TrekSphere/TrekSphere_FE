@@ -19,9 +19,7 @@ export const publicProfileService = {
           avatarUrl: hiking.avatarUrl || undefined,
         };
       }
-    } catch {
-
-    }
+    } catch {}
 
     try {
       const { items } = await blogService.getPosts({ authorId: userId, page: 1, size: 1 });

@@ -46,14 +46,8 @@ export function TourBasicInfoSection({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <span className="mb-1.5 block text-sm font-semibold text-foreground">
-              Độ khó
-            </span>
-            <div
-              className="flex rounded-xl bg-muted/50 p-1"
-              role="radiogroup"
-              aria-label="Độ khó"
-            >
+            <span className="mb-1.5 block text-sm font-semibold text-foreground">Độ khó</span>
+            <div className="flex rounded-xl bg-muted/50 p-1" role="radiogroup" aria-label="Độ khó">
               {DIFFICULTY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -112,7 +106,10 @@ export function TourBasicInfoSection({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="minCapacity" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="minCapacity"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               Số khách tối thiểu <span className="text-destructive">*</span>
             </label>
             <input
@@ -127,7 +124,10 @@ export function TourBasicInfoSection({
             )}
           </div>
           <div>
-            <label htmlFor="maxCapacity" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="maxCapacity"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               Số khách tối đa <span className="text-destructive">*</span>
             </label>
             <input
@@ -172,7 +172,10 @@ export function TourDurationAndCoverSection({
         </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="durationDays" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="durationDays"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               Số ngày <span className="text-destructive">*</span>
             </label>
             <input
@@ -189,7 +192,10 @@ export function TourDurationAndCoverSection({
           </div>
 
           <div>
-            <label htmlFor="totalDistanceKm" className="mb-1.5 block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="totalDistanceKm"
+              className="mb-1.5 block text-sm font-semibold text-foreground"
+            >
               Tổng cự ly (km)
             </label>
             <input
@@ -224,8 +230,8 @@ export function TourDurationAndCoverSection({
         />
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Hình ảnh đẹp sẽ giúp tour của bạn thu hút hơn. Kích thước khuyến nghị: 1200 x 800px.
-          Định dạng JPG, PNG.
+          Hình ảnh đẹp sẽ giúp tour của bạn thu hút hơn. Kích thước khuyến nghị: 1200 x 800px. Định
+          dạng JPG, PNG.
         </p>
       </section>
     </>

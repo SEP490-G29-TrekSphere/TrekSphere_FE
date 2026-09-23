@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AccountPaginationProps {
-
   currentPage: number;
 
   totalPages: number;

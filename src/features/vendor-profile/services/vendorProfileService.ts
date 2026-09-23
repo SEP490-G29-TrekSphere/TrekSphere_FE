@@ -42,7 +42,6 @@ function mapProfile(dto: VendorProfileResponseDto): VendorProfileDetail {
 }
 
 export const vendorProfileService = {
-
   async getProfile(): Promise<VendorProfileDetail> {
     const response = await ApiService<VendorProfileResponseDto>('/vendors/profile', 'GET');
     return mapProfile(unwrapResponse(response));

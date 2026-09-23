@@ -100,7 +100,6 @@ async function fetchStaffPage(
 }
 
 export const vendorStaffService = {
-
   listMyStaff(
     filter: VendorStaffFilter = {},
     page = 1,

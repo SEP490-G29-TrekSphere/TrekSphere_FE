@@ -73,7 +73,6 @@ export default function PublicVendorProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pt-16">
-
       <section className="w-full bg-gradient-to-br from-primary/95 via-primary to-primary-hover">
         <div className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6 lg:px-8 sm:py-14">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">

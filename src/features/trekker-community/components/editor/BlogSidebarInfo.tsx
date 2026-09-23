@@ -27,7 +27,11 @@ export function BlogSidebarInfo({
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground">
             {authorAvatarUrl ? (
-              <img src={authorAvatarUrl} alt={authorName ?? 'Author'} className="h-full w-full object-cover" />
+              <img
+                src={authorAvatarUrl}
+                alt={authorName ?? 'Author'}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span>{(authorName ?? '?').charAt(0).toUpperCase()}</span>
             )}

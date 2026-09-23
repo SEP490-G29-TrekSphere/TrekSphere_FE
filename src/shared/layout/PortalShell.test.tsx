@@ -24,7 +24,10 @@ function renderShell() {
 }
 
 const isOpen = (aside: Element) => !aside.className.split(/\s+/).includes('-translate-x-full');
-const openMenu = () => fireEvent.click(screen.getByLabelText('Mở menu điều hướng'));
+const openMenu = () =>
+  fireEvent.click(
+    screen.queryByLabelText('Open navigation drawer') || screen.getByLabelText('Mở menu điều hướng')
+  );
 
 test('mặc định drawer đóng (trượt khỏi màn hình)', () => {
   const { aside } = renderShell();
@@ -56,7 +59,10 @@ test('bấm lớp phủ thì đóng drawer', () => {
   const { aside } = renderShell();
   openMenu();
 
-  fireEvent.click(screen.getAllByLabelText('Đóng menu điều hướng')[0]);
+  const closeBtn =
+    screen.queryAllByLabelText('Close navigation drawer')[0] ||
+    screen.getAllByLabelText('Đóng menu điều hướng')[0];
+  fireEvent.click(closeBtn);
   expect(isOpen(aside)).toBe(false);
 });
 
@@ -70,13 +76,20 @@ test('khoá scroll nền khi drawer mở và trả lại khi đóng', () => {
 
 test('bấm toggle desktop thì thu gọn và mở rộng sidebar', () => {
   const { aside } = renderShell();
-  const toggleBtn = screen.getByLabelText('Thu gọn sidebar');
+  const toggleBtn =
+    screen.queryByLabelText('Collapse sidebar') || screen.getByLabelText('Thu gọn sidebar');
   expect(aside.className).toContain('md:w-72');
 
-  fireEvent.click(toggleBtn);
-  expect(aside.className).toContain('md:w-20');
-  expect(screen.getByLabelText('Mở rộng sidebar')).toBeDefined();
+  if (toggleBtn) {
+    fireEvent.click(toggleBtn);
+    expect(aside.className).toContain('md:w-20');
+    const expandBtn =
+      screen.queryByLabelText('Expand sidebar') || screen.getByLabelText('Mở rộng sidebar');
+    expect(expandBtn).toBeDefined();
 
-  fireEvent.click(screen.getByLabelText('Mở rộng sidebar'));
-  expect(aside.className).toContain('md:w-72');
+    if (expandBtn) {
+      fireEvent.click(expandBtn);
+      expect(aside.className).toContain('md:w-72');
+    }
+  }
 });

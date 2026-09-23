@@ -298,9 +298,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
 
         {showVendorPostList && (
           <div className="mt-10">
-            <h3 className="mb-4 text-lg font-bold text-foreground">
-              Bài viết đã đăng
-            </h3>
+            <h3 className="mb-4 text-lg font-bold text-foreground">Bài viết đã đăng</h3>
 
             {vendorPosts.isLoading ? (
               <div className="flex items-center justify-center rounded-2xl border border-border bg-card py-16">

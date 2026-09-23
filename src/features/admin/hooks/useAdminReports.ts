@@ -37,7 +37,6 @@ export function useResolveAdminReport() {
     mutationFn: ({ id, data }: { id: string; data: ResolveReportRequest }) =>
       adminReportService.resolveReport(id, data),
     onSuccess: async (_, variables) => {
-
       queryClient.setQueryData(
         adminReportKeys.detail(variables.id),
         (old: ReportResponse | undefined) => {

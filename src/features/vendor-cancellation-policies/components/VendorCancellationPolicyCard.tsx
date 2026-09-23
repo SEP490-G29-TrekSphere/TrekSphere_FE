@@ -12,7 +12,6 @@ import {
 import { CancellationPolicyFormDialog } from './CancellationPolicyFormDialog';
 
 interface VendorCancellationPolicyCardProps {
-
   canManage: boolean;
 }
 

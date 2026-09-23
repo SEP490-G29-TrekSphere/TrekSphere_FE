@@ -97,7 +97,6 @@ export function TourGallerySection({ tour }: TourGallerySectionProps) {
           aria-modal="true"
           aria-label="Xem ảnh phóng to"
         >
-
           <button
             type="button"
             aria-label="Đóng"

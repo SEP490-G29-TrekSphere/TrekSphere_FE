@@ -12,7 +12,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const vendorScheduleService = {
-
   async createSchedule(tourId: string, payload: CreateSchedulePayload): Promise<TourSchedule> {
     const response = await ApiService<TourSchedule>(
       `/vendor/tours/${tourId}/schedules`,

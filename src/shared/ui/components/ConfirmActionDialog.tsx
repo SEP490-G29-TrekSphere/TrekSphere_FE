@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { AppModalShell } from './AppModalShell';
 
 export interface ConfirmActionDialogProps {
-
   open?: boolean;
   title: string;
   description: React.ReactNode;

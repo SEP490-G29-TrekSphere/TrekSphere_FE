@@ -35,7 +35,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const trekkerBlogService = {
-
   async getBlogs(params: TrekkerBlogListParams = {}): Promise<TrekkerBlogListResponse> {
     const query: Record<string, string> = {};
     if (params.authorId) query.authorId = params.authorId;

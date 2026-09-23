@@ -90,9 +90,7 @@ export function PaymentItemRow({ payment }: PaymentItemRowProps) {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm font-extrabold text-foreground">
-              {isLegacy
-                ? 'Chuyển khoản ngân hàng (đơn cũ)'
-                : paymentLabels[payment.paymentStage]}
+              {isLegacy ? 'Chuyển khoản ngân hàng (đơn cũ)' : paymentLabels[payment.paymentStage]}
             </p>
             <StatusChip
               status={payment.status}
@@ -105,9 +103,7 @@ export function PaymentItemRow({ payment }: PaymentItemRowProps) {
               : `Mã giao dịch ${payment.orderCode ?? '—'} · Lần thử ${payment.attemptNumber}`}
           </p>
           {payment.failureMessage && (
-            <p className="mt-1 text-xs font-semibold text-destructive">
-              {payment.failureMessage}
-            </p>
+            <p className="mt-1 text-xs font-semibold text-destructive">{payment.failureMessage}</p>
           )}
         </div>
       </div>

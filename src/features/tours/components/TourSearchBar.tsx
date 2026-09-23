@@ -48,7 +48,6 @@ export default function TourSearchBar({
       className={`relative z-20 mx-auto mt-6 w-full max-w-[1100px] rounded-2xl border border-border bg-white p-3 sm:mt-8 sm:p-4 lg:p-3 ${className}`}
     >
       <div className="flex flex-col items-stretch gap-2 lg:flex-row lg:items-center lg:gap-0">
-
         <label className="flex flex-1 cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted/50 lg:rounded-none lg:px-4 lg:py-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">

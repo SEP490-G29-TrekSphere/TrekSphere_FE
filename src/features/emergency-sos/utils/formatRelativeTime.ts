@@ -1,4 +1,3 @@
-
 export function formatRelativeTime(dateStr: string): string {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const diffMinutes = Math.floor(diffMs / 60000);

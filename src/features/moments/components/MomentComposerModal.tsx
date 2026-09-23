@@ -52,9 +52,7 @@ export function MomentComposerModal({
       composer.commitUploads();
       composer.resetFields();
       onClose();
-    } catch {
-
-    }
+    } catch {}
   };
 
   const isBusy = isSubmitting || composer.isUploadingImage;

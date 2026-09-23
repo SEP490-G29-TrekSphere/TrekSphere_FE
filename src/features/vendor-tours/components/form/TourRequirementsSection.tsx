@@ -14,8 +14,8 @@ export function TourRequirementsSection({ register, errors }: TourRequirementsSe
           Điều kiện tham gia (Participation Policy)
         </h3>
         <p className="mt-1 text-xs font-medium text-muted-foreground">
-          Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour đầy đủ policy
-          giúp đảm bảo an toàn chuyến đi.
+          Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour đầy đủ policy giúp
+          đảm bảo an toàn chuyến đi.
         </p>
       </div>
 

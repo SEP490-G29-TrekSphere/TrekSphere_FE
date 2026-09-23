@@ -1,3 +1,4 @@
+import { sanitizeInternalUrl } from '@/utils/sanitize';
 import type { NotificationEventType, NotificationReferenceType } from '../types/notification';
 
 export interface ResolveNotificationUrlParams {
@@ -20,8 +21,9 @@ export function resolveNotificationUrl(
 
   const { actionUrl, eventType, referenceType, referenceId } = params;
 
-  if (actionUrl && typeof actionUrl === 'string' && actionUrl.trim().length > 0) {
-    return actionUrl.trim();
+  if (actionUrl && typeof actionUrl === 'string') {
+    const safeUrl = sanitizeInternalUrl(actionUrl);
+    if (safeUrl) return safeUrl;
   }
 
   // Fallback dựa trên eventType

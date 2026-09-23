@@ -30,7 +30,6 @@ function mapPolicy(dto: CancellationPolicyResponseDto): CancellationPolicy {
 }
 
 export const cancellationPolicyService = {
-
   async list(): Promise<CancellationPolicy[]> {
     const response = await ApiService<CancellationPolicyResponseDto[]>(
       '/vendor/cancellation-policies',

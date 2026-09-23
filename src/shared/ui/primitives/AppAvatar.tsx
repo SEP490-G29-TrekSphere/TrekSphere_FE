@@ -5,7 +5,6 @@ import { getSafeImageUrl } from '@/utils/sanitize';
 export type AppAvatarSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export interface AppAvatarProps {
-
   name?: string;
   src?: string | null;
   size?: AppAvatarSize;

@@ -82,7 +82,6 @@ export const vendorScheduleCancellationService = {
   },
 
   async cancel(schedule: TourSchedule, reason: string): Promise<ScheduleCancellationResult> {
-
     const preview = await loadPreview(schedule);
 
     if (preview.blockingBookings.length > 0) {

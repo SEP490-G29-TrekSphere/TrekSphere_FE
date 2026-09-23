@@ -1,4 +1,5 @@
 import { Eye, FileText, Pencil, Plus, Receipt, Trash2, UserCheck, Users } from 'lucide-react';
+import { getSafeImageUrl } from '@/utils/sanitize';
 import type { GroupExpenseResponse } from '../../../types/expense';
 
 export interface ActualExpensesSectionProps {
@@ -104,16 +105,16 @@ export function ActualExpensesSection({
                   <tr key={exp.groupExpenseId} className="hover:bg-muted/30 transition-colors">
                     <td className="p-3 font-bold text-foreground">
                       <div className="flex items-center gap-2.5">
-                        {exp.receiptUrl ? (
+                        {getSafeImageUrl(exp.receiptUrl) ? (
                           <a
-                            href={exp.receiptUrl}
+                            href={getSafeImageUrl(exp.receiptUrl)}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             title="Xem ảnh hóa đơn"
                             className="shrink-0"
                           >
                             <img
-                              src={exp.receiptUrl}
+                              src={getSafeImageUrl(exp.receiptUrl)}
                               alt={exp.title}
                               className="h-8 w-8 rounded-lg object-cover border border-border"
                             />

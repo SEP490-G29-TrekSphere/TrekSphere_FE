@@ -1,4 +1,3 @@
-
 export type VendorStatus = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
 
 export interface VendorManager {

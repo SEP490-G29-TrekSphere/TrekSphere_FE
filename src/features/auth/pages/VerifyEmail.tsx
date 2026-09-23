@@ -37,7 +37,6 @@ export default function VerifyEmail() {
   }, []);
 
   useEffect(() => {
-
     if (!token) {
       return;
     }

@@ -1,4 +1,3 @@
-
 import type { AccountRole, AccountStatus } from './types';
 
 export type AccountGender = 'MALE' | 'FEMALE' | 'OTHER';

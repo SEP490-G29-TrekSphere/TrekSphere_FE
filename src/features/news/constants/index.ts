@@ -1,4 +1,3 @@
-
 export const EMPTY_STAT = '—';
 
 export const FEED_PAGE_SIZE = 8;

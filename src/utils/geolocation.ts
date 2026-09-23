@@ -1,4 +1,3 @@
-
 export function getCurrentPosition(): Promise<{ latitude: number; longitude: number }> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {

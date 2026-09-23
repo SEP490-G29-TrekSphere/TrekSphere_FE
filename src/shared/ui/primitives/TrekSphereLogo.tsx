@@ -10,7 +10,6 @@ export type TrekSphereLogoTone = 'dark' | 'light';
 
 export interface TrekSphereLogoProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
-
   variant?: TrekSphereLogoVariant;
 
   tone?: TrekSphereLogoTone;

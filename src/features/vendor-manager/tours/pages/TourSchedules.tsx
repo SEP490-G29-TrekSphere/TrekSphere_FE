@@ -89,7 +89,6 @@ export default function TourSchedules() {
     }
 
     try {
-
       const preview = await vendorScheduleCancellationService.preview(schedule);
       if (preview.cancellableBookings.length > 0 || preview.blockingBookings.length > 0) {
         openBookedScheduleCancellation(schedule);
@@ -97,7 +96,6 @@ export default function TourSchedules() {
       }
       setDeleteTarget(schedule);
     } catch {
-
       openBookedScheduleCancellation(schedule);
     }
   };

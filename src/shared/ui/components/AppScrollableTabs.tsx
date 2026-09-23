@@ -57,7 +57,6 @@ export function AppScrollableTabs({
 
   return (
     <div className={cn('relative flex items-center group/tabscroll w-full', className)}>
-
       {canScrollLeft && (
         <div className="absolute left-1 z-20 flex items-center">
           <button

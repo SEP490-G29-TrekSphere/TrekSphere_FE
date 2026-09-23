@@ -15,7 +15,7 @@ import {
   TourRequirementsSection,
 } from './form';
 
-export type { TourFormValues, TourFormInput };
+export type { TourFormInput, TourFormValues };
 
 export function findDuplicateCheckpointError(checkpoints: CheckpointDraft[]): string | null {
   const seenNames = new Set<string>();
@@ -220,7 +220,9 @@ export function TourForm({
             <p className="mt-4 text-base font-bold text-foreground">
               {isUploadingImages ? 'Đang tải hình ảnh...' : submitLabelSaving}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">Vui lòng không đóng hoặc tải lại trang.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Vui lòng không đóng hoặc tải lại trang.
+            </p>
           </div>
         </div>
       )}

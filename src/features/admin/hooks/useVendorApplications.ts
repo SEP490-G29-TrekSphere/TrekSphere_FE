@@ -52,7 +52,6 @@ export function useReviewVendorApplication() {
       rejectionReason?: string;
     }) => vendorApplicationService.reviewApplication(id, { status, rejectionReason }),
     onSuccess: () => {
-
       queryClient.invalidateQueries({ queryKey: vendorApplicationKeys.all });
     },
   });

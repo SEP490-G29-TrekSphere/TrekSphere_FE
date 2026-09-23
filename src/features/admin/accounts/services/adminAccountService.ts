@@ -76,7 +76,6 @@ function mapAccountDetail(dto: UserProfileResponseDto): AdminAccountDetail {
 }
 
 export const adminAccountService = {
-
   async listAccounts(
     filter: AdminAccountFilter = {},
     page = 1,

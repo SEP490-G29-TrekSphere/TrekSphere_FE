@@ -12,7 +12,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const sosService = {
-
   async getActiveAlerts(page = 0, size = 20): Promise<SosAlertPage> {
     const response = await ApiService<SosAlertPage>(
       '/tracking/sessions/sos/active',

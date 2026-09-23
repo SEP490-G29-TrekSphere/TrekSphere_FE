@@ -11,15 +11,12 @@ interface MyBlogTableProps {
 export function MyBlogTable({ blogs, onEdit, onDelete, onHide }: MyBlogTableProps) {
   return (
     <div className="overflow-hidden rounded-[24px] border border-border bg-card">
-
       <div className="overflow-x-auto">
         {/* Table Header */}
         <table className="w-full min-w-[720px]">
           <thead>
             <tr className="bg-muted/60">
-              <HeaderCell className="px-5 py-3.5 text-left">
-                HÌNH ẢNH & TIÊU ĐỀ
-              </HeaderCell>
+              <HeaderCell className="px-5 py-3.5 text-left">HÌNH ẢNH & TIÊU ĐỀ</HeaderCell>
               <HeaderCell>TRẠNG THÁI</HeaderCell>
               <HeaderCell>NGÀY TẠO</HeaderCell>
               <HeaderCell>LƯỢT XEM</HeaderCell>
@@ -87,7 +84,6 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
     <tr
       className={`transition-colors ${index < 10 ? 'border-b border-border' : ''} ${index % 2 === 1 ? 'bg-muted/20' : 'bg-transparent'}`}
     >
-
       <td className="px-5 py-4">
         <div className="flex items-center gap-3">
           {/* Thumbnail */}
@@ -118,9 +114,7 @@ function TableRow({ blog, index, onEdit, onDelete, onHide }: TableRowProps) {
         <StatusBadge status={blog.status} />
       </td>
 
-      <td className="px-4 py-4 text-center text-muted-foreground">
-        {formatDate(blog.createdAt)}
-      </td>
+      <td className="px-4 py-4 text-center text-muted-foreground">{formatDate(blog.createdAt)}</td>
 
       <td className="px-4 py-4 text-center">
         <span className="inline-flex items-center gap-1 text-muted-foreground">

@@ -40,7 +40,6 @@ function mapPublicProfile(dto: PublicVendorProfileDto): PublicVendorProfile {
 }
 
 export const publicVendorProfileService = {
-
   async getPublicProfile(vendorId: string): Promise<PublicVendorProfile> {
     const response = await ApiService<PublicVendorProfileDto>(`/vendors/${vendorId}/public`, 'GET');
     return mapPublicProfile(unwrapResponse(response));

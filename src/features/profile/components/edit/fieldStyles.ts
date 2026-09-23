@@ -1,4 +1,3 @@
-
 export const EDIT_FIELD_CLASS =
   'h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted';
 

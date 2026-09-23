@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface VendorPaginationProps {
-
   currentPage: number;
 
   totalPages: number;

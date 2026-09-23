@@ -63,7 +63,6 @@ export function FeedPostCard({ post }: FeedPostCardProps) {
 
   return (
     <article className="rounded-2xl bg-card p-4 shadow-sm sm:p-5">
-
       <div className="flex items-start gap-3">
         {post.authorId ? (
           <Link to={authorLink} aria-label={`Hồ sơ của ${post.authorName}`}>

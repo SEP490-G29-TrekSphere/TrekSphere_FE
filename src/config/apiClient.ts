@@ -140,7 +140,6 @@ async function performRefresh(): Promise<string | null> {
         '';
 
       if (!newAccess) {
-
         if (response.status >= 200 && response.status < 300 && inner) return COOKIE_AUTH;
         continue;
       }
@@ -149,7 +148,6 @@ async function performRefresh(): Promise<string | null> {
       if (newRefresh) storage.set('refreshToken', newRefresh);
       return newAccess;
     } catch (err) {
-
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         console.error('[apiClient] refresh token returned 401 — refresh token invalid/expired');
         return null;
@@ -242,7 +240,6 @@ apiClient.interceptors.response.use(
 
 // Centralized response handling
 export const handleResponse = <T>(response: AxiosResponse<unknown>): ApiResponse<T> => {
-
   const raw = response.data as unknown;
   let data: unknown;
 
@@ -250,18 +247,14 @@ export const handleResponse = <T>(response: AxiosResponse<unknown>): ApiResponse
   const envelopeInner = envelopeOuter?.data as { data?: unknown } | undefined;
   if (envelopeInner && typeof envelopeInner === 'object' && 'data' in envelopeInner) {
     data = (envelopeInner as { data: T }).data;
-  }
-
-  else if (
+  } else if (
     envelopeOuter &&
     typeof envelopeOuter === 'object' &&
     'data' in envelopeOuter &&
     typeof (envelopeOuter as { success?: unknown }).success === 'boolean'
   ) {
     data = (envelopeOuter as { data: T }).data;
-  }
-
-  else {
+  } else {
     data = raw as T;
   }
 

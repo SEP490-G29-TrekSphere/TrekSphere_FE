@@ -21,7 +21,6 @@ export function AccountTableRow({
 
   return (
     <tr className="border-b transition-colors last:border-b-0" style={{ borderColor: '#E6E2D1' }}>
-
       <td className="px-6 py-4" style={{ verticalAlign: 'middle' }}>
         <div className="flex items-center gap-3">
           <div

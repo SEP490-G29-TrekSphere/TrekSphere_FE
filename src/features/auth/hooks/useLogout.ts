@@ -8,7 +8,6 @@ import { toast } from '@/store/useToastStore';
 import { storage } from '@/utils/storage';
 
 interface UseLogoutOptions {
-
   redirectTo?: string;
 
   callApi?: boolean;
@@ -27,7 +26,6 @@ export function useLogout(options: UseLogoutOptions = {}): UseLogoutReturn {
   const logout = useCallback(async () => {
     try {
       if (callApi) {
-
         await authService.logout();
       }
     } catch (err) {

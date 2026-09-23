@@ -1,4 +1,3 @@
-
 export const PATHS = {
   // Auth
   VERIFY_EMAIL: '/verify',

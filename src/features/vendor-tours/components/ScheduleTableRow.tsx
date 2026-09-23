@@ -14,7 +14,6 @@ interface ScheduleTableRowProps {
 }
 
 export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: ScheduleTableRowProps) {
-
   const hasActions = Boolean(onEditClick || onDeleteClick);
   const hasBookings = schedule.bookedSlots > 0;
   const isEditable = EDITABLE_SCHEDULE_STATUSES.has(schedule.status);
@@ -23,9 +22,7 @@ export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: Sched
   return (
     <tr className="border-b border-border transition-colors last:border-b-0">
       <td className="px-6 py-4 align-middle">
-        <span className="font-semibold text-foreground">
-          {formatDate(schedule.departureDate)}
-        </span>
+        <span className="font-semibold text-foreground">{formatDate(schedule.departureDate)}</span>
       </td>
 
       <td className="px-6 py-4 align-middle">
@@ -38,9 +35,7 @@ export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: Sched
         <span className="text-sm font-medium text-foreground">
           Đã đặt {schedule.bookedSlots} chỗ
         </span>
-        <span className="block text-xs text-muted-foreground">
-          Còn trống {remainingSlots} chỗ
-        </span>
+        <span className="block text-xs text-muted-foreground">Còn trống {remainingSlots} chỗ</span>
       </td>
 
       <td className="px-6 py-4 align-middle">

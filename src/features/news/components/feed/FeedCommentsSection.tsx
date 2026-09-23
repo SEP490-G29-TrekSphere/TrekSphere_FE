@@ -85,7 +85,6 @@ export function FeedCommentsSection({
 
   return (
     <div className="mt-4 border-t border-border pt-4">
-
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-xs font-bold text-primary sm:text-sm">
           Bình luận ({totalCommentsCount})

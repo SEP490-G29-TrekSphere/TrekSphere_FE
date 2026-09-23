@@ -7,7 +7,6 @@ import type {
 } from '../types';
 
 export const vendorVoucherService = {
-
   async getActiveVouchersByVendor(
     vendorId: string,
     filter: VendorActiveVouchersFilter

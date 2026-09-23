@@ -2,7 +2,6 @@ import { ApiService } from '@/config/apiClient';
 import type { SuggestedUser } from '../types';
 
 export const socialService = {
-
   async toggleBlogLike(blogId: string, liked: boolean): Promise<{ likeCount: number }> {
     const res = await ApiService<{ likeCount: number }>(
       `/blogs/${blogId}/like`,

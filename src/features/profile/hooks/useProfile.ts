@@ -31,7 +31,6 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
   const gender = genderMap[rawGender.toUpperCase()] ?? undefined;
 
   return {
-
     id:
       (raw.userId as string | undefined) ??
       (raw.userID as string | undefined) ??
@@ -71,7 +70,6 @@ export function useProfile() {
     },
     staleTime: 60 * 1000,
     retry: (failureCount, error) => {
-
       const msg = error instanceof Error ? error.message : '';
       if (/denied|unauthorized|forbidden/i.test(msg)) return false;
       return failureCount < 1;

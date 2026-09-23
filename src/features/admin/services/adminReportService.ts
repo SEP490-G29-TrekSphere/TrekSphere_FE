@@ -62,7 +62,6 @@ export const adminReportService = {
       params
     );
     if (res.error || (res.status && res.status >= 400)) {
-
       if (filter.status === 'DISMISSED') {
         return {
           content: [],

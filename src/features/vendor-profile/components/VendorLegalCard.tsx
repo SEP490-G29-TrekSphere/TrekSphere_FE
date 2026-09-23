@@ -25,9 +25,7 @@ export function VendorLegalCard({ profile }: VendorLegalCardProps) {
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-border text-foreground">
           <Building2 className="h-5 w-5" />
         </div>
-        <h3 className="text-lg font-bold text-foreground">
-          Pháp lý &amp; Giấy phép
-        </h3>
+        <h3 className="text-lg font-bold text-foreground">Pháp lý &amp; Giấy phép</h3>
       </div>
 
       <div className="mt-5 space-y-4">
@@ -72,9 +70,7 @@ export function VendorLegalCard({ profile }: VendorLegalCardProps) {
               </a>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Chưa có giấy phép kinh doanh.
-            </p>
+            <p className="text-sm text-muted-foreground">Chưa có giấy phép kinh doanh.</p>
           )}
         </div>
       </div>

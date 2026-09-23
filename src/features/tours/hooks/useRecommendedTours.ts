@@ -35,7 +35,6 @@ function formatPrice(price?: number | null): string {
 }
 
 export interface RecommendedTour extends Tour {
-
   matchReasonLabel: string;
 }
 

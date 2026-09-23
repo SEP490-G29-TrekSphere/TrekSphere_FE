@@ -1,4 +1,3 @@
-
 export type MomentVisibility = 'GROUP_ONLY' | 'PUBLIC_PROFILE' | 'ONLY_ME';
 
 export type MomentStatus = 'VISIBLE' | 'HIDDEN' | 'ACTIVE';

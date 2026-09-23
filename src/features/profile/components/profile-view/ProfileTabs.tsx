@@ -28,7 +28,6 @@ interface ProfileTabsProps {
 
 export function ProfileTabs({ tabs, activeTab, onTabChange }: ProfileTabsProps) {
   return (
-
     <nav
       aria-label="Nội dung hồ sơ"
       className="hide-scrollbar flex gap-6 overflow-x-auto overflow-y-hidden border-b border-border"

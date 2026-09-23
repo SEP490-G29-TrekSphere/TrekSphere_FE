@@ -3,7 +3,12 @@ import { TOUR_PAGE_SIZE } from '@/features/tours/constants';
 import { useTourPriceRange } from '@/features/tours/hooks/useTourPriceRange';
 import { useTours } from '@/features/tours/hooks/useTours';
 import { resolveTourSort } from '@/features/tours/mappers';
-import type { ApiDifficulty, TourFilter, TourListParams, TourSearchValues } from '@/features/tours/types';
+import type {
+  ApiDifficulty,
+  TourFilter,
+  TourListParams,
+  TourSearchValues,
+} from '@/features/tours/types';
 import { useDebounce } from '@/shared/hooks';
 
 export function useTourFilters() {

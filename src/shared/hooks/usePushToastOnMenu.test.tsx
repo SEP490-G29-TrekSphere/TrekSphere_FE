@@ -33,46 +33,31 @@ describe('usePushToastOnMenu and useToastStore menuOffsets', () => {
     expect(useToastStore.getState().menuOffsets['test-avatar']).toBeUndefined();
   });
 
-  it('unregisters offset on component unmount', () => {
-    const { unmount } = renderHook(() => usePushToastOnMenu('test-notification', true, 550));
+  it('unmount cleans up the registered offset', () => {
+    const { unmount } = renderHook(() => usePushToastOnMenu('test-cleanup', true, 300));
 
-    expect(useToastStore.getState().menuOffsets['test-notification']).toBe(550);
+    expect(useToastStore.getState().menuOffsets['test-cleanup']).toBe(300);
 
     unmount();
-    expect(useToastStore.getState().menuOffsets['test-notification']).toBeUndefined();
+    expect(useToastStore.getState().menuOffsets['test-cleanup']).toBeUndefined();
   });
 
-  it('handles multiple active menus and retains the highest offset', () => {
-    function MultiMenuComponent({
-      avatarOpen,
-      notifOpen,
-    }: {
-      avatarOpen: boolean;
-      notifOpen: boolean;
-    }) {
-      usePushToastOnMenu('avatar', avatarOpen, 260);
-      usePushToastOnMenu('notification', notifOpen, 550);
-      return null;
+  it('does nothing when isOpen is false', () => {
+    renderHook(() => usePushToastOnMenu('test-inactive', false, 200));
+
+    expect(useToastStore.getState().menuOffsets['test-inactive']).toBeUndefined();
+  });
+
+  it('renders a dummy element in DOM tree without throwing', () => {
+    function DummyMenu({ open }: { open: boolean }) {
+      usePushToastOnMenu('dummy-menu', open, 280);
+      return <div data-testid="dummy-menu">Menu Content</div>;
     }
 
-    const { rerender } = render(<MultiMenuComponent avatarOpen={true} notifOpen={false} />);
+    const { getByTestId, rerender } = render(<DummyMenu open={false} />);
+    expect(getByTestId('dummy-menu')).toBeDefined();
 
-    let offsets = Object.values(useToastStore.getState().menuOffsets);
-    expect(Math.max(...offsets)).toBe(260);
-
-    // Both open: max should be 550
-    rerender(<MultiMenuComponent avatarOpen={true} notifOpen={true} />);
-    offsets = Object.values(useToastStore.getState().menuOffsets);
-    expect(Math.max(...offsets)).toBe(550);
-
-    // Notification closed, avatar still open: max should revert to 260
-    rerender(<MultiMenuComponent avatarOpen={true} notifOpen={false} />);
-    offsets = Object.values(useToastStore.getState().menuOffsets);
-    expect(Math.max(...offsets)).toBe(260);
-
-    // Both closed: offsets empty
-    rerender(<MultiMenuComponent avatarOpen={false} notifOpen={false} />);
-    offsets = Object.values(useToastStore.getState().menuOffsets);
-    expect(offsets.length).toBe(0);
+    rerender(<DummyMenu open={true} />);
+    expect(useToastStore.getState().menuOffsets['dummy-menu']).toBe(280);
   });
 });

@@ -1,10 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ReceiptText,
-  RefreshCw,
-  RotateCcw,
-  ShieldCheck,
-} from 'lucide-react';
+import { ReceiptText, RefreshCw, RotateCcw, ShieldCheck } from 'lucide-react';
 import { paymentService } from '@/features/payments/services/paymentService';
 import { AppCard } from '@/shared/ui';
 import { PaymentItemRow, RefundItemCard } from './timeline';

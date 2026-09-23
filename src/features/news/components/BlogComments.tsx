@@ -98,7 +98,6 @@ export function BlogComments({
 
   return (
     <section className="mt-12 rounded-3xl bg-card p-6 sm:p-8 border border-border shadow-xs">
-
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-primary sm:text-2xl">Bình luận ({count})</h2>
         <div className="flex items-center gap-2">

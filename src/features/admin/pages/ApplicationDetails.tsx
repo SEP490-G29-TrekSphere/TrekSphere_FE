@@ -367,7 +367,6 @@ export default function ApplicationDetails() {
                   alt="Giấy phép kinh doanh"
                   className="max-h-72 w-full object-contain rounded-xl shadow-sm hover:scale-[1.02] transition-transform duration-300"
                   onError={(e) => {
-
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />

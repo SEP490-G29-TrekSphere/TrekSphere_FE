@@ -101,7 +101,6 @@ export function ScheduleFormDialog({
   }, [open]);
 
   const submit = handleSubmit((values) => {
-
     if (!isEdit && values.departureDate < todayIso()) {
       setError('departureDate', { message: 'Ngày khởi hành không được ở trong quá khứ' });
       return;
@@ -178,7 +177,6 @@ export function ScheduleFormDialog({
                     selected={parseIsoDate(field.value)}
                     onChange={(date: Date | null) => field.onChange(toIsoDate(date))}
                     onBlur={field.onBlur}
-
                     minDate={isEdit ? undefined : new Date()}
                     className="w-full cursor-pointer rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholderText="Chọn ngày khởi hành"

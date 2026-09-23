@@ -2,7 +2,6 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 
 interface MomentLightboxProps {
-
   urls: string[];
   index: number;
   onIndexChange: (index: number) => void;

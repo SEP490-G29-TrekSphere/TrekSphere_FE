@@ -135,7 +135,6 @@ export default function HomeHero() {
         </div>
 
         {/* ── Search bar ── */}
-
       </div>
 
       {/* ── Scroll indicator ── */}

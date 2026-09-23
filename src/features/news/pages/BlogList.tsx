@@ -139,7 +139,6 @@ export default function BlogList() {
   };
 
   return (
-
     <div className="min-h-screen bg-background pt-16">
       <div className="mx-auto w-full max-w-[760px] px-4 pb-16 sm:px-6">
         <FeedHeader

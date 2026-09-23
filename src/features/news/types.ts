@@ -1,4 +1,3 @@
-
 export interface BlogListItem {
   blogId: string;
   title: string;
@@ -32,7 +31,6 @@ export interface SuggestedUser {
 }
 
 export interface BlogPostDetail extends BlogListItem {
-
   content: string;
 
   comments: BlogCommentItem[];

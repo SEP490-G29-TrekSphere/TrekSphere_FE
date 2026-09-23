@@ -33,7 +33,6 @@ export function FeedHeader({
 
   return (
     <header className="pt-6 sm:pt-8">
-
       <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-primary sm:text-5xl">
         Mới nhất
         <br />

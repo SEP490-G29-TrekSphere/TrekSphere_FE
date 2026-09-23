@@ -93,7 +93,6 @@ function buildListParams(filter: AdminVendorFilter, page: number, pageSize: numb
 }
 
 export const adminVendorService = {
-
   async listVendors(
     filter: AdminVendorFilter = {},
     page = 1,

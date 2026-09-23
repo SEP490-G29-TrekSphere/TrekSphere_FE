@@ -1,4 +1,5 @@
 import { ArrowRight, Phone, Siren } from 'lucide-react';
+import { getSafeTelUri } from '@/utils/sanitize';
 import { getIncidentTypeMeta } from '../../../constants/sos';
 import type { SosAlertResponse } from '../../../types/sos';
 import { formatRelativeTime } from '../../../utils/workspaceDate';
@@ -15,6 +16,7 @@ export function GroupSosBanner({ alerts, onViewSos }: GroupSosBannerProps) {
   const latestAlert = openAlerts[0];
   const meta = getIncidentTypeMeta(latestAlert.incidentTypeCode);
   const Icon = meta.icon;
+  const safeTelUri = getSafeTelUri(latestAlert.senderPhone);
 
   return (
     <div
@@ -58,9 +60,9 @@ export function GroupSosBanner({ alerts, onViewSos }: GroupSosBannerProps) {
         </div>
 
         <div className="w-full lg:w-auto flex items-center justify-end sm:justify-start lg:justify-end gap-2 shrink-0 pt-1 lg:pt-0 border-t border-rose-500/20 lg:border-0">
-          {latestAlert.senderPhone && (
+          {safeTelUri && (
             <a
-              href={`tel:${latestAlert.senderPhone}`}
+              href={safeTelUri}
               className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-background border border-border px-3 py-2 text-xs font-bold text-foreground hover:bg-muted transition shadow-2xs whitespace-nowrap"
             >
               <Phone className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />

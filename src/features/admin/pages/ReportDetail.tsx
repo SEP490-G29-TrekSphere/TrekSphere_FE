@@ -41,11 +41,7 @@ export default function ReportDetail() {
         },
         onError: (error: unknown) => {
           console.error(error);
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : 'Có lỗi xảy ra khi xử lý báo cáo'
-          );
+          toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xử lý báo cáo');
         },
       }
     );

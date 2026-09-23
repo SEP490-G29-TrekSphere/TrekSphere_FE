@@ -88,7 +88,6 @@ export const authService = {
     ApiService<UserProfile>('/users/profile', 'PUT', data),
 
   verifyEmail: async (token: string): Promise<ApiResponse<VerifyEmailResponse>> => {
-
     const rawApiUrl = import.meta.env.VITE_API_URL;
     const apiBase = rawApiUrl?.trim() ? rawApiUrl.trim() : 'https://api.treksphere.io.vn/api/v1';
     const cleanBase = apiBase.replace(/\/+$/, '');

@@ -1,4 +1,3 @@
-
 export function FeedPostSkeleton() {
   return (
     <div className="rounded-2xl bg-card p-4 shadow-sm sm:p-5" aria-hidden>

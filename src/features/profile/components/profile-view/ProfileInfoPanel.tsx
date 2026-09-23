@@ -40,7 +40,6 @@ export function ProfileInfoPanel({
 
   return (
     <div className="space-y-6">
-
       <section className="rounded-3xl bg-card p-6 shadow-sm border border-border">
         <div className="flex items-center justify-between mb-5">
           <div>

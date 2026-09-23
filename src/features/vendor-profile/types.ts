@@ -1,4 +1,3 @@
-
 export type VendorProfileStatus = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
 
 export interface VendorProfileDetail {

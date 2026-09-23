@@ -1,4 +1,3 @@
-
 export function formatDate(date: Date | string | null | undefined, locale = 'vi-VN'): string {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;

@@ -1,4 +1,3 @@
-
 export type HikingExperienceLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
 
 export type HikingPreferredDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';

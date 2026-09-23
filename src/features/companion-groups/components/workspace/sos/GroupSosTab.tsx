@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from '@/store/useToastStore';
+import { getSafeTelUri } from '@/utils/sanitize';
 import { getIncidentTypeMeta } from '../../../constants/sos';
 import { useActiveSosAlerts } from '../../../hooks/sos/useActiveSosAlerts';
 import { useResolveSos } from '../../../hooks/sos/useResolveSos';
@@ -43,6 +44,7 @@ function AlertCard({
 }) {
   const meta = getIncidentTypeMeta(alert.incidentTypeCode);
   const Icon = meta.icon;
+  const safeTelUri = getSafeTelUri(alert.senderPhone);
 
   const handleCopyGps = () => {
     if (alert.latitude != null && alert.longitude != null) {
@@ -87,9 +89,9 @@ function AlertCard({
         </div>
 
         {/* Quick Phone Call Button */}
-        {alert.senderPhone && (
+        {safeTelUri && (
           <a
-            href={`tel:${alert.senderPhone}`}
+            href={safeTelUri}
             className="inline-flex items-center justify-center gap-1.5 self-stretch sm:self-center rounded-xl bg-background border border-border px-3.5 py-2 sm:py-1.5 text-xs font-bold text-foreground hover:bg-muted transition shadow-2xs"
           >
             <Phone className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -126,9 +128,9 @@ function AlertCard({
             </button>
 
             <a
-              href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`}
+              href={`https://www.google.com/maps?q=${encodeURIComponent(`${alert.latitude},${alert.longitude}`)}`}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-lg bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-2.5 py-1 text-[11px] font-bold hover:opacity-90 transition"
             >
               <ExternalLink className="h-3 w-3 shrink-0" />
@@ -293,9 +295,9 @@ export function GroupSosTab({ groupId, currentUserId, isLeader }: GroupSosTabPro
                         Tọa độ: {alert.latitude.toFixed(5)}, {alert.longitude.toFixed(5)}
                       </span>
                       <a
-                        href={`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`}
+                        href={`https://www.google.com/maps?q=${encodeURIComponent(`${alert.latitude},${alert.longitude}`)}`}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="text-[11px] text-blue-600 font-bold hover:underline inline-flex items-center gap-1"
                       >
                         <ExternalLink className="h-3 w-3" /> Google Maps

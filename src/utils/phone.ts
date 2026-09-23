@@ -1,4 +1,3 @@
-
 export const normalizePhoneNumber = (phone?: string | null): string => {
   if (!phone) return '';
   let cleaned = phone.trim().replace(/[\s.\-()]/g, '');

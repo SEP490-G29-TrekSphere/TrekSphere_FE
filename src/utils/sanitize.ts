@@ -13,6 +13,52 @@ export function getSafeImageUrl(url: string | null | undefined): string | undefi
 }
 
 /**
+ * Validate and sanitize external URL to prevent javascript: and protocol-relative XSS.
+ */
+export function getSafeExternalUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  try {
+    const parsed = new URL(
+      trimmed.startsWith('http://') || trimmed.startsWith('https://')
+        ? trimmed
+        : `https://${trimmed}`
+    );
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+      ? parsed.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Sanitize telephone number for safe tel: href attribute.
+ */
+export function getSafeTelUri(phone: string | null | undefined): string | undefined {
+  if (!phone) return undefined;
+  const cleaned = phone.replace(/[^\d+*#]/g, '');
+  return cleaned ? `tel:${cleaned}` : undefined;
+}
+
+/**
+ * Sanitize internal application path to prevent open redirect and javascript: injection.
+ */
+export function sanitizeInternalUrl(url: string | null | undefined): string | undefined {
+  if (!url || typeof url !== 'string') return undefined;
+  const trimmed = url.trim();
+  if (
+    trimmed.startsWith('/') &&
+    !trimmed.startsWith('//') &&
+    !trimmed.startsWith('/\\') &&
+    !trimmed.includes('javascript:')
+  ) {
+    return trimmed;
+  }
+  return undefined;
+}
+
+/**
  * Sanitize HTML content to prevent XSS.
  * Removes dangerous tags like <script>, <iframe>, etc.
  */

@@ -112,7 +112,6 @@ export default function TourDetailsPage() {
         )}
 
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
-
           <div className="flex min-w-0 flex-col gap-10">
             <section
               id={SECTION_IDS.overview}

@@ -51,7 +51,6 @@ export function AppTagInput({
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter' || event.key === ',') {
-
       event.preventDefault();
       addTag(draft);
       return;

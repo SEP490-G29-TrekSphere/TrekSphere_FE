@@ -55,7 +55,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const vendorApplicationService = {
-
   async getApplications(filter: VendorApplicationFilter = {}): Promise<VendorApplicationsResponse> {
     const { status, keyword, page = 0, size = 10, sortBy = 'createdAt', sortDir = 'desc' } = filter;
 

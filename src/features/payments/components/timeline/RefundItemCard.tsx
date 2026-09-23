@@ -87,17 +87,13 @@ export function RefundItemCard({
             />
           </div>
           <p className="mt-2 text-xs font-semibold text-muted-foreground">
-            {refund.reasonDetail ||
-              refundReasonLabels[refund.reason] ||
-              refund.reason}
+            {refund.reasonDetail || refundReasonLabels[refund.reason] || refund.reason}
           </p>
           <p className="mt-1 text-[11px] font-medium text-muted-foreground">
             Tạo lúc {dateTime(refund.requestedAt)}
           </p>
           {refund.failureMessage && (
-            <p className="mt-1.5 text-xs font-semibold text-destructive">
-              {refund.failureMessage}
-            </p>
+            <p className="mt-1.5 text-xs font-semibold text-destructive">{refund.failureMessage}</p>
           )}
         </div>
 

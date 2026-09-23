@@ -1,2 +1,1 @@
-
 export const PROFILE_COMPLETED_TRIPS_PAGE_SIZE = 24;

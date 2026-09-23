@@ -1,4 +1,3 @@
-
 export type AccountStatus = 'ACTIVE' | 'LOCKED' | 'DEACTIVATED';
 
 export type AccountRole = 'trekker' | 'vendor' | 'admin';

@@ -35,7 +35,6 @@ export function VendorFilterToolbar({
   return (
     <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-
         <div className="relative flex-1 sm:max-w-sm">
           <span
             className="absolute inset-y-0 left-4 flex items-center"
@@ -99,9 +98,7 @@ export function VendorFilterToolbar({
             </div>
           )}
         </div>
-
       </div>
-
     </div>
   );
 }

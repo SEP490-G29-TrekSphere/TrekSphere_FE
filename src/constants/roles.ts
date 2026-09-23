@@ -1,4 +1,3 @@
-
 export const ROLES = {
   GUEST: 'guest',
   TREKKER: 'trekker',

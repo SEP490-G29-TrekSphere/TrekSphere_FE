@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 
 export function useSectionSpy(ids: string[], offset = 140): string {
-
   const key = ids.join('|');
   const [activeId, setActiveId] = useState(ids[0] ?? '');
 
@@ -10,7 +9,6 @@ export function useSectionSpy(ids: string[], offset = 140): string {
     if (sectionIds.length === 0) return;
 
     function handleScroll() {
-
       const reachedBottom =
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
       if (reachedBottom) {

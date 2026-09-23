@@ -115,9 +115,7 @@ export default function BlogDetails() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-
           <div className="lg:col-span-8 flex flex-col gap-10">
-
             <div className="min-w-0 rounded-2xl bg-white p-6 shadow-sm sm:p-8">
               <BlogContent post={post} />
             </div>

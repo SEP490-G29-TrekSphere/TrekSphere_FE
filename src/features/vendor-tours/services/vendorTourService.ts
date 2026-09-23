@@ -95,7 +95,6 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
 }
 
 export const vendorTourService = {
-
   async listMyTours(
     filter: VendorTourFilter = {},
     page = 1,

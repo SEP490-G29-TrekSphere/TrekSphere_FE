@@ -1,4 +1,3 @@
-
 export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN' | 'DELETED';
 
 export interface TrekkerBlogItem {
