@@ -14,7 +14,7 @@ export const vendorTourStatsKeys = {
  */
 const SAMPLE_SIZE = 200;
 
-/** 3 số liệu cho thẻ thống kê (tổng số / đang chờ duyệt / đã duyệt). */
+/** 4 số liệu cho thẻ thống kê + tab lọc (tổng số / bản nháp / đã công khai / đã ẩn). */
 export function useVendorTourStats() {
   return useQuery({
     queryKey: vendorTourStatsKeys.all,
@@ -22,9 +22,9 @@ export function useVendorTourStats() {
       const { tours, total } = await vendorTourService.listMyTours({}, 1, SAMPLE_SIZE);
       return {
         total,
-        pendingApproval: tours.filter((tour) => tour.status === 'PENDING_APPROVAL').length,
-        approved: tours.filter((tour) => tour.status === 'APPROVED').length,
-        rejected: tours.filter((tour) => tour.status === 'REJECTED').length,
+        draft: tours.filter((tour) => tour.status === 'DRAFT').length,
+        published: tours.filter((tour) => tour.status === 'PUBLISHED').length,
+        hidden: tours.filter((tour) => tour.status === 'HIDDEN').length,
       };
     },
     staleTime: 0,

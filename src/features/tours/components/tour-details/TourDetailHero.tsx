@@ -1,4 +1,4 @@
-import { ChevronRight, Clock, MapPin, Mountain, Star } from 'lucide-react';
+import { ChevronRight, Clock, MapPin, Mountain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import {
@@ -7,6 +7,7 @@ import {
   handleImageFallback,
 } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailFromApi } from '@/features/tours/types';
+import { formatTourDuration } from '@/utils/format';
 
 interface TourDetailHeroProps {
   tour: TourDetailFromApi;
@@ -20,8 +21,6 @@ interface TourDetailHeroProps {
  */
 export function TourDetailHero({ tour }: TourDetailHeroProps) {
   const coverImage = tour.coverImageUrl || tour.images[0]?.imageUrl || null;
-  const rating = tour.averageRating ?? 0;
-  const nights = tour.durationDays > 1 ? `${tour.durationDays - 1} đêm` : '';
 
   return (
     <section
@@ -58,10 +57,6 @@ export function TourDetailHero({ tour }: TourDetailHeroProps) {
                   Tour
                 </Link>
               </li>
-              <ChevronRight className="h-3 w-3" aria-hidden="true" />
-              <li aria-current="page" className="max-w-[60vw] truncate text-white">
-                {tour.tourName}
-              </li>
             </ol>
           </nav>
 
@@ -75,20 +70,13 @@ export function TourDetailHero({ tour }: TourDetailHeroProps) {
 
           {/* Dải meta nhanh — nhắc lại các thông số quyết định ngay trên màn hình đầu */}
           <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/90">
-            {rating > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Star className="h-4 w-4 shrink-0 fill-amber-400 text-amber-400" />
-                <span className="font-bold text-white">{rating.toFixed(1)}</span>
-                <span className="text-white/70">({tour.totalReviews} đánh giá)</span>
-              </span>
-            )}
             <span className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
               {tour.location}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
-              {tour.durationDays} ngày {nights}
+              {formatTourDuration(tour.durationDays)}
             </span>
             <span className="flex items-center gap-1.5">
               <Mountain className="h-4 w-4 shrink-0" aria-hidden="true" />

@@ -119,6 +119,7 @@ export interface RefundTransaction {
   status: RefundStatus;
   refundMethod: RefundMethod;
   destinationBin?: string | null;
+  destinationBankName?: string | null;
   destinationAccountNumber?: string | null;
   maskedDestinationAccountNumber?: string | null;
   destinationAccountName?: string | null;
@@ -152,10 +153,15 @@ export interface CancellationQuote {
   daysBeforeDeparture: number;
   appliedPolicyDescription?: string | null;
   refundDestinationRequired: boolean;
+  refundBankBin?: string | null;
+  refundBankName?: string | null;
+  refundAccountNumber?: string | null;
+  refundAccountName?: string | null;
 }
 
 export interface RefundDestinationPayload {
   bankBin: string;
+  bankName?: string;
   accountNumber: string;
   accountName: string;
 }

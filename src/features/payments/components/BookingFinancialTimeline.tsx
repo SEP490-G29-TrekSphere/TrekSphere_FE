@@ -17,8 +17,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { paymentService } from '@/features/payments/services/paymentService';
 import type { RefundTransaction } from '@/features/payments/types';
-import { profileService } from '@/features/profile/services/profileService';
-import { AppCard } from '@/shared/ui';
+import { bankDisplayName, bankNameFromBin, VIETNAM_BANKS } from '@/features/payments/utils/banks';
+import { AppCard, AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 interface BookingFinancialTimelineProps {
@@ -41,7 +41,6 @@ const destinationSchema = z.object({
 });
 
 const manualSchema = z.object({
-  bankReference: z.string().trim().min(3, 'Vui lòng nhập mã tham chiếu ngân hàng.'),
   note: z.string().trim().max(300, 'Ghi chú tối đa 300 ký tự.').optional(),
 });
 
@@ -195,7 +194,7 @@ function RefundDestinationForm({
     resolver: zodResolver(destinationSchema),
     defaultValues: {
       bankBin: refund.destinationBin ?? '',
-      accountNumber: '',
+      accountNumber: refund.destinationAccountNumber ?? '',
       accountName: refund.destinationAccountName ?? '',
     },
   });
@@ -203,6 +202,7 @@ function RefundDestinationForm({
     mutationFn: (values: DestinationValues) =>
       paymentService.updateRefundDestination(refund.refundTransactionId, {
         ...values,
+        bankName: bankNameFromBin(values.bankBin),
         accountName: values.accountName.toUpperCase(),
       }),
     onSuccess: () => {
@@ -220,13 +220,20 @@ function RefundDestinationForm({
       <p className="text-xs font-extrabold text-[#1E3932]">Cập nhật tài khoản nhận hoàn tiền</p>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
         <label className={FIELD_LABEL}>
-          Mã BIN ngân hàng
-          <input
-            {...form.register('bankBin')}
-            inputMode="numeric"
-            placeholder="970436"
-            className={FIELD_INPUT}
-          />
+          Ngân hàng
+          <select {...form.register('bankBin')} className={FIELD_INPUT}>
+            <option value="">Chọn ngân hàng</option>
+            {refund.destinationBin && !bankNameFromBin(refund.destinationBin) && (
+              <option value={refund.destinationBin}>
+                {bankDisplayName(refund.destinationBin, refund.destinationBankName)}
+              </option>
+            )}
+            {VIETNAM_BANKS.map((bank) => (
+              <option key={bank.bin} value={bank.bin}>
+                {bank.name}
+              </option>
+            ))}
+          </select>
           {form.formState.errors.bankBin && (
             <span className={FIELD_ERROR}>{form.formState.errors.bankBin.message}</span>
           )}
@@ -264,19 +271,21 @@ function VendorRefundActions({
   onSaved: () => void;
 }) {
   const [showManual, setShowManual] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState('');
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
+  const receiptCleanup = useImageUploadCleanup();
   const form = useForm<ManualValues>({
     resolver: zodResolver(manualSchema),
-    defaultValues: { bankReference: '', note: '' },
+    defaultValues: { note: '' },
   });
   const canProcess = ['PENDING', 'FAILED', 'AWAITING_VENDOR_ACTION', 'OVERDUE'].includes(
     refund.status
   );
-  const manualFallbackAvailable =
-    !refund.automaticPayoutAvailable ||
-    ['FAILED', 'AWAITING_VENDOR_ACTION', 'OVERDUE'].includes(refund.status);
   const hasDestination = Boolean(
-    refund.destinationBin && refund.destinationAccountNumber && refund.destinationAccountName
+    refund.destinationBin &&
+      refund.destinationBankName &&
+      refund.destinationAccountNumber &&
+      refund.destinationAccountName
   );
   const gatewayMutation = useMutation({
     mutationFn: () => paymentService.processRefund(refund.refundTransactionId),
@@ -287,20 +296,14 @@ function VendorRefundActions({
     onError: (error: Error) => toast.error(error.message),
   });
   const manualMutation = useMutation({
-    mutationFn: async ({ values, file }: { values: ManualValues; file: File }) => {
-      const upload = await profileService.uploadFile(file, 'refund-receipts');
-      if (!upload.data) throw new Error(upload.error || 'Không thể tải ảnh biên nhận lên.');
-      return paymentService.completeManualRefund(
-        refund.refundTransactionId,
-        values.bankReference,
-        upload.data,
-        values.note
-      );
-    },
+    mutationFn: ({ values, imageUrl }: { values: ManualValues; imageUrl: string }) =>
+      paymentService.completeManualRefund(refund.refundTransactionId, imageUrl, values.note),
     onSuccess: () => {
       toast.success('Đã gửi biên nhận. Refund đang chờ admin xác minh.');
+      // Ảnh đã thuộc về biên nhận đã gửi → không xóa nữa.
+      receiptCleanup.commit();
       setShowManual(false);
-      setReceiptFile(null);
+      setReceiptUrl('');
       form.reset();
       onSaved();
     },
@@ -317,81 +320,71 @@ function VendorRefundActions({
           tiền.
         </p>
       ) : (
-        <>
-          {manualFallbackAvailable && (
-            <p className="mb-3 flex items-start gap-2.5 text-[11px] font-medium leading-relaxed text-[#6F7E72]">
-              <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-amber-500" />
-              <span>
-                {refund.automaticPayoutAvailable
-                  ? 'Lệnh hoàn tự động chưa thành công. Vendor có thể chuyển thủ công đúng '
-                  : 'Chưa có Kênh Chi payOS hoạt động. Vendor cần chuyển đúng '}
-                <strong className="font-extrabold text-[#1E3932]">{money(refund.amount)}</strong>{' '}
-                tới tài khoản hiển thị ở trên, sau đó gửi mã tham chiếu và ảnh biên nhận để admin
-                xác minh.
-              </span>
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {refund.automaticPayoutAvailable && (
-              <button
-                type="button"
-                disabled={gatewayMutation.isPending}
-                onClick={() => gatewayMutation.mutate()}
-                className={PRIMARY_BUTTON}
-              >
-                {gatewayMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Chi tự động qua payOS
-              </button>
-            )}
+        <div className="flex flex-wrap gap-2">
+          {refund.automaticPayoutAvailable && (
             <button
               type="button"
-              onClick={() => setShowManual((value) => !value)}
-              className={SECONDARY_BUTTON}
+              disabled={gatewayMutation.isPending}
+              onClick={() => gatewayMutation.mutate()}
+              className={PRIMARY_BUTTON}
             >
-              Đã chuyển tiền, gửi biên nhận
+              {gatewayMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              Chi tự động qua payOS
             </button>
-          </div>
-        </>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              // Đóng khung gửi biên nhận giữa chừng → dọn ảnh đã lỡ upload.
+              if (showManual) {
+                receiptCleanup.discard();
+                setReceiptUrl('');
+              }
+              setShowManual((value) => !value);
+            }}
+            className={SECONDARY_BUTTON}
+          >
+            Đã chuyển tiền, gửi biên nhận
+          </button>
+        </div>
       )}
 
       {showManual && hasDestination && (
         <form
           onSubmit={form.handleSubmit((values) => {
-            if (!receiptFile) {
+            if (!receiptUrl.trim()) {
               toast.error('Vui lòng chọn ảnh biên nhận chuyển khoản.');
               return;
             }
-            manualMutation.mutate({ values, file: receiptFile });
+            manualMutation.mutate({ values, imageUrl: receiptUrl.trim() });
           })}
           className="mt-4 rounded-2xl border border-[#E7E5DE] bg-[#FAF9F6] p-4"
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             <label className={FIELD_LABEL}>
-              Mã tham chiếu ngân hàng
-              <input {...form.register('bankReference')} className={FIELD_INPUT} />
-              {form.formState.errors.bankReference && (
-                <span className={FIELD_ERROR}>{form.formState.errors.bankReference.message}</span>
-              )}
-            </label>
-            <label className={FIELD_LABEL}>
-              Ghi chú
+              Ghi chú (không bắt buộc)
               <input {...form.register('note')} className={FIELD_INPUT} />
             </label>
-            <label className={`${FIELD_LABEL} sm:col-span-2`}>
-              Ảnh biên nhận chuyển khoản
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => setReceiptFile(event.target.files?.[0] ?? null)}
-                className="mt-1.5 block w-full rounded-xl border border-[#E7E5DE] bg-white px-3 py-2 text-xs text-[#5A6B62] file:mr-3 file:rounded-full file:border-0 file:bg-[#F2F0EB] file:px-3 file:py-1 file:font-bold file:text-[#1E3932]"
-              />
-              <span className="mt-1.5 block text-[10px] font-medium text-[#8E9A93]">
-                Biên nhận chỉ là bằng chứng gửi duyệt; refund chỉ hoàn tất sau khi admin xác minh.
-              </span>
-            </label>
+            <AppImageUploadField
+              label="Ảnh biên nhận chuyển khoản"
+              value={receiptUrl}
+              onChange={setReceiptUrl}
+              folder="refund-receipts"
+              cleanup={receiptCleanup}
+              onUploadingChange={setIsUploadingReceipt}
+              showOpenLink
+              previewClassName="max-h-48 w-full bg-white object-contain"
+              urlPlaceholder="https://... (nếu ảnh đã có sẵn trên mạng)"
+              hint="Biên nhận chỉ là bằng chứng gửi duyệt; refund chỉ hoàn tất sau khi admin xác minh."
+              disabled={manualMutation.isPending}
+            />
           </div>
           <div className="mt-3 flex justify-end">
-            <button type="submit" disabled={manualMutation.isPending} className={PRIMARY_BUTTON}>
+            <button
+              type="submit"
+              disabled={manualMutation.isPending || isUploadingReceipt}
+              className={PRIMARY_BUTTON}
+            >
               {manualMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Gửi biên nhận để admin duyệt
             </button>
@@ -608,9 +601,7 @@ export function BookingFinancialTimeline({
                         </p>
                         <p className="mt-2 flex items-center gap-2 text-xs font-bold text-[#1E3932]">
                           <Building2 className="h-3.5 w-3.5 shrink-0 text-[#A6AFA9]" />
-                          {refund.destinationBin
-                            ? `Ngân hàng · BIN ${refund.destinationBin}`
-                            : 'Chưa có ngân hàng'}
+                          {bankDisplayName(refund.destinationBin, refund.destinationBankName)}
                         </p>
                         {visibleRefundAccountNumber(refund, audience) && (
                           <p className="mt-1.5 text-xs font-semibold tabular-nums text-[#5A6B62]">
@@ -624,9 +615,13 @@ export function BookingFinancialTimeline({
                           </p>
                         )}
                         {audience === 'trekker' &&
-                          ['VENDOR_CANCEL', 'INSUFFICIENT_PAX'].includes(refund.reason) && (
+                          (!refund.destinationBin ||
+                            !refund.destinationBankName ||
+                            !refund.destinationAccountNumber ||
+                            !refund.destinationAccountName) && (
                             <p className="mt-2 text-[10px] font-medium text-[#A6AFA9]">
-                              Lấy từ tài khoản đã dùng để thanh toán đơn.
+                              Vui lòng nhập tài khoản muốn nhận tiền. TrekSphere không tự động dùng
+                              tài khoản đã chuyển tiền.
                             </p>
                           )}
                       </div>
@@ -675,6 +670,7 @@ export function BookingFinancialTimeline({
                         refund.status
                       ) &&
                       (!refund.destinationBin ||
+                        !refund.destinationBankName ||
                         !refund.destinationAccountNumber ||
                         !refund.destinationAccountName) && (
                         <RefundDestinationForm refund={refund} onSaved={refreshRefunds} />

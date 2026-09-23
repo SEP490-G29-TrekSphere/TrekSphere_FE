@@ -1,8 +1,8 @@
 import { Mail, MessageCircle, Phone } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ApiService } from '@/config/apiClient';
-import { getPrimaryRole, PATHS, ROLES } from '@/constants';
+import { getRoleChatPath, getVendorPublicProfilePath } from '@/constants';
 import type { ConversationResponse } from '@/features/chat/types/types';
 import type { TourDetailFromApi } from '@/features/tours/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -10,17 +10,6 @@ import { toast } from '@/store/useToastStore';
 
 interface TourVendorCardProps {
   tour: TourDetailFromApi;
-}
-
-/** Mỗi role có route chat riêng trong portal của mình. */
-function resolveChatPath(roles: string[] | undefined): string {
-  const role = getPrimaryRole(roles ?? []);
-  if (role === ROLES.ADMIN) return PATHS.ADMIN_CHAT;
-  if (role === ROLES.VENDOR_MANAGER) return PATHS.VENDOR_MANAGER_CHAT;
-  if (role === ROLES.VENDOR_STAFF) return PATHS.PARTNER_CHAT;
-  if (role === ROLES.COORDINATOR) return PATHS.COORDINATOR_CHAT;
-  if (role === ROLES.TREKKER) return PATHS.TREKKER_CHAT;
-  return PATHS.CHAT;
 }
 
 /**
@@ -40,28 +29,51 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
       return;
     }
 
+    const targetRecipientId = tour.vendorManagerId || tour.creatorId;
+    if (!targetRecipientId) {
+      toast.error('Không tìm thấy thông tin tài khoản của nhà tổ chức.');
+      return;
+    }
+
     setIsConnecting(true);
     try {
       // Check if conversation exists instead of creating it immediately
       const response = await ApiService<ConversationResponse>('/chat/conversations/check', 'POST', {
         conversationType: 'DIRECT',
-        participantIds: [tour.vendorManagerId],
+        participantIds: [targetRecipientId],
       });
 
+      const tourLink = `${window.location.origin}/tours/${tour.tourId}`;
+      const initialMessage = `Xin chào, tôi quan tâm đến tour "${tour.tourName}":\n${tourLink}`;
+      const draftTour = {
+        tourId: tour.tourId,
+        tourName: tour.tourName,
+        coverImageUrl: tour.coverImageUrl,
+        location: tour.location,
+        durationDays: tour.durationDays,
+        price: tour.price,
+      };
+
       if (response.data?.conversationId) {
-        navigate(resolveChatPath(user.roles), {
-          state: { conversationId: response.data.conversationId },
+        navigate(getRoleChatPath(user.roles), {
+          state: {
+            conversationId: response.data.conversationId,
+            initialMessage,
+            draftTour,
+          },
         });
       } else {
         const vendorName = tour.vendorName || tour.creatorName || 'Nhà tổ chức';
-        navigate(resolveChatPath(user.roles), {
+        navigate(getRoleChatPath(user.roles), {
           state: {
             virtualConversation: {
               type: 'DIRECT',
-              participantIds: [tour.vendorManagerId],
+              participantIds: [targetRecipientId],
               userName: vendorName,
               title: vendorName,
             },
+            initialMessage,
+            draftTour,
           },
         });
       }
@@ -80,7 +92,10 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
         Nhà tổ chức
       </h2>
 
-      <div className="flex items-center gap-3">
+      <Link
+        to={getVendorPublicProfilePath(tour.vendorId)}
+        className="flex items-center gap-3 rounded-xl transition-colors hover:bg-muted/60"
+      >
         {tour.vendorLogoUrl ? (
           <img
             src={tour.vendorLogoUrl}
@@ -93,12 +108,14 @@ export function TourVendorCard({ tour }: TourVendorCardProps) {
           </span>
         )}
         <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-foreground">{vendorName}</p>
+          <p className="truncate text-sm font-bold text-foreground hover:text-primary">
+            {vendorName}
+          </p>
           {tour.creatorName && tour.creatorName !== vendorName && (
             <p className="truncate text-xs text-muted-foreground">Phụ trách: {tour.creatorName}</p>
           )}
         </div>
-      </div>
+      </Link>
 
       {(tour.vendorContactEmail || tour.vendorContactPhone) && (
         <ul className="flex flex-col gap-2 text-sm">

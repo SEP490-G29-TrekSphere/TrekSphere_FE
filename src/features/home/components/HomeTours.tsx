@@ -49,7 +49,7 @@ export default function HomeTours() {
           </div>
         ) : tours.length === 0 ? (
           <div className="mt-10 text-center py-12 bg-card border border-border/50 rounded-3xl">
-            <p className="text-muted-foreground text-sm">Hiện chưa có tour nào được đánh giá.</p>
+            <p className="text-muted-foreground text-sm">Hiện chưa có tour nào.</p>
           </div>
         ) : (
           <ScrollReveal variant="fade-up" scrollOptions={{ delay: 100 }}>
@@ -72,18 +72,6 @@ export default function HomeTours() {
                         className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-[#0f201c]/55"
                         aria-hidden="true"
                       />
-                      {/* Rating on image */}
-                      <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="#F59E0B">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                        <span className="text-xs font-bold text-white">
-                          {tour.rating.toFixed(1)}
-                        </span>
-                        <span className="text-xs font-medium text-white/70">
-                          ({tour.reviewCount})
-                        </span>
-                      </div>
                     </div>
 
                     <div className="tour-content-wrapper">

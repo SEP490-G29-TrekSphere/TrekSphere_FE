@@ -1,6 +1,5 @@
-import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useDebounce } from '@/shared/hooks';
+import { AppButton, PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { AddStaffDialog } from '../components/AddStaffDialog';
 import { LockStaffConfirmDialog } from '../components/LockStaffConfirmDialog';
@@ -22,14 +21,14 @@ export default function StaffList() {
   const [roleUpdatingId, setRoleUpdatingId] = useState<string | null>(null);
 
   const [searchValue, setSearchValue] = useState('');
-  const debouncedSearch = useDebounce(searchValue, 400);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: debouncedSearch chỉ dùng để trigger effect
+  // Reset page when searchValue changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: trigger reset on search change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [searchValue]);
 
-  const filter = useMemo(() => ({ search: debouncedSearch }), [debouncedSearch]);
+  const filter = useMemo(() => ({ search: searchValue.trim() || undefined }), [searchValue]);
 
   const { data, isLoading, isError, error } = useVendorStaffList(filter, page, PAGE_SIZE);
   const { data: lockedCount } = useVendorStaffLockedCount();
@@ -96,43 +95,25 @@ export default function StaffList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#06261D] tracking-tight">
-            Danh sách Nhân viên
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative w-72">
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Tìm kiếm thông tin nhân viên..."
-              className="w-full rounded-full py-2.5 pl-10 pr-4 text-sm font-medium transition-colors focus:outline-none"
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E0DCD1',
-                color: '#06261D',
-              }}
-            />
-            <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
-              style={{ color: '#6F7B75' }}
-            />
-          </div>
-
-          <button
-            type="button"
+      <PortalPageHeader
+        title="Danh sách Nhân viên"
+        description="Quản lý đội ngũ nhân viên, phân quyền và trạng thái hoạt động"
+        actions={
+          <AppButton
             onClick={() => setAddOpen(true)}
-            className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white whitespace-nowrap"
-            style={{ backgroundColor: '#06261D' }}
+            className="rounded-full px-5 py-2.5 text-sm font-semibold text-white bg-[#06261D] hover:bg-[#08241C] shadow-sm"
           >
             + Thêm nhân viên
-          </button>
-        </div>
-      </div>
+          </AppButton>
+        }
+      />
+
+      <PortalFilterBar
+        searchPlaceholder="Tìm kiếm thông tin nhân viên..."
+        searchValue={searchValue}
+        onSearchChange={setSearchValue}
+        onSearchClear={() => setSearchValue('')}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-[20px] bg-white p-6" style={{ border: '1px solid #E6E2D1' }}>

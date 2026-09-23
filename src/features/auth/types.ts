@@ -1,3 +1,4 @@
+import type { HikingExperienceLevel, HikingPreferredDifficulty } from '@/constants';
 import type { ChangePasswordFormValues } from './validations/auth.schema';
 
 /**
@@ -90,6 +91,15 @@ export interface UserProfile {
   roles: string[];
   /** Vai trò chính (lấy từ roles[0]). Dùng cho các check hiển thị. */
   role: string;
+  /** Giới thiệu bản thân, hiển thị công khai trong hồ sơ leo núi. */
+  bio?: string;
+  experienceLevel?: HikingExperienceLevel;
+  preferredDifficulty?: HikingPreferredDifficulty;
+  preferredAreas?: string[];
+  skills?: string[];
+  /** Điểm uy tín do BE chấm — chỉ đọc, FE không gửi lên. */
+  trustScore?: number;
+  trustReviewCount?: number;
 }
 
 /**

@@ -1,4 +1,11 @@
 import * as z from 'zod';
+import {
+  HIKING_BIO_MAX_LENGTH,
+  HIKING_PREFERRED_AREAS_MAX,
+  HIKING_SKILLS_MAX,
+  HIKING_TAG_MAX_LENGTH,
+} from '@/constants';
+import { isValidVietnamesePhone, normalizePhoneNumber } from '@/utils/phone';
 
 /**
  * Zod schemas cho form login/register.
@@ -84,20 +91,102 @@ export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 /**
  * Schema cho form chỉnh sửa hồ sơ.
  * Email bị loại ra khỏi schema vì là field readonly.
- * Chỉ có các trường BE hỗ trợ: fullName, phone, dateOfBirth, gender.
+ * Chỉ có các trường BE hỗ trợ: fullName, phone, dateOfBirth, gender và nhóm
+ * hồ sơ leo núi (bio, experienceLevel, preferredDifficulty, preferredAreas, skills).
+ * `trustScore` do BE chấm nên không nằm trong form.
  */
-export const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự').max(100, 'Họ tên quá dài'),
-  phone: z
-    .string()
-    .regex(
-      /^0[35789][0-9]{8}$/,
-      'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09)'
-    )
-    .optional()
-    .or(z.literal('')),
-  gender: z.enum(['male', 'female', 'other']).optional(),
-  dateOfBirth: z.string().optional().or(z.literal('')),
-});
+export const updateProfileSchema = z
+  .object({
+    name: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự').max(100, 'Họ tên quá dài'),
+    phone: z
+      .string({ message: 'Vui lòng nhập số điện thoại' })
+      .trim()
+      .min(1, 'Vui lòng nhập số điện thoại')
+      .refine((val) => isValidVietnamesePhone(val), {
+        message:
+          'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)',
+      })
+      .transform((val) => normalizePhoneNumber(val)),
+    gender: z.enum(['male', 'female', 'other']).optional().or(z.literal('')),
+    dateOfBirth: z
+      .string({ message: 'Vui lòng chọn ngày sinh' })
+      .trim()
+      .min(1, 'Vui lòng chọn ngày sinh')
+      .refine(
+        (val) => {
+          const dob = new Date(val);
+          if (Number.isNaN(dob.getTime())) return false;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return dob <= today;
+        },
+        {
+          message: 'Ngày sinh không hợp lệ (không được lớn hơn ngày hiện tại)',
+        }
+      )
+      .refine(
+        (val) => {
+          const dob = new Date(val);
+          if (Number.isNaN(dob.getTime())) return false;
+          const today = new Date();
+          let age = today.getFullYear() - dob.getFullYear();
+          const monthDiff = today.getMonth() - dob.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+          }
+          return age >= 18 && age <= 100;
+        },
+        {
+          message: 'Bạn phải từ 18 tuổi trở lên (độ tuổi hợp lệ từ 18 đến 100 tuổi)',
+        }
+      ),
+    bio: z
+      .string()
+      .max(HIKING_BIO_MAX_LENGTH, `Giới thiệu tối đa ${HIKING_BIO_MAX_LENGTH} ký tự`)
+      .optional()
+      .or(z.literal('')),
+    experienceLevel: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'], {
+      message: 'Vui lòng chọn cấp độ kinh nghiệm',
+    }),
+    preferredDifficulty: z.enum(['EASY', 'MODERATE', 'HARD', 'EXTREME'], {
+      message: 'Vui lòng chọn độ khó ưa thích',
+    }),
+    preferredAreas: z
+      .array(z.string().trim().min(1).max(HIKING_TAG_MAX_LENGTH))
+      .max(HIKING_PREFERRED_AREAS_MAX, `Tối đa ${HIKING_PREFERRED_AREAS_MAX} khu vực`)
+      .optional(),
+    skills: z
+      .array(z.string().trim().min(1).max(HIKING_TAG_MAX_LENGTH))
+      .max(HIKING_SKILLS_MAX, `Tối đa ${HIKING_SKILLS_MAX} kỹ năng`)
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      const expOrder: Record<string, number> = {
+        BEGINNER: 0,
+        INTERMEDIATE: 1,
+        ADVANCED: 2,
+        EXPERT: 3,
+      };
+      const diffOrder: Record<string, number> = {
+        EASY: 0,
+        MODERATE: 1,
+        HARD: 2,
+        EXTREME: 3,
+      };
+      if (data.experienceLevel && data.preferredDifficulty) {
+        const exp = expOrder[data.experienceLevel];
+        const diff = diffOrder[data.preferredDifficulty];
+        if (exp !== undefined && diff !== undefined && diff > exp) {
+          return false;
+        }
+      }
+      return true;
+    },
+    {
+      message: 'Độ khó ưa thích không được vượt quá cấp độ kinh nghiệm.',
+      path: ['preferredDifficulty'],
+    }
+  );
 
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;

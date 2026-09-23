@@ -1,14 +1,6 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type {
-  BookingCancelRequest,
-  BookingDetailResponse,
-  BookingHistoryApiResponse,
-  BookingHistoryParams,
-  CreateBookingRequest,
-  CreateReviewRequest,
-  ReviewListParams,
-  ReviewResponse,
-  ReviewSummaryResponse,
+  RecommendedTourListApiResponse,
   TourCheckpoint,
   TourDetailFromApi,
   TourDetailScheduleApi,
@@ -24,8 +16,6 @@ export interface TourListResponse {
   pageSize: number;
   last: boolean;
 }
-
-export const PAYMENT_DEADLINE_SECONDS = 900;
 
 /**
  * Serialize a `TourListParams` object into a query string. Only includes
@@ -49,6 +39,9 @@ function buildQuery(params: TourListParams): string {
   }
   if (params.returnDate !== undefined && params.returnDate !== '') {
     search.set('returnDate', params.returnDate);
+  }
+  if (params.vendorId !== undefined && params.vendorId !== '') {
+    search.set('vendorId', params.vendorId);
   }
   if (params.page !== undefined) {
     search.set('page', String(params.page));
@@ -96,19 +89,7 @@ export const tourService = {
 
   async getTourById(tourId: string): Promise<TourDetailFromApi> {
     const response = await ApiService<TourDetailFromApi>(`/tours/${tourId}`, 'GET');
-    const data = unwrapResponse(response);
-    const hasRequiredPolicies = Boolean(data.paymentPolicy && data.participationPolicy);
-    return {
-      ...data,
-      onlineBookingEnabled: data.onlineBookingEnabled === true && hasRequiredPolicies,
-      onlineBookingDisabledReason:
-        data.onlineBookingDisabledReason ??
-        (!data.participationPolicy
-          ? 'Tour chưa có điều kiện tham gia.'
-          : !data.paymentPolicy
-            ? 'Tour chưa có chính sách thanh toán.'
-            : 'Tour chưa sẵn sàng nhận đặt online.'),
-    };
+    return unwrapResponse(response);
   },
 
   async validateVoucher(
@@ -140,70 +121,6 @@ export const tourService = {
     };
   },
 
-  async createBooking(
-    bookingData: CreateBookingRequest,
-    idempotencyKey: string
-  ): Promise<BookingDetailResponse> {
-    const response = await ApiService<BookingDetailResponse>(
-      '/bookings',
-      'POST',
-      bookingData,
-      undefined,
-      { 'Idempotency-Key': idempotencyKey }
-    );
-    return unwrapResponse(response);
-  },
-
-  async getBookingDetail(bookingId: string): Promise<BookingDetailResponse> {
-    const response = await ApiService<BookingDetailResponse>(`/bookings/${bookingId}`, 'GET');
-    const data = unwrapResponse(response);
-    const rawPaymentStatus = data.paymentStatus as string;
-    const paymentStatus = rawPaymentStatus === 'PENDING' ? 'UNPAID' : data.paymentStatus;
-    const rawBookingStatus = data.bookingStatus as string;
-    return {
-      ...data,
-      paymentStatus,
-      bookingStatus:
-        rawBookingStatus === 'PENDING'
-          ? paymentStatus === 'PAID'
-            ? 'PENDING_CONFIRMATION'
-            : 'PAYMENT_PENDING'
-          : data.bookingStatus,
-    };
-  },
-
-  /**
-   * `POST /bookings/{id}/cancel` — trekker tự hủy đơn.
-   *
-   * `refundInfo` là thông tin tài khoản nhận hoàn tiền; chỉ gửi kèm khi đơn đã
-   * (hoặc có thể đã) thanh toán. Các field rỗng được loại bỏ khỏi body để BE
-   * không lưu chuỗi trắng.
-   */
-  async cancelBooking(
-    bookingId: string,
-    cancellationReason: string,
-    refundInfo?: Omit<BookingCancelRequest, 'cancellationReason'>
-  ): Promise<BookingDetailResponse> {
-    const payload: BookingCancelRequest = { cancellationReason };
-
-    if (refundInfo?.refundBankBin?.trim()) {
-      payload.refundBankBin = refundInfo.refundBankBin.trim();
-    }
-    if (refundInfo?.refundAccountNumber?.trim()) {
-      payload.refundAccountNumber = refundInfo.refundAccountNumber.trim();
-    }
-    if (refundInfo?.refundAccountName?.trim()) {
-      payload.refundAccountName = refundInfo.refundAccountName.trim();
-    }
-
-    const response = await ApiService<BookingDetailResponse>(
-      `/bookings/${bookingId}/cancel`,
-      'POST',
-      payload
-    );
-    return unwrapResponse(response);
-  },
-
   /** `POST /tracking/sos` — gửi tín hiệu cấp cứu kèm toạ độ GPS thực tế. */
   async sendSos(payload: {
     tourSessionId: string;
@@ -219,37 +136,6 @@ export const tourService = {
     return unwrapResponse(response);
   },
 
-  async getMyBookings(params: BookingHistoryParams = {}): Promise<BookingHistoryApiResponse> {
-    const queryParams: Record<string, string> = {};
-
-    if (params.status) {
-      queryParams.status = params.status;
-    }
-    if (params.keyword !== undefined && params.keyword !== '') {
-      queryParams.keyword = params.keyword;
-    }
-    if (params.page !== undefined) {
-      queryParams.page = String(params.page);
-    }
-    if (params.size !== undefined) {
-      queryParams.size = String(params.size);
-    }
-    if (params.sortBy) {
-      queryParams.sortBy = params.sortBy;
-    }
-    if (params.sortDir) {
-      queryParams.sortDir = params.sortDir;
-    }
-
-    const response = await ApiService<BookingHistoryApiResponse>(
-      '/bookings/my-history',
-      'GET',
-      undefined,
-      queryParams
-    );
-    return unwrapResponse(response);
-  },
-
   async getTourCheckpoints(tourId: string): Promise<TourCheckpoint[]> {
     const response = await ApiService<TourCheckpoint[]>(`/tours/${tourId}/checkpoints`, 'GET');
     return unwrapResponse(response);
@@ -260,49 +146,12 @@ export const tourService = {
     return unwrapResponse(response);
   },
 
-  async getTourReviews(
-    tourId: string,
-    params: ReviewListParams = {}
-  ): Promise<ReviewSummaryResponse> {
-    const searchParams = new URLSearchParams();
-    if (params.rating !== undefined) {
-      searchParams.set('rating', String(params.rating));
-    }
-    if (params.keyword !== undefined && params.keyword !== '') {
-      searchParams.set('keyword', params.keyword);
-    }
-    if (params.page !== undefined) {
-      searchParams.set('page', String(params.page));
-    }
-    if (params.size !== undefined) {
-      searchParams.set('size', String(params.size));
-    }
-    if (params.sortBy) {
-      searchParams.set('sortBy', params.sortBy);
-    }
-    if (params.sortDir) {
-      searchParams.set('sortDir', params.sortDir);
-    }
-    const queryString = searchParams.toString();
-    const path = queryString
-      ? `/tours/${tourId}/reviews?${queryString}`
-      : `/tours/${tourId}/reviews`;
-    const response = await ApiService<ReviewSummaryResponse>(path, 'GET');
-    return unwrapResponse(response);
-  },
-
-  async createReview(reviewData: CreateReviewRequest): Promise<ReviewResponse> {
-    const response = await ApiService<ReviewResponse>('/reviews', 'POST', reviewData);
-    return unwrapResponse(response);
-  },
-
-  async updateReviewStatus(
-    reviewId: string,
-    status: 'PENDING' | 'APPROVED' | 'HIDDEN'
-  ): Promise<ReviewResponse> {
-    const response = await ApiService<ReviewResponse>(`/reviews/${reviewId}/status`, 'PATCH', {
-      status,
-    });
+  /** `GET /tours/recommended` — gợi ý tour cá nhân hoá, chỉ role Trekker gọi được. */
+  async getRecommendedTours(page = 0, size = 6): Promise<RecommendedTourListApiResponse> {
+    const response = await ApiService<RecommendedTourListApiResponse>(
+      `/tours/recommended?page=${page}&size=${size}`,
+      'GET'
+    );
     return unwrapResponse(response);
   },
 };

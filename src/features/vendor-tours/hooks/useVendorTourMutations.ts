@@ -8,8 +8,8 @@ import { vendorTourStatsKeys } from './useVendorTourStats';
 
 /**
  * Mutation cho "Tạo tour" (+ checkpoints), "Sửa tour" (+ reconcile checkpoints),
- * "Xóa tour" và "Gửi kiểm duyệt" — invalidate list + stats (và detail/checkpoints
- * query khi sửa/gửi duyệt) sau khi xong.
+ * "Xóa tour" và "Publish/Unpublish" — invalidate list + stats (và detail/checkpoints
+ * query khi liên quan) sau khi xong.
  */
 export function useVendorTourMutations() {
   const queryClient = useQueryClient();
@@ -65,15 +65,17 @@ export function useVendorTourMutations() {
       deletedCheckpointIds: string[];
     }) => {
       const updated = await vendorTourService.updateTour(tourId, tour);
+      // 1. Xóa các checkpoint cũ trước để giải phóng thứ tự (checkpointOrder) trong DB
+      for (const checkpointId of deletedCheckpointIds) {
+        await vendorTourService.deleteCheckpoint(checkpointId);
+      }
+      // 2. Cập nhật các checkpoint đã có hoặc tạo mới
       for (const checkpoint of checkpoints) {
         if (checkpoint.checkpointId) {
           await vendorTourService.updateCheckpoint(checkpoint.checkpointId, checkpoint.payload);
         } else {
           await vendorTourService.createCheckpoint(tourId, checkpoint.payload);
         }
-      }
-      for (const checkpointId of deletedCheckpointIds) {
-        await vendorTourService.deleteCheckpoint(checkpointId);
       }
       return updated;
     },
@@ -89,50 +91,16 @@ export function useVendorTourMutations() {
     onSuccess: invalidate,
   });
 
-  const submitTourForApproval = useMutation({
-    mutationFn: (tourId: string) => vendorTourService.submitTourForApproval(tourId),
+  const publishTour = useMutation({
+    mutationFn: (tourId: string) => vendorTourService.publishTour(tourId),
     onSuccess: (_data, tourId) => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(tourId) });
     },
   });
 
-  const approveTour = useMutation({
-    mutationFn: (tourId: string) => vendorTourService.approveTour(tourId),
-    onSuccess: (_data, tourId) => {
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(tourId) });
-    },
-  });
-
-  const rejectTour = useMutation({
-    mutationFn: ({ tourId, reason }: { tourId: string; reason: string }) =>
-      vendorTourService.rejectTour(tourId, reason),
-    onSuccess: (_data, variables) => {
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(variables.tourId) });
-    },
-  });
-
-  const hideTour = useMutation({
-    mutationFn: ({ tourId, reason }: { tourId: string; reason: string }) =>
-      vendorTourService.hideTour(tourId, reason),
-    onSuccess: (_data, variables) => {
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(variables.tourId) });
-    },
-  });
-
-  const revertTourToDraft = useMutation({
-    mutationFn: (tourId: string) => vendorTourService.revertTourToDraft(tourId),
-    onSuccess: (_data, tourId) => {
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(tourId) });
-    },
-  });
-
-  const unhideTour = useMutation({
-    mutationFn: (tourId: string) => vendorTourService.unhideTour(tourId),
+  const unpublishTour = useMutation({
+    mutationFn: (tourId: string) => vendorTourService.unpublishTour(tourId),
     onSuccess: (_data, tourId) => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: vendorTourDetailKeys.detail(tourId) });
@@ -153,12 +121,8 @@ export function useVendorTourMutations() {
     updateTour,
     updateTourWithCheckpoints,
     deleteTour,
-    submitTourForApproval,
-    approveTour,
-    rejectTour,
-    hideTour,
-    revertTourToDraft,
-    unhideTour,
+    publishTour,
+    unpublishTour,
     restoreTour,
   };
 }

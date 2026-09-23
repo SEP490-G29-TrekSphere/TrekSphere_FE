@@ -10,7 +10,6 @@ function draft(overrides: Partial<CheckpointDraft> = {}): CheckpointDraft {
     longitude: '',
     altitude: '',
     imageUrls: [],
-    imageFiles: [],
     ...overrides,
   };
 }

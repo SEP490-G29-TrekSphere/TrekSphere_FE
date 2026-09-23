@@ -13,32 +13,29 @@ export const FALLBACK_IMAGE =
 
 /** Nhãn tiếng Việt cho enum `difficulty` của API. */
 export const DIFFICULTY_LABELS: Record<ApiDifficulty | string, string> = {
-  BEGINNER: 'Mới bắt đầu',
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXPERT: 'Chuyên gia',
+  EXTREME: 'Cực khó',
 };
 
 /**
- * Thang điểm 1-5 cho độ khó — dùng để vẽ meter ở khối thông số.
+ * Thang điểm 1-4 cho độ khó — dùng để vẽ meter ở khối thông số.
  * Là thang thứ tự (ordinal) nên chỉ tô đậm dần trên cùng một hue, không đổi màu.
  */
 export const DIFFICULTY_LEVEL: Record<ApiDifficulty | string, number> = {
-  BEGINNER: 1,
-  EASY: 2,
-  MODERATE: 3,
-  HARD: 4,
-  EXPERT: 5,
+  EASY: 1,
+  MODERATE: 2,
+  HARD: 3,
+  EXTREME: 4,
 };
 
 /** Nhãn ngắn hiển thị dạng chip trên hero. */
 export const DIFFICULTY_TAGS: Record<ApiDifficulty | string, string> = {
-  BEGINNER: 'Cung đường khám phá',
   EASY: 'Cung đường dễ',
   MODERATE: 'Cung đường trung bình',
   HARD: 'Cung đường thách thức',
-  EXPERT: 'Cung đường chuyên gia',
+  EXTREME: 'Cung đường cực khó',
 };
 
 /**
@@ -77,14 +74,14 @@ export function handleImageFallback(event: SyntheticEvent<HTMLImageElement>): vo
   if (img.src !== FALLBACK_IMAGE) img.src = FALLBACK_IMAGE;
 }
 
-/** Số chỗ còn trống của một lịch khởi hành (kẹp về 0 phòng dữ liệu lệch). */
-export function remainingSlots(schedule: TourDetailScheduleApi): number {
-  return Math.max(0, schedule.availableSlots - schedule.bookedSlots);
-}
-
-/** Lịch còn nhận khách: trạng thái OPEN và vẫn còn chỗ. */
+/**
+ * Lịch còn nhận khách: BE đã tự lọc `status=OPEN AND departureDate>=today` ở
+ * endpoint chi tiết tour, nên ở đây chỉ cần khớp lại đúng điều kiện status —
+ * không dựa vào `availableSlots`/`bookedSlots` (chưa có domain Booking thật ở
+ * BE nên 2 field này không phản ánh dữ liệu thật).
+ */
 export function isBookableSchedule(schedule: TourDetailScheduleApi): boolean {
-  return schedule.status === 'OPEN' && remainingSlots(schedule) > 0;
+  return schedule.status === 'OPEN';
 }
 
 /** Sắp xếp lịch theo ngày khởi hành tăng dần. */
@@ -114,7 +111,6 @@ export const SECTION_IDS = {
   gallery: 'hinh-anh',
   requirements: 'dieu-kien-tham-gia',
   policy: 'chinh-sach',
-  reviews: 'danh-gia',
 } as const;
 
 /**

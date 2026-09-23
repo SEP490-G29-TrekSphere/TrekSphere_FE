@@ -1,9 +1,9 @@
-import { ChevronLeft, ChevronRight, FileText, MessageSquare, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, Map as MapIcon, MessageSquare } from 'lucide-react';
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { PATHS } from '@/constants';
+import { PortalStatusBadge } from '@/shared/ui';
 import type { ReportResponse, ReportTargetType } from '../../services/adminReportService';
-import { ReportFilterTabs } from './ReportFilterTabs';
 
 export interface ReportTableProps {
   reports: ReportResponse[];
@@ -11,8 +11,8 @@ export interface ReportTableProps {
   page: number;
   totalPages: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  activeTab: 'all' | 'pending' | 'resolved' | 'dismissed';
-  setActiveTab: (tab: 'all' | 'pending' | 'resolved' | 'dismissed') => void;
+  activeTab?: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED';
+  setActiveTab?: (tab: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED') => void;
   isFetching?: boolean;
 }
 
@@ -22,8 +22,6 @@ export function ReportTable({
   page,
   totalPages,
   setPage,
-  activeTab,
-  setActiveTab,
   isFetching = false,
 }: ReportTableProps) {
   const getItemIcon = (type: ReportTargetType) => {
@@ -32,8 +30,8 @@ export function ReportTable({
         return <FileText className="h-4 w-4 text-zinc-700" />;
       case 'COMMENT':
         return <MessageSquare className="h-4 w-4 text-zinc-700" />;
-      case 'REVIEW':
-        return <Star className="h-4 w-4 text-zinc-700" />;
+      case 'TOUR':
+        return <MapIcon className="h-4 w-4 text-zinc-700" />;
       default:
         return <FileText className="h-4 w-4 text-zinc-700" />;
     }
@@ -45,8 +43,8 @@ export function ReportTable({
         return 'Blog';
       case 'COMMENT':
         return 'Bình luận';
-      case 'REVIEW':
-        return 'Đánh giá';
+      case 'TOUR':
+        return 'Tour';
       default:
         return 'Khác';
     }
@@ -54,22 +52,6 @@ export function ReportTable({
 
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-2xl shadow-sm overflow-hidden">
-      {/* Table Toolbar */}
-      <div className="p-5 border-b border-[#E5E4DE] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold tracking-wide uppercase text-zinc-700">
-            DANH SÁCH BÁO CÁO
-          </h2>
-          <span className="px-2 py-0.5 text-xs font-semibold bg-zinc-200 text-zinc-700 rounded-full">
-            {totalElements}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <ReportFilterTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-      </div>
-
       {/* Table Content */}
       <div className="overflow-x-auto relative min-h-[200px]">
         {/* Loading Overlay */}
@@ -152,22 +134,23 @@ export function ReportTable({
 
                   {/* Status */}
                   <td className="py-4 px-6 whitespace-nowrap">
-                    {item.status === 'PENDING' ? (
-                      <div className="flex items-center gap-1.5 text-red-600 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-red-600 animate-pulse" />
-                        CHỜ XỬ LÝ
-                      </div>
-                    ) : item.status === 'RESOLVED' ? (
-                      <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-emerald-600" />
-                        ĐÃ XỬ LÝ
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-zinc-500 font-bold text-xs uppercase">
-                        <span className="size-2 rounded-full bg-zinc-500" />
-                        BỎ QUA
-                      </div>
-                    )}
+                    <PortalStatusBadge
+                      status={item.status}
+                      label={
+                        item.status === 'PENDING'
+                          ? 'CHỜ XỬ LÝ'
+                          : item.status === 'RESOLVED'
+                            ? 'ĐÃ XỬ LÝ'
+                            : 'BỎ QUA'
+                      }
+                      variant={
+                        item.status === 'PENDING'
+                          ? 'destructive'
+                          : item.status === 'RESOLVED'
+                            ? 'success'
+                            : 'neutral'
+                      }
+                    />
                   </td>
 
                   {/* Action button */}

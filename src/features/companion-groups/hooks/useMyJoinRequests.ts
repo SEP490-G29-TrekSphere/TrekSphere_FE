@@ -1,9 +1,10 @@
 import { keepPreviousData, type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { companionGroupService } from '../services/companionGroupService';
+import type { GetMyJoinRequestsParams } from '../types/matchingGroup';
 import { companionGroupKeys } from './companionGroupKeys';
 
 export function useMyJoinRequests(
-  params: { status?: string; page?: number; size?: number } = {},
+  params: GetMyJoinRequestsParams = {},
   options?: Omit<
     UseQueryOptions<
       Awaited<ReturnType<typeof companionGroupService.getMyJoinRequests>>,

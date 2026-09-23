@@ -28,23 +28,18 @@ import type {
  *   POST   /vendor/tours/{tourId}/checkpoints          — thêm 1 checkpoint (tour phải tồn tại trước)
  *   PUT    /vendor/tours/checkpoints/{checkpointId}     — sửa 1 checkpoint đã tồn tại
  *   DELETE /vendor/tours/checkpoints/{checkpointId}     — xóa 1 checkpoint
- *   POST   /vendor/tours/{id}/submit-approval           — gửi tour (DRAFT/REJECTED) lên cho Manager duyệt
- *   PUT    /vendor/tours/{id}/approve                — Manager duyệt tour đang PENDING_APPROVAL
- *   PUT    /vendor/tours/{id}/reject                 — Manager từ chối tour PENDING_APPROVAL (kèm reason)
- *   PUT    /vendor/tours/{id}/hide                   — Manager ẩn tour APPROVED nếu vi phạm (kèm reason)
- *   POST   /vendor/tours/{id}/revert-to-draft         — chuyển REJECTED về DRAFT (Staff) hoặc
- *                                                        PENDING_APPROVAL (Manager), BE tự quyết theo role
- *   PUT    /vendor/tours/{id}/unhide                  — Manager mở lại tour HIDDEN, đưa về APPROVED
- *   POST   /vendor/tours/{id}/restore                 — Manager khôi phục tour đã xóa mềm, đưa về
- *                                                        PENDING_APPROVAL (chưa có UI gọi, xem ghi chú
- *                                                        tại định nghĩa hàm `restoreTour` bên dưới)
+ *   PUT    /vendor/tours/{id}/publish                 — Vendor tự công khai tour DRAFT (yêu cầu:
+ *                                                        đủ field, ảnh bìa, ≥2 checkpoint, ≥1 lịch
+ *                                                        OPEN tương lai) — không qua Admin duyệt
+ *   PUT    /vendor/tours/{id}/unpublish                — Vendor tự đưa tour PUBLISHED về DRAFT
+ *                                                        (chặn nếu đang có nhóm ghép hoạt động)
+ *   POST   /vendor/tours/{id}/restore                 — khôi phục tour đã xóa mềm, đưa về DRAFT
+ *                                                        (chưa có UI gọi, xem ghi chú tại định
+ *                                                        nghĩa hàm `restoreTour` bên dưới)
  *
- * LƯU Ý: `/vendor/tours/{id}` KHÔNG có method GET (đã xác nhận qua OpenAPI spec —
- * path đó chỉ khai báo `put`/`delete`). Muốn lấy chi tiết 1 tour để đổ vào form
- * Sửa phải dùng endpoint public `GET /tours/{id}` (tag `Tour`, không cần đăng
- * nhập) — response cùng schema `TourDetailResponse`. Tương tự, danh sách checkpoint
- * của tour cũng chỉ có bản public `GET /tours/{tourId}/checkpoints` (không có bản
- * `/vendor/...`), dùng chung cho cả 2 role.
+ * `GET /vendor/tours/{id}` lấy chi tiết đầy đủ 1 tour (đúng schema `TourDetailResponse`) — dùng để
+ * đổ vào form Sửa. Danh sách checkpoint của tour dùng bản public `GET /tours/{tourId}/checkpoints`
+ * (không có bản `/vendor/...` riêng).
  *
  * LƯU Ý QUAN TRỌNG: `createTour`/`updateTour`/`createCheckpoint`/`updateCheckpoint`
  * bắt buộc `Content-Type: multipart/form-data` (đã xác nhận qua `/v3/api-docs` — cả
@@ -66,13 +61,11 @@ import type {
 interface VendorTourResponseDto {
   tourId: string;
   tourName: string;
-  basePrice: number;
+  price: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   coverImageUrl: string | null;
   createdAt: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 interface TourDetailResponseDto {
@@ -140,12 +133,10 @@ function mapVendorTour(dto: VendorTourResponseDto): VendorTourListItem {
     id: dto.tourId,
     name: dto.tourName,
     coverImageUrl: dto.coverImageUrl ?? undefined,
-    basePrice: dto.basePrice,
+    price: dto.price,
     difficulty: dto.difficulty,
     status: dto.status,
     createdAt: dto.createdAt,
-    onlineBookingEnabled: dto.onlineBookingEnabled === true,
-    onlineBookingDisabledReason: dto.onlineBookingDisabledReason,
   };
 }
 
@@ -188,9 +179,13 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
+      price: payload.price,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
+      totalDistanceKm: payload.totalDistanceKm,
+      highlights: payload.highlights,
+      includes: payload.includes,
+      excludes: payload.excludes,
       coverImageUrl: payload.coverImageUrl,
       coverImage: payload.coverImage,
       ...participationPolicyFields(payload.participationPolicy),
@@ -217,9 +212,13 @@ export const vendorTourService = {
       difficulty: payload.difficulty,
       location: payload.location,
       durationDays: payload.durationDays,
-      basePrice: payload.basePrice,
+      price: payload.price,
       minCapacity: payload.minCapacity,
       maxCapacity: payload.maxCapacity,
+      totalDistanceKm: payload.totalDistanceKm,
+      highlights: payload.highlights,
+      includes: payload.includes,
+      excludes: payload.excludes,
       coverImageUrl: payload.coverImageUrl,
       coverImage: payload.coverImage,
       ...participationPolicyFields(payload.participationPolicy),
@@ -295,65 +294,20 @@ export const vendorTourService = {
     }
   },
 
-  /** Gửi tour (đang DRAFT hoặc REJECTED) lên hệ thống cho Manager duyệt. */
-  async submitTourForApproval(tourId: string): Promise<CreatedTour> {
+  /** Vendor tự công khai tour đang DRAFT — BE tự validate đủ điều kiện (checkpoint/lịch/ảnh bìa...). */
+  async publishTour(tourId: string): Promise<CreatedTour> {
     const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/submit-approval`,
-      'POST'
-    );
-    const data = unwrapResponse(response);
-    return { id: data.tourId, status: data.status };
-  },
-
-  /** Duyệt tour đang PENDING_APPROVAL — không cần body. */
-  async approveTour(tourId: string): Promise<CreatedTour> {
-    const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/approve`,
+      `/vendor/tours/${tourId}/publish`,
       'PUT'
     );
     const data = unwrapResponse(response);
     return { id: data.tourId, status: data.status };
   },
 
-  /** Từ chối tour đang PENDING_APPROVAL — bắt buộc kèm lý do. */
-  async rejectTour(tourId: string, reason: string): Promise<CreatedTour> {
+  /** Vendor tự đưa tour PUBLISHED về DRAFT — BE chặn nếu đang có nhóm ghép hoạt động. */
+  async unpublishTour(tourId: string): Promise<CreatedTour> {
     const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/reject`,
-      'PUT',
-      { reason }
-    );
-    const data = unwrapResponse(response);
-    return { id: data.tourId, status: data.status };
-  },
-
-  /** Ẩn tour đã APPROVED nếu phát hiện vi phạm — bắt buộc kèm lý do. */
-  async hideTour(tourId: string, reason: string): Promise<CreatedTour> {
-    const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/hide`,
-      'PUT',
-      { reason }
-    );
-    const data = unwrapResponse(response);
-    return { id: data.tourId, status: data.status };
-  },
-
-  /**
-   * Chuyển tour REJECTED về DRAFT (Staff) hoặc PENDING_APPROVAL (Manager) — BE tự quyết định
-   * trạng thái đích theo role của người gọi, FE gọi chung 1 API cho cả 2 role, không cần body.
-   */
-  async revertTourToDraft(tourId: string): Promise<CreatedTour> {
-    const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/revert-to-draft`,
-      'POST'
-    );
-    const data = unwrapResponse(response);
-    return { id: data.tourId, status: data.status };
-  },
-
-  /** Mở lại tour đang HIDDEN — đưa về APPROVED. Chỉ Manager. */
-  async unhideTour(tourId: string): Promise<CreatedTour> {
-    const response = await ApiService<TourDetailResponseDto>(
-      `/vendor/tours/${tourId}/unhide`,
+      `/vendor/tours/${tourId}/unpublish`,
       'PUT'
     );
     const data = unwrapResponse(response);
@@ -361,7 +315,7 @@ export const vendorTourService = {
   },
 
   /**
-   * Khôi phục 1 tour đã xóa mềm — đưa về PENDING_APPROVAL. Chỉ Manager.
+   * Khôi phục 1 tour đã xóa mềm — đưa về DRAFT.
    * LƯU Ý: chưa có UI nào gọi hàm này — BE chưa xác nhận cách FE xem được danh sách tour đã
    * xóa mềm (không có param lọc hay field đánh dấu trên `GET /vendor/tours`). Thêm sẵn để dùng
    * ngay khi có entry point.

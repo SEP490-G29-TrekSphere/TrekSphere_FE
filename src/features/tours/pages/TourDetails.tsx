@@ -1,6 +1,6 @@
+import { Flag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { CancellationPolicyNotice } from '@/features/tours/components/CancellationPolicyNotice';
 import {
   isBookableSchedule,
   SECTION_IDS,
@@ -17,7 +17,6 @@ import {
   TourNotFound,
   TourOverviewSection,
   TourParticipationPolicySection,
-  TourReviewsSection,
   TourRouteSection,
   TourScheduleSection,
   type TourSection,
@@ -28,6 +27,7 @@ import {
 import { useTourCheckpoints } from '@/features/tours/hooks/useTourCheckpoints';
 import { useTourDetail } from '@/features/tours/hooks/useTourDetail';
 import { useTourSchedules } from '@/features/tours/hooks/useTourSchedules';
+import { ReportModal } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 /** Thứ tự này phải khớp thứ tự các section trong DOM để scrollspy chạy đúng. */
@@ -38,8 +38,6 @@ const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.inclusions, label: 'Bao gồm' },
   { id: SECTION_IDS.gallery, label: 'Hình ảnh' },
   { id: SECTION_IDS.requirements, label: 'Điều kiện' },
-  { id: SECTION_IDS.policy, label: 'Chính sách' },
-  { id: SECTION_IDS.reviews, label: 'Đánh giá' },
 ];
 
 /** Tiêu đề chung cho mọi khối nội dung ở cột trái. */
@@ -63,12 +61,11 @@ function SectionHeading({ title, description }: { title: string; description?: s
 export default function TourDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const user = useAppStore((state) => state.user);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { data: tour, isLoading, error, refetch, isFetching } = useTourDetail(id);
   const { data: apiSchedules } = useTourSchedules(id);
   const { data: checkpoints, isLoading: isLoadingCheckpoints } = useTourCheckpoints(id);
-
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
 
   // `GET /tours/{id}` đã kèm `schedules`, endpoint riêng chỉ để làm mới; ưu tiên
   // dữ liệu mới hơn nhưng vẫn có sẵn để render ngay lần đầu.
@@ -78,9 +75,6 @@ export default function TourDetailsPage() {
     () => sortSchedulesByDeparture(schedules.filter(isBookableSchedule)),
     [schedules]
   );
-
-  const selectedSchedule =
-    bookableSchedules.find((schedule) => schedule.scheduleId === selectedScheduleId) ?? null;
 
   const hasInclusions =
     splitField(tour?.includes).length > 0 || splitField(tour?.excludes).length > 0;
@@ -92,16 +86,6 @@ export default function TourDetailsPage() {
       (section.id !== SECTION_IDS.gallery || hasGallery) &&
       (section.id !== SECTION_IDS.requirements || hasParticipationPolicy)
   );
-
-  /** Bấm "Ngày khởi hành" ở thẻ đặt tour → cuộn tới danh sách lịch bên trái. */
-  function scrollToSchedules() {
-    const target = document.getElementById(SECTION_IDS.schedules);
-    if (!target) return;
-    window.scrollTo({
-      top: target.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET,
-      behavior: 'smooth',
-    });
-  }
 
   if (isLoading) return <TourDetailSkeleton />;
 
@@ -125,6 +109,20 @@ export default function TourDetailsPage() {
       <TourSectionNav sections={visibleSections} />
 
       <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
+        {user && (
+          <div className="mb-6 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsReportModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+              title="Báo cáo vi phạm"
+            >
+              <Flag className="size-3.5" />
+              Báo cáo vi phạm
+            </button>
+          </div>
+        )}
+
         <div className="grid items-start gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
           {/* Cột trái — nội dung tour */}
           <div className="flex min-w-0 flex-col gap-10">
@@ -140,13 +138,9 @@ export default function TourDetailsPage() {
             <section id={SECTION_IDS.schedules} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
               <SectionHeading
                 title="Lịch khởi hành"
-                description="Chọn một đợt để xem giá và số chỗ còn trống."
+                description="Danh sách các đợt khởi hành dự kiến và giá tour."
               />
-              <TourScheduleSection
-                schedules={schedules}
-                selectedScheduleId={selectedScheduleId}
-                onSelect={setSelectedScheduleId}
-              />
+              <TourScheduleSection schedules={schedules} />
             </section>
 
             <section id={SECTION_IDS.route} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
@@ -182,32 +176,11 @@ export default function TourDetailsPage() {
                 <TourParticipationPolicySection policy={tour.participationPolicy} />
               </section>
             )}
-
-            <section id={SECTION_IDS.policy} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
-              {/* Không đặt SectionHeading ở đây: CancellationPolicyNotice đã tự mang
-                  tiêu đề của nó (dùng chung với màn Đặt tour) */}
-              <CancellationPolicyNotice
-                policies={tour.cancellationPolicies}
-                paymentPolicy={tour.paymentPolicy}
-                nonRefundableCost={tour.nonRefundableCost}
-              />
-            </section>
-
-            <section id={SECTION_IDS.reviews} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
-              <SectionHeading title="Đánh giá cộng đồng" />
-              <TourReviewsSection tour={tour} />
-            </section>
           </div>
 
           {/* Cột phải — thẻ đặt tour dính, ẩn trên mobile vì đã có thanh đáy */}
           <aside className="hidden flex-col gap-5 lg:sticky lg:top-32 lg:flex">
-            <TourBookingRail
-              tour={tour}
-              schedules={schedules}
-              selectedSchedule={selectedSchedule}
-              onPickSchedule={scrollToSchedules}
-              isLoggedIn={!!user}
-            />
+            <TourBookingRail tour={tour} schedules={schedules} isLoggedIn={!!user} />
             <TourVendorCard tour={tour} />
           </aside>
         </div>
@@ -220,12 +193,19 @@ export default function TourDetailsPage() {
 
       <TourMobileBookingBar
         tour={tour}
-        selectedSchedule={selectedSchedule}
         hasSchedules={bookableSchedules.length > 0}
         isLoggedIn={!!user}
       />
       {/* Chừa chỗ cho thanh đáy để không che mất nội dung cuối trang */}
       <div className="h-20 lg:hidden" aria-hidden="true" />
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={tour.tourId}
+        targetType="TOUR"
+        targetTitle={tour.tourName}
+      />
     </div>
   );
 }

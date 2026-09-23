@@ -1,5 +1,6 @@
 import { Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { RichTextContent } from '@/shared/ui';
 import type { VendorProfileDetail } from '../types';
 
 interface VendorProfileHeroCardProps {
@@ -45,9 +46,9 @@ export function VendorProfileHeroCard({
         </h2>
 
         {profile.description && (
-          <p className="mt-2 text-sm leading-relaxed" style={{ color: '#6F7B75' }}>
-            {profile.description}
-          </p>
+          <div className="mt-2 text-sm leading-relaxed" style={{ color: '#6F7B75' }}>
+            <RichTextContent content={profile.description} />
+          </div>
         )}
 
         <div className="mt-5 flex flex-wrap items-center gap-3">

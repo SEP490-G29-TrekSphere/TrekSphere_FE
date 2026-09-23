@@ -1,25 +1,25 @@
-import { EyeOff, Filter } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getVendorManagerTourEditPath,
   getVendorManagerTourSchedulesPath,
+  getVendorTourPreviewPath,
   PATHS,
 } from '@/constants';
 import { DeleteTourConfirmDialog } from '@/features/vendor-tours/components/DeleteTourConfirmDialog';
-import { RevertToDraftConfirmDialog } from '@/features/vendor-tours/components/RevertToDraftConfirmDialog';
+import { PublishTourConfirmDialog } from '@/features/vendor-tours/components/PublishTourConfirmDialog';
 import { TourPagination } from '@/features/vendor-tours/components/TourPagination';
-import { TourReasonDialog } from '@/features/vendor-tours/components/TourReasonDialog';
 import {
   MANAGER_EDITABLE_STATUSES,
   TourTableRow,
 } from '@/features/vendor-tours/components/TourTableRow';
-import { UnhideTourConfirmDialog } from '@/features/vendor-tours/components/UnhideTourConfirmDialog';
+import { UnpublishTourConfirmDialog } from '@/features/vendor-tours/components/UnpublishTourConfirmDialog';
 import { useVendorTourList } from '@/features/vendor-tours/hooks/useVendorTourList';
 import { useVendorTourMutations } from '@/features/vendor-tours/hooks/useVendorTourMutations';
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import type { ApiDifficulty, ApiStatus, VendorTourListItem } from '@/features/vendor-tours/types';
 import { useDebounce } from '@/shared/hooks';
+import { AppButton, PortalFilterBar, PortalFilterSelect, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 
 const PAGE_SIZE = 10;
@@ -30,25 +30,12 @@ const PAGE_SIZE = 10;
  */
 const CLIENT_FILTER_SAMPLE_SIZE = 200;
 
-/** Nhãn hiển thị trong toast sau khi "Chuyển trạng thái" — BE trả status thật, không đoán theo role. */
-const REVERT_STATUS_LABELS: Partial<Record<ApiStatus, string>> = {
-  DRAFT: 'Bản nháp',
-  PENDING_APPROVAL: 'Chờ duyệt',
-};
-
 const DIFFICULTY_OPTIONS: Array<{ value: ApiDifficulty | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
+  { value: '', label: 'Tất cả độ khó' },
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-];
-
-const STATUS_OPTIONS: Array<{ value: ApiStatus | ''; label: string }> = [
-  { value: '', label: 'Tất cả' },
-  { value: 'PENDING_APPROVAL', label: 'Đang chờ duyệt' },
-  { value: 'APPROVED', label: 'Đã duyệt' },
-  { value: 'REJECTED', label: 'Bị từ chối' },
-  { value: 'HIDDEN', label: 'Đã ẩn' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 export default function TourList() {
@@ -58,9 +45,9 @@ export default function TourList() {
   const [difficulty, setDifficulty] = useState<ApiDifficulty | ''>('');
   const [status, setStatus] = useState<ApiStatus | ''>('');
   const [deleteTarget, setDeleteTarget] = useState<VendorTourListItem | null>(null);
-  const [hideTarget, setHideTarget] = useState<VendorTourListItem | null>(null);
-  const [unhideTarget, setUnhideTarget] = useState<VendorTourListItem | null>(null);
-  const [revertTarget, setRevertTarget] = useState<VendorTourListItem | null>(null);
+  const [publishTarget, setPublishTarget] = useState<VendorTourListItem | null>(null);
+  const [unpublishTarget, setUnpublishTarget] = useState<VendorTourListItem | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const debouncedName = useDebounce(nameFilter, 400);
   const hasClientFilter = Boolean(difficulty || status);
@@ -76,7 +63,7 @@ export default function TourList() {
 
   const { data, isLoading, isError, error } = useVendorTourList(filter, fetchPage, fetchSize);
   const { data: stats } = useVendorTourStats();
-  const { deleteTour, hideTour, unhideTour, revertTourToDraft } = useVendorTourMutations();
+  const { deleteTour, publishTour, unpublishTour } = useVendorTourMutations();
 
   const fetchedTours = data?.tours ?? [];
   const filteredTours = hasClientFilter
@@ -92,6 +79,16 @@ export default function TourList() {
     ? filteredTours.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
     : filteredTours;
 
+  const statusTabs = useMemo(
+    () => [
+      { key: '', label: 'Tất cả', count: stats?.total },
+      { key: 'DRAFT', label: 'Bản nháp', count: stats?.draft },
+      { key: 'PUBLISHED', label: 'Đã công khai', count: stats?.published },
+      { key: 'HIDDEN', label: 'Đã ẩn', count: stats?.hidden },
+    ],
+    [stats]
+  );
+
   const handleDeleteConfirm = () => {
     if (!deleteTarget) return;
     deleteTour.mutate(deleteTarget.id, {
@@ -103,126 +100,63 @@ export default function TourList() {
     });
   };
 
-  const handleHideConfirm = (reason: string) => {
-    if (!hideTarget) return;
-    hideTour.mutate(
-      { tourId: hideTarget.id, reason },
-      {
-        onSuccess: () => {
-          setHideTarget(null);
-          toast.success('Đã ẩn tour.');
-        },
-        onError: (err) => toast.error(err instanceof Error ? err.message : 'Không thể ẩn tour.'),
-      }
-    );
-  };
-
-  const handleUnhideConfirm = () => {
-    if (!unhideTarget) return;
-    unhideTour.mutate(unhideTarget.id, {
+  const handlePublishConfirm = () => {
+    if (!publishTarget) return;
+    setPublishError(null);
+    publishTour.mutate(publishTarget.id, {
       onSuccess: () => {
-        setUnhideTarget(null);
-        toast.success('Đã mở lại tour.');
+        setPublishTarget(null);
+        toast.success('Đã công khai tour.');
       },
-      onError: (err) => toast.error(err instanceof Error ? err.message : 'Không thể mở lại tour.'),
+      onError: (err) =>
+        setPublishError(err instanceof Error ? err.message : 'Không thể công khai tour.'),
     });
   };
 
-  const handleRevertConfirm = () => {
-    if (!revertTarget) return;
-    revertTourToDraft.mutate(revertTarget.id, {
-      onSuccess: (data) => {
-        setRevertTarget(null);
-        const label = REVERT_STATUS_LABELS[data.status] ?? data.status;
-        toast.success(`Đã chuyển tour về ${label}.`);
+  const handleUnpublishConfirm = () => {
+    if (!unpublishTarget) return;
+    unpublishTour.mutate(unpublishTarget.id, {
+      onSuccess: () => {
+        setUnpublishTarget(null);
+        toast.success('Đã ngừng công khai tour.');
       },
       onError: (err) =>
-        toast.error(err instanceof Error ? err.message : 'Không thể chuyển trạng thái tour.'),
+        toast.error(err instanceof Error ? err.message : 'Không thể ngừng công khai tour.'),
     });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2
-            className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-            style={{ color: '#06261D' }}
+      <PortalPageHeader
+        title="Danh sách Tour"
+        description="Quản lý các chương trình tour khám phá, độ khó và lịch khởi hành của bạn"
+        actions={
+          <AppButton
+            onClick={() => navigate(PATHS.VENDOR_MANAGER_TOUR_CREATE)}
+            className="rounded-full px-5 py-2.5 text-sm font-semibold text-white bg-[#06261D] hover:bg-[#08241C] shadow-sm"
           >
-            Danh sách Tour
-          </h2>
-        </div>
+            + Thêm tour mới
+          </AppButton>
+        }
+      />
 
-        <button
-          type="button"
-          onClick={() => navigate(PATHS.VENDOR_MANAGER_TOUR_CREATE)}
-          className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
-          style={{ backgroundColor: '#06261D' }}
-        >
-          + Thêm tour mới
-        </button>
-      </div>
-
-      <div
-        className="flex flex-col md:flex-row md:items-center gap-4 rounded-3xl px-6 py-4"
-        style={{ backgroundColor: '#F0EEE6' }}
-      >
-        <div className="relative flex-1">
-          <span
-            className="absolute inset-y-0 left-4 flex items-center"
-            style={{ color: '#6F7B75' }}
-          >
-            <Filter className="h-4 w-4" />
-          </span>
-          <input
-            type="text"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            placeholder="Lọc theo tên tour..."
-            aria-label="Lọc theo tên tour"
-            className="w-full rounded-full border-none py-2.5 pl-11 pr-4 text-sm font-medium focus:outline-none focus:ring-1"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          />
-        </div>
-
-        <label
-          className="flex items-center gap-2 text-xs font-bold uppercase"
-          style={{ color: '#6F7B75' }}
-        >
-          Độ khó:
-          <select
+      <PortalFilterBar
+        tabs={statusTabs}
+        activeTab={status}
+        onTabChange={(tab) => setStatus(tab as ApiStatus | '')}
+        searchPlaceholder="Lọc theo tên tour..."
+        searchValue={nameFilter}
+        onSearchChange={setNameFilter}
+        onSearchClear={() => setNameFilter('')}
+        filters={
+          <PortalFilterSelect
+            label="Độ khó"
             value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as ApiDifficulty | '')}
-            className="rounded-full border-none px-4 py-2 text-sm font-semibold focus:outline-none"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          >
-            {DIFFICULTY_OPTIONS.map((opt) => (
-              <option key={opt.value || 'all'} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label
-          className="flex items-center gap-2 text-xs font-bold uppercase"
-          style={{ color: '#6F7B75' }}
-        >
-          Trạng thái:
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ApiStatus | '')}
-            className="rounded-full border-none px-4 py-2 text-sm font-semibold focus:outline-none"
-            style={{ backgroundColor: '#FFFFFF', color: '#06261D' }}
-          >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value || 'all'} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+            onChange={(val) => setDifficulty(val as ApiDifficulty | '')}
+            options={DIFFICULTY_OPTIONS}
+          />
+        }
+      />
 
       <div
         className="overflow-hidden rounded-3xl bg-white shadow-sm"
@@ -281,12 +215,12 @@ export default function TourList() {
                     key={tour.id}
                     tour={tour}
                     editPath={getVendorManagerTourEditPath(tour.id)}
+                    previewPath={getVendorTourPreviewPath(tour.id)}
                     schedulesPath={getVendorManagerTourSchedulesPath(tour.id)}
                     editableStatuses={MANAGER_EDITABLE_STATUSES}
                     onDeleteClick={setDeleteTarget}
-                    onHideClick={setHideTarget}
-                    onUnhideClick={setUnhideTarget}
-                    onRevertClick={setRevertTarget}
+                    onPublishClick={setPublishTarget}
+                    onUnpublishClick={setUnpublishTarget}
                   />
                 ))
               )}
@@ -316,13 +250,13 @@ export default function TourList() {
 
         <div className="rounded-3xl bg-white p-6" style={{ border: '1px solid #E6E2D1' }}>
           <p className="text-xs font-bold uppercase" style={{ color: '#6F7B75' }}>
-            Đang chờ duyệt
+            Bản nháp
           </p>
           <p className="mt-1 text-3xl font-extrabold" style={{ color: '#06261D' }}>
-            {stats?.pendingApproval ?? '—'}
+            {stats?.draft ?? '—'}
           </p>
           <p className="mt-1 text-sm font-medium" style={{ color: '#DC2626' }}>
-            Cần xử lý ngay
+            Chưa công khai
           </p>
         </div>
 
@@ -331,7 +265,7 @@ export default function TourList() {
             Tour hoạt động
           </p>
           <p className="mt-1 text-3xl font-extrabold" style={{ color: '#06261D' }}>
-            {stats?.approved ?? '—'}
+            {stats?.published ?? '—'}
           </p>
           <p className="mt-1 text-sm font-medium" style={{ color: '#16A34A' }}>
             Đang nhận khách
@@ -347,35 +281,26 @@ export default function TourList() {
         isPending={deleteTour.isPending}
       />
 
-      <TourReasonDialog
-        open={hideTarget !== null}
-        onOpenChange={(open) => !open && setHideTarget(null)}
-        icon={EyeOff}
-        iconColor="#EA580C"
-        iconBgColor="rgba(234, 88, 12, 0.1)"
-        title="Ẩn tour vi phạm"
-        description={`Ẩn tour "${hideTarget?.name ?? ''}"? Tour sẽ không còn hiển thị cho khách hàng. Vui lòng nhập lý do.`}
-        placeholder="Vd: Phát hiện thông tin sai lệch, vi phạm chính sách tour..."
-        confirmLabel="Ẩn tour"
-        confirmPendingLabel="Đang ẩn..."
-        onConfirm={handleHideConfirm}
-        isPending={hideTour.isPending}
+      <PublishTourConfirmDialog
+        open={publishTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPublishTarget(null);
+            setPublishError(null);
+          }
+        }}
+        tourName={publishTarget?.name ?? ''}
+        onConfirm={handlePublishConfirm}
+        isPending={publishTour.isPending}
+        errorMessage={publishError}
       />
 
-      <UnhideTourConfirmDialog
-        open={unhideTarget !== null}
-        onOpenChange={(open) => !open && setUnhideTarget(null)}
-        tourName={unhideTarget?.name ?? ''}
-        onConfirm={handleUnhideConfirm}
-        isPending={unhideTour.isPending}
-      />
-
-      <RevertToDraftConfirmDialog
-        open={revertTarget !== null}
-        onOpenChange={(open) => !open && setRevertTarget(null)}
-        description={`Chuyển tour "${revertTarget?.name ?? ''}" về Chờ duyệt để xem xét lại?`}
-        onConfirm={handleRevertConfirm}
-        isPending={revertTourToDraft.isPending}
+      <UnpublishTourConfirmDialog
+        open={unpublishTarget !== null}
+        onOpenChange={(open) => !open && setUnpublishTarget(null)}
+        tourName={unpublishTarget?.name ?? ''}
+        onConfirm={handleUnpublishConfirm}
+        isPending={unpublishTour.isPending}
       />
     </div>
   );

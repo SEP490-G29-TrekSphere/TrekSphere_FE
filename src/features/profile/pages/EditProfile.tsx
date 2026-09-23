@@ -2,19 +2,74 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import type { UserProfile } from '@/features/auth';
 import {
   type UpdateProfileFormValues,
   updateProfileSchema,
 } from '@/features/auth/validations/auth.schema';
-import { AppButton, AppInput, AppSpinner } from '@/shared/ui';
+import { AppButton, AppSpinner, PortalPageHeader } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
+import { normalizePhoneNumber } from '@/utils/phone';
+import { HikingProfileFields } from '../components/edit/HikingProfileFields';
+import { PersonalInfoFields } from '../components/edit/PersonalInfoFields';
 import ProfileSidebar from '../components/ProfileSidebar';
 import { normalizeProfile, profileKeys, useProfile } from '../hooks/useProfile';
 import { profileService } from '../services/profileService';
+
+/** Map hồ sơ từ API sang giá trị mặc định của form (mọi field optional đều có fallback). */
+function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
+  return {
+    name: profile?.name ?? '',
+    phone: normalizePhoneNumber(profile?.phone) || (profile?.phone ?? ''),
+    gender: profile?.gender,
+    dateOfBirth: profile?.dateOfBirth ?? '',
+    bio: profile?.bio ?? '',
+    experienceLevel: (profile?.experienceLevel ?? '') as UpdateProfileFormValues['experienceLevel'],
+    preferredDifficulty: (profile?.preferredDifficulty ??
+      '') as UpdateProfileFormValues['preferredDifficulty'],
+    preferredAreas: profile?.preferredAreas ?? [],
+    skills: profile?.skills ?? [],
+  };
+}
+
+/**
+ * Dựng body multipart cho `PUT /users/me`.
+ *
+ * Danh sách (khu vực / kỹ năng) gửi bằng cách lặp lại field name. Khi người dùng
+ * xoá hết thẻ, vẫn phải gửi field với giá trị rỗng — bỏ hẳn field thì BE hiểu là
+ * "không đụng tới" và giữ nguyên dữ liệu cũ.
+ */
+function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null): FormData {
+  const formData = new FormData();
+  formData.append('fullName', data.name);
+  if (data.phone) formData.append('phone', normalizePhoneNumber(data.phone));
+  if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth);
+  if (data.gender) formData.append('gender', data.gender.toUpperCase());
+
+  // Nhóm hồ sơ leo núi: Chỉ gửi enum khi có giá trị để tránh lỗi Type Mismatch của Spring WebDataBinder
+  formData.append('bio', data.bio ?? '');
+  if (data.experienceLevel) formData.append('experienceLevel', data.experienceLevel);
+  if (data.preferredDifficulty) formData.append('preferredDifficulty', data.preferredDifficulty);
+  appendList(formData, 'preferredAreas', data.preferredAreas);
+  appendList(formData, 'skills', data.skills);
+
+  // Chỉ append avatar khi user đổi ảnh
+  if (avatar) formData.append('avatar', avatar);
+
+  return formData;
+}
+
+function appendList(formData: FormData, field: string, items?: string[]) {
+  const values = (items ?? []).map((item) => item.trim()).filter(Boolean);
+  if (values.length === 0) {
+    formData.append(field, '');
+    return;
+  }
+  for (const value of values) formData.append(field, value);
+}
 
 /**
  * Màn hình 2: Chỉnh sửa hồ sơ.
@@ -29,8 +84,11 @@ import { profileService } from '../services/profileService';
  */
 export default function EditProfile({ returnPath }: { returnPath?: string }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const setUser = useAppStore((state) => state.setUser);
+
+  const effectiveReturnPath = searchParams.get('returnUrl') || returnPath || PATHS.PROFILE;
 
   // File object của avatar mới (null = không đổi ảnh)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
@@ -43,52 +101,33 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
   // Form — dùng empty object fallback để tránh crash khi profile đang null
   const methods = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
-    defaultValues: {
-      name: profile?.name ?? '',
-      phone: profile?.phone ?? '',
-      gender: profile?.gender,
-      dateOfBirth: profile?.dateOfBirth ?? '',
-    },
+    defaultValues: toFormValues(profile),
   });
 
   const {
-    register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = methods;
 
   // Reset form khi load xong data
   useEffect(() => {
     if (!profile) return;
-    reset({
-      name: profile.name ?? '',
-      phone: profile.phone ?? '',
-      gender: profile.gender,
-      dateOfBirth: profile.dateOfBirth ?? '',
-    });
+    reset(toFormValues(profile));
   }, [profile, reset]);
 
   // Mutation lưu thay đổi - gửi multipart/form-data
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateProfileFormValues) => {
-      // Tạo FormData theo yêu cầu API PUT /users/me (multipart/form-data)
-      const formData = new FormData();
-      formData.append('fullName', data.name);
-      if (data.phone) formData.append('phone', data.phone);
-      if (data.dateOfBirth) formData.append('dateOfBirth', data.dateOfBirth);
-      if (data.gender) formData.append('gender', data.gender.toUpperCase());
-
-      // Chỉ append avatar khi user đổi ảnh
-      if (selectedAvatarFile) {
-        formData.append('avatar', selectedAvatarFile);
-      }
-
-      return profileService.updateProfile(formData);
-    },
+    mutationFn: (data: UpdateProfileFormValues) =>
+      profileService.updateProfile(buildProfileFormData(data, selectedAvatarFile)),
     onSuccess: (res) => {
       if (res.error || (res.status && res.status >= 400)) {
-        toast.error(res.message || res.error || 'Cập nhật thất bại. Vui lòng thử lại.');
+        const errorMsg =
+          (res as { errors?: { message: string }[] }).errors?.[0]?.message ||
+          res.message ||
+          res.error ||
+          'Cập nhật thất bại. Vui lòng thử lại.';
+        toast.error(errorMsg);
         return;
       }
       toast.success('Cập nhật hồ sơ thành công!');
@@ -110,12 +149,14 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
           avatarUrl: updatedUser.avatar ?? currentUser?.avatarUrl,
           roles: updatedUser.roles.length > 0 ? updatedUser.roles : currentUser?.roles,
         });
+        queryClient.setQueryData(profileKeys.me(), updatedUser);
       }
       queryClient.invalidateQueries({ queryKey: profileKeys.me() });
-      navigate(returnPath ?? PATHS.PROFILE);
+      navigate(effectiveReturnPath);
     },
-    onError: () => {
-      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    onError: (err) => {
+      const errorMsg = err instanceof Error ? err.message : 'Có lỗi xảy ra. Vui lòng thử lại.';
+      toast.error(errorMsg);
     },
   });
 
@@ -123,8 +164,18 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
     updateMutation.mutate(data);
   };
 
+  const onInvalid = (formErrors: Record<string, unknown>) => {
+    const errorList = Object.values(formErrors) as { message?: string }[];
+    const firstMsg = errorList.find((e) => e?.message)?.message;
+    if (firstMsg) {
+      toast.error(firstMsg);
+    } else {
+      toast.error('Vui lòng kiểm tra lại các trường thông tin chưa hợp lệ.');
+    }
+  };
+
   const handleCancel = () => {
-    navigate(returnPath ?? PATHS.PROFILE);
+    navigate(effectiveReturnPath);
   };
 
   // Chọn avatar: preview ngay bằng createObjectURL, lưu file để gửi cùng form
@@ -165,12 +216,12 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 pb-8">
-      {/* Page title */}
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-primary md:text-3xl">Chỉnh sửa hồ sơ</h1>
-        <p className="text-sm text-muted-foreground">Cập nhật thông tin cá nhân của bạn</p>
-      </header>
+    <div className="w-full space-y-6 pb-8">
+      <PortalPageHeader
+        title="Chỉnh sửa hồ sơ"
+        description="Cập nhật thông tin cá nhân của bạn"
+        backButton={{ to: returnPath ?? PATHS.PROFILE, label: 'Quay lại' }}
+      />
 
       {/* 2-column layout: sidebar (30%) + form (70%) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-10">
@@ -186,107 +237,10 @@ export default function EditProfile({ returnPath }: { returnPath?: string }) {
         {/* Form */}
         <div className="lg:col-span-7">
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <section className="rounded-2xl bg-card p-6 shadow-sm">
-                <h2 className="mb-5 text-lg font-bold text-primary">Thông tin cá nhân</h2>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+              <PersonalInfoFields email={profile?.email} />
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  {/* Họ và tên */}
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      Họ và tên <span className="text-destructive">*</span>
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      autoComplete="name"
-                      {...register('name')}
-                      className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>
-                    )}
-                  </div>
-
-                  {/* Số điện thoại */}
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      Số điện thoại
-                    </label>
-                    <input
-                      id="phone"
-                      type="tel"
-                      autoComplete="tel"
-                      {...register('phone')}
-                      className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
-                    />
-                    {errors.phone && (
-                      <p className="mt-1 text-xs text-destructive">{errors.phone.message}</p>
-                    )}
-                  </div>
-
-                  {/* Email — readonly */}
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={profile?.email ?? ''}
-                      readOnly
-                      disabled
-                      className="h-11 w-full cursor-not-allowed rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-muted-foreground outline-none"
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">Email không thể thay đổi</p>
-                  </div>
-
-                  {/* Ngày sinh */}
-                  <div>
-                    <label
-                      htmlFor="dateOfBirth"
-                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      Ngày sinh
-                    </label>
-                    <AppInput
-                      id="dateOfBirth"
-                      type="date"
-                      {...register('dateOfBirth')}
-                      className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
-                    />
-                  </div>
-
-                  {/* Giới tính */}
-                  <div>
-                    <label
-                      htmlFor="gender"
-                      className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      Giới tính
-                    </label>
-                    <select
-                      id="gender"
-                      {...register('gender')}
-                      className="h-11 w-full rounded-xl border border-transparent bg-muted px-3.5 text-sm font-semibold text-primary outline-none transition-colors focus:border-primary focus:bg-muted"
-                    >
-                      <option value="">-- Chọn giới tính --</option>
-                      <option value="male">Nam</option>
-                      <option value="female">Nữ</option>
-                      <option value="other">Khác</option>
-                    </select>
-                  </div>
-                </div>
-              </section>
+              <HikingProfileFields />
 
               {/* Cụm nút hành động — góc dưới bên phải */}
               <div className="flex items-center justify-end gap-3">

@@ -42,9 +42,12 @@ export default function Register() {
     }
 
     // BE register không trả token — chỉ trả `{ userId, email, fullName }`.
-    // Điều hướng sang trang login kèm email vừa đăng ký để người dùng đăng nhập luôn.
-    toast.success('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
-    navigate(PATHS.LOGIN, { state: { registeredEmail: data.email }, replace: true });
+    // Điều hướng sang màn hình xác thực email thay vì sang thẳng trang đăng nhập.
+    toast.success('Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.');
+    navigate(`${PATHS.VERIFY_EMAIL}?email=${encodeURIComponent(data.email)}`, {
+      state: { email: data.email },
+      replace: true,
+    });
   };
 
   return (

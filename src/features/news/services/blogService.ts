@@ -46,6 +46,7 @@ export const blogService = {
   ): Promise<{ items: BlogListItem[]; meta: BlogListMeta }> {
     const query = new URLSearchParams();
     if (params.keyword?.trim()) query.set('keyword', params.keyword.trim());
+    if (params.authorId) query.set('authorId', params.authorId);
     if (params.page) query.set('page', String(params.page - 1)); // BE Spring Data dùng 0-indexed
     if (params.size) query.set('size', String(params.size));
     if (params.sortBy) query.set('sortBy', params.sortBy);

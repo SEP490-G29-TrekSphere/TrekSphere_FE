@@ -39,7 +39,6 @@ const scheduleFormSchema = z
   .object({
     departureDate: z.string().min(1, 'Vui lòng chọn ngày khởi hành'),
     returnDate: z.string().min(1, 'Vui lòng chọn ngày kết thúc'),
-    price: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
     availableSlots: z.coerce.number().int().min(1, 'Tối thiểu 1 chỗ'),
     status: z.enum(['OPEN', 'CLOSED', 'CANCELLED', 'COMPLETED']),
     reason: z.string().trim().optional(),
@@ -57,7 +56,6 @@ type ScheduleFormInput = z.input<typeof scheduleFormSchema>;
 export interface ScheduleFormDefaultValues {
   departureDate: string;
   returnDate: string;
-  price: number;
   availableSlots: number;
   status: ApiScheduleStatus;
 }
@@ -65,7 +63,6 @@ export interface ScheduleFormDefaultValues {
 const EMPTY_DEFAULTS: ScheduleFormInput = {
   departureDate: '',
   returnDate: '',
-  price: 0,
   availableSlots: 1,
   status: 'OPEN',
   reason: '',
@@ -77,7 +74,7 @@ export interface ScheduleFormDialogProps {
   mode: 'create' | 'edit';
   /** Giá trị có sẵn để đổ vào form — merge lên trên `EMPTY_DEFAULTS`. */
   defaultValues?: Partial<ScheduleFormDefaultValues>;
-  /** Số chỗ đã đặt của lịch đang sửa — chặn không cho hạ `availableSlots` xuống dưới số này. */
+  /** Số chỗ đã đặt của lịch đang sửa — dùng để yêu cầu lý do điều chỉnh. */
   bookedSlots?: number;
   /** Sức chứa tối đa của tour (`tour.maxCapacity`) — chặn không cho đặt `availableSlots` vượt quá. */
   maxCapacity: number;
@@ -148,13 +145,6 @@ export function ScheduleFormDialog({
       return;
     }
 
-    if (isEdit && values.availableSlots < bookedSlots) {
-      setError('availableSlots', {
-        message: `Không thể đặt thấp hơn số chỗ đã đặt (${bookedSlots}).`,
-      });
-      return;
-    }
-
     if (values.availableSlots > maxCapacity) {
       setError('availableSlots', {
         message: `Không thể vượt quá sức chứa tối đa của tour (${maxCapacity}).`,
@@ -171,8 +161,6 @@ export function ScheduleFormDialog({
       const payload: UpdateSchedulePayload = {
         departureDate: values.departureDate,
         returnDate: values.returnDate,
-        price: values.price,
-        availableSlots: values.availableSlots,
         status: values.status,
         ...(requiresReason ? { reason: values.reason } : {}),
       };
@@ -181,7 +169,6 @@ export function ScheduleFormDialog({
       const payload: CreateSchedulePayload = {
         departureDate: values.departureDate,
         returnDate: values.returnDate,
-        price: values.price,
         availableSlots: values.availableSlots,
       };
       onSubmitProp(payload);
@@ -199,8 +186,8 @@ export function ScheduleFormDialog({
             {requiresReason
               ? 'Lịch này đã có khách đặt — vui lòng nhập lý do điều chỉnh, hệ thống sẽ tự động gửi thông báo tới từng khách hàng đã đặt.'
               : isEdit
-                ? 'Điều chỉnh ngày đi, giá, số chỗ hoặc trạng thái của lịch khởi hành này.'
-                : 'Thiết lập ngày đi, ngày về, giá riêng và giới hạn số chỗ cho lịch khởi hành mới.'}
+                ? 'Điều chỉnh ngày đi, số chỗ hoặc trạng thái của lịch khởi hành này.'
+                : 'Thiết lập ngày đi, ngày về và giới hạn số chỗ cho lịch khởi hành mới.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -274,51 +261,33 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="price"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
-              >
-                Giá vé (VNĐ) <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="price"
-                type="number"
-                min={0}
-                {...register('price')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-              />
-              {errors.price && <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>}
-            </div>
-            <div>
-              <label
-                htmlFor="availableSlots"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
-              >
-                Giới hạn số chỗ <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="availableSlots"
-                type="number"
-                min={isEdit ? bookedSlots : 1}
-                max={maxCapacity}
-                {...register('availableSlots')}
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-              />
-              {isEdit && (
-                <p className="mt-1 text-xs" style={{ color: '#6F7B75' }}>
-                  Đã đặt: {bookedSlots} chỗ — Sức chứa tối đa: {maxCapacity} chỗ
-                </p>
-              )}
-              {errors.availableSlots && (
-                <p className="mt-1 text-xs text-red-500">{errors.availableSlots.message}</p>
-              )}
-            </div>
+          <div>
+            <label
+              htmlFor="availableSlots"
+              className="mb-1.5 block text-sm font-semibold"
+              style={{ color: '#06261D' }}
+            >
+              {isEdit ? 'Chỗ còn trống hiện tại' : 'Số chỗ mở bán'}{' '}
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="availableSlots"
+              type="number"
+              min={1}
+              max={maxCapacity}
+              disabled={isEdit}
+              {...register('availableSlots')}
+              className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+            />
+            {isEdit && (
+              <p className="mt-1 text-xs" style={{ color: '#6F7B75' }}>
+                Đã đặt: {bookedSlots} chỗ. Số chỗ mở bán chỉ được thiết lập khi tạo lịch.
+              </p>
+            )}
+            {errors.availableSlots && (
+              <p className="mt-1 text-xs text-red-500">{errors.availableSlots.message}</p>
+            )}
           </div>
 
           {isEdit && (

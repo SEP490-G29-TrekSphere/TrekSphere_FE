@@ -28,12 +28,8 @@ export const PATHS = {
   DASHBOARD: '/dashboard',
   TOURS: '/tours',
   TOUR_DETAIL: '/tours/:id',
-  BOOK_TOUR: '/tours/:id/book',
-  BOOKING_DETAIL: '/bookings/:bookingId',
-  BOOKING_PAYMENT: '/bookings/:bookingId/payment',
-  PAYMENT_SUCCESS: '/payment/success',
-  PAYMENT_CANCEL: '/payment/cancel',
-  MY_TOURS: '/my-tours',
+  /** Hồ sơ công khai của 1 Vendor (Guest xem, không cần đăng nhập). */
+  VENDOR_PUBLIC_PROFILE: '/vendors/:vendorId',
   MY_VENDOR_APPLICATIONS: '/my-vendor-applications',
   GROUPS: '/groups',
   GROUPS_CREATE: '/groups/create',
@@ -51,8 +47,10 @@ export const PATHS = {
 
   // Profile
   PROFILE: '/profile',
+  PUBLIC_PROFILE: '/profile/user/:userId',
   EDIT_PROFILE: '/profile/edit',
-
+  /** Hồ sơ công khai của một người dùng khác (mở từ tên tác giả trong feed). */
+  USER_PROFILE: '/users/:userId',
   // Trekker Community / Blog
   BLOG_LIST: '/blog',
   BLOG_CREATE: '/blog/create',
@@ -62,7 +60,6 @@ export const PATHS = {
   TREKKER: '/trekker',
   TREKKER_PROFILE: '/trekker/profile',
   TREKKER_PROFILE_EDIT: '/trekker/profile/edit',
-  TREKKER_MY_TOURS: '/trekker/my-tours',
   TREKKER_MY_GROUPS: '/trekker/my-groups',
   TREKKER_GROUP_DETAIL: '/trekker/my-groups/:groupId',
   TREKKER_GROUPS_JOIN: '/trekker/my-groups/:groupId/join',
@@ -72,10 +69,8 @@ export const PATHS = {
   TREKKER_BLOG_CREATE: '/trekker/blog/create',
   TREKKER_BLOG_EDIT: '/trekker/blog/edit/:blogId',
   TREKKER_CHANGE_PASSWORD: '/trekker/change-password',
-  TREKKER_BOOKING_DETAIL: '/trekker/bookings/:bookingId',
-  TREKKER_BOOKING_PAYMENT: '/trekker/bookings/:bookingId/payment',
-  TREKKER_BOOK_TOUR: '/tours/:id/book',
   TREKKER_CHAT: '/trekker/chat',
+  TREKKER_NOTIFICATIONS: '/trekker/notifications',
 
   // Admin
   ADMIN: '/admin',
@@ -89,92 +84,74 @@ export const PATHS = {
   ADMIN_APPLICATION_DETAIL: '/admin/applications/:id',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_REPORT_DETAIL: '/admin/reports/:id',
-  ADMIN_REFUNDS: '/admin/refunds',
-  ADMIN_VOUCHERS: '/admin/vouchers',
   ADMIN_EMERGENCY: '/admin/emergency',
   ADMIN_CHAT: '/admin/chat',
+  ADMIN_NOTIFICATIONS: '/admin/notifications',
 
-  // Vendor Manager (TrekManager portal)
+  // Vendor portal (unified)
+  VENDOR: '/vendor',
+  VENDOR_PROFILE: '/vendor/profile',
+  VENDOR_PROFILE_EDIT: '/vendor/profile/edit',
+  VENDOR_TOURS: '/vendor/tours',
+  VENDOR_TOUR_CREATE: '/vendor/tours/new',
+  VENDOR_TOUR_EDIT: '/vendor/tours/:id/edit',
+  VENDOR_TOUR_PREVIEW: '/vendor/tours/:id/preview',
+  VENDOR_TOUR_STATISTICS: '/vendor/tours/statistics',
+  VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  VENDOR_BLOG_CREATE: '/vendor/blog/create',
+  VENDOR_CHAT: '/vendor/chat',
+  VENDOR_NOTIFICATIONS: '/vendor/notifications',
+
+  // Vendor Manager (Legacy - redirected to /vendor)
   VENDOR_MANAGER: '/vendor-manager',
-  VENDOR_MANAGER_PROFILE: '/vendor-manager/profile',
-  VENDOR_MANAGER_PROFILE_EDIT: '/vendor-manager/profile/edit',
-  VENDOR_MANAGER_STAFF: '/vendor-manager/staff',
-  VENDOR_MANAGER_TOURS: '/vendor-manager/tours',
-  VENDOR_MANAGER_TOUR_CREATE: '/vendor-manager/tours/new',
-  VENDOR_MANAGER_TOUR_EDIT: '/vendor-manager/tours/:id/edit',
-  VENDOR_MANAGER_TOUR_APPROVALS: '/vendor-manager/tours/approvals',
-  VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor-manager/tours/:id/schedules',
-  VENDOR_MANAGER_BOOKINGS: '/vendor-manager/bookings',
-  VENDOR_MANAGER_PAYMENT_SETTINGS: '/vendor-manager/payment-settings',
-  VENDOR_MANAGER_EQUIPMENT: '/vendor-manager/equipment',
-  VENDOR_MANAGER_PORTERS: '/vendor-manager/porters',
-  VENDOR_MANAGER_PORTER_CREATE: '/vendor-manager/porters/new',
-  VENDOR_MANAGER_PORTER_EDIT: '/vendor-manager/porters/:id/edit',
-  VENDOR_MANAGER_SESSIONS: '/vendor-manager/sessions',
-  VENDOR_MANAGER_SESSION_DETAIL: '/vendor-manager/sessions/:sessionId',
-  VENDOR_MANAGER_EMERGENCY: '/vendor-manager/emergency',
-  VENDOR_MANAGER_VOUCHERS: '/vendor-manager/vouchers',
-  VENDOR_MANAGER_CHAT: '/vendor-manager/chat',
-  VENDOR_MANAGER_REPORTS: '/vendor-manager/reports',
+  VENDOR_MANAGER_PROFILE: '/vendor/profile',
+  VENDOR_MANAGER_PROFILE_EDIT: '/vendor/profile/edit',
+  VENDOR_MANAGER_STAFF: '/vendor/staff',
+  VENDOR_MANAGER_TOURS: '/vendor/tours',
+  VENDOR_MANAGER_TOUR_CREATE: '/vendor/tours/new',
+  VENDOR_MANAGER_TOUR_EDIT: '/vendor/tours/:id/edit',
+  VENDOR_MANAGER_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  VENDOR_MANAGER_EMERGENCY: '/vendor/emergency',
+  VENDOR_MANAGER_CHAT: '/vendor/chat',
 
-  // Vendor Staff (TrekPartner portal)
+  // Vendor Staff (Legacy - redirected to /vendor)
   PARTNER: '/partner',
-  PARTNER_PROFILE: '/partner/profile',
-  PARTNER_TOURS: '/partner/tours',
-  PARTNER_TOUR_CREATE: '/partner/tours/new',
-  PARTNER_TOUR_EDIT: '/partner/tours/:id/edit',
-  PARTNER_TOUR_SCHEDULES: '/partner/tours/:id/schedules',
-  PARTNER_BOOKINGS: '/partner/bookings',
-  PARTNER_EQUIPMENT: '/partner/equipment',
-  PARTNER_PORTERS: '/partner/porters',
-  PARTNER_PORTER_CREATE: '/partner/porters/new',
-  PARTNER_PORTER_EDIT: '/partner/porters/:id/edit',
-  PARTNER_SESSIONS: '/partner/sessions',
-  PARTNER_SESSION_DETAIL: '/partner/sessions/:sessionId',
-  PARTNER_BLOG_CREATE: '/partner/blog/create',
-  PARTNER_VOUCHERS: '/partner/vouchers',
-  PARTNER_CHAT: '/partner/chat',
+  PARTNER_PROFILE: '/vendor/profile',
+  PARTNER_TOURS: '/vendor/tours',
+  PARTNER_TOUR_CREATE: '/vendor/tours/new',
+  PARTNER_TOUR_EDIT: '/vendor/tours/:id/edit',
+  PARTNER_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  PARTNER_BLOG_CREATE: '/vendor/blog/create',
+  PARTNER_CHAT: '/vendor/chat',
 
   // Admin — Blog moderation
   ADMIN_BLOGS: '/admin/blogs',
-
-  // Coordinator
-  COORDINATOR: '/coordinator',
-  COORDINATOR_SCHEDULES: '/coordinator/schedules',
-  COORDINATOR_SESSION_OPERATIONS: '/coordinator/sessions/:sessionId',
-  COORDINATOR_CHAT: '/coordinator/chat',
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];
 
-export const getBookTourPath = (id: string) => PATHS.BOOK_TOUR.replace(':id', id);
-export const getBookingDetailPath = (bookingId: string) =>
-  PATHS.BOOKING_DETAIL.replace(':bookingId', bookingId);
-export const getBookingPaymentPath = (bookingId: string) =>
-  PATHS.BOOKING_PAYMENT.replace(':bookingId', bookingId);
 export const getGroupDetailPath = (groupId: string) =>
   PATHS.GROUPS_DETAIL.replace(':groupId', groupId);
 export const getGroupJoinPath = (groupId: string) => PATHS.GROUPS_JOIN.replace(':groupId', groupId);
+export const getVendorTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getVendorTourPreviewPath = (id: string) =>
+  PATHS.VENDOR_TOUR_PREVIEW.replace(':id', id);
 export const getVendorManagerTourEditPath = (id: string) =>
-  PATHS.VENDOR_MANAGER_TOUR_EDIT.replace(':id', id);
-export const getPartnerTourEditPath = (id: string) => PATHS.PARTNER_TOUR_EDIT.replace(':id', id);
+  PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getPartnerTourEditPath = (id: string) => PATHS.VENDOR_TOUR_EDIT.replace(':id', id);
+export const getVendorTourSchedulesPath = (id: string) =>
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getVendorManagerTourSchedulesPath = (id: string) =>
-  PATHS.VENDOR_MANAGER_TOUR_SCHEDULES.replace(':id', id);
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getPartnerTourSchedulesPath = (id: string) =>
-  PATHS.PARTNER_TOUR_SCHEDULES.replace(':id', id);
+  PATHS.VENDOR_TOUR_SCHEDULES.replace(':id', id);
 export const getNewsDetailPath = (blogId: string) => PATHS.NEWS_DETAIL.replace(':blogId', blogId);
-export const getVendorManagerSessionDetailPath = (sessionId: string) =>
-  PATHS.VENDOR_MANAGER_SESSION_DETAIL.replace(':sessionId', sessionId);
-export const getPartnerSessionDetailPath = (sessionId: string) =>
-  PATHS.PARTNER_SESSION_DETAIL.replace(':sessionId', sessionId);
-export const getCoordinatorSessionOperationsPath = (sessionId: string) =>
-  PATHS.COORDINATOR_SESSION_OPERATIONS.replace(':sessionId', sessionId);
+export const getUserProfilePath = (userId?: string | null) =>
+  userId ? PATHS.USER_PROFILE.replace(':userId', userId) : '#';
+export const getVendorPublicProfilePath = (vendorId: string) =>
+  PATHS.VENDOR_PUBLIC_PROFILE.replace(':vendorId', vendorId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
-export const getTrekkerBookingDetailPath = (bookingId: string) =>
-  PATHS.TREKKER_BOOKING_DETAIL.replace(':bookingId', bookingId);
-export const getTrekkerBookingPaymentPath = (bookingId: string) =>
-  PATHS.TREKKER_BOOKING_PAYMENT.replace(':bookingId', bookingId);
 export const getTrekkerGroupDetailPath = (groupId: string) =>
   PATHS.TREKKER_GROUP_DETAIL.replace(':groupId', groupId);
 export const getTrekkerGroupJoinPath = (groupId: string) =>

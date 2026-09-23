@@ -16,8 +16,8 @@ import type {
 } from '@/features/vendor-tours/types';
 import { toast } from '@/store/useToastStore';
 
-type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD';
-const FORM_DIFFICULTIES: readonly FormDifficulty[] = ['EASY', 'MODERATE', 'HARD'];
+type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
+const FORM_DIFFICULTIES: readonly FormDifficulty[] = ['EASY', 'MODERATE', 'HARD', 'EXTREME'];
 
 /** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó — fallback về EASY nếu BE trả giá trị khác. */
 function toFormDifficulty(value: ApiDifficulty): FormDifficulty {
@@ -40,7 +40,6 @@ function toCheckpointDraft(checkpoint: VendorTourCheckpoint): CheckpointDraft {
     // ưu tiên mảng, không có thì tự tách chuỗi.
     imageUrls:
       checkpoint.checkpointImageUrls ?? parseCheckpointImageUrls(checkpoint.checkpointImageUrl),
-    imageFiles: [],
   };
 }
 
@@ -108,9 +107,9 @@ export default function TourEdit() {
 
   return (
     <div className="space-y-4">
-      {tour.status === 'APPROVED' && (
+      {tour.status === 'PUBLISHED' && (
         <div className="rounded-2xl bg-[#EAF4EE] px-5 py-4 text-sm text-[#1E3932]">
-          <p className="font-bold">Bạn đang cập nhật một tour đã duyệt.</p>
+          <p className="font-bold">Bạn đang cập nhật một tour đã công khai.</p>
           <p className="mt-1 text-xs leading-relaxed text-[#527066]">
             Policy mới áp dụng cho đơn tạo sau khi lưu. Các đơn đã đặt vẫn giữ nguyên policy tại
             thời điểm xác nhận.
@@ -122,11 +121,15 @@ export default function TourEdit() {
         defaultValues={{
           tourName: tour.tourName,
           difficulty: toFormDifficulty(tour.difficulty),
-          basePrice: tour.basePrice,
+          price: tour.price ?? 0,
           location: tour.location,
           minCapacity: tour.minCapacity ?? 1,
           maxCapacity: tour.maxCapacity,
           durationDays: tour.durationDays,
+          totalDistanceKm: tour.totalDistanceKm != null ? String(tour.totalDistanceKm) : '',
+          highlights: tour.highlights ?? '',
+          includes: tour.includes ?? '',
+          excludes: tour.excludes ?? '',
           description: tour.description,
           minAge: tour.participationPolicy?.minAge?.toString() ?? '18',
           maxAge: tour.participationPolicy?.maxAge?.toString() ?? '',
@@ -137,7 +140,7 @@ export default function TourEdit() {
           requiredSkills: tour.participationPolicy?.requiredSkills ?? '',
           requiredEquipment: tour.participationPolicy?.requiredEquipment ?? '',
           requiredDocuments: tour.participationPolicy?.requiredDocuments ?? '',
-          requiresHealthDeclaration: tour.participationPolicy?.requiresHealthDeclaration ?? true,
+          requiresHealthDeclaration: tour.participationPolicy?.requiresHealthDeclaration ?? false,
           requiresMedicalCertificate: tour.participationPolicy?.requiresMedicalCertificate ?? false,
           guardianRequiredUnderAge:
             tour.participationPolicy?.guardianRequiredUnderAge?.toString() ?? '',

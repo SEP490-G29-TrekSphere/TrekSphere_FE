@@ -6,8 +6,8 @@ export function useApproveMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ groupId, memberId }: { groupId: string; memberId: string }) =>
-      companionGroupService.approveMember(groupId, memberId),
+    mutationFn: ({ groupId, applicationId }: { groupId: string; applicationId: string }) =>
+      companionGroupService.approveApplication(groupId, applicationId),
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.lists() });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(groupId) });

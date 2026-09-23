@@ -1,16 +1,15 @@
-import { Map as MapIcon, Ticket } from 'lucide-react';
+import { Map as MapIcon } from 'lucide-react';
 
 interface VendorProfileKpiCardsProps {
   totalTours?: number;
-  totalBookings?: number;
 }
 
 /**
- * 2 thẻ chỉ số có dữ liệu thật (tái dùng `useVendorTourStats`/`useVendorBookingStats`
- * đã có sẵn). Bỏ "Đánh giá trung bình" và "Doanh thu" vì API không có endpoint
- * thống kê tương ứng — xem spec.
+ * Thẻ chỉ số có dữ liệu thật (tái dùng `useVendorTourStats` đã có sẵn). Bỏ
+ * "Đánh giá trung bình" và "Doanh thu" vì API không có endpoint thống kê tương
+ * ứng; thẻ "Tổng booking" đi cùng màn Danh sách đơn đặt tour đã gỡ.
  */
-export function VendorProfileKpiCards({ totalTours, totalBookings }: VendorProfileKpiCardsProps) {
+export function VendorProfileKpiCards({ totalTours }: VendorProfileKpiCardsProps) {
   const cards = [
     {
       title: 'TỔNG SỐ TOUR',
@@ -19,17 +18,10 @@ export function VendorProfileKpiCards({ totalTours, totalBookings }: VendorProfi
       iconBg: '#DCEEE5',
       iconColor: '#06261D',
     },
-    {
-      title: 'TỔNG BOOKING',
-      value: totalBookings ?? 0,
-      icon: Ticket,
-      iconBg: '#06261D',
-      iconColor: '#FFFFFF',
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4">
       {cards.map((card) => {
         const Icon = card.icon;
         return (

@@ -1,4 +1,4 @@
-import type { PaymentPlan, PaymentStatus, TourPaymentPolicy } from '@/features/payments/types';
+import type { TourPaymentPolicy } from '@/features/payments/types';
 import type { CancellationPolicy } from '@/features/vendor-cancellation-policies/types';
 
 export type { PaymentStatus } from '@/features/payments/types';
@@ -14,8 +14,6 @@ export interface Tour {
   price: string;
   basePrice?: number;
   originalPrice?: string;
-  rating: number;
-  reviewCount: number;
   image: string;
   images?: string[];
   badge?: string;
@@ -23,14 +21,14 @@ export interface Tour {
   category: string;
   location: string;
   maxParticipants: number;
+  minCapacity?: number;
+  maxCapacity?: number;
   highlights: string[];
   includes: string[];
   excludes?: string[];
   schedule?: string;
   isPopular?: boolean;
   isNew?: boolean;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 // ============================================================
@@ -78,15 +76,6 @@ export type TourTabAction =
   | { type: 'SET_TAB'; payload: TourTabId }
   | { type: 'NEXT_TAB' }
   | { type: 'PREV_TAB' };
-
-/**
- * Booking form state for the sticky sidebar
- */
-export interface BookingFormState {
-  selectedDate: Date | null;
-  participants: number;
-  totalPrice: number;
-}
 
 /**
  * Gallery image with metadata
@@ -189,12 +178,12 @@ export interface TourFilter {
 /**
  * Difficulty levels from the API
  */
-export type ApiDifficulty = 'HARD' | 'MODERATE' | 'EXPERT' | 'EASY' | 'BEGINNER';
+export type ApiDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 /**
  * Status values from the API
  */
-export type ApiStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'HIDDEN';
+export type ApiStatus = 'DRAFT' | 'PUBLISHED' | 'HIDDEN';
 
 /**
  * Allowed sort directions from the API
@@ -209,7 +198,7 @@ export type ApiSortDir = 'asc' | 'desc';
  * `sortBy=averageRating` khiến Hibernate ném `UnknownPathException` → 500.
  * Muốn xếp theo điểm đánh giá thì phải sort ở client.
  */
-export type ApiSortField = 'createdAt' | 'basePrice' | 'durationDays' | 'tourName';
+export type ApiSortField = 'createdAt' | 'price' | 'durationDays' | 'tourName';
 
 /**
  * Query params for fetching tours list.
@@ -235,6 +224,8 @@ export interface TourListParams {
   difficulty?: ApiDifficulty;
   departureDate?: string;
   returnDate?: string;
+  /** Lọc tour theo 1 vendor cụ thể — dùng cho trang hồ sơ Vendor công khai. */
+  vendorId?: string;
   page?: number;
   size?: number;
   sortBy?: ApiSortField;
@@ -249,7 +240,7 @@ export interface TourApiItem {
   tourName: string;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
@@ -261,12 +252,8 @@ export interface TourApiItem {
   excludes: string;
   vendorId: string;
   vendorName: string;
-  averageRating: number | null;
-  totalReviews: number;
   createdAt: string;
   category?: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 export type FitnessLevel = 'ANY' | 'BASIC' | 'MODERATE' | 'HIGH' | 'EXTREME';
@@ -327,9 +314,9 @@ export interface TourDetailScheduleApi {
   tourId: string;
   departureDate: string;
   returnDate: string;
+  /** Số chỗ còn trống; BE đã trừ cả booking đang giữ chỗ và booking đã thanh toán. */
   availableSlots: number;
   bookedSlots: number;
-  price: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
   isDeleted: boolean;
   createdAt: string;
@@ -353,7 +340,7 @@ export interface TourDetailFromApi {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
   totalDistanceKm: number;
@@ -385,178 +372,68 @@ export interface TourDetailFromApi {
   paymentPolicy?: TourPaymentPolicy;
   /** Điều kiện tham gia do vendor cấu hình riêng cho tour. */
   participationPolicy?: TourParticipationPolicy | null;
-  /** False vẫn cho xem tour public nhưng khóa tạo booking online. */
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
   /** Chi phí đã phát sinh và không hoàn lại khi tính yêu cầu hủy. */
   nonRefundableCost?: number;
-  averageRating: number | null;
-  totalReviews: number;
 }
 
 export interface TourSearchValues {
   keyword: string;
-  location: string;
-  departureDate: string;
-  budget: string;
 }
 
 // ============================================================
-// API Types for My Booking History (GET /api/v1/bookings/my-history)
+// API Types for Recommended Tours (GET /api/v1/tours/recommended)
 // ============================================================
 
-export type BookingStatus =
-  | 'PAYMENT_PENDING'
-  | 'PENDING_CONFIRMATION'
-  | 'CONFIRMED'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'EXPIRED'
-  | 'REJECTED'
-  | 'CANCELLED';
+/** Lý do BE gợi ý tour này — khớp enum `RecommendationReason` phía backend. */
+export type RecommendationReason =
+  | 'AREA'
+  | 'BEHAVIOR'
+  | 'SIMILAR_TO_HISTORY'
+  | 'DIFFICULTY'
+  | 'SKILL_PROGRESSION'
+  | 'EXPERIENCE'
+  | 'SCHEDULE_FLEXIBILITY'
+  | 'AVAILABLE_GROUP'
+  | 'POPULAR'
+  | 'DISCOVERY';
 
-export interface BookingItemFromApi {
-  bookingId: string;
-  bookingCode: string;
+/**
+ * Tour rút gọn nhúng trong response gợi ý — khớp `TourSummaryResponse` phía
+ * backend, khác `TourApiItem` (list thường): không có `averageRating`/`totalReviews`.
+ */
+export interface RecommendedTourSummaryApi {
+  tourId: string;
   tourName: string;
-  coverImageUrl: string;
-  departureDate: string;
-  returnDate: string;
-  numberOfParticipants: number;
-  totalPrice: number;
-  bookingStatus: BookingStatus;
-  paymentStatus: PaymentStatus;
+  location: string;
+  durationDays: number;
+  price: number;
+  minCapacity: number;
+  maxCapacity: number;
+  totalDistanceKm: number;
+  difficulty: ApiDifficulty;
+  status: ApiStatus;
+  coverImageUrl: string | null;
+  highlights: string | null;
+  includes: string | null;
+  excludes: string | null;
+  vendorId: string;
+  vendorName: string;
   createdAt: string;
+  publishedAt: string | null;
 }
 
-export interface BookingHistoryParams {
-  status?: BookingStatus;
-  keyword?: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDir?: ApiSortDir;
+export interface RecommendedTourApiItem {
+  tour: RecommendedTourSummaryApi;
+  matchReasons: RecommendationReason[];
 }
 
-export interface BookingHistoryApiResponse {
-  content: BookingItemFromApi[];
+export interface RecommendedTourListApiResponse {
+  content: RecommendedTourApiItem[];
   pageNumber: number;
   pageSize: number;
   totalElements: number;
   totalPages: number;
   last: boolean;
-}
-
-// ============================================================
-// API Types for Booking Detail (GET /api/v1/bookings/{id})
-// ============================================================
-
-export type ParticipantGender = 'MALE' | 'FEMALE' | 'OTHER';
-
-export interface BookingParticipantFromApi {
-  participantId: string;
-  fullName: string;
-  dateOfBirth?: string;
-  gender?: ParticipantGender;
-  idNumber?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  specialRequirements?: string;
-}
-
-export interface BookingDetailResponse {
-  bookingId: string;
-  bookingCode: string;
-  tourId: string;
-  /**
-   * ID của Tour Session thực địa tương ứng — cần để gửi SOS (`POST /tracking/sos`).
-   * Optional vì BE hiện chưa trả field này ở `GET /bookings/{id}`; khi có, panel
-   * SOS ở `BookingDetail.tsx` sẽ tự hiện ra mà không cần sửa code thêm.
-   */
-  tourSessionId?: string;
-  tourName: string;
-  coverImageUrl: string;
-  departureDate: string;
-  returnDate: string;
-  pricePerSlot: number;
-  numberOfParticipants: number;
-  originalPrice: number;
-  discountAmount: number;
-  totalPrice: number;
-  refundAmount: number;
-  bookingStatus: BookingStatus;
-  paymentStatus: PaymentStatus;
-  paymentPlan: PaymentPlan;
-  holdExpiresAt?: string;
-  confirmationExpiresAt?: string;
-  remainingDueAt?: string;
-  participationPolicyAcceptedAt?: string;
-  paidAmount: number;
-  pendingRefundAmount: number;
-  onlinePaymentEnabled?: boolean;
-  proofImageUrl?: string;
-  cancellationReason?: string;
-  cancelledAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  voucherCode?: string;
-  userId: string;
-  userEmail: string;
-  userFullName: string;
-  userPhone: string;
-  refundBankName?: string;
-  refundAccountNumber?: string;
-  refundAccountHolder?: string;
-  refundProofImageUrl?: string;
-  participants: BookingParticipantFromApi[];
-  reviewed?: boolean;
-}
-
-export interface BookingCancelRequest {
-  cancellationReason: string;
-  /** Mã BIN ngân hàng nhận hoàn tiền — ví dụ: "970436". */
-  refundBankBin?: string;
-  /** Số tài khoản nhận hoàn tiền. */
-  refundAccountNumber?: string;
-  /** Tên chủ tài khoản nhận hoàn tiền — ví dụ: "NGUYEN VAN A". */
-  refundAccountName?: string;
-}
-
-export interface PaymentProofRequest {
-  proofImageUrl: string;
-}
-
-export interface BookingParticipantRequest {
-  fullName: string;
-  dateOfBirth: string;
-  gender: ParticipantGender;
-  idNumber: string;
-  phone: string;
-  email?: string;
-  address?: string;
-  specialRequirements?: string;
-}
-
-export interface CreateBookingRequest {
-  scheduleId: string;
-  voucherCode?: string;
-  paymentPlan: PaymentPlan;
-  participationPolicyAccepted?: boolean;
-  participants: BookingParticipantRequest[];
-}
-
-export interface ApiResponseBookingDetailResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: BookingDetailResponse;
-  errors?: Array<{
-    field?: string;
-    message?: string;
-    timestamp?: string;
-  }>;
-  timestamp?: string;
 }
 
 export interface TourCheckpoint {
@@ -571,75 +448,4 @@ export interface TourCheckpoint {
   checkpointImageUrl: string | null;
   /** Danh sách URL ảnh checkpoint đã được backend tách từ trường lưu trữ. */
   checkpointImageUrls?: string[];
-}
-
-export interface ReviewItem {
-  reviewId: string;
-  rating: number;
-  content: string;
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
-  userId: string;
-  userFullName: string;
-  userAvatarUrl: string | null;
-  tourId: string;
-  tourName: string;
-  tourCoverImageUrl: string | null;
-  bookingId: string;
-  bookingCode: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ReviewSummaryResponse {
-  averageRating: number;
-  totalReviews: number;
-  fiveStar: number;
-  fourStar: number;
-  threeStar: number;
-  twoStar: number;
-  oneStar: number;
-  reviews: {
-    content: ReviewItem[];
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
-  };
-}
-
-export interface ReviewListParams {
-  rating?: number;
-  keyword?: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-  sortDir?: string;
-}
-
-export interface CreateReviewRequest {
-  bookingId: string;
-  rating: number;
-  content: string;
-}
-
-export interface ReviewResponse {
-  reviewId: string;
-  rating: number;
-  content: string;
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
-  userId: string;
-  userFullName: string;
-  userAvatarUrl: string | null;
-  tourId: string;
-  tourName: string;
-  tourCoverImageUrl: string | null;
-  bookingId: string;
-  bookingCode: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UpdateReviewStatusRequest {
-  status: 'PENDING' | 'APPROVED' | 'HIDDEN';
 }

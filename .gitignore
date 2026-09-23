@@ -14,6 +14,8 @@ build
 coverage/
 .vite/
 *.local
+.tmp*
+.tmp*/**
 
 # Editor directories and files
 .vscode/*
@@ -42,7 +44,7 @@ coverage/
 vite.config.ts.timestamp-*
 
 docs
-.agents/
+# .agents/
 .cursor/
 skills-lock.json
 
@@ -70,3 +72,4 @@ sketch
 DB_ANALYSIS.md
 design-system
 .sourcery.yaml
+.agents/skills/*

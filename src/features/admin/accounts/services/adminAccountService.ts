@@ -1,4 +1,5 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
+import { normalizeRoleList } from '@/constants/roles';
 import type {
   AccountRole,
   AccountStatus,
@@ -51,16 +52,10 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 /** Thứ tự ưu tiên khi 1 user có nhiều role — hiển thị role "cao" nhất. */
-const ROLE_PRIORITY: AccountRole[] = [
-  'admin',
-  'vendor_manager',
-  'vendor_staff',
-  'coordinator',
-  'trekker',
-];
+const ROLE_PRIORITY: AccountRole[] = ['admin', 'vendor', 'trekker'];
 
 function pickPrimaryRole(roles: string[]): AccountRole {
-  const owned = new Set(roles.map((r) => r.toLowerCase()));
+  const owned = new Set(normalizeRoleList(roles));
   return ROLE_PRIORITY.find((role) => owned.has(role)) ?? 'trekker';
 }
 
@@ -135,15 +130,8 @@ export const adminAccountService = {
     return mapAccountDetail(response.data);
   },
 
-  /**
-   * Khóa/mở khóa tài khoản.
-   *
-   * Swagger khai báo enum `ACTIVE | LOCKED | DEACTIVATED`, nhưng BE hiện chỉ
-   * implement `ACTIVE` và `DEACTIVATED` — gửi `LOCKED` sẽ bị trả về
-   * `code 9001 — "Chức năng khoá vĩnh viễn chưa được hỗ trợ"`. Vì vậy union ở
-   * đây cố tình hẹp hơn swagger: khóa = DEACTIVATED, mở khóa = ACTIVE.
-   */
-  async updateStatus(id: string, status: 'ACTIVE' | 'DEACTIVATED'): Promise<void> {
+  /** Khóa (`LOCKED`)/mở khóa (`ACTIVE`) tài khoản qua `PUT /users/{id}/status`. */
+  async updateStatus(id: string, status: 'ACTIVE' | 'LOCKED' | 'DEACTIVATED'): Promise<void> {
     const response = await ApiService<void>(`/users/${id}/status`, 'PUT', undefined, { status });
     if (response.error) {
       throw new Error(response.error);

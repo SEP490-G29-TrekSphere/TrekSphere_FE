@@ -1,16 +1,10 @@
 import { keepPreviousData, type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { companionGroupService } from '../services/companionGroupService';
+import type { GetMyMatchingGroupsParams } from '../types/matchingGroup';
 import { companionGroupKeys } from './companionGroupKeys';
 
 export function useMyMatchingGroups(
-  params: {
-    status?: string;
-    keyword?: string;
-    page?: number;
-    size?: number;
-    sortBy?: string;
-    sortDir?: string;
-  } = {},
+  params: GetMyMatchingGroupsParams = {},
   options?: Omit<
     UseQueryOptions<
       Awaited<ReturnType<typeof companionGroupService.getMyMatchingGroups>>,

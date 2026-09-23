@@ -23,12 +23,10 @@ export interface VendorTourListItem {
   id: string;
   name: string;
   coverImageUrl?: string;
-  basePrice: number;
+  price: number;
   difficulty: ApiDifficulty;
   status: ApiStatus;
   createdAt: string;
-  onlineBookingEnabled?: boolean;
-  onlineBookingDisabledReason?: string | null;
 }
 
 /**
@@ -53,9 +51,13 @@ export interface CreateTourPayload {
   difficulty: ApiDifficulty;
   location: string;
   durationDays: number;
-  basePrice: number;
+  price: number;
   minCapacity: number;
   maxCapacity: number;
+  totalDistanceKm?: number;
+  highlights?: string;
+  includes?: string;
+  excludes?: string;
   /**
    * URL ảnh bìa đã upload sẵn qua `POST /files/upload`. Gửi kèm song song với `coverImage`
    * — xem ghi chú "ẢNH BÌA" ở đầu `vendorTourService.ts` để biết vì sao gửi cả hai.
@@ -134,7 +136,7 @@ export type TourSchedule = TourDetailScheduleApi;
 export interface CreateSchedulePayload {
   departureDate: string;
   returnDate: string;
-  price: number;
+  /** Số chỗ mở bán ban đầu; khi vừa tạo cũng chính là số chỗ còn trống. */
   availableSlots: number;
 }
 
@@ -142,7 +144,7 @@ export interface CreateSchedulePayload {
 export interface UpdateSchedulePayload {
   departureDate?: string;
   returnDate?: string;
-  price?: number;
+  /** Tạm không gửi từ FE cho đến khi BE tách rõ `capacity` và số chỗ còn trống. */
   availableSlots?: number;
   status?: ApiScheduleStatus;
   /** Bắt buộc khi lịch đã có khách đặt (`bookedSlots > 0`) — BE gửi notification cho khách dựa vào đây. */

@@ -14,6 +14,21 @@
  *   import { AppButton } from '@/shared/ui/primitives/AppButton';
  */
 
+// Portal Shared Blocks
+export * from '../components/portal';
+export {
+  AppImageUploadField,
+  type AppImageUploadFieldProps,
+  AppImageUploadGallery,
+  type AppImageUploadGalleryProps,
+  type ImageUploadCleanup,
+  useImageUploadCleanup,
+} from './components/AppImageUpload';
+export { AppModalShell, type AppModalShellProps } from './components/AppModalShell';
+export {
+  AppScrollableTabs,
+  type AppScrollableTabsProps,
+} from './components/AppScrollableTabs';
 export {
   ConfirmActionDialog,
   type ConfirmActionDialogProps,
@@ -52,13 +67,20 @@ export {
   AppTableHeader,
   AppTableRow,
 } from './data-display/AppTable';
+export { RichTextContent, type RichTextContentProps } from './data-display/RichTextContent';
 // Feedback
 export { AppGlobalLoadingSpinner } from './feedback/AppGlobalLoadingSpinner';
 export { AppSpinner, type AppSpinnerProps, type AppSpinnerSize } from './feedback/AppSpinner';
 export { AppGlobalToast } from './feedback/AppToast';
 export { ErrorBoundary } from './feedback/ErrorBoundary';
-export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 // Form
+export {
+  AppCurrencyInput,
+  type AppCurrencyInputProps,
+  AppFormCurrencyInput,
+  type AppFormCurrencyInputProps,
+} from './form/AppCurrencyInput';
+export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 export { AppFormInput, type AppFormInputProps } from './form/AppFormInput';
 export {
   AppFormPasswordInput,
@@ -66,7 +88,14 @@ export {
   AppPasswordInput,
   type AppPasswordInputProps,
 } from './form/AppFormPasswordInput';
+export { AppTagInput, type AppTagInputProps } from './form/AppTagInput';
 // Primitives
+export {
+  AppAvatar,
+  type AppAvatarProps,
+  type AppAvatarSize,
+  getAvatarInitials,
+} from './primitives/AppAvatar';
 export { AppBadge, type AppBadgeProps, type AppBadgeVariant } from './primitives/AppBadge';
 export {
   AppButton,

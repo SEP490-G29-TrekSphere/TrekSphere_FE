@@ -1,20 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Bold, ImagePlus, Info, Italic, Link2, List, Loader2 } from 'lucide-react';
+import { Bold, Info, Italic, Link2, List, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { profileService } from '@/features/profile/services/profileService';
+import { AppCurrencyInput, AppImageUploadField, useImageUploadCleanup } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import type { CheckpointSubmitItem, CreateTourPayload } from '../types';
 import { type CheckpointDraft, CheckpointFields } from './CheckpointFields';
 
-/** Form Tạo/Sửa chỉ hỗ trợ 3 mức độ khó (khớp đúng zod enum bên dưới). */
-type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD';
+/** Khớp đúng 4 mức độ khó thật của BE (`DifficultyLevel`), xem zod enum bên dưới. */
+type FormDifficulty = 'EASY' | 'MODERATE' | 'HARD' | 'EXTREME';
 
 const DIFFICULTY_OPTIONS: Array<{ value: FormDifficulty; label: string }> = [
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Vừa' },
   { value: 'HARD', label: 'Khó' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 const MAX_COVER_SIZE_MB = 5;
@@ -43,12 +44,22 @@ function optionalAgeText(label: string, minimum: number, maximum: number) {
 const tourFormSchema = z
   .object({
     tourName: z.string().trim().min(1, 'Vui lòng nhập tên tour'),
-    difficulty: z.enum(['EASY', 'MODERATE', 'HARD']),
-    basePrice: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
+    difficulty: z.enum(['EASY', 'MODERATE', 'HARD', 'EXTREME']),
+    price: z.coerce.number().min(0, 'Giá tiền không hợp lệ'),
     location: z.string().trim().min(1, 'Vui lòng nhập địa điểm'),
     minCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     maxCapacity: z.coerce.number().int().min(1, 'Tối thiểu 1 khách'),
     durationDays: z.coerce.number().int().min(1, 'Tối thiểu 1 ngày'),
+    totalDistanceKm: z
+      .string()
+      .trim()
+      .refine(
+        (value) => value === '' || (!Number.isNaN(Number(value)) && Number(value) >= 0),
+        'Quãng đường phải là số không âm'
+      ),
+    highlights: z.string().trim(),
+    includes: z.string().trim(),
+    excludes: z.string().trim(),
     description: z.string().trim().min(1, 'Vui lòng nhập lịch trình chi tiết'),
     minAge: requiredAgeText,
     maxAge: optionalAgeText('Tuổi tối đa', 1, 100),
@@ -79,9 +90,9 @@ const tourFormSchema = z
   });
 
 /** Giá trị sau khi zod coerce (số thật) — dùng khi submit. */
-type TourFormValues = z.output<typeof tourFormSchema>;
+export type TourFormValues = z.infer<typeof tourFormSchema>;
 /** Giá trị trước khi coerce (khớp kiểu input HTML) — dùng cho defaultValues/register. */
-type TourFormInput = z.input<typeof tourFormSchema>;
+export type TourFormInput = z.input<typeof tourFormSchema>;
 
 /**
  * BE từ chối tour có checkpoint trùng tên hoặc trùng toạ độ, nên chặn sớm ở FE để user
@@ -118,30 +129,36 @@ export function findDuplicateCheckpointError(checkpoints: CheckpointDraft[]): st
 
 const EMPTY_DEFAULTS: TourFormInput = {
   tourName: '',
-  difficulty: 'EASY',
-  basePrice: 0,
+  difficulty: 'MODERATE',
+  price: 0,
   location: '',
   minCapacity: 1,
-  maxCapacity: 1,
+  maxCapacity: 10,
   durationDays: 1,
+  totalDistanceKm: '',
+  highlights: '',
+  includes: '',
+  excludes: '',
   description: '',
   minAge: '18',
   maxAge: '',
-  fitnessLevel: 'ANY',
+  fitnessLevel: 'BASIC',
   healthRequirements: '',
   restrictedMedicalConditions: '',
   requiredExperience: '',
   requiredSkills: '',
   requiredEquipment: '',
   requiredDocuments: '',
-  requiresHealthDeclaration: true,
+  requiresHealthDeclaration: false,
   requiresMedicalCertificate: false,
   guardianRequiredUnderAge: '',
   additionalRequirements: '',
 };
 
-function optionalNumber(value: string): number | undefined {
-  return value === '' ? undefined : Number(value);
+function optionalNumber(value: string | number | undefined | null): number | undefined {
+  if (value === '' || value === undefined || value === null) return undefined;
+  const num = Number(value);
+  return Number.isNaN(num) ? undefined : num;
 }
 
 export interface TourFormProps {
@@ -162,35 +179,41 @@ export interface TourFormProps {
   ) => void;
 }
 
-/** Form dùng chung cho 2 màn Tạo Tour / Sửa Tour (cả Vendor Manager lẫn Vendor Staff) — chỉ khác nhau qua prop `mode`. */
 export function TourForm({
   mode,
   defaultValues,
   existingCoverImageUrl,
-  initialCheckpoints,
+  initialCheckpoints = [],
   isSubmitting: isParentSubmitting,
   onCancel,
   onSubmit: onSubmitProp,
 }: TourFormProps) {
   const isEdit = mode === 'edit';
 
-  const [checkpoints, setCheckpoints] = useState<CheckpointDraft[]>(initialCheckpoints ?? []);
-  // Checkpoint id đã tồn tại lúc mở form — dùng để tính checkpoint nào bị xóa lúc submit
-  // (còn lại trong `checkpoints` thì giữ/sửa, biến mất khỏi đây thì là bị xóa).
-  const originalCheckpointIdsRef = useRef(
-    new Set(
-      (initialCheckpoints ?? []).map((c) => c.checkpointId).filter((id): id is string => !!id)
-    )
+  const [coverImageUrl, setCoverImageUrl] = useState<string>(
+    (existingCoverImageUrl ?? defaultValues?.tourName)
+      ? (((defaultValues as Record<string, unknown>).coverImageUrl as string) ?? '')
+      : ''
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(existingCoverImageUrl ?? null);
+
+  const [checkpoints, setCheckpoints] = useState<CheckpointDraft[]>(initialCheckpoints);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+
+  const originalCheckpointIdsRef = useRef<string[]>(
+    initialCheckpoints
+      .map((checkpoint) => checkpoint.checkpointId)
+      .filter((id): id is string => Boolean(id))
+  );
+
+  const imageCleanup = useImageUploadCleanup();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<TourFormInput, unknown, TourFormValues>({
     resolver: zodResolver(tourFormSchema),
@@ -199,44 +222,21 @@ export function TourForm({
 
   const difficulty = watch('difficulty');
 
-  const handleCoverChange = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh.');
-      return;
-    }
-    if (file.size > MAX_COVER_SIZE_MB * 1024 * 1024) {
-      toast.error(`Ảnh tối đa ${MAX_COVER_SIZE_MB}MB.`);
-      return;
-    }
-    setCoverPreview(URL.createObjectURL(file));
-    setCoverFile(file);
-  };
-
   const onSubmit = async (values: TourFormValues) => {
-    let coverImageUrl: string | undefined = existingCoverImageUrl;
-
-    if (coverFile) {
-      setIsUploadingImages(true);
-      const uploadRes = await profileService.uploadFile(coverFile, 'tours');
-      setIsUploadingImages(false);
-      if (uploadRes.error || !uploadRes.data) {
-        toast.error(uploadRes.error || 'Không thể tải ảnh bìa lên.');
-        return;
-      }
-      coverImageUrl = uploadRes.data;
-    }
-
     const payload: CreateTourPayload = {
       tourName: values.tourName,
       description: values.description,
       difficulty: values.difficulty,
       location: values.location,
       durationDays: values.durationDays,
-      basePrice: values.basePrice,
+      price: values.price,
       minCapacity: values.minCapacity,
       maxCapacity: values.maxCapacity,
-      coverImageUrl,
-      // Gửi kèm cả file thô — xem ghi chú "ẢNH BÌA" trong `vendorTourService.ts`.
+      totalDistanceKm: optionalNumber(values.totalDistanceKm),
+      highlights: values.highlights?.trim() || undefined,
+      includes: values.includes?.trim() || undefined,
+      excludes: values.excludes?.trim() || undefined,
+      coverImageUrl: coverImageUrl.trim() || undefined,
       coverImage: coverFile ?? undefined,
       participationPolicy: {
         minAge: Number(values.minAge),
@@ -266,18 +266,7 @@ export function TourForm({
     const checkpointItems: CheckpointSubmitItem[] = [];
 
     for (const [index, checkpoint] of activeCheckpoints.entries()) {
-      const imageUrls = [...checkpoint.imageUrls];
-
-      if (checkpoint.imageFiles.length > 0) {
-        setIsUploadingImages(true);
-        const uploadRes = await profileService.uploadFiles(checkpoint.imageFiles, 'checkpoints');
-        setIsUploadingImages(false);
-        if (uploadRes.error || !uploadRes.data) {
-          toast.error(uploadRes.error || 'Không thể tải ảnh checkpoint lên.');
-          return;
-        }
-        imageUrls.push(...uploadRes.data);
-      }
+      const imageUrls = checkpoint.imageUrls;
 
       checkpointItems.push({
         checkpointId: checkpoint.checkpointId,
@@ -288,19 +277,23 @@ export function TourForm({
           latitude: checkpoint.latitude.trim() ? Number(checkpoint.latitude) : undefined,
           longitude: checkpoint.longitude.trim() ? Number(checkpoint.longitude) : undefined,
           altitude: checkpoint.altitude.trim() ? Number(checkpoint.altitude) : undefined,
-          // BE lưu tất cả ảnh của checkpoint vào 1 cột TEXT, phân tách bởi dấu phẩy.
           checkpointImageUrl: imageUrls.length > 0 ? imageUrls.join(',') : undefined,
         },
       });
     }
 
-    // Checkpoint cũ nào không còn trong danh sách active (bị bấm xóa) → cần DELETE.
     const keptIds = new Set(checkpointItems.map((item) => item.checkpointId).filter(Boolean));
     const deletedCheckpointIds = [...originalCheckpointIdsRef.current].filter(
       (id) => !keptIds.has(id)
     );
 
+    imageCleanup.commit();
     onSubmitProp(payload, checkpointItems, deletedCheckpointIds);
+  };
+
+  const handleCancel = () => {
+    imageCleanup.discard();
+    onCancel();
   };
 
   const isSaving = isSubmitting || isUploadingImages || isParentSubmitting;
@@ -400,31 +393,28 @@ export function TourForm({
 
               <div>
                 <label
-                  htmlFor="basePrice"
+                  htmlFor="price"
                   className="mb-1.5 block text-sm font-semibold"
                   style={{ color: '#06261D' }}
                 >
-                  Giá tiền (VNĐ) <span className="text-red-500">*</span>
+                  Giá tour (VNĐ) <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="basePrice"
-                    type="number"
-                    min={0}
-                    {...register('basePrice')}
-                    placeholder="0"
-                    className="w-full rounded-xl px-4 py-2.5 pr-14 text-sm font-medium focus:outline-none focus:ring-1"
-                    style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-                  />
-                  <span
-                    className="absolute inset-y-0 right-4 flex items-center text-xs font-bold"
-                    style={{ color: '#6F7B75' }}
-                  >
-                    VNĐ
-                  </span>
-                </div>
-                {errors.basePrice && (
-                  <p className="mt-1 text-xs text-red-500">{errors.basePrice.message}</p>
+                <Controller
+                  name="price"
+                  control={control}
+                  render={({ field }) => (
+                    <AppCurrencyInput
+                      id="price"
+                      value={field.value as number | undefined}
+                      onChange={field.onChange}
+                      placeholder="0"
+                      className="w-full rounded-xl px-4 py-2.5 pr-14 text-sm font-medium focus:outline-none focus:ring-1"
+                      style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                    />
+                  )}
+                />
+                {errors.price && (
+                  <p className="mt-1 text-xs text-red-500">{errors.price.message}</p>
                 )}
               </div>
             </div>
@@ -450,8 +440,6 @@ export function TourForm({
               )}
             </div>
 
-            {/* BE bắt buộc minCapacity/maxCapacity — không có trong thiết kế gốc nhưng
-                thiếu thì không tạo được tour, nên thêm 2 ô này vào form. */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label
@@ -503,7 +491,12 @@ export function TourForm({
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6F7B75' }}>
               Lịch trình & Checkpoints
             </h3>
-            <CheckpointFields checkpoints={checkpoints} onChange={setCheckpoints} />
+            <CheckpointFields
+              checkpoints={checkpoints}
+              onChange={setCheckpoints}
+              imageCleanup={imageCleanup}
+              onUploadingChange={setIsUploadingImages}
+            />
           </section>
         </div>
 
@@ -514,28 +507,53 @@ export function TourForm({
             style={{ border: '1px solid #E6E2D1' }}
           >
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6F7B75' }}>
-              Thời lượng
+              Thời lượng & Quãng đường
             </h3>
-            <div>
-              <label
-                htmlFor="durationDays"
-                className="mb-1.5 block text-sm font-semibold"
-                style={{ color: '#06261D' }}
-              >
-                Số ngày <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="durationDays"
-                type="number"
-                min={1}
-                {...register('durationDays')}
-                placeholder="Ví dụ: 3"
-                className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
-                style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
-              />
-              {errors.durationDays && (
-                <p className="mt-1 text-xs text-red-500">{errors.durationDays.message}</p>
-              )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="durationDays"
+                  className="mb-1.5 block text-sm font-semibold"
+                  style={{ color: '#06261D' }}
+                >
+                  Số ngày <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="durationDays"
+                  type="number"
+                  min={1}
+                  {...register('durationDays')}
+                  placeholder="Ví dụ: 3"
+                  className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
+                  style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                />
+                {errors.durationDays && (
+                  <p className="mt-1 text-xs text-red-500">{errors.durationDays.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="totalDistanceKm"
+                  className="mb-1.5 block text-sm font-semibold"
+                  style={{ color: '#06261D' }}
+                >
+                  Tổng cự ly (km)
+                </label>
+                <input
+                  id="totalDistanceKm"
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  {...register('totalDistanceKm')}
+                  placeholder="Ví dụ: 25.5"
+                  className="w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1"
+                  style={{ backgroundColor: '#F8F6EF', color: '#06261D' }}
+                />
+                {errors.totalDistanceKm && (
+                  <p className="mt-1 text-xs text-red-500">{errors.totalDistanceKm.message}</p>
+                )}
+              </div>
             </div>
           </section>
 
@@ -546,32 +564,16 @@ export function TourForm({
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#6F7B75' }}>
               Hình ảnh bìa
             </h3>
-            <label
-              htmlFor="coverImage"
-              className="flex aspect-[3/2] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-3xl"
-              style={{ backgroundColor: '#F8F6EF', border: '1px dashed #D8D3C4' }}
-            >
-              {coverPreview ? (
-                <img src={coverPreview} alt="Ảnh bìa tour" className="h-full w-full object-cover" />
-              ) : (
-                <>
-                  <ImagePlus className="h-6 w-6" style={{ color: '#6F7B75' }} />
-                  <span className="text-xs font-semibold" style={{ color: '#6F7B75' }}>
-                    Chọn ảnh bìa
-                  </span>
-                </>
-              )}
-              <input
-                id="coverImage"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleCoverChange(file);
-                }}
-              />
-            </label>
+            <AppImageUploadField
+              value={coverImageUrl}
+              onChange={setCoverImageUrl}
+              onFileSelected={setCoverFile}
+              folder="tours"
+              cleanup={imageCleanup}
+              onUploadingChange={setIsUploadingImages}
+              maxSizeMb={MAX_COVER_SIZE_MB}
+              previewClassName="aspect-[3/2] w-full object-cover"
+            />
             <p className="flex items-start gap-1.5 text-xs" style={{ color: '#6F7B75' }}>
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               Hình ảnh đẹp sẽ giúp tour của bạn thu hút hơn. Kích thước khuyến nghị: 1200 x 800px.
@@ -580,17 +582,84 @@ export function TourForm({
           </section>
         </div>
 
+        {/* Section: Điểm nổi bật & Dịch vụ — full width */}
         <section
           className="space-y-5 rounded-3xl bg-white p-6 lg:col-span-5"
           style={{ border: '1px solid #E6E2D1' }}
         >
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#6F7B75]">
-              Điều kiện tham gia
+              Điểm nổi bật & Dịch vụ
             </h3>
             <p className="mt-1 text-xs font-medium text-[#6F7B75]">
-              Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour thiếu policy sẽ
-              không nhận đặt online.
+              Thông tin chi tiết về các điểm hấp dẫn và dịch vụ tour giúp khách hàng dễ dàng đưa ra
+              quyết định.
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="highlights"
+              className="mb-1.5 block text-sm font-semibold text-[#06261D]"
+            >
+              Điểm nổi bật của tour
+            </label>
+            <textarea
+              id="highlights"
+              rows={3}
+              {...register('highlights')}
+              placeholder="- Ngắm biển mây bồng bềnh&#10;- Chinh phục đỉnh núi nóc nhà Đông Dương&#10;- Trải nghiệm ẩm thực người bản địa"
+              className="w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="includes"
+                className="mb-1.5 block text-sm font-semibold text-[#06261D]"
+              >
+                Dịch vụ bao gồm trong tour
+              </label>
+              <textarea
+                id="includes"
+                rows={3}
+                {...register('includes')}
+                placeholder="- Hướng dẫn viên và Porter bản địa&#10;- Bữa ăn và nước uống suốt hành trình&#10;- Lều trại và túi ngủ chuyên dụng&#10;- Bảo hiểm du lịch"
+                className="w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="excludes"
+                className="mb-1.5 block text-sm font-semibold text-[#06261D]"
+              >
+                Dịch vụ không bao gồm
+              </label>
+              <textarea
+                id="excludes"
+                rows={3}
+                {...register('excludes')}
+                placeholder="- Chi phí cá nhân phát sinh ngoài chương trình&#10;- Vé máy bay/tàu xe đến điểm tập kết&#10;- Tiền tip cho HDV/Porter"
+                className="w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Điều kiện tham gia — full width */}
+        <section
+          className="space-y-5 rounded-3xl bg-white p-6 lg:col-span-5"
+          style={{ border: '1px solid #E6E2D1' }}
+        >
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#6F7B75]">
+              Điều kiện tham gia (Participation Policy)
+            </h3>
+            <p className="mt-1 text-xs font-medium text-[#6F7B75]">
+              Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour đầy đủ policy
+              giúp đảm bảo an toàn chuyến đi.
             </p>
           </div>
 
@@ -652,17 +721,42 @@ export function TourForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             {[
-              ['healthRequirements', 'Yêu cầu sức khỏe'],
-              ['restrictedMedicalConditions', 'Tình trạng sức khỏe không phù hợp'],
-              ['requiredExperience', 'Kinh nghiệm cần có'],
-              ['requiredSkills', 'Kỹ năng cần có'],
-              ['requiredEquipment', 'Trang bị bắt buộc'],
-              ['requiredDocuments', 'Giấy tờ bắt buộc'],
-            ].map(([name, label]) => (
+              [
+                'healthRequirements',
+                'Yêu cầu sức khỏe',
+                'Ví dụ: Tập cardio/chạy bộ 3km mỗi ngày trong 2 tuần trước chuyến đi',
+              ],
+              [
+                'restrictedMedicalConditions',
+                'Tình trạng sức khỏe không phù hợp',
+                'Ví dụ: Bệnh tim mạch, huyết áp cao, hen suyễn nặng, động kinh',
+              ],
+              [
+                'requiredExperience',
+                'Kinh nghiệm cần có',
+                'Ví dụ: Đã từng tham gia ít nhất 1 chuyến trekking có độ khó tương đương',
+              ],
+              [
+                'requiredSkills',
+                'Kỹ năng cần có',
+                'Ví dụ: Kỹ năng dùng gậy leo núi, điều hòa nhịp thở dốc cao, làm việc nhóm',
+              ],
+              [
+                'requiredEquipment',
+                'Trang bị bắt buộc',
+                'Ví dụ: Giày trekking bám tốt, áo khoác cản gió, đèn pin đội đầu, bình nước 1.5L',
+              ],
+              [
+                'requiredDocuments',
+                'Giấy tờ bắt buộc',
+                'Ví dụ: CCCD/Hộ chiếu bản gốc còn hạn để đăng ký kiểm lâm',
+              ],
+            ].map(([name, label, placeholder]) => (
               <label key={name} className="text-sm font-semibold text-[#06261D]">
                 {label}
                 <textarea
                   rows={2}
+                  placeholder={placeholder}
                   {...register(name as keyof TourFormInput)}
                   className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
                 />
@@ -670,12 +764,31 @@ export function TourForm({
             ))}
           </div>
 
+          <div className="flex flex-wrap items-center gap-6">
+            <label className="flex items-center gap-2 text-sm font-semibold text-[#06261D] cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('requiresHealthDeclaration')}
+                className="h-4 w-4 rounded text-[#06261D] focus:ring-[#06261D]"
+              />
+              Bắt buộc khai báo y tế trước khởi hành
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold text-[#06261D] cursor-pointer">
+              <input
+                type="checkbox"
+                {...register('requiresMedicalCertificate')}
+                className="h-4 w-4 rounded text-[#06261D] focus:ring-[#06261D]"
+              />
+              Bắt buộc nộp giấy khám sức khỏe
+            </label>
+          </div>
+
           <label className="block text-sm font-semibold text-[#06261D]">
             Quy định khác
             <textarea
               rows={2}
               {...register('additionalRequirements')}
-              placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành"
+              placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành, tuân thủ nguyên tắc Không để lại dấu vết (Leave No Trace)"
               className="mt-1.5 w-full resize-none rounded-xl bg-[#F8F6EF] px-4 py-3 text-sm font-medium outline-none focus:ring-1"
             />
           </label>
@@ -715,7 +828,7 @@ export function TourForm({
       <div className="flex items-center justify-end gap-3">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={handleCancel}
           className="rounded-full px-5 py-2.5 text-sm font-semibold"
           style={{ backgroundColor: '#FFFFFF', border: '1px solid #D8D3C4', color: '#06261D' }}
         >

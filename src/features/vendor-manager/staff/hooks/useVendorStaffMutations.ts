@@ -6,8 +6,7 @@ import { vendorStaffLockedCountKeys } from './useVendorStaffLockedCount';
 
 /**
  * Mutation cho "Thêm nhân viên", "Khóa/Mở khóa" và "Cập nhật vai trò" — cả 3
- * đều invalidate list + locked-count, cộng thêm danh sách ứng viên Coordinator
- * vì đổi vai trò làm thay đổi kết quả `GET /vendor-staff/coordinators`.
+ * đều invalidate list + locked-count.
  */
 export function useVendorStaffMutations() {
   const queryClient = useQueryClient();
@@ -15,7 +14,6 @@ export function useVendorStaffMutations() {
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: vendorStaffKeys.all });
     queryClient.invalidateQueries({ queryKey: vendorStaffLockedCountKeys.all });
-    queryClient.invalidateQueries({ queryKey: ['vendor-sessions', 'coordinator-candidates'] });
   };
 
   const addStaff = useMutation({

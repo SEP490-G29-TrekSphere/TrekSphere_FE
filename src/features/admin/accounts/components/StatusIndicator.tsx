@@ -17,10 +17,9 @@ const STATUS_BADGE_CONFIG: Record<
 /**
  * Hiển thị trạng thái tài khoản với dot indicator + text.
  * - ACTIVE: chấm xanh lá.
- * - DEACTIVATED: chấm đỏ — trạng thái admin khóa tài khoản (BE dùng giá trị này
- *   cho `PUT /users/{id}/status`, xem `adminAccountService.updateStatus`).
- * - LOCKED: chấm đỏ — chỉ còn ở dữ liệu cũ, BE chưa implement, hiển thị y hệt
- *   DEACTIVATED để admin không phải phân biệt 2 khái niệm giống nhau.
+ * - LOCKED: chấm đỏ — trạng thái Admin khóa tài khoản (xem `useAccountMutations.lock`).
+ * - DEACTIVATED: chấm đỏ — vô hiệu hoá, hiển thị cùng nhãn với LOCKED vì admin không cần
+ *   phân biệt 2 khái niệm này trên UI.
  */
 export function StatusIndicator({ status }: StatusIndicatorProps) {
   const { label, color, bgColor } = STATUS_BADGE_CONFIG[status];

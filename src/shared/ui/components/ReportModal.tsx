@@ -9,8 +9,8 @@ export interface ReportModalProps {
   onClose: () => void;
   /** Mã hoặc ID của nội dung bị báo cáo, e.g. "#TREK-8829-BLOG" hoặc "CM-892" */
   targetId: string;
-  /** Loại nội dung bị báo cáo, e.g. "BLOG" | "COMMENT" | "REVIEW" */
-  targetType?: 'BLOG' | 'COMMENT' | 'REVIEW';
+  /** Loại nội dung bị báo cáo, e.g. "BLOG" | "COMMENT" | "TOUR" */
+  targetType?: 'BLOG' | 'COMMENT' | 'TOUR';
   /** Tên tiêu đề ngắn của nội dung (nếu có) */
   targetTitle?: string;
 }

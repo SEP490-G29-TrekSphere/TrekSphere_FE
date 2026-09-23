@@ -1,8 +1,18 @@
+import { CalendarDays, MapPin, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Slider } from '@/components/ui/slider';
+import { useTourLocations } from '@/features/tours/hooks/useTourLocations';
 import type { ApiDifficulty, TourFilter } from '@/features/tours/types';
 import { cn } from '@/lib/utils';
+import { AppDatePicker } from '@/shared/ui';
 
 interface TourFilterPanelProps {
+  location?: string;
+  onLocationChange: (location: string) => void;
+  departureDate?: string;
+  returnDate?: string;
+  onDepartureDateChange: (date: string) => void;
+  onReturnDateChange: (date: string) => void;
   difficulty: TourFilter['difficulty'];
   priceRange: [number, number];
   minPrice: number;
@@ -18,7 +28,7 @@ const difficultyOptions: { value: ApiDifficulty | 'ALL'; label: string }[] = [
   { value: 'EASY', label: 'Dễ' },
   { value: 'MODERATE', label: 'Trung bình' },
   { value: 'HARD', label: 'Khó' },
-  { value: 'EXPERT', label: 'Cực thách thức' },
+  { value: 'EXTREME', label: 'Cực khó' },
 ];
 
 function formatShortPrice(val: number): string {
@@ -32,7 +42,21 @@ function formatShortPrice(val: number): string {
   return String(val);
 }
 
+/** Normalise a JS Date to a local YYYY-MM-DD string. */
+function toLocalDateStr(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function TourFilterPanel({
+  location,
+  onLocationChange,
+  departureDate,
+  returnDate,
+  onDepartureDateChange,
+  onReturnDateChange,
   difficulty,
   priceRange,
   minPrice,
@@ -42,9 +66,157 @@ export default function TourFilterPanel({
   onPriceRangeChange,
   onResetFilters,
 }: TourFilterPanelProps) {
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const locationContainerRef = useRef<HTMLDivElement>(null);
+  const { locations } = useTourLocations();
+
+  // Đóng dropdown khi click ra ngoài — dropdown không dùng portal nên chỉ cần theo dõi
+  // trong phạm vi component này.
+  useEffect(() => {
+    if (!isLocationOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        locationContainerRef.current &&
+        !locationContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsLocationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isLocationOpen]);
+
+  const departureDateObj = departureDate ? new Date(departureDate) : null;
+  const returnDateObj = returnDate ? new Date(returnDate) : null;
+
   return (
     <div className="rounded-2xl border border-border bg-white p-5 shadow-xs">
       <h3 className="mb-5 text-lg font-bold text-primary">Bộ lọc</h3>
+
+      {/* Section: Điểm đến */}
+      <div className="mb-6">
+        <span className="mb-3 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+          Điểm đến
+        </span>
+        <div ref={locationContainerRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setIsLocationOpen((open) => !open)}
+            aria-expanded={isLocationOpen}
+            aria-haspopup="listbox"
+            className="flex w-full items-center gap-2 rounded-xl border border-input px-3 py-2.5 text-left focus:outline-none"
+          >
+            <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span
+              className={cn(
+                'flex-1 truncate text-sm',
+                location ? 'font-semibold text-foreground' : 'text-muted-foreground'
+              )}
+            >
+              {location || 'Bạn muốn đi đâu?'}
+            </span>
+            {location && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLocationChange('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation();
+                    onLocationChange('');
+                  }
+                }}
+                className="shrink-0 cursor-pointer text-muted-foreground/60 hover:text-foreground"
+                aria-label="Xóa điểm đến"
+              >
+                <X className="h-3.5 w-3.5" />
+              </span>
+            )}
+          </button>
+
+          {isLocationOpen && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover p-1.5 shadow-xl">
+              {locations.length > 0 ? (
+                locations.map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    role="option"
+                    aria-selected={loc === location}
+                    onClick={() => {
+                      onLocationChange(loc);
+                      setIsLocationOpen(false);
+                    }}
+                    className={cn(
+                      'block w-full rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                      loc === location
+                        ? 'bg-primary/10 font-semibold text-primary'
+                        : 'text-foreground hover:bg-muted'
+                    )}
+                  >
+                    {loc}
+                  </button>
+                ))
+              ) : (
+                <p className="px-2.5 py-4 text-center text-sm text-muted-foreground">
+                  Không tìm thấy địa danh
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <hr className="my-5 border-border" />
+
+      {/* Section: Ngày đi / Ngày về */}
+      <div className="mb-6 flex flex-col gap-3">
+        <div>
+          <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Ngày đi
+          </span>
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-2.5">
+            <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <AppDatePicker
+              selected={departureDateObj}
+              onChange={(date: Date | null) => {
+                onDepartureDateChange(date ? toLocalDateStr(date) : '');
+              }}
+              placeholderText="Chọn ngày"
+              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !py-0 !pl-0 !pr-6 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              isClearable
+            />
+          </div>
+        </div>
+
+        <div>
+          <span className="mb-2 block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Ngày về
+          </span>
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-2.5">
+            <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <AppDatePicker
+              selected={returnDateObj}
+              onChange={(date: Date | null) => {
+                onReturnDateChange(date ? toLocalDateStr(date) : '');
+              }}
+              placeholderText="Chọn ngày"
+              className="!h-auto !w-full !min-w-0 !border-0 !bg-transparent !py-0 !pl-0 !pr-6 !text-sm !font-semibold !text-foreground !ring-0 !ring-offset-0 placeholder:!font-normal placeholder:!text-muted-foreground/70 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              minDate={departureDateObj || undefined}
+              isClearable
+            />
+          </div>
+        </div>
+      </div>
+
+      <hr className="my-5 border-border" />
 
       {/* Section: Độ khó */}
       <div className="mb-6">

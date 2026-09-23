@@ -11,9 +11,6 @@ export function useLeaveMatchingGroup() {
     onSuccess: (_, matchingGroupId) => {
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.lists() });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(matchingGroupId) });
-      queryClient.invalidateQueries({
-        queryKey: companionGroupKeys.memberStatus(matchingGroupId),
-      });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.myGroups() });
     },
   });

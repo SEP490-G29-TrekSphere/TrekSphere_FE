@@ -138,6 +138,11 @@ export const chatService = {
     if (response.error || !response.data) {
       throw new Error(response.error || 'Failed to fetch conversation members');
     }
+    // Khi BE trả về lỗi dạng HTML/redirect, `data` có thể không phải mảng —
+    // ném lỗi ở đây để UI hiện trạng thái lỗi thay vì crash lúc `.map()`.
+    if (!Array.isArray(response.data)) {
+      throw new Error('Dữ liệu thành viên không hợp lệ');
+    }
     return response.data;
   },
 };

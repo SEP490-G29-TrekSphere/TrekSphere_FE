@@ -7,13 +7,10 @@ export function useCancelJoinRequest() {
 
   return useMutation({
     mutationFn: (matchingGroupId: string) =>
-      companionGroupService.cancelJoinRequest(matchingGroupId),
+      companionGroupService.withdrawApplication(matchingGroupId),
     onSuccess: (_, matchingGroupId) => {
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.lists() });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(matchingGroupId) });
-      queryClient.invalidateQueries({
-        queryKey: companionGroupKeys.memberStatus(matchingGroupId),
-      });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.myJoinRequests() });
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.myGroups() });
     },

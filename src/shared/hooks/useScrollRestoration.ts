@@ -62,6 +62,7 @@ export function useScrollRestoration(): void {
   const location = useLocation();
   const navigationType = useNavigationType();
   const prevKeyRef = useRef<string>(location.key);
+  const prevPathnameRef = useRef<string>(location.pathname);
   const keysRef = useRef<string[]>([]);
 
   // Load keys list from sessionStorage on mount
@@ -102,7 +103,8 @@ export function useScrollRestoration(): void {
   useEffect(() => {
     // Save the last known position of the page we are leaving to sessionStorage
     const prevKey = prevKeyRef.current;
-    const lastY = scrollCache.current[prevKey];
+    const isSamePathname = prevPathnameRef.current === location.pathname;
+    const lastY = scrollCache.current[prevKey] ?? window.scrollY;
     if (lastY !== undefined) {
       savePosition(prevKey, lastY, keysRef.current, scrollCache.current);
     }
@@ -124,21 +126,25 @@ export function useScrollRestoration(): void {
         }
       };
       rafId = requestAnimationFrame(restore);
+    } else if (isSamePathname) {
+      // In-page search/filter change on the SAME route — preserve current scroll position!
+      scrollCache.current[location.key] = window.scrollY;
     } else {
-      // Forward navigation (PUSH/REPLACE) — always start at the top
+      // Forward navigation across DIFFERENT pages (PUSH/REPLACE) — start at top
       window.scrollTo(0, 0);
       scrollCache.current[location.key] = 0;
     }
 
-    // Track the current key so the next navigation can save it
+    // Track the current key & pathname so the next navigation can compare
     prevKeyRef.current = location.key;
+    prevPathnameRef.current = location.pathname;
 
     return () => {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
     };
-  }, [location.key, navigationType]);
+  }, [location.key, location.pathname, navigationType]);
 
   // 4. Save scroll position on page unload/refresh
   useEffect(() => {

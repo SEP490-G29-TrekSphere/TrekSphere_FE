@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { ChatDetailPane } from '@/features/chat/components/ChatDetailPane';
@@ -21,6 +21,7 @@ import { useCreateConversation } from '../hooks/useCreateConversation';
 import { useMarkAsRead } from '../hooks/useMarkAsRead';
 import { useSendMessage } from '../hooks/useSendMessage';
 import { chatService } from '../services/chatService';
+import { getConversationPreview } from '../utils/messageContent';
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -39,10 +40,38 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const virtualConversation = location.state?.virtualConversation as
     | VirtualConversationData
     | undefined;
+  const stateDraftTour = location.state?.draftTour as
+    | import('@/features/chat/types/types').DraftTourAttachment
+    | undefined;
+  const stateInitialMessage = (location.state?.initialMessage || location.state?.draftMessage) as
+    | string
+    | undefined;
+
+  const [draftTour, setDraftTour] = useState(stateDraftTour);
+  const [initialDraftMessage, setInitialDraftMessage] = useState(stateInitialMessage);
+
+  const handleClearDraft = useCallback(() => {
+    setDraftTour(undefined);
+    setInitialDraftMessage(undefined);
+    navigate(location.pathname, {
+      replace: true,
+      state: {
+        ...location.state,
+        draftTour: undefined,
+        initialMessage: undefined,
+        draftMessage: undefined,
+      },
+    });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (stateDraftTour) setDraftTour(stateDraftTour);
+    if (stateInitialMessage) setInitialDraftMessage(stateInitialMessage);
+  }, [stateDraftTour, stateInitialMessage]);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [searchQuery, _setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { client, isConnected } = useChatWebSocket();
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
@@ -94,10 +123,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
                 c.id === selectedId
                   ? {
                       ...c,
-                      lastMessage:
-                        parsed.content?.length > 22
-                          ? `${parsed.content.substring(0, 22)}...`
-                          : parsed.content,
+                      lastMessage: parsed.content,
                       lastMessageTime: new Date(parsed.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -206,27 +232,19 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const currentMessages = useMemo(() => {
     if (!selectedId) return [];
 
-    const apiMsgs: DetailMessage[] = (messagesResponse?.content || [])
-      .map((msg) => {
-        const date = new Date(msg.createdAt);
-        const time = !Number.isNaN(date.getTime())
-          ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : '';
-
-        const isSelf = user?.id === msg.senderId;
-        const sender: 'user' | 'agent' = isSelf ? 'agent' : 'user';
-
-        return {
-          id: msg.messageId,
-          sender,
-          text: msg.content,
-          time,
-          isSeen: msg.isRead,
-        };
-      })
+    // API trả tin nhắn mới nhất trước, UI cần thứ tự tăng dần theo thời gian.
+    return (messagesResponse?.content || [])
+      .map<DetailMessage>((msg) => ({
+        id: msg.messageId,
+        senderId: msg.senderId,
+        senderName: msg.senderName || 'Người dùng',
+        senderAvatarUrl: msg.senderAvatarUrl,
+        isOwn: user?.id === msg.senderId,
+        text: msg.content,
+        createdAt: msg.createdAt,
+        isSeen: msg.isRead,
+      }))
       .reverse();
-
-    return apiMsgs;
   }, [messagesResponse, selectedId, user?.id]);
 
   // Handle window focus or active chat to mark messages as read
@@ -255,10 +273,12 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
 
   const filteredConversations = conversations
     .filter((c) => {
-      const matchesSearch =
-        (c.userName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesSearch;
+      const keyword = searchQuery.trim().toLowerCase();
+      if (!keyword) return true;
+      return (
+        (c.userName || '').toLowerCase().includes(keyword) ||
+        getConversationPreview(c.lastMessage).toLowerCase().includes(keyword)
+      );
     })
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -277,6 +297,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const handleSendMessage = async (msgText: string) => {
     if (!selectedId) return;
 
+    // Clear draft tour / initial draft state immediately
+    handleClearDraft();
+
     if (selectedConversation?.isVirtual && selectedConversation.virtualData) {
       try {
         const res = await createConversationAsync({
@@ -293,6 +316,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             ...location.state,
             virtualConversation: undefined,
             conversationId: res.conversationId,
+            draftTour: undefined,
+            initialMessage: undefined,
+            draftMessage: undefined,
           },
         });
 
@@ -329,7 +355,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
                   ...c,
                   id: res.conversationId,
                   isVirtual: false,
-                  lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+                  lastMessage: msgText,
                   lastMessageTime: 'Vừa xong',
                   timestamp: new Date().toISOString(),
                 }
@@ -361,7 +387,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
         c.id === selectedId
           ? {
               ...c,
-              lastMessage: msgText.length > 22 ? `${msgText.substring(0, 22)}...` : msgText,
+              lastMessage: msgText,
               lastMessageTime: 'Vừa xong',
               timestamp: new Date().toISOString(),
             }
@@ -377,7 +403,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
       setSelectedId(null);
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
       queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Xóa cuộc hội thoại thất bại');
     }
   };
@@ -388,7 +414,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
       toast.success('Đã xóa thành viên khỏi nhóm');
       // Invalidate matching group queries so the member can be re-added from the group interface
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Xóa thành viên thất bại');
     }
   };
@@ -405,6 +431,8 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             conversations={filteredConversations}
             isLoading={isLoading}
             selectedId={selectedId}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             onSelectConversation={handleSelectConversation}
           />
           <ChatDetailPane
@@ -412,6 +440,9 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
             currentMessages={currentMessages}
             isLoadingMessages={isLoadingMessages}
             isSending={isSending}
+            draftTour={draftTour}
+            onRemoveDraftTour={handleClearDraft}
+            initialDraftMessage={initialDraftMessage}
             onSendMessage={handleSendMessage}
             onBack={() => setSelectedId(null)}
             onDeleteConversation={handleDeleteConversation}

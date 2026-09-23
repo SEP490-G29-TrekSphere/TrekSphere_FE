@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useDebounce } from '@/shared/hooks';
+import { useMemo, useState } from 'react';
+import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import { VendorFilterToolbar } from '../components/VendorFilterToolbar';
 import { VendorPagination } from '../components/VendorPagination';
 import { VendorStatsCards } from '../components/VendorStatsCards';
 import { VendorStatusDialog } from '../components/VendorStatusDialog';
@@ -13,29 +12,13 @@ import type { AdminVendor, VendorStatus } from '../types';
 
 const PAGE_SIZE = 10;
 
-/**
- * Trang Quản lý Nhà cung cấp (Vendor Management) — Super Admin Portal.
- *
- * Layout (đồng bộ với AccountList):
- * - 4 thẻ thống kê tổng quan.
- * - Card lớn bo góc 32px: toolbar tìm kiếm/lọc + bảng dữ liệu (4 cột) + pagination.
- * - Modal đổi trạng thái Vendor (hành động duy nhất khả dụng qua API).
- */
 export default function VendorList() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<VendorStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
   const [vendorForStatusChange, setVendorForStatusChange] = useState<AdminVendor | null>(null);
 
-  const debouncedSearch = useDebounce(search, 400);
-
-  // Reset về trang 1 mỗi khi filter thay đổi.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: chỉ dùng để trigger effect, không đọc giá trị trong body
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, status]);
-
-  const filter = useMemo(() => ({ search: debouncedSearch, status }), [debouncedSearch, status]);
+  const filter = useMemo(() => ({ search, status }), [search, status]);
 
   const { data, isLoading, isError, error } = useAdminVendors(filter, page, PAGE_SIZE);
   const { data: stats } = useAdminVendorStats();
@@ -64,31 +47,43 @@ export default function VendorList() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div>
-        <h1
-          className="text-2xl sm:text-3xl font-extrabold tracking-tight"
-          style={{ color: '#06261D' }}
-        >
-          Quản lý Nhà cung cấp
-        </h1>
-      </div>
+      <PortalPageHeader
+        title="Quản lý Nhà cung cấp"
+        description="Theo dõi hồ sơ, số liệu và trạng thái hoạt động của các đối tác Nhà cung cấp"
+      />
 
       {/* Overview stats */}
       <VendorStatsCards stats={stats} />
+
+      <PortalFilterBar<VendorStatus | 'ALL'>
+        tabs={[
+          { key: 'ALL', label: 'Tất cả', count: stats?.total },
+          { key: 'ACTIVE', label: 'Đang hoạt động', count: stats?.active },
+          { key: 'INACTIVE', label: 'Ngừng hoạt động', count: stats?.inactive },
+          { key: 'REVOKED', label: 'Đã thu hồi', count: stats?.revoked },
+        ]}
+        activeTab={status}
+        onTabChange={(newStatus) => {
+          setStatus(newStatus);
+          setPage(1);
+        }}
+        searchPlaceholder="Tìm theo tên, email hoặc công ty..."
+        searchValue={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        onSearchClear={() => {
+          setSearch('');
+          setPage(1);
+        }}
+      />
 
       {/* Data card */}
       <div
         className="overflow-hidden rounded-3xl bg-card shadow-sm"
         style={{ border: '1px solid #E6E2D1' }}
       >
-        <VendorFilterToolbar
-          search={search}
-          onSearchChange={setSearch}
-          status={status}
-          onStatusChange={setStatus}
-        />
-
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px]">
             <thead style={{ backgroundColor: '#F0EEE6' }}>

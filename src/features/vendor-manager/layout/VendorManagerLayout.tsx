@@ -1,69 +1,41 @@
 import {
-  Backpack,
   BarChart3,
-  CalendarClock,
-  ClipboardCheck,
-  Footprints,
+  Bell,
   LayoutGrid,
   LogOut,
   Map as MapIcon,
   MessageSquare,
-  Siren,
-  Tag,
-  Ticket,
-  UserRound,
-  Users,
-  WalletCards,
+  PenSquare,
 } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import NotificationBell from '@/shared/components/NotificationBell';
+import { PortalNavItem } from '@/shared/layout/PortalNavItem';
 import PortalShell from '@/shared/layout/PortalShell';
+import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 
 const navItems = [
-  { name: 'Tổng quan', path: PATHS.VENDOR_MANAGER_PROFILE, icon: LayoutGrid, disabled: false },
-  { name: 'Báo cáo', path: PATHS.VENDOR_MANAGER_REPORTS, icon: BarChart3, disabled: false },
-  {
-    name: 'Vận hành Tour',
-    path: PATHS.VENDOR_MANAGER_SESSIONS,
-    icon: CalendarClock,
-    disabled: false,
-  },
-  { name: 'Nhân viên', path: PATHS.VENDOR_MANAGER_STAFF, icon: Users, disabled: false },
-  { name: 'Tour', path: PATHS.VENDOR_MANAGER_TOURS, icon: MapIcon, disabled: false },
-  {
-    name: 'Duyệt tour',
-    path: PATHS.VENDOR_MANAGER_TOUR_APPROVALS,
-    icon: ClipboardCheck,
-    disabled: false,
-  },
-  { name: 'Đơn đặt tour', path: PATHS.VENDOR_MANAGER_BOOKINGS, icon: Ticket, disabled: false },
-  {
-    name: 'Cấu hình thanh toán',
-    path: PATHS.VENDOR_MANAGER_PAYMENT_SETTINGS,
-    icon: WalletCards,
-    disabled: false,
-  },
-  { name: 'Voucher', path: PATHS.VENDOR_MANAGER_VOUCHERS, icon: Tag, disabled: false },
-  { name: 'Khách hàng', path: '', icon: UserRound, disabled: true },
-  { name: 'Thiết bị', path: PATHS.VENDOR_MANAGER_EQUIPMENT, icon: Backpack, disabled: false },
-  { name: 'Porter', path: PATHS.VENDOR_MANAGER_PORTERS, icon: Footprints, disabled: false },
-  { name: 'Khẩn cấp (SOS)', path: PATHS.VENDOR_MANAGER_EMERGENCY, icon: Siren, disabled: false },
-  { name: 'Trò chuyện', path: PATHS.VENDOR_MANAGER_CHAT, icon: MessageSquare, disabled: false },
+  { name: 'Tổng quan', path: PATHS.VENDOR_PROFILE, icon: LayoutGrid, disabled: false },
+  { name: 'Tour', path: PATHS.VENDOR_TOURS, icon: MapIcon, disabled: false },
+  { name: 'Thống kê', path: PATHS.VENDOR_TOUR_STATISTICS, icon: BarChart3, disabled: false },
+  { name: 'Viết Blog', path: PATHS.VENDOR_BLOG_CREATE, icon: PenSquare, disabled: false },
+  { name: 'Trò chuyện', path: PATHS.VENDOR_CHAT, icon: MessageSquare, disabled: false },
+  { name: 'Thông báo', path: PATHS.VENDOR_NOTIFICATIONS, icon: Bell, disabled: false },
 ];
 
 export default function VendorManagerLayout() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const { logout } = useLogout({ redirectTo: PATHS.LOGIN });
-  const isChatPage = location.pathname === PATHS.VENDOR_MANAGER_CHAT;
+  const { logout } = useLogout({ redirectTo: PATHS.HOME });
+  const isChatPage = location.pathname === PATHS.VENDOR_CHAT;
 
-  const vendorName = user?.name || 'Vendor Manager';
+  const vendorName = user?.name || 'Nhà Cung Cấp';
   const vendorInitial = vendorName.charAt(0).toUpperCase();
 
   // Nhiều mục có thể cùng khớp prefix (vd "Tour" và "Duyệt tour" đều bắt đầu bằng
-  // "/vendor-manager/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
+  // "/vendor/tours") — chỉ mục có path khớp DÀI NHẤT được coi là active.
   const activeItem = navItems
     .filter((item) => !item.disabled && location.pathname.startsWith(item.path))
     .sort((a, b) => b.path.length - a.path.length)[0];
@@ -74,53 +46,67 @@ export default function VendorManagerLayout() {
       sidebarStyle={{ backgroundColor: '#EFECE6', borderRight: '1px solid #E0DCD1' }}
       mobileTitle="TrekSphere"
       fullBleed={isChatPage}
-      brand={
-        <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
-          <h1
-            className="text-3xl font-extrabold tracking-tight leading-none mb-1"
-            style={{ color: '#06261D' }}
-          >
-            TrekSphere
-          </h1>
-          <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
-            QUẢN LÝ NHÀ CUNG CẤP
-          </span>
-        </Link>
+      headerRight={<NotificationBell />}
+      brand={({ collapsed }) =>
+        collapsed ? (
+          <AppLogo
+            variant="mark"
+            tone="dark"
+            height={36}
+            to={PATHS.HOME}
+            ariaLabel="TrekSphere - Nhà Cung Cấp"
+            wrapperClassName="hover:opacity-85 transition-opacity flex items-center justify-center p-1"
+          />
+        ) : (
+          <Link to={PATHS.HOME} className="hover:opacity-85 transition-opacity block">
+            <h1
+              className="text-3xl font-extrabold tracking-tight leading-none mb-1"
+              style={{ color: '#06261D' }}
+            >
+              TrekSphere
+            </h1>
+            <span className="text-xs font-medium tracking-wide" style={{ color: '#6F7B75' }}>
+              NHÀ CUNG CẤP
+            </span>
+          </Link>
+        )
       }
-      nav={
-        <nav className="px-4 space-y-1">
+      nav={({ collapsed }) => (
+        <nav className={collapsed ? 'px-2 space-y-2' : 'px-4 space-y-1'}>
           {navItems.map((item) => {
-            const Icon = item.icon;
             if (item.disabled) {
               return null;
             }
 
             const isActive = item === activeItem;
             return (
-              <Link
+              <PortalNavItem
                 key={item.name}
-                to={item.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold transition-all"
-                style={
-                  isActive
-                    ? { backgroundColor: 'rgba(162, 235, 210, 0.35)', color: '#06261D' }
-                    : { color: '#6F7B75' }
-                }
-              >
-                <Icon className="h-5 w-5" />
-                {item.name}
-              </Link>
+                name={item.name}
+                path={item.path}
+                icon={item.icon}
+                isActive={isActive}
+                collapsed={collapsed}
+                disabled={item.disabled}
+                rounded="full"
+                activeStyle={{ backgroundColor: 'rgba(162, 235, 210, 0.35)', color: '#06261D' }}
+                inactiveStyle={{ color: '#6F7B75' }}
+              />
             );
           })}
         </nav>
-      }
-      userCard={
-        <div className="p-4" style={{ borderTop: '1px solid #E0DCD1' }}>
-          <div className="flex items-center justify-between p-2 rounded-xl">
-            <div className="flex items-center gap-3">
+      )}
+      userCard={({ collapsed }) =>
+        collapsed ? (
+          <div
+            className="p-3 flex flex-col items-center gap-2"
+            style={{ borderTop: '1px solid #E0DCD1' }}
+          >
+            <div className="relative group">
               <div
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold shadow-sm"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold shadow-sm cursor-pointer"
                 style={{ backgroundColor: '#06261D', color: '#FFFFFF' }}
+                title={vendorName}
               >
                 {user?.avatarUrl ? (
                   <img
@@ -132,25 +118,66 @@ export default function VendorManagerLayout() {
                   <span>{vendorInitial}</span>
                 )}
               </div>
-              <div className="flex min-w-0 flex-col">
+              <div className="pointer-events-none absolute left-full bottom-0 ml-3 hidden md:group-hover:flex flex-col gap-0.5 z-50 rounded-xl bg-white p-3 shadow-xl border border-[#E0DCD1] min-w-40 animate-in fade-in zoom-in-95 duration-150">
                 <span
                   className="truncate text-sm font-bold leading-tight"
                   style={{ color: '#06261D' }}
                 >
                   {vendorName}
                 </span>
+                <span className="text-xs text-[#6F7B75]">Nhà Cung Cấp</span>
               </div>
             </div>
+
             <button
               type="button"
               onClick={logout}
-              className="text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+              className="text-red-500 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
               title="Đăng xuất"
+              aria-label="Đăng xuất"
             >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
-        </div>
+        ) : (
+          <div className="p-4" style={{ borderTop: '1px solid #E0DCD1' }}>
+            <div className="flex items-center justify-between p-2 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold shadow-sm"
+                  style={{ backgroundColor: '#06261D', color: '#FFFFFF' }}
+                >
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={vendorName}
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span>{vendorInitial}</span>
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-col">
+                  <span
+                    className="truncate text-sm font-bold leading-tight"
+                    style={{ color: '#06261D' }}
+                  >
+                    {vendorName}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                title="Đăng xuất"
+                aria-label="Đăng xuất"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )
       }
     >
       <Outlet />

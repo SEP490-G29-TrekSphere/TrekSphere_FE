@@ -18,8 +18,27 @@ jest.mock('@/store/useToastStore', () => ({
 }));
 
 jest.mock('@/shared/ui', () => ({
+  AppButton: ({ children, onClick, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    <button type="button" onClick={onClick} {...props}>
+      {children}
+    </button>
+  ),
   AppSpinner: () => null,
   ConfirmActionDialog: () => null,
+  PortalFilterBar: () => null,
+  PortalPageHeader: ({
+    title,
+    actions,
+  }: {
+    title: string;
+    description?: string;
+    actions?: React.ReactNode;
+  }) => (
+    <div>
+      <h1>{title}</h1>
+      {actions}
+    </div>
+  ),
 }));
 
 const blog: TrekkerBlogItem = {

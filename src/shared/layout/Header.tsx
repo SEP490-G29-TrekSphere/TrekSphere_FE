@@ -1,12 +1,12 @@
-import { Bell, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
 import { authService } from '@/features/auth';
-import { mockNotifications } from '@/features/notifications/data/mockNotifications';
 import { profileKeys } from '@/features/profile/hooks/useProfile';
+import NotificationBell from '@/shared/components/NotificationBell';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
@@ -61,17 +61,24 @@ export default function Header() {
   const setUser = useAppStore((state) => state.setUser);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+        setNotificationOpen(false);
+        setMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -81,6 +88,9 @@ export default function Header() {
     setUser(null);
     queryClient.removeQueries({ queryKey: profileKeys.all });
     toast.success('Đã đăng xuất.');
+    setDropdownOpen(false);
+    setNotificationOpen(false);
+    setMobileMenuOpen(false);
     navigate(PATHS.HOME);
   };
 
@@ -88,16 +98,27 @@ export default function Header() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
   const showAvatar = Boolean(avatarUrl);
   const dashboardPath = getRoleDashboardPath(user?.roles);
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-40 w-full border-b bg-background border-border px-4 shadow-sm md:px-6"
+    >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none"
+            onClick={() => {
+              setMobileMenuOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  setDropdownOpen(false);
+                  setNotificationOpen(false);
+                }
+                return next;
+              });
+            }}
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
             aria-label="Mở menu điều hướng"
             aria-controls="mobile-nav-menu"
             aria-expanded={mobileMenuOpen}
@@ -113,23 +134,32 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link
-            to={PATHS.NOTIFICATIONS}
-            className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Bell className="size-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary ring-2 ring-background">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
-
+          {user && (
+            <NotificationBell
+              open={notificationOpen}
+              onOpenChange={(open) => {
+                setNotificationOpen(open);
+                if (open) {
+                  setDropdownOpen(false);
+                  setMobileMenuOpen(false);
+                }
+              }}
+            />
+          )}
           {/* User avatar + dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setDropdownOpen((prev) => !prev)}
+              onClick={() => {
+                setDropdownOpen((prev) => {
+                  const next = !prev;
+                  if (next) {
+                    setNotificationOpen(false);
+                    setMobileMenuOpen(false);
+                  }
+                  return next;
+                });
+              }}
               className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 cursor-pointer"
               aria-label="Mở menu cá nhân"
             >

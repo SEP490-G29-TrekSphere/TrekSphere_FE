@@ -1,13 +1,13 @@
-import { vendorBookingService } from '@/features/vendor-bookings/services/vendorBookingService';
-import type { ScheduleBookingItem } from '@/features/vendor-bookings/types';
 import type { TourSchedule } from '../types';
+import {
+  getScheduleBookingManifest,
+  type ScheduleBookingItem,
+} from './scheduleBookingManifestService';
 import { vendorScheduleCancellationService } from './vendorScheduleCancellationService';
 import { vendorScheduleService } from './vendorScheduleService';
 
-jest.mock('@/features/vendor-bookings/services/vendorBookingService', () => ({
-  vendorBookingService: {
-    getScheduleBookingManifest: jest.fn(),
-  },
+jest.mock('./scheduleBookingManifestService', () => ({
+  getScheduleBookingManifest: jest.fn(),
 }));
 
 jest.mock('./vendorScheduleService', () => ({
@@ -16,8 +16,8 @@ jest.mock('./vendorScheduleService', () => ({
   },
 }));
 
-const mockGetManifest = vendorBookingService.getScheduleBookingManifest as jest.MockedFunction<
-  typeof vendorBookingService.getScheduleBookingManifest
+const mockGetManifest = getScheduleBookingManifest as jest.MockedFunction<
+  typeof getScheduleBookingManifest
 >;
 const mockUpdateSchedule = vendorScheduleService.updateSchedule as jest.MockedFunction<
   typeof vendorScheduleService.updateSchedule
@@ -30,7 +30,6 @@ const schedule: TourSchedule = {
   returnDate: '2026-09-12',
   availableSlots: 10,
   bookedSlots: 2,
-  price: 1_000_000,
   status: 'OPEN',
   isDeleted: false,
   createdAt: '2026-08-01T00:00:00Z',

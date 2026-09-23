@@ -20,9 +20,9 @@ import { AppButton } from '@/shared/ui';
 function resolveSort(sortBy: TourFilter['sortBy']): { sortBy: ApiSortField; sortDir: ApiSortDir } {
   switch (sortBy) {
     case 'price-asc':
-      return { sortBy: 'basePrice', sortDir: 'asc' };
+      return { sortBy: 'price', sortDir: 'asc' };
     case 'price-desc':
-      return { sortBy: 'basePrice', sortDir: 'desc' };
+      return { sortBy: 'price', sortDir: 'desc' };
     case 'newest':
       return { sortBy: 'createdAt', sortDir: 'desc' };
     case 'duration-asc':
@@ -51,9 +51,6 @@ const PAGE_SIZE = 6;
 export default function ListTours() {
   const [draft, setDraft] = useState<TourSearchValues>({
     keyword: '',
-    location: '',
-    departureDate: '',
-    budget: '',
   });
 
   const [filters, setFilters] = useState<TourFilter>({
@@ -75,8 +72,12 @@ export default function ListTours() {
     setFilters((prev) => ({
       ...prev,
       keyword: values.keyword,
-      location: values.location,
     }));
+    setPage(0);
+  };
+
+  const handleLocationChange = (location: string) => {
+    setFilters((prev) => ({ ...prev, location }));
     setPage(0);
   };
 
@@ -109,8 +110,8 @@ export default function ListTours() {
   };
 
   const handleResetFilters = () => {
-    setDraft({ keyword: '', location: '', departureDate: '', budget: '' });
-    setFilters({ sortBy: 'newest', departureDate: '', returnDate: '' });
+    setDraft({ keyword: '' });
+    setFilters({ sortBy: 'newest', location: '', departureDate: '', returnDate: '' });
     setPriceRange([0, 0]); // will be re-synced from useTourPriceRange
     setPage(0);
   };
@@ -208,21 +209,19 @@ export default function ListTours() {
       <div className="relative z-20 -mt-16 sm:-mt-20">
         {/* Centered max-width container — aligns search bar and grid */}
         <div className="mx-auto max-w-[1400px] w-full px-4 sm:px-6 lg:px-8">
-          <TourSearchBar
-            onSearch={handleSearch}
-            initialValues={draft}
-            className="mx-auto"
-            departureDate={filters.departureDate}
-            returnDate={filters.returnDate}
-            onDepartureDateChange={handleDepartureDateChange}
-            onReturnDateChange={handleReturnDateChange}
-          />
+          <TourSearchBar onSearch={handleSearch} initialValues={draft} className="mx-auto" />
 
           {/* Grid Layout below Search: Left Sidebar Filters, Right Content Area */}
           <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 sm:mt-14">
             {/* LEFT COLUMN: Sidebar Filters */}
             <aside className="lg:col-span-3 flex flex-col gap-6">
               <TourFilterPanel
+                location={filters.location}
+                onLocationChange={handleLocationChange}
+                departureDate={filters.departureDate}
+                returnDate={filters.returnDate}
+                onDepartureDateChange={handleDepartureDateChange}
+                onReturnDateChange={handleReturnDateChange}
                 difficulty={filters.difficulty}
                 priceRange={priceRange}
                 minPrice={minPrice}

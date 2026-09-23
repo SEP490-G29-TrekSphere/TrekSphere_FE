@@ -1,5 +1,4 @@
 import { getPrimaryRole, PATHS, ROLES } from '@/constants';
-import { useVendorBookingStats } from '@/features/vendor-bookings/hooks/useVendorBookingStats';
 import { VendorCancellationPolicyCard } from '@/features/vendor-cancellation-policies';
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import { useAppStore } from '@/store/useAppStore';
@@ -15,11 +14,11 @@ import { useVendorProfile } from '../hooks/useVendorProfile';
  */
 export default function VendorProfileOverview() {
   const user = useAppStore((state) => state.user);
-  const isManager = getPrimaryRole(user?.roles) === ROLES.VENDOR_MANAGER;
+  const primaryRole = getPrimaryRole(user?.roles);
+  const canManage = primaryRole === ROLES.VENDOR;
 
   const { data: profile, isLoading, isError, error } = useVendorProfile();
   const { data: tourStats } = useVendorTourStats();
-  const { data: bookingStats } = useVendorBookingStats();
 
   if (isLoading) {
     return (
@@ -42,15 +41,12 @@ export default function VendorProfileOverview() {
     <div className="space-y-5">
       <VendorProfileHeroCard
         profile={profile}
-        isManager={isManager}
-        editPath={PATHS.VENDOR_MANAGER_PROFILE_EDIT}
+        isManager={canManage}
+        editPath={PATHS.VENDOR_PROFILE_EDIT}
       />
 
       {/* KPI */}
-      <VendorProfileKpiCards
-        totalTours={tourStats?.total}
-        totalBookings={bookingStats?.totalBookings}
-      />
+      <VendorProfileKpiCards totalTours={tourStats?.total} />
 
       {/* Bento chi tiết */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -59,7 +55,7 @@ export default function VendorProfileOverview() {
       </div>
 
       {/* Chính sách hủy tour — full width vì có danh sách điều khoản + thao tác CRUD */}
-      <VendorCancellationPolicyCard canManage={isManager} />
+      <VendorCancellationPolicyCard canManage={canManage} />
     </div>
   );
 }

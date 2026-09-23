@@ -1,15 +1,13 @@
 import type { PaymentStatus } from '@/features/payments/types';
-import type { BookingDetailResponse } from '@/features/tours/types';
 
-type CheckoutBookingState = Pick<
-  BookingDetailResponse,
-  | 'bookingStatus'
-  | 'holdExpiresAt'
-  | 'onlinePaymentEnabled'
-  | 'paymentPlan'
-  | 'paymentStatus'
-  | 'remainingDueAt'
->;
+export interface CheckoutBookingState {
+  bookingStatus?: string;
+  holdExpiresAt?: string;
+  onlinePaymentEnabled?: boolean;
+  paymentPlan?: string;
+  paymentStatus?: string;
+  remainingDueAt?: string;
+}
 
 function isFuture(value: string | undefined, now: number): boolean {
   return Boolean(value && new Date(value).getTime() > now);
@@ -35,7 +33,9 @@ export function isRemainingCheckoutAvailable(
     booking.onlinePaymentEnabled !== false &&
     booking.paymentPlan === 'DEPOSIT' &&
     booking.paymentStatus === 'PARTIALLY_PAID' &&
-    ['PENDING_CONFIRMATION', 'CONFIRMED'].includes(booking.bookingStatus) &&
+    Boolean(
+      booking.bookingStatus && ['PENDING_CONFIRMATION', 'CONFIRMED'].includes(booking.bookingStatus)
+    ) &&
     isFuture(booking.remainingDueAt, now)
   );
 }

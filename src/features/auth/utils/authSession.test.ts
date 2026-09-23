@@ -16,10 +16,10 @@ describe('parseAuthSessionPayload', () => {
   });
 
   it('supports the current Backend cookie-only response', () => {
-    expect(parseAuthSessionPayload({ id: 'user-id', roles: ['VENDOR_MANAGER'] })).toEqual({
+    expect(parseAuthSessionPayload({ id: 'user-id', roles: ['VENDOR'] })).toEqual({
       accessToken: '',
       refreshToken: '',
-      userData: { id: 'user-id', roles: ['VENDOR_MANAGER'] },
+      userData: { id: 'user-id', roles: ['VENDOR'] },
     });
   });
 

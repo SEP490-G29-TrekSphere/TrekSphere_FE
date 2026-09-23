@@ -16,6 +16,7 @@ export default function ReportDetail() {
 
   const [selectedDecision, setSelectedDecision] = useState<ReportAction | null>(null);
   const [note, setNote] = useState('');
+  const [penaltyPoints, setPenaltyPoints] = useState<number>(0);
   const [isEditingDecision, setIsEditingDecision] = useState(false);
 
   const isSubmitted = reportData
@@ -25,7 +26,14 @@ export default function ReportDetail() {
   const handleSubmitDecision = () => {
     if (!selectedDecision || !id) return;
     resolveMutation.mutate(
-      { id, data: { action: selectedDecision, resolutionNotes: note } },
+      {
+        id,
+        data: {
+          action: selectedDecision,
+          resolutionNotes: note,
+          penaltyTrustScore: penaltyPoints,
+        },
+      },
       {
         onSuccess: () => {
           setIsEditingDecision(false);
@@ -59,7 +67,7 @@ export default function ReportDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full pb-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ReportDetailHeader id={reportData.id} status={reportData.status} />
 
       {/* Main Grid Layout */}
@@ -76,6 +84,11 @@ export default function ReportDetail() {
             targetId={reportData.targetId}
             targetTitle={reportData.targetTitle}
             targetContent={reportData.targetContent}
+            targetAuthorAvatar={reportData.targetAuthorAvatar}
+            targetAuthorFullName={reportData.targetAuthorFullName}
+            targetAuthorEmail={reportData.targetAuthorEmail}
+            targetAuthorStatus={reportData.targetAuthorStatus}
+            targetAuthorTrustScore={reportData.targetAuthorTrustScore}
           />
         </div>
 
@@ -85,9 +98,11 @@ export default function ReportDetail() {
             isSubmitted={isSubmitted}
             selectedDecision={selectedDecision}
             note={note}
+            penaltyPoints={penaltyPoints}
             isSubmitting={resolveMutation.isPending}
             onDecisionChange={setSelectedDecision}
             onNoteChange={setNote}
+            onPenaltyPointsChange={setPenaltyPoints}
             onSubmit={handleSubmitDecision}
             onEditDecision={() => setIsEditingDecision(true)}
           />

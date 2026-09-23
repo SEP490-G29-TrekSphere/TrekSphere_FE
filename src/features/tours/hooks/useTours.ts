@@ -1,41 +1,42 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
 import { type TourListResponse, tourService } from '@/features/tours/services/tourService';
 import type { ApiDifficulty, Tour, TourApiItem, TourListParams } from '@/features/tours/types';
+import { formatTourDuration } from '@/utils/format';
 
 const DIFFICULTY_MAP: Record<ApiDifficulty, Tour['level']> = {
   EASY: 'Dễ',
   MODERATE: 'Trung bình',
   HARD: 'Khó',
-  EXPERT: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
-  BEGINNER: 'Dễ',
+  EXTREME: 'Khám phá', // LevelBadge renders 'Khám phá' as "Cực khó" with rose color
 };
 
-function formatPrice(price: number): string {
+function formatPrice(price?: number | null): string {
+  if (price == null || Number.isNaN(price) || price < 0) return '0đ';
   return `${price.toLocaleString('vi-VN')}đ`;
 }
 
 export function mapApiItemToTour(item: TourApiItem): Tour {
+  const safePrice =
+    item.price == null || Number.isNaN(item.price) || item.price < 0 ? 0 : item.price;
   return {
     id: item.tourId,
     name: item.tourName,
     description: '',
-    duration: `${item.durationDays} ngày`,
-    level: DIFFICULTY_MAP[item.difficulty],
-    price: formatPrice(item.basePrice),
-    basePrice: item.basePrice,
-    rating: item.averageRating ?? 0,
-    reviewCount: item.totalReviews,
+    duration: formatTourDuration(item.durationDays ?? 1),
+    level: (item.difficulty && DIFFICULTY_MAP[item.difficulty]) || 'Trung bình',
+    price: formatPrice(safePrice),
+    basePrice: safePrice,
     image: item.coverImageUrl,
     slug: item.tourId,
     category: item.category || '',
     location: item.location,
-    maxParticipants: 0,
+    maxParticipants: item.maxCapacity ?? 0,
+    minCapacity: item.minCapacity,
+    maxCapacity: item.maxCapacity,
     highlights: [],
     includes: [],
     isPopular: false,
     isNew: false,
-    onlineBookingEnabled: item.onlineBookingEnabled === true,
-    onlineBookingDisabledReason: item.onlineBookingDisabledReason,
   };
 }
 
@@ -52,7 +53,10 @@ export interface UseToursResult {
   refetch: UseQueryResult<TourListResponse, Error>['refetch'];
 }
 
-export function useTours(params: TourListParams = {}): UseToursResult {
+export function useTours(
+  params: TourListParams = {},
+  options?: { enabled?: boolean }
+): UseToursResult {
   const queryParams: TourListParams = {
     page: params.page ?? 0,
     size: params.size ?? 10,
@@ -63,11 +67,13 @@ export function useTours(params: TourListParams = {}): UseToursResult {
     difficulty: params.difficulty,
     departureDate: params.departureDate,
     returnDate: params.returnDate,
+    vendorId: params.vendorId,
   };
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['tours', queryParams],
     queryFn: () => tourService.getTours(queryParams),
+    ...options,
   });
 
   return {

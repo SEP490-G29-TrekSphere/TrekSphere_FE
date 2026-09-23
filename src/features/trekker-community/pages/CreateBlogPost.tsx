@@ -18,7 +18,7 @@ import { MyBlogTable } from '../components/MyBlogTable';
 import { useTrekkerBlogDetail, useTrekkerBlogList } from '../hooks/useTrekkerBlog';
 import { useTrekkerBlogMutations } from '../hooks/useTrekkerBlogMutations';
 
-const STAFF_POSTS_PAGE_SIZE = 5;
+const VENDOR_POSTS_PAGE_SIZE = 5;
 
 /** ~200 từ/phút — ước tính đơn giản, tính hoàn toàn phía client. */
 function computeReadStats(content: string) {
@@ -40,7 +40,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
   const blogId = params.blogId;
 
   const user = useAppStore((state) => state.user);
-  const isStaff = getPrimaryRole(user?.roles) === ROLES.VENDOR_STAFF;
+  const isVendor = getPrimaryRole(user?.roles) === ROLES.VENDOR;
 
   const { data: existingBlog, isLoading: isLoadingBlog } = useTrekkerBlogDetail(
     editMode ? blogId : undefined
@@ -50,20 +50,20 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [staffPostsPage, setStaffPostsPage] = useState(1);
+  const [vendorPostsPage, setVendorPostsPage] = useState(1);
 
-  // Staff không có màn "Bài viết của tôi" riêng — hiển thị luôn danh sách bài
+  // Vendor không có màn "Bài viết của tôi" riêng — hiển thị luôn danh sách bài
   // đã đăng ngay dưới khung soạn thảo trên trang Viết Blog.
-  const showStaffPostList = isStaff && !editMode;
-  const staffPosts = useTrekkerBlogList(
+  const showVendorPostList = isVendor && !editMode;
+  const vendorPosts = useTrekkerBlogList(
     {
       authorId: user?.id,
-      page: staffPostsPage,
-      size: STAFF_POSTS_PAGE_SIZE,
+      page: vendorPostsPage,
+      size: VENDOR_POSTS_PAGE_SIZE,
       sortBy: 'createdAt',
       sortDir: 'desc',
     },
-    { enabled: showStaffPostList }
+    { enabled: showVendorPostList }
   );
 
   const {
@@ -157,12 +157,12 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
       {
         onSuccess: () => {
           toast.success('Bài viết đã được đăng thành công!');
-          if (isStaff) {
-            // Staff không có trang danh sách riêng — ở lại đây, reset form để
+          if (isVendor) {
+            // Vendor không có trang danh sách riêng — ở lại đây, reset form để
             // viết bài tiếp theo, bài vừa đăng sẽ tự xuất hiện trong danh sách bên dưới.
             reset({ title: '', content: '' });
             handleRemoveCover();
-            setStaffPostsPage(1);
+            setVendorPostsPage(1);
           } else {
             navigate(PATHS.TREKKER_BLOG_LIST);
           }
@@ -173,7 +173,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
     );
   };
 
-  const handleBack = () => navigate(isStaff ? PATHS.PARTNER : PATHS.TREKKER_BLOG_LIST);
+  const handleBack = () => navigate(isVendor ? PATHS.VENDOR : PATHS.TREKKER_BLOG_LIST);
 
   if (editMode && isLoadingBlog) {
     return (
@@ -196,7 +196,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
     <div className="min-h-screen" style={{ backgroundColor: '#FAF8F1' }}>
       {/* Topbar Action */}
       <div
-        className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-6"
+        className="sticky top-0 z-10 flex items-center justify-between pb-4"
         style={{ backgroundColor: 'transparent' }}
       >
         <button
@@ -234,8 +234,8 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="rounded-full px-4 py-2 text-xs font-medium"
-            style={{ backgroundColor: '#06261D', color: '#FFFFFF' }}
+            className="rounded-full px-5 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: '#06261D' }}
           >
             {isSubmitting ? 'Đang xử lý...' : editMode ? 'Lưu thay đổi' : 'Đăng bài'}
           </Button>
@@ -243,7 +243,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
       </div>
 
       {/* Main content */}
-      <main className="mx-auto max-w-none w-full px-4 pb-16 sm:px-6">
+      <div className="w-full pb-16">
         <div className="mb-8">
           <h2 className="text-3xl font-bold" style={{ color: '#06261D' }}>
             {editMode ? 'Chỉnh sửa bài viết' : 'Soạn thảo bài viết mới'}
@@ -432,13 +432,13 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
           </div>
         </div>
 
-        {showStaffPostList && (
+        {showVendorPostList && (
           <div className="mt-10">
             <h3 className="mb-4 text-lg font-bold" style={{ color: '#06261D' }}>
               Bài viết đã đăng
             </h3>
 
-            {staffPosts.isLoading ? (
+            {vendorPosts.isLoading ? (
               <div
                 className="flex items-center justify-center rounded-2xl py-16"
                 style={{ backgroundColor: '#FFFFFF', border: '1px solid #E6E2D1' }}
@@ -447,8 +447,8 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
               </div>
             ) : (
               <>
-                <MyBlogTable blogs={staffPosts.data?.items ?? []} />
-                {(staffPosts.data?.meta.totalElements ?? 0) > 0 && (
+                <MyBlogTable blogs={vendorPosts.data?.items ?? []} />
+                {(vendorPosts.data?.meta.totalElements ?? 0) > 0 && (
                   <div
                     className="overflow-hidden rounded-b-3xl"
                     style={{
@@ -458,11 +458,11 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
                     }}
                   >
                     <MyBlogPagination
-                      currentPage={staffPostsPage}
-                      totalPages={Math.max(1, staffPosts.data?.meta.totalPages ?? 1)}
-                      onPageChange={setStaffPostsPage}
-                      totalCount={staffPosts.data?.meta.totalElements ?? 0}
-                      pageSize={STAFF_POSTS_PAGE_SIZE}
+                      currentPage={vendorPostsPage}
+                      totalPages={Math.max(1, vendorPosts.data?.meta.totalPages ?? 1)}
+                      onPageChange={setVendorPostsPage}
+                      totalCount={vendorPosts.data?.meta.totalElements ?? 0}
+                      pageSize={VENDOR_POSTS_PAGE_SIZE}
                     />
                   </div>
                 )}
@@ -470,7 +470,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
             )}
           </div>
         )}
-      </main>
+      </div>
 
       {showPreview && (
         <BlogPreviewModal

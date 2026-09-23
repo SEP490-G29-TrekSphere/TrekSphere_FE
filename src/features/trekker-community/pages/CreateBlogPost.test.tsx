@@ -50,9 +50,9 @@ test('Trekker bấm "Quay lại" thì về danh sách bài viết trong portal T
   expect(mockNavigate).toHaveBeenCalledWith(PATHS.TREKKER_BLOG_LIST);
 });
 
-test('Vendor staff bấm "Quay lại" thì vẫn về portal Partner', () => {
-  mockUser.roles = ['vendor_staff'];
+test('Vendor bấm "Quay lại" thì về portal Vendor', () => {
+  mockUser.roles = ['vendor'];
   render(<CreateBlogPost />);
   fireEvent.click(screen.getByRole('button', { name: /Quay lại/ }));
-  expect(mockNavigate).toHaveBeenCalledWith(PATHS.PARTNER);
+  expect(mockNavigate).toHaveBeenCalledWith(PATHS.VENDOR);
 });

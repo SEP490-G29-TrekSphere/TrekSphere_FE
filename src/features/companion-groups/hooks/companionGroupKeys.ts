@@ -16,18 +16,15 @@ export const companionGroupKeys = {
   detail: (id: string) => [...companionGroupKeys.details(), id] as const,
 
   // GET /matching-groups/:id/members/me — current user's membership status
-  memberStatuses: () => [...companionGroupKeys.all, 'member-me'] as const,
-  memberStatus: (id: string) => [...companionGroupKeys.memberStatuses(), id] as const,
-
-  // GET /matching-groups/owned — groups I own / belong to
+  // GET /matching-groups/my-groups — accepted groups where I am Leader/Member
   myGroups: () => [...companionGroupKeys.all, 'my-groups'] as const,
   myGroupList: (params: object) => [...companionGroupKeys.myGroups(), params] as const,
 
-  // GET /matching-groups/join-requests/me — my outgoing join requests
+  // GET /matching-groups/my-applications — my outgoing applications
   myJoinRequests: () => [...companionGroupKeys.all, 'my-join-requests'] as const,
   myJoinRequestList: (params: object) => [...companionGroupKeys.myJoinRequests(), params] as const,
 
-  // GET /matching-groups/:id/join-requests — incoming requests (owner view)
+  // GET /matching-groups/:id/applications — incoming applications (Leader view)
   joinRequests: () => [...companionGroupKeys.all, 'join-requests'] as const,
   joinRequestList: (groupId: string, params?: object) =>
     [...companionGroupKeys.joinRequests(), groupId, params] as const,

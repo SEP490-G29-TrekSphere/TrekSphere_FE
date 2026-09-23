@@ -1,4 +1,4 @@
-import { PATHS } from '@/constants';
+import { getTrekkerGroupDetailPath, PATHS } from '@/constants';
 import ViewProfile from '@/features/profile/pages/ViewProfile';
 
 /**
@@ -7,5 +7,12 @@ import ViewProfile from '@/features/profile/pages/ViewProfile';
  * thay vì /profile/edit (của MainLayout cũ).
  */
 export default function TrekkerViewProfile() {
-  return <ViewProfile editPath={PATHS.TREKKER_PROFILE_EDIT} />;
+  return (
+    <ViewProfile
+      editPath={PATHS.TREKKER_PROFILE_EDIT}
+      changePasswordPath={PATHS.TREKKER_CHANGE_PASSWORD}
+      groupDetailPath={getTrekkerGroupDetailPath}
+      fluid
+    />
+  );
 }

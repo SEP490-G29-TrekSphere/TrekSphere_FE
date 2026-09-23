@@ -29,10 +29,33 @@ export interface BlogListItem {
   authorId: string;
   authorName: string;
   authorAvatarUrl: string;
-  publishedAt: string; // ISO
-  readingTimeMinutes: number;
-  tags: string[];
+  publishedAt?: string; // ISO
+  createdAt?: string; // ISO from BE
+  readingTimeMinutes?: number;
+  tags?: string[];
   viewCount: number;
+
+  /**
+   * Các field mạng xã hội của community feed.
+   */
+  totalComments?: number;
+  likeCount?: number;
+  likedByMe?: boolean;
+  commentCount?: number;
+  isFollowingAuthor?: boolean;
+}
+
+/**
+ * Một người dùng trong khối "Gợi ý theo dõi" ở sidebar feed.
+ * BE chưa có endpoint `/users/suggested` — shape này là hợp đồng dự kiến.
+ */
+export interface SuggestedUser {
+  userId: string;
+  fullName: string;
+  avatarUrl: string;
+  /** Dòng phụ dưới tên — địa điểm hoặc mô tả ngắn. */
+  subtitle?: string;
+  isFollowing?: boolean;
 }
 
 /** Một bài viết trong detail endpoint — mở rộng từ list item. */
@@ -88,6 +111,8 @@ export interface UpdateBlogCommentPayload {
 /** Tham số query cho list endpoint — bám đúng param BE hỗ trợ. */
 export interface BlogListParams {
   keyword?: string;
+  /** Lọc theo tác giả — dùng cho tab "Bài viết" ở trang hồ sơ. */
+  authorId?: string;
   page?: number;
   size?: number;
   sortBy?: string;

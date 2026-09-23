@@ -1,7 +1,4 @@
-import type { AxiosResponse } from 'axios';
-import axios from 'axios';
-import type { ApiResponse } from '@/config/apiClient';
-import apiClient, { handleResponse } from '@/config/apiClient';
+import { ApiService, ApiUpload } from '@/config/apiClient';
 import type { UserProfile } from '@/features/auth';
 
 /**
@@ -59,49 +56,25 @@ export const profileService = {
       formData
     );
   },
+  /**
+   * Xóa file khỏi Cloudinary.
+   * Nhận vào Cloudinary publicId hoặc URL đầy đủ.
+   */
+  deleteFile: async (publicIdOrUrl: string) => {
+    let publicId = publicIdOrUrl;
+    if (publicIdOrUrl.includes('cloudinary.com/')) {
+      const uploadIdx = publicIdOrUrl.indexOf('/upload/');
+      if (uploadIdx !== -1) {
+        let pathAfterUpload = publicIdOrUrl.substring(uploadIdx + 8);
+        pathAfterUpload = pathAfterUpload.replace(/^v\d+\//, '');
+        const dotIdx = pathAfterUpload.lastIndexOf('.');
+        if (dotIdx !== -1) {
+          publicId = pathAfterUpload.substring(0, dotIdx);
+        } else {
+          publicId = pathAfterUpload;
+        }
+      }
+    }
+    return ApiService<string>(`/files/delete?publicId=${encodeURIComponent(publicId)}`, 'DELETE');
+  },
 };
-
-/**
- * Wrapper dùng chung cho request JSON và FormData.
- */
-function ApiService<T>(
-  path: string,
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-  data?: unknown
-): Promise<ApiResponse<T>> {
-  return apiClient
-    .request({ url: path, method, data })
-    .then((res: AxiosResponse) => handleResponse<T>(res))
-    .catch((err: unknown) => {
-      if (axios.isAxiosError(err)) {
-        const responseData = err.response?.data as { message?: string; error?: string } | undefined;
-        return {
-          error: responseData?.message || responseData?.error || err.message,
-          message: responseData?.message || responseData?.error || err.message,
-          status: err.response?.status || 500,
-        };
-      }
-      return { error: 'An unknown error occurred', message: 'An unknown error occurred' };
-    });
-}
-
-/**
- * Hỗ trợ upload file (multipart/form-data) — gửi FormData trực tiếp qua axios.
- * KHÔNG set thủ công Content-Type vì axios sẽ tự thêm boundary.
- */
-function ApiUpload<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
-  return apiClient
-    .request({ url: path, method: 'POST', data: formData })
-    .then((res: AxiosResponse) => handleResponse<T>(res))
-    .catch((err: unknown) => {
-      if (axios.isAxiosError(err)) {
-        const responseData = err.response?.data as { message?: string; error?: string } | undefined;
-        return {
-          error: responseData?.message || responseData?.error || err.message,
-          message: responseData?.message || responseData?.error || err.message,
-          status: err.response?.status || 500,
-        };
-      }
-      return { error: 'An unknown error occurred', message: 'An unknown error occurred' };
-    });
-}
