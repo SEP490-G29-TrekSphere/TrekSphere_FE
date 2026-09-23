@@ -64,7 +64,6 @@ export function EditCheckpointModal({
   const imageUrl = watch('imageUrl');
 
   function handleClose() {
-
     imageCleanup.discard();
     if (checkpoint) {
       reset({
@@ -145,7 +144,9 @@ export function EditCheckpointModal({
           handleClose();
         },
         onError: (err: unknown) => {
-          toast.error(err instanceof Error ? err.message : 'Không thể cập nhật điểm dừng. Vui lòng thử lại!');
+          toast.error(
+            err instanceof Error ? err.message : 'Không thể cập nhật điểm dừng. Vui lòng thử lại!'
+          );
         },
       }
     );
@@ -184,7 +185,6 @@ export function EditCheckpointModal({
       {/* Form Body */}
       <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
         <div className="max-h-[70vh] space-y-3.5 overflow-y-auto px-5 py-4 text-xs">
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">

@@ -139,7 +139,7 @@ export function CreateExpenseModal({
         note: '',
       });
     }
-  }, [isOpen]);
+  }, [isOpen, activeMembers, defaultLeaderMember, reset]);
 
   const handleClose = () => {
     receiptCleanup.discard();
@@ -167,7 +167,9 @@ export function CreateExpenseModal({
       receiptUrl: data.receiptUrl?.trim() || null,
       note: data.note?.trim() || null,
       beneficiaryMemberIds:
-        scope === 'SELECTED_MEMBERS' ? selectedMembers : activeMembers.map((m) => m.matchingMemberId),
+        scope === 'SELECTED_MEMBERS'
+          ? selectedMembers
+          : activeMembers.map((m) => m.matchingMemberId),
       customShares:
         splitMethod === 'CUSTOM'
           ? currentBeneficiaryMembers.map((m) => ({
@@ -190,17 +192,12 @@ export function CreateExpenseModal({
   };
 
   return (
-    <AppModalShell
-      open={isOpen}
-      onClose={handleClose}
-      className="max-w-xl p-6"
-    >
+    <AppModalShell open={isOpen} onClose={handleClose} className="max-w-xl p-6">
       <div className="flex items-center gap-2 text-foreground font-extrabold text-base mb-4">
         <Plus className="h-5 w-5 text-primary" />
         Nhập Hóa Đơn / Khoản Chi Thực Tế
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-xs">
-
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5 text-primary" />
@@ -212,7 +209,9 @@ export function CreateExpenseModal({
             {...register('title')}
             className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
           />
-          {errors.title && <p className="text-destructive text-[11px] font-bold">{errors.title.message}</p>}
+          {errors.title && (
+            <p className="text-destructive text-[11px] font-bold">{errors.title.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -233,7 +232,9 @@ export function CreateExpenseModal({
                 />
               )}
             />
-            {errors.amount && <p className="text-destructive text-[11px] font-bold">{errors.amount.message}</p>}
+            {errors.amount && (
+              <p className="text-destructive text-[11px] font-bold">{errors.amount.message}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">

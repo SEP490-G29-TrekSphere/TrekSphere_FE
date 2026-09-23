@@ -17,26 +17,59 @@ interface SosLocationMapProps {
 
 function createSosPopupContent(alert: SosAlertResponse): HTMLElement {
   const content = document.createElement('div');
-  content.className = 'space-y-1 text-sm';
+  content.className = 'space-y-1.5 text-xs p-1 min-w-[200px]';
 
+  const senderRow = document.createElement('div');
+  senderRow.className = 'flex items-center justify-between gap-2 border-b border-neutral-200 pb-1';
   const sender = document.createElement('strong');
+  sender.className = 'text-sm text-neutral-900';
   sender.textContent = alert.senderName;
-
-  const incident = document.createElement('p');
-  incident.textContent = getIncidentTypeLabel(alert.incidentTypeCode);
-
-  const time = document.createElement('p');
-  time.className = 'text-xs text-neutral-500';
-  time.textContent = new Date(alert.createdAt).toLocaleString('vi-VN');
-
   const status = document.createElement('span');
   status.className =
     alert.status === 'OPEN'
-      ? 'inline-block rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700'
-      : 'inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700';
+      ? 'inline-block rounded-md bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700'
+      : 'inline-block rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700';
   status.textContent = alert.status === 'OPEN' ? 'Đang mở' : 'Đã đóng';
+  senderRow.append(sender, status);
 
-  content.append(sender, incident, time, status);
+  const incident = document.createElement('div');
+  incident.className = 'font-bold text-red-600';
+  incident.textContent = `⚠️ ${getIncidentTypeLabel(alert.incidentTypeCode)}`;
+
+  const time = document.createElement('div');
+  time.className = 'text-[11px] text-neutral-500';
+  time.textContent = `🕒 ${new Date(alert.createdAt).toLocaleString('vi-VN')}`;
+
+  content.append(senderRow, incident, time);
+
+  if (alert.senderPhone) {
+    const phoneRow = document.createElement('div');
+    phoneRow.className = 'pt-0.5';
+    const phoneLink = document.createElement('a');
+    phoneLink.href = `tel:${alert.senderPhone}`;
+    phoneLink.className =
+      'inline-flex items-center gap-1 text-blue-600 font-bold hover:underline text-[11px]';
+    phoneLink.textContent = `📞 Gọi: ${alert.senderPhone}`;
+    phoneRow.append(phoneLink);
+    content.append(phoneRow);
+  }
+
+  if (alert.latitude != null && alert.longitude != null) {
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'flex items-center gap-2 pt-1 border-t border-neutral-200 mt-1';
+
+    const gmapsLink = document.createElement('a');
+    gmapsLink.href = `https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`;
+    gmapsLink.target = '_blank';
+    gmapsLink.rel = 'noreferrer';
+    gmapsLink.className =
+      'inline-flex items-center justify-center rounded-md bg-neutral-900 px-2 py-1 text-[10px] font-bold text-white hover:bg-neutral-800 transition';
+    gmapsLink.textContent = 'Mở Google Maps ↗';
+
+    actionsRow.append(gmapsLink);
+    content.append(actionsRow);
+  }
+
   return content;
 }
 

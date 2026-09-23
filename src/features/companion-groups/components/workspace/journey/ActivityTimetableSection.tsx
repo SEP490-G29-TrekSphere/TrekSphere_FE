@@ -101,7 +101,6 @@ export function ActivityTimetableSection({
             <tbody>
               {TIMETABLE_TIME_SLOTS.map((slot) => (
                 <tr key={slot.id} className="border-b border-border last:border-b-0 align-top">
-
                   <td className="p-3 border-r border-border bg-muted/20">
                     <div className="space-y-1">
                       <span className="inline-block rounded-md px-2 py-0.5 text-[10px] font-black border bg-muted text-foreground border-border">

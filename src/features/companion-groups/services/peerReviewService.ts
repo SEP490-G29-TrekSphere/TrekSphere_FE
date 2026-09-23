@@ -88,7 +88,6 @@ function mapRawCandidate(raw: RawPeerReviewCandidate): PeerReviewCandidate {
         raw.hasReviewed ??
         raw.alreadyReviewed ??
         raw.reviewedByCurrentUser ??
-
         Boolean(existingReviewId)
     ),
     existingReviewId,

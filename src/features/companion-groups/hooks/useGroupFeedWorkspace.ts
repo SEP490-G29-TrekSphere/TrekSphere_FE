@@ -14,8 +14,7 @@ export function useGroupPosts(groupId: string, filter?: GroupPostFilterParams) {
     queryKey: [...groupWorkspaceKeys.posts(groupId), filter],
     queryFn: () => groupWorkspaceService.getGroupPosts(groupId, filter),
     enabled: Boolean(groupId),
-    staleTime: 5 * 1000,
-    refetchInterval: 10 * 1000,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: 'always',
   });
@@ -26,8 +25,7 @@ export function useGroupPostDetail(groupId: string, postId: string) {
     queryKey: groupWorkspaceKeys.postDetail(groupId, postId),
     queryFn: () => groupWorkspaceService.getGroupPostDetail(groupId, postId),
     enabled: Boolean(groupId) && Boolean(postId),
-    staleTime: 5 * 1000,
-    refetchInterval: 10 * 1000,
+    staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: 'always',
   });

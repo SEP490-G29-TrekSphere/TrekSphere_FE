@@ -138,7 +138,9 @@ export function GroupChecklistTab({
       { itemId, payload: nextStatus },
       {
         onError: (err: unknown) => {
-          toast.error(err instanceof Error ? err.message : 'Không thể cập nhật trạng thái checklist');
+          toast.error(
+            err instanceof Error ? err.message : 'Không thể cập nhật trạng thái checklist'
+          );
         },
       }
     );
@@ -236,7 +238,6 @@ export function GroupChecklistTab({
 
   return (
     <div className="space-y-6">
-
       <ChecklistHeaderProgress
         totalCount={totalCount}
         doneCount={doneCount}
@@ -275,7 +276,8 @@ export function GroupChecklistTab({
               scope === 'PERSONAL'
                 ? !item.assigneeUserId || isAssignedToMe
                 : isLeader || isAssignedToMe;
-            const canManage = isChecklistModifiable && (isLeader || isAssignedToMe || scope === 'PERSONAL');
+            const canManage =
+              isChecklistModifiable && (isLeader || isAssignedToMe || scope === 'PERSONAL');
 
             return (
               <ChecklistItemCard

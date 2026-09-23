@@ -38,7 +38,6 @@ export function CheckpointTimelineItem({
 
   return (
     <div className="group relative flex gap-4 transition">
-
       <div className="flex flex-col items-center">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-background text-xs font-black text-primary shadow-xs transition group-hover:bg-primary group-hover:text-primary-foreground">
           {checkpoint.checkpointOrder ?? index + 1}

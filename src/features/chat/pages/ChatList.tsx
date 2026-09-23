@@ -73,7 +73,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { client, isConnected } = useChatWebSocket();
+  const { client, isConnected, connectionEpoch } = useChatWebSocket();
   const { mutate: sendMessage, isPending: isSending } = useSendMessage();
   const { mutateAsync: createConversationAsync } = useCreateConversation();
 
@@ -92,6 +92,12 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
   // WebSocket Subscription
   useEffect(() => {
     if (!client || !isConnected || !selectedId || isVirtualSelected) return;
+
+    if (import.meta.env.DEV) {
+      console.log(
+        `[STOMP] Subscribing to chat conversation ${selectedId} (epoch ${connectionEpoch})`
+      );
+    }
 
     const subscription = client.subscribe(
       `/topic/chat/conversations/${selectedId}/messages`,
@@ -143,7 +149,7 @@ export default function ChatList({ hideSidebar = false }: ChatListProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, isConnected, selectedId, isVirtualSelected]);
+  }, [client, isConnected, connectionEpoch, selectedId, isVirtualSelected]);
 
   // Sync API response to local state
   useEffect(() => {

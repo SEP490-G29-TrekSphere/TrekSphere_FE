@@ -12,10 +12,7 @@ export function getMessageImageUrl(content?: string): string | undefined {
   const trimmed = content.trim();
   if (!SINGLE_URL_PATTERN.test(trimmed)) return undefined;
 
-  const isImage =
-    IMAGE_EXTENSION_PATTERN.test(trimmed) ||
-
-    trimmed.includes('/image/upload/');
+  const isImage = IMAGE_EXTENSION_PATTERN.test(trimmed) || trimmed.includes('/image/upload/');
   if (!isImage) return undefined;
 
   return getSafeImageUrl(trimmed);

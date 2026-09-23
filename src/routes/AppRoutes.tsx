@@ -118,7 +118,6 @@ export default function AppRoutes() {
     <Suspense fallback={<PageLoader />}>
       <ScrollManager />
       <Routes>
-
         <Route path={PATHS.LOGIN} element={<Login />} />
         <Route path={PATHS.REGISTER} element={<Register />} />
         <Route path={PATHS.VERIFY_EMAIL} element={<VerifyEmail />} />
@@ -264,6 +263,7 @@ export default function AppRoutes() {
           <Route path={PATHS.VENDOR_TOUR_CREATE} element={<TourCreate />} />
           <Route path={PATHS.VENDOR_TOUR_EDIT} element={<TourEdit />} />
           <Route path={PATHS.VENDOR_TOUR_PREVIEW} element={<TourPreview />} />
+          <Route path="/vendor/tours/:id" element={<TourPreview />} />
           <Route path={PATHS.VENDOR_TOUR_STATISTICS} element={<TourStatistics />} />
           <Route path={PATHS.VENDOR_TOUR_SCHEDULES} element={<TourSchedules />} />
           <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />

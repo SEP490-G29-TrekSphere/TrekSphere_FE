@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PATHS } from '@/constants';
 import { useLogout } from '@/features/auth/hooks/useLogout';
+import { usePushToastOnMenu } from '@/shared/hooks';
 import { useAppStore } from '@/store/useAppStore';
 
 interface AdminTopbarProps {
@@ -39,6 +40,9 @@ export default function AdminTopbar({
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  usePushToastOnMenu('admin-topbar-avatar', dropdownOpen, 260);
+  usePushToastOnMenu('admin-topbar-language', languageOpen, 220);
 
   useEffect(() => {
     if (!languageOpen) return;

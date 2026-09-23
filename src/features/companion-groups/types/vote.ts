@@ -1,4 +1,3 @@
-
 export type GroupVoteType = 'LEADER_ELECTION' | 'GROUP_DISSOLUTION' | 'OTHER';
 
 export type GroupVoteStatus = 'OPEN' | 'CLOSED';

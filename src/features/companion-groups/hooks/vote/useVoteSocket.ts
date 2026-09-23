@@ -6,11 +6,17 @@ import type { GroupVoteResponse } from '../../types/vote';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
 export function useVoteSocket(groupId?: string) {
-  const { client, isConnected } = useChatWebSocket();
+  const { client, isConnected, connectionEpoch } = useChatWebSocket();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!client || !isConnected || !groupId) return;
+
+    if (import.meta.env.DEV) {
+      console.log(
+        `[STOMP] Subscribing to vote topic for group ${groupId} (epoch ${connectionEpoch})`
+      );
+    }
 
     const subscription = client.subscribe(`/topic/matching-groups/${groupId}/votes`, (message) => {
       if (!message.body) return;
@@ -33,13 +39,11 @@ export function useVoteSocket(groupId?: string) {
             title: 'Bình chọn đã kết thúc',
           });
         }
-      } catch {
-
-      }
+      } catch {}
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, isConnected, groupId, queryClient]);
+  }, [client, isConnected, connectionEpoch, groupId, queryClient]);
 }

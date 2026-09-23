@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useGroupBudgetModals } from '../../hooks/useGroupBudgetModals';
 import { useGroupCostSummary } from '../../hooks/useGroupBudgetWorkspace';
 import { useGroupExpenses } from '../../hooks/useGroupExpenseWorkspace';
-import { useGroupBudgetModals } from '../../hooks/useGroupBudgetModals';
 import { useGroupSettlement } from '../../hooks/useGroupSettlement';
-import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import type { GroupExpenseResponse } from '../../types/expense';
+import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import type { CustomJourneyCostItemResponse } from '../../types/workspace';
 import {
   AddCostItemModal,
@@ -22,12 +24,7 @@ import {
   SettlementDetailModal,
   SubmitProofModal,
 } from '../workspace/settlement';
-import {
-  GroupBudgetSummarySection,
-  GroupCostItemListSection,
-  GroupExpenseListSection,
-  GroupSettlementSection,
-} from './budget';
+import { ActualExpensesSection, BudgetPlanSection, DebtSettlementSection } from './budget';
 
 interface GroupBudgetTabProps {
   group: MatchingGroupDetailResponse;
@@ -50,12 +47,9 @@ export function GroupBudgetTab({
   const { data: costSummaryData, isLoading: isLoadingBudget } = useGroupCostSummary(
     isCustomJourney ? groupId : ''
   );
-  const { data: expensesData, isLoading: isLoadingExpenses } = useGroupExpenses(
-    groupId,
-    0,
-    50,
-    { enabled: !isOutsider }
-  );
+  const { data: expensesData, isLoading: isLoadingExpenses } = useGroupExpenses(groupId, 0, 50, {
+    enabled: !isOutsider,
+  });
   const {
     summary: settlementSummary,
     settlements: liveSettlements,
@@ -69,7 +63,40 @@ export function GroupBudgetTab({
   // 2. Modal state hook
   const modals = useGroupBudgetModals();
 
-  // 3. Computed cost items & counts
+  // 3. Scroll to section from URL params
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')?.toLowerCase();
+    const section = searchParams.get('section')?.toLowerCase();
+
+    if (tab === 'expenses' || section === 'expenses') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('actual-expenses-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+
+    if (
+      tab === 'settlement' ||
+      tab === 'settlements' ||
+      section === 'settlement' ||
+      section === 'settlements'
+    ) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('settlements-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
+
+  // 4. Computed cost items & counts
   const liveCostItems: CustomJourneyCostItemResponse[] =
     costSummaryData?.costItems ??
     group.costItems?.map((item) => ({
@@ -95,7 +122,7 @@ export function GroupBudgetTab({
       ? Math.round(totalItemizedCost / plannedMemberCount)
       : totalItemizedCost);
 
-  // 4. Computed expenses & settlements
+  // 5. Computed expenses & settlements
   const actualExpenses = expensesData?.content || [];
   const totalActualSpent =
     settlementSummary?.totalGroupExpense ??
@@ -111,47 +138,40 @@ export function GroupBudgetTab({
 
   return (
     <div className="space-y-6">
-      {/* ── CARD 1: BUDGET ESTIMATE PLAN ── */}
-      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-5">
-        <GroupBudgetSummarySection
-          isLeader={isLeader}
-          isCustomJourney={isCustomJourney}
-          isLocked={group.isLocked ?? undefined}
-          isCancelled={isCancelled}
-          totalItemizedCost={totalItemizedCost}
-          plannedMemberCount={plannedMemberCount}
-          activeMemberCount={activeMemberCount}
-          effectivePerMemberCost={effectivePerMemberCost}
-          onOpenAddBudget={() => modals.setIsAddBudgetOpen(true)}
-        />
-        <GroupCostItemListSection
-          isLoadingBudget={isLoadingBudget}
-          liveCostItems={liveCostItems}
-          plannedMemberCount={plannedMemberCount}
-          isLeader={isLeader}
-          isCustomJourney={isCustomJourney}
-          isLocked={group.isLocked ?? undefined}
-          isCancelled={isCancelled}
-          onEditItem={(item) => modals.setSelectedItemForEdit(item)}
-          onDeleteItem={(item) => modals.setSelectedItemForDelete(item)}
-        />
-      </div>
+      {/* 1. KẾ HOẠCH DỰ TOÁN */}
+      <BudgetPlanSection
+        liveCostItems={liveCostItems}
+        totalItemizedCost={totalItemizedCost}
+        plannedMemberCount={plannedMemberCount}
+        activeMemberCount={activeMemberCount}
+        effectivePerMemberCost={effectivePerMemberCost}
+        isLoadingBudget={isLoadingBudget}
+        isLeader={isLeader}
+        isCustomJourney={isCustomJourney}
+        isGroupLocked={Boolean(group.isLocked)}
+        isCancelled={isCancelled}
+        onAddCostItem={() => modals.setIsAddBudgetOpen(true)}
+        onEditCostItem={(item) => modals.setSelectedItemForEdit(item)}
+        onDeleteCostItem={(item) => modals.setSelectedItemForDelete(item)}
+      />
 
+      {/* 2. HÓA ĐƠN THỰC TẾ & 3. QUYẾT TOÁN P2P (Chỉ hiển thị cho thành viên/leader) */}
       {!isOutsider && (
         <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-5">
-          <GroupExpenseListSection
-            isLoadingExpenses={isLoadingExpenses}
+          <ActualExpensesSection
             actualExpenses={actualExpenses}
+            isLoadingExpenses={isLoadingExpenses}
             activeMemberCount={activeMemberCount}
             isLeader={isLeader}
             isCancelled={isCancelled}
-            onOpenAddExpense={() => modals.setIsAddExpenseOpen(true)}
-            onViewExpenseDetail={(exp) => modals.setSelectedExpenseForDetail(exp)}
+            onAddExpense={() => modals.setIsAddExpenseOpen(true)}
+            onViewDetail={(exp) => modals.setSelectedExpenseForDetail(exp)}
             onEditExpense={(exp) => modals.setSelectedExpenseForEdit(exp)}
             onVoidExpense={(exp) => modals.setSelectedExpenseForVoid(exp)}
           />
-          <GroupSettlementSection
-            settlementSummary={settlementSummary}
+
+          <DebtSettlementSection
+            memberBalances={settlementSummary?.memberBalances ?? []}
             displaySettlements={displaySettlements}
             persistedSettlements={persistedSettlements}
             suggestedSettlements={suggestedSettlements}
@@ -162,10 +182,10 @@ export function GroupBudgetTab({
             isCancelled={isCancelled}
             actionLoading={actionLoading}
             onGenerateSettlements={generateSettlements}
-            onViewSettlementDetail={(st) => modals.setSelectedSettlementForDetail(st)}
-            onOpenProof={(st) => modals.setSelectedSettlementForProof(st)}
-            onOpenConfirm={(st) => modals.setSelectedSettlementForConfirm(st)}
-            onOpenReject={(st) => modals.setSelectedSettlementForReject(st)}
+            onViewDetail={(st) => modals.setSelectedSettlementForDetail(st)}
+            onSubmitProof={(st) => modals.setSelectedSettlementForProof(st)}
+            onConfirmSettlement={(st) => modals.setSelectedSettlementForConfirm(st)}
+            onRejectSettlement={(st) => modals.setSelectedSettlementForReject(st)}
           />
         </div>
       )}

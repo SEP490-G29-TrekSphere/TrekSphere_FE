@@ -81,9 +81,7 @@ export function ChecklistUpsertModal({
 
         <form onSubmit={onSubmit} className="space-y-4 text-xs">
           <div className="space-y-1.5">
-            <label className="font-bold text-foreground">
-              Tên vật dụng / Trang thiết bị (*):
-            </label>
+            <label className="font-bold text-foreground">Tên vật dụng / Trang thiết bị (*):</label>
             <input
               type="text"
               required

@@ -109,7 +109,6 @@ export function AddActivityModal({
       className="max-w-xl"
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-foreground mb-1">

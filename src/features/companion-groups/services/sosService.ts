@@ -11,7 +11,6 @@ function unwrapResponse<T>(response: ApiResponse<T>): T {
 }
 
 export const sosService = {
-
   async createSosAlert(groupId: string, payload: CreateSosAlertPayload): Promise<SosAlertResponse> {
     const response = await ApiService<SosAlertResponse>(
       `/matching-groups/${groupId}/sos-alerts`,

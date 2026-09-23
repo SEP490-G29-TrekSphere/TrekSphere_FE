@@ -42,7 +42,6 @@ export function ExpenseSplitFormFields({
 }: ExpenseSplitFormFieldsProps) {
   return (
     <div className="space-y-4 rounded-xl border border-border bg-muted/20 p-3.5">
-
       <div className="space-y-2">
         <label className="text-xs font-bold text-foreground flex items-center justify-between">
           <span className="flex items-center gap-1.5">

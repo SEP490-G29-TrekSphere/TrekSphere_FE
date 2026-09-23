@@ -146,7 +146,9 @@ export function EditExpenseModal({
         paidByMemberId: expense.payer.matchingMemberId,
         beneficiaryScope: expense.beneficiaryScope,
         splitMethod: expense.splitMethod,
-        spentAt: expense.spentAt ? expense.spentAt.slice(0, 16) : new Date().toISOString().slice(0, 16),
+        spentAt: expense.spentAt
+          ? expense.spentAt.slice(0, 16)
+          : new Date().toISOString().slice(0, 16),
         receiptUrl: expense.receiptUrl || '',
         note: expense.note || '',
       });
@@ -181,7 +183,9 @@ export function EditExpenseModal({
       receiptUrl: data.receiptUrl?.trim() || null,
       note: data.note?.trim() || null,
       beneficiaryMemberIds:
-        scope === 'SELECTED_MEMBERS' ? selectedMembers : activeMembers.map((m) => m.matchingMemberId),
+        scope === 'SELECTED_MEMBERS'
+          ? selectedMembers
+          : activeMembers.map((m) => m.matchingMemberId),
       customShares:
         splitMethod === 'CUSTOM'
           ? currentBeneficiaryMembers.map((m) => ({
@@ -207,17 +211,12 @@ export function EditExpenseModal({
   };
 
   return (
-    <AppModalShell
-      open={isOpen}
-      onClose={handleClose}
-      className="max-w-xl p-6"
-    >
+    <AppModalShell open={isOpen} onClose={handleClose} className="max-w-xl p-6">
       <div className="flex items-center gap-2 text-foreground font-extrabold text-base mb-4">
         <Save className="h-5 w-5 text-primary" />
         Chỉnh Sửa Hóa Đơn / Khoản Chi Thực Tế
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-xs">
-
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5 text-primary" />
@@ -229,7 +228,9 @@ export function EditExpenseModal({
             {...register('title')}
             className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
           />
-          {errors.title && <p className="text-destructive text-[11px] font-bold">{errors.title.message}</p>}
+          {errors.title && (
+            <p className="text-destructive text-[11px] font-bold">{errors.title.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -250,7 +251,9 @@ export function EditExpenseModal({
                 />
               )}
             />
-            {errors.amount && <p className="text-destructive text-[11px] font-bold">{errors.amount.message}</p>}
+            {errors.amount && (
+              <p className="text-destructive text-[11px] font-bold">{errors.amount.message}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">

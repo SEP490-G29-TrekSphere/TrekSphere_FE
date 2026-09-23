@@ -2,22 +2,22 @@ import { type QueryClient, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useChatWebSocket } from '@/features/chat/context/ChatWebSocketContext';
 import { companionGroupKeys } from '@/features/companion-groups/hooks/companionGroupKeys';
+import { groupWorkspaceKeys } from '@/features/companion-groups/hooks/groupWorkspaceKeys';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from '@/store/useToastStore';
 import type { NotificationResponse } from '../types/notification';
+import { resolveNotificationUrl } from '../utils/resolveNotificationUrl';
 
 function invalidateQueriesForNotification(
   queryClient: QueryClient,
   notification: NotificationResponse
 ) {
-
   queryClient.invalidateQueries({ queryKey: ['notifications'] });
   queryClient.invalidateQueries({ queryKey: ['unreadNotificationCount'] });
 
   const { eventType, referenceId, referenceType } = notification;
 
   switch (eventType) {
-
     case 'GROUP_JOIN_REQUEST':
       queryClient.invalidateQueries({ queryKey: companionGroupKeys.joinRequests() });
       if (referenceId) {
@@ -72,12 +72,15 @@ function invalidateQueriesForNotification(
       break;
 
     case 'GROUP_EXPENSE_CREATED':
+    case 'GROUP_SETTLEMENT_CREATED':
     case 'GROUP_SETTLEMENT_PROOF_SUBMITTED':
     case 'GROUP_SETTLEMENT_CONFIRMED':
-      queryClient.invalidateQueries({ queryKey: ['group-expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['group-settlements'] });
-      queryClient.invalidateQueries({ queryKey: ['companion-group-expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['companion-group-workspace'] });
+    case 'GROUP_SETTLEMENT_REJECTED':
+      queryClient.invalidateQueries({ queryKey: groupWorkspaceKeys.all });
+      queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });
+      if (referenceId) {
+        queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(referenceId) });
+      }
       break;
 
     case 'TOUR_APPROVED':
@@ -123,8 +126,10 @@ function invalidateQueriesForNotification(
       }
       break;
 
+    // Bài viết mới / Thông báo mới / Bình luận trong nhóm
     case 'GROUP_POST_CREATED':
     case 'GROUP_POST_ANNOUNCEMENT':
+    case 'GROUP_POST_COMMENT_ADDED':
       queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
       if (referenceId) {
         queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(referenceId) });
@@ -144,29 +149,36 @@ function invalidateQueriesForNotification(
 }
 
 export function useNotificationSocket() {
-  const { client, isConnected } = useChatWebSocket();
+  const { client, isConnected, connectionEpoch } = useChatWebSocket();
   const queryClient = useQueryClient();
   const userId = useAppStore((state) => state.user?.id);
 
   useEffect(() => {
     if (!client || !isConnected || !userId) return;
 
+    if (import.meta.env.DEV) {
+      console.log(
+        `[STOMP] Subscribing to /topic/notifications/${userId} (epoch ${connectionEpoch})`
+      );
+    }
+
     const subscription = client.subscribe(`/topic/notifications/${userId}`, (message) => {
       if (!message.body) return;
       try {
         const notification: NotificationResponse = JSON.parse(message.body);
         invalidateQueriesForNotification(queryClient, notification);
+        const actionUrl = resolveNotificationUrl(notification);
         toast.info(notification.content, {
           title: notification.title,
-          actionUrl: notification.actionUrl ?? undefined,
+          actionUrl: actionUrl,
         });
       } catch {
-
+        // Ignore parse error
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, isConnected, userId, queryClient]);
+  }, [client, isConnected, connectionEpoch, userId, queryClient]);
 }

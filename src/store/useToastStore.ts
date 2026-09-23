@@ -21,8 +21,11 @@ export interface ToastMessage {
 
 interface ToastState {
   toasts: ToastMessage[];
+  menuOffsets: Record<string, number>;
   addToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
   removeToast: (id: string) => void;
+  registerMenuOffset: (menuId: string, offset: number) => void;
+  unregisterMenuOffset: (menuId: string) => void;
   // Convenience methods
   success: (message: string, options?: ToastOptions) => void;
   error: (message: string, options?: ToastOptions) => void;
@@ -33,6 +36,18 @@ interface ToastState {
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
+  menuOffsets: {},
+  registerMenuOffset: (menuId, offset) =>
+    set((state) => ({
+      menuOffsets: { ...state.menuOffsets, [menuId]: offset },
+    })),
+  unregisterMenuOffset: (menuId) =>
+    set((state) => {
+      if (!(menuId in state.menuOffsets)) return state;
+      const next = { ...state.menuOffsets };
+      delete next[menuId];
+      return { menuOffsets: next };
+    }),
   addToast: (message, type = 'info', options) => {
     const id = Math.random().toString(36).substring(2, 9);
     set((state) => ({

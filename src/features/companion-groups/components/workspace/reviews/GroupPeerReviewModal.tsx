@@ -51,9 +51,7 @@ export function GroupPeerReviewModal({
         return;
       }
       onClose();
-    } catch {
-
-    }
+    } catch {}
   };
 
   const handleSubmit = (event: FormEvent) => {

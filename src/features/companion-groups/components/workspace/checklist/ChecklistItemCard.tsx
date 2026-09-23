@@ -1,11 +1,4 @@
-import {
-  CheckSquare,
-  Edit2,
-  Flame,
-  Square,
-  Trash2,
-  User,
-} from 'lucide-react';
+import { CheckSquare, Edit2, Flame, Square, Trash2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getItemTypeLabel } from '../../../constants';
 import type { GroupChecklistItemResponse } from '../../../types/workspace';

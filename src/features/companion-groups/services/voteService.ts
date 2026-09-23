@@ -26,7 +26,6 @@ function toQueryParams(params: object): Record<string, string> {
 }
 
 export const voteService = {
-
   async createGeneralPoll(
     groupId: string,
     payload: CreateGroupVotePayload

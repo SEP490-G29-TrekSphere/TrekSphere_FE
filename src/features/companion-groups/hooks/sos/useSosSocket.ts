@@ -6,11 +6,17 @@ import type { SosAlertResponse } from '../../types/sos';
 import { groupWorkspaceKeys } from '../groupWorkspaceKeys';
 
 export function useSosSocket(groupId?: string) {
-  const { client, isConnected } = useChatWebSocket();
+  const { client, isConnected, connectionEpoch } = useChatWebSocket();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!client || !isConnected || !groupId) return;
+
+    if (import.meta.env.DEV) {
+      console.log(
+        `[STOMP] Subscribing to SOS topic for group ${groupId} (epoch ${connectionEpoch})`
+      );
+    }
 
     const subscription = client.subscribe(`/topic/matching-groups/${groupId}/sos`, (message) => {
       if (!message.body) return;
@@ -31,13 +37,11 @@ export function useSosSocket(groupId?: string) {
             title: 'Tín hiệu SOS đã được xử lý',
           });
         }
-      } catch {
-
-      }
+      } catch {}
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, isConnected, groupId, queryClient]);
+  }, [client, isConnected, connectionEpoch, groupId, queryClient]);
 }

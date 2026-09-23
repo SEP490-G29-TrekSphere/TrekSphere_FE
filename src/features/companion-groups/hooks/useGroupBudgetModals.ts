@@ -19,10 +19,12 @@ export function useGroupBudgetModals() {
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [selectedExpenseForDetail, setSelectedExpenseForDetail] =
     useState<GroupExpenseResponse | null>(null);
-  const [selectedExpenseForEdit, setSelectedExpenseForEdit] =
-    useState<GroupExpenseResponse | null>(null);
-  const [selectedExpenseForVoid, setSelectedExpenseForVoid] =
-    useState<GroupExpenseResponse | null>(null);
+  const [selectedExpenseForEdit, setSelectedExpenseForEdit] = useState<GroupExpenseResponse | null>(
+    null
+  );
+  const [selectedExpenseForVoid, setSelectedExpenseForVoid] = useState<GroupExpenseResponse | null>(
+    null
+  );
 
   // Modal States - Settlements
   const [selectedSettlementForDetail, setSelectedSettlementForDetail] =

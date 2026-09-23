@@ -9,6 +9,7 @@ import { useNotifications } from '../hooks/useNotifications';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import type { NotificationResponse } from '../types/notification';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
+import { resolveNotificationUrl } from '../utils/resolveNotificationUrl';
 
 const filterTabs: { key: 'all' | 'unread'; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
@@ -104,8 +105,9 @@ export default function Notifications() {
     if (!notification.isRead) {
       markAsRead(notification.notificationId);
     }
-    if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+    const targetUrl = resolveNotificationUrl(notification);
+    if (targetUrl) {
+      navigate(targetUrl);
     }
   };
 
