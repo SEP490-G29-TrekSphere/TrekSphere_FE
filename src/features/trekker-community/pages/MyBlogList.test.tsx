@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { PATHS } from '@/constants';
+import { getTrekkerBlogEditPath, PATHS } from '@/constants';
 import type { TrekkerBlogItem } from '../types';
 import MyBlogList from './MyBlogList';
 
@@ -91,13 +91,17 @@ beforeEach(() => {
 });
 
 test('nút "Viết bài mới" điều hướng trong portal Trekker (giữ nguyên sidebar)', () => {
-  render(<MyBlogList />);
+  render(
+    <MyBlogList createPath={PATHS.TREKKER_BLOG_CREATE} getEditPath={getTrekkerBlogEditPath} />
+  );
   fireEvent.click(screen.getByRole('button', { name: /Viết bài mới/ }));
   expect(mockNavigate).toHaveBeenCalledWith(PATHS.TREKKER_BLOG_CREATE);
 });
 
 test('nút Sửa điều hướng sang trang sửa trong portal Trekker', () => {
-  render(<MyBlogList />);
+  render(
+    <MyBlogList createPath={PATHS.TREKKER_BLOG_CREATE} getEditPath={getTrekkerBlogEditPath} />
+  );
   fireEvent.click(screen.getByTitle('Sửa bài viết'));
   expect(mockNavigate).toHaveBeenCalledWith(`/trekker/blog/edit/${blog.blogId}`);
 });

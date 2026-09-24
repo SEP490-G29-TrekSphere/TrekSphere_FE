@@ -29,7 +29,6 @@ jest.mock('@/shared/ui', () => ({
 
 jest.mock('../hooks/useTrekkerBlog', () => ({
   useTrekkerBlogDetail: () => ({ data: undefined, isLoading: false }),
-  useTrekkerBlogList: () => ({ data: undefined, isLoading: false }),
 }));
 
 jest.mock('../hooks/useTrekkerBlogMutations', () => ({
@@ -50,9 +49,9 @@ test('Trekker bấm "Quay lại" thì về danh sách bài viết trong portal T
   expect(mockNavigate).toHaveBeenCalledWith(PATHS.TREKKER_BLOG_LIST);
 });
 
-test('Vendor bấm "Quay lại" thì về portal Vendor', () => {
+test('Vendor bấm "Quay lại" thì về danh sách bài viết trong portal Vendor', () => {
   mockUser.roles = ['vendor'];
   render(<CreateBlogPost />);
   fireEvent.click(screen.getByRole('button', { name: /Quay lại/ }));
-  expect(mockNavigate).toHaveBeenCalledWith(PATHS.VENDOR);
+  expect(mockNavigate).toHaveBeenCalledWith(PATHS.VENDOR_BLOG_LIST);
 });

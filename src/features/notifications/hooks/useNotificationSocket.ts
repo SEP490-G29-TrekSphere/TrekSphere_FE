@@ -137,6 +137,14 @@ function invalidateQueriesForNotification(
       }
       break;
 
+    case 'NEW_MESSAGE':
+    case 'CONVERSATION_MEMBER_ADDED':
+      queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
+      if (referenceId) {
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', referenceId] });
+      }
+      break;
+
     default:
       if (referenceType === 'MATCHING_GROUP') {
         queryClient.invalidateQueries({ queryKey: companionGroupKeys.all });

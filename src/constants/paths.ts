@@ -86,7 +86,9 @@ export const PATHS = {
   VENDOR_TOUR_PREVIEW: '/vendor/tours/:id/preview',
   VENDOR_TOUR_STATISTICS: '/vendor/tours/statistics',
   VENDOR_TOUR_SCHEDULES: '/vendor/tours/:id/schedules',
+  VENDOR_BLOG_LIST: '/vendor/blog',
   VENDOR_BLOG_CREATE: '/vendor/blog/create',
+  VENDOR_BLOG_EDIT: '/vendor/blog/edit/:blogId',
   VENDOR_CHAT: '/vendor/chat',
   VENDOR_NOTIFICATIONS: '/vendor/notifications',
 
@@ -140,6 +142,8 @@ export const getVendorPublicProfilePath = (vendorId: string) =>
   PATHS.VENDOR_PUBLIC_PROFILE.replace(':vendorId', vendorId);
 export const getTrekkerBlogEditPath = (blogId: string) =>
   PATHS.TREKKER_BLOG_EDIT.replace(':blogId', blogId);
+export const getVendorBlogEditPath = (blogId: string) =>
+  PATHS.VENDOR_BLOG_EDIT.replace(':blogId', blogId);
 export const getTrekkerGroupDetailPath = (groupId: string) =>
   PATHS.TREKKER_GROUP_DETAIL.replace(':groupId', groupId);
 export const getTrekkerGroupJoinPath = (groupId: string) =>

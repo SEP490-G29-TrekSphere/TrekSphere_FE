@@ -12,10 +12,7 @@ import { getSafeImageUrl, stripHtml } from '@/utils/sanitize';
 import 'react-quill-new/dist/quill.snow.css';
 import { BlogPreviewModal } from '../components/BlogPreviewModal';
 import { BlogCoverUploader, BlogSidebarInfo } from '../components/editor';
-import { MyBlogPagination } from '../components/MyBlogPagination';
-import { MyBlogTable } from '../components/MyBlogTable';
-import { VENDOR_POSTS_PAGE_SIZE } from '../constants';
-import { useTrekkerBlogDetail, useTrekkerBlogList } from '../hooks/useTrekkerBlog';
+import { useTrekkerBlogDetail } from '../hooks/useTrekkerBlog';
 import { useTrekkerBlogMutations } from '../hooks/useTrekkerBlogMutations';
 import { computeReadStats } from '../utils/readingTime';
 import { type BlogFormValues, blogFormSchema } from '../validations';
@@ -27,6 +24,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
 
   const user = useAppStore((state) => state.user);
   const isVendor = getPrimaryRole(user?.roles) === ROLES.VENDOR;
+  const blogListPath = isVendor ? PATHS.VENDOR_BLOG_LIST : PATHS.TREKKER_BLOG_LIST;
 
   const { data: existingBlog, isLoading: isLoadingBlog } = useTrekkerBlogDetail(
     editMode ? blogId : undefined
@@ -36,20 +34,6 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [vendorPostsPage, setVendorPostsPage] = useState(1);
-
-  // Vendor has no dedicated "My Blogs" page; display recent posts below the editor
-  const showVendorPostList = isVendor && !editMode;
-  const vendorPosts = useTrekkerBlogList(
-    {
-      authorId: user?.id,
-      page: vendorPostsPage,
-      size: VENDOR_POSTS_PAGE_SIZE,
-      sortBy: 'createdAt',
-      sortDir: 'desc',
-    },
-    { enabled: showVendorPostList }
-  );
 
   const {
     register,
@@ -116,7 +100,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
         {
           onSuccess: () => {
             toast.success('Đã lưu thay đổi.');
-            navigate(PATHS.TREKKER_BLOG_LIST);
+            navigate(blogListPath);
           },
           onError: (err: unknown) =>
             toast.error(err instanceof Error ? err.message : 'Không thể lưu thay đổi.'),
@@ -134,13 +118,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
       {
         onSuccess: () => {
           toast.success('Bài viết đã được đăng thành công!');
-          if (isVendor) {
-            reset({ title: '', content: '' });
-            handleRemoveCover();
-            setVendorPostsPage(1);
-          } else {
-            navigate(PATHS.TREKKER_BLOG_LIST);
-          }
+          navigate(blogListPath);
         },
         onError: (err: unknown) =>
           toast.error(err instanceof Error ? err.message : 'Đăng bài thất bại.'),
@@ -148,7 +126,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
     );
   };
 
-  const handleBack = () => navigate(isVendor ? PATHS.VENDOR : PATHS.TREKKER_BLOG_LIST);
+  const handleBack = () => navigate(blogListPath);
 
   if (editMode && isLoadingBlog) {
     return (
@@ -166,7 +144,7 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Topbar Action */}
-      <div className="sticky top-0 z-10 flex items-center justify-between pb-4 bg-background/80 backdrop-blur-xs">
+      <div className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background px-1 py-3">
         <button
           type="button"
           onClick={handleBack}
@@ -295,33 +273,6 @@ export function CreateBlogPost({ editMode = false }: { editMode?: boolean }) {
             editMode={editMode}
           />
         </div>
-
-        {showVendorPostList && (
-          <div className="mt-10">
-            <h3 className="mb-4 text-lg font-bold text-foreground">Bài viết đã đăng</h3>
-
-            {vendorPosts.isLoading ? (
-              <div className="flex items-center justify-center rounded-2xl border border-border bg-card py-16">
-                <AppSpinner size="default" className="text-primary" />
-              </div>
-            ) : (
-              <>
-                <MyBlogTable blogs={vendorPosts.data?.items ?? []} />
-                {(vendorPosts.data?.meta.totalElements ?? 0) > 0 && (
-                  <div className="overflow-hidden rounded-b-3xl border-t border-border bg-card">
-                    <MyBlogPagination
-                      currentPage={vendorPostsPage}
-                      totalPages={Math.max(1, vendorPosts.data?.meta.totalPages ?? 1)}
-                      onPageChange={setVendorPostsPage}
-                      totalCount={vendorPosts.data?.meta.totalElements ?? 0}
-                      pageSize={VENDOR_POSTS_PAGE_SIZE}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
       </div>
 
       {showPreview && (

@@ -1,15 +1,17 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { memo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { PortalPagination } from '@/shared/ui';
+import { useAppStore } from '@/store/useAppStore';
 import { useMarkAllAsRead } from '../hooks/useMarkAllAsRead';
 import { useMarkAsRead } from '../hooks/useMarkAsRead';
 import { useNotifications } from '../hooks/useNotifications';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import type { NotificationResponse } from '../types/notification';
 import { formatRelativeTime } from '../utils/formatRelativeTime';
-import { resolveNotificationUrl } from '../utils/resolveNotificationUrl';
+import { getNotificationNavigation } from '../utils/resolveNotificationUrl';
 
 const filterTabs: { key: 'all' | 'unread'; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
@@ -76,6 +78,8 @@ export default function Notifications() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all');
   const [currentPage, setCurrentPage] = useState(0);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const user = useAppStore((state) => state.user);
 
   const { data: unreadCount } = useUnreadCount();
   const { data, isLoading, isError } = useNotifications({
@@ -105,9 +109,15 @@ export default function Notifications() {
     if (!notification.isRead) {
       markAsRead(notification.notificationId);
     }
-    const targetUrl = resolveNotificationUrl(notification);
-    if (targetUrl) {
-      navigate(targetUrl);
+    const navigation = getNotificationNavigation(notification, user?.roles);
+    if (navigation) {
+      if (navigation.state) {
+        // Force ChatList to refetch when it's already mounted (route doesn't change,
+        // so its own refetchOnMount:'always' never fires) — otherwise the just-arrived
+        // conversation may be missing from its stale cached page and silently fail to select.
+        queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
+      }
+      navigate(navigation.path, navigation.state ? { state: navigation.state } : undefined);
     }
   };
 

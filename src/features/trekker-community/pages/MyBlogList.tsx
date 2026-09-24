@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTrekkerBlogEditPath, PATHS } from '@/constants';
 import {
   AppButton,
   AppSpinner,
@@ -20,7 +19,18 @@ const PAGE_SIZE = 8;
 
 type PendingAction = { blog: TrekkerBlogItem; type: 'hide' | 'delete' };
 
-export default function MyBlogList() {
+interface MyBlogListProps {
+  createPath: string;
+  getEditPath: (blogId: string) => string;
+  /** Vendor's list only exposes editing — hide/delete stay trekker-only for now. */
+  enableModeration?: boolean;
+}
+
+export default function MyBlogList({
+  createPath,
+  getEditPath,
+  enableModeration = true,
+}: MyBlogListProps) {
   const navigate = useNavigate();
   const userId = useAppStore((state) => state.user?.id);
   const [search, setSearch] = useState('');
@@ -48,7 +58,7 @@ export default function MyBlogList() {
   };
 
   const handleEditBlog = (blog: TrekkerBlogItem) => {
-    navigate(getTrekkerBlogEditPath(blog.blogId));
+    navigate(getEditPath(blog.blogId));
   };
 
   const handleConfirmAction = () => {
@@ -93,7 +103,7 @@ export default function MyBlogList() {
         description="Quản lý và chia sẻ những chuyến hành trình của bạn với cộng đồng TrekSphere"
         actions={
           <AppButton
-            onClick={() => navigate(PATHS.TREKKER_BLOG_CREATE)}
+            onClick={() => navigate(createPath)}
             className="rounded-full px-6 py-2.5 text-xs font-bold text-white bg-[#06261D] hover:bg-[#0B3025] shadow-sm"
           >
             + Viết bài mới
@@ -128,8 +138,12 @@ export default function MyBlogList() {
           <MyBlogTable
             blogs={blogs}
             onEdit={handleEditBlog}
-            onHide={(blog) => setPendingAction({ blog, type: 'hide' })}
-            onDelete={(blog) => setPendingAction({ blog, type: 'delete' })}
+            onHide={
+              enableModeration ? (blog) => setPendingAction({ blog, type: 'hide' }) : undefined
+            }
+            onDelete={
+              enableModeration ? (blog) => setPendingAction({ blog, type: 'delete' }) : undefined
+            }
           />
 
           {/* Pagination Footer */}

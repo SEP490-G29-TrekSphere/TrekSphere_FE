@@ -1,3 +1,4 @@
+import { getRoleChatPath } from '@/constants/roles';
 import { sanitizeInternalUrl } from '@/utils/sanitize';
 import type { NotificationEventType, NotificationReferenceType } from '../types/notification';
 
@@ -8,12 +9,34 @@ export interface ResolveNotificationUrlParams {
   referenceId?: string | null;
 }
 
-/**
- * Tự động phân giải đường dẫn điều hướng chính xác từ thông báo.
- * - Ưu tiên actionUrl được gửi từ Backend nếu có và hợp lệ.
- * - Nếu actionUrl thiếu / null (dữ liệu cũ hoặc backend chưa gán), tự động suy ra
- *   đúng URL và tab tương ứng dựa trên eventType, referenceType và referenceId.
- */
+export interface NotificationNavigation {
+  path: string;
+  state?: { conversationId: string };
+}
+
+const CHAT_EVENT_TYPES = new Set<NotificationEventType>([
+  'NEW_MESSAGE',
+  'CONVERSATION_MEMBER_ADDED',
+]);
+
+export function getNotificationNavigation(
+  params: ResolveNotificationUrlParams | null | undefined,
+  roles: string[] | undefined | null
+): NotificationNavigation | undefined {
+  if (!params) return undefined;
+
+  const { eventType, referenceType, referenceId } = params;
+  const isChatNotification =
+    CHAT_EVENT_TYPES.has(eventType as NotificationEventType) || referenceType === 'CONVERSATION';
+
+  if (isChatNotification && referenceId) {
+    return { path: getRoleChatPath(roles), state: { conversationId: referenceId } };
+  }
+
+  const path = resolveNotificationUrl(params);
+  return path ? { path } : undefined;
+}
+
 export function resolveNotificationUrl(
   params: ResolveNotificationUrlParams | null | undefined
 ): string | undefined {
@@ -26,7 +49,6 @@ export function resolveNotificationUrl(
     if (safeUrl) return safeUrl;
   }
 
-  // Fallback dựa trên eventType
   switch (eventType) {
     case 'GROUP_EXPENSE_CREATED':
     case 'GROUP_SETTLEMENT_CREATED':

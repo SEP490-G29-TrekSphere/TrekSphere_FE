@@ -1,6 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { getTrekkerBlogEditPath, getTrekkerGroupDetailPath, PATHS, ROLES } from '@/constants';
+import {
+  getTrekkerBlogEditPath,
+  getTrekkerGroupDetailPath,
+  getVendorBlogEditPath,
+  PATHS,
+  ROLES,
+} from '@/constants';
 import { getRoleChatPath, getRoleNotificationsPath } from '@/constants/roles';
 import { AccountDetail, AccountList, AdminDashboard, BlogManagement } from '@/features/admin';
 import ProtectedRoute from '@/routes/ProtectedRoute';
@@ -34,6 +40,9 @@ const EditProfile = lazy(() => import('@/features/profile/pages/EditProfile'));
 const MyApplications = lazy(() => import('@/features/profile/pages/MyApplications'));
 const MyBlogList = lazy(() => import('@/features/trekker-community/pages/MyBlogList'));
 const CreateBlogPost = lazy(() => import('@/features/trekker-community/pages/CreateBlogPost'));
+const VendorBlogLayout = lazy(
+  () => import('@/features/vendor-manager/blog/pages/VendorBlogLayout')
+);
 const ChatList = lazy(() => import('@/features/chat/pages/ChatList'));
 const CompanionGroups = lazy(() => import('@/features/companion-groups/pages/CompanionGroupsPage'));
 const MyCompanionGroupsPage = lazy(
@@ -216,7 +225,15 @@ export default function AppRoutes() {
           />
           <Route path={PATHS.TREKKER_MY_JOIN_REQUESTS} element={<MyJoinRequestsPage />} />
           <Route path={PATHS.TREKKER_VENDOR_APPLICATIONS} element={<MyApplications />} />
-          <Route path={PATHS.TREKKER_BLOG_LIST} element={<MyBlogList />} />
+          <Route
+            path={PATHS.TREKKER_BLOG_LIST}
+            element={
+              <MyBlogList
+                createPath={PATHS.TREKKER_BLOG_CREATE}
+                getEditPath={getTrekkerBlogEditPath}
+              />
+            }
+          />
           <Route path={PATHS.TREKKER_BLOG_CREATE} element={<CreateBlogPost />} />
           <Route path={PATHS.TREKKER_BLOG_EDIT} element={<CreateBlogPost editMode />} />
           <Route path={PATHS.TREKKER_CHANGE_PASSWORD} element={<TrekkerChangePassword />} />
@@ -266,7 +283,20 @@ export default function AppRoutes() {
           <Route path="/vendor/tours/:id" element={<TourPreview />} />
           <Route path={PATHS.VENDOR_TOUR_STATISTICS} element={<TourStatistics />} />
           <Route path={PATHS.VENDOR_TOUR_SCHEDULES} element={<TourSchedules />} />
-          <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />
+          <Route element={<VendorBlogLayout />}>
+            <Route
+              path={PATHS.VENDOR_BLOG_LIST}
+              element={
+                <MyBlogList
+                  createPath={PATHS.VENDOR_BLOG_CREATE}
+                  getEditPath={getVendorBlogEditPath}
+                  enableModeration={false}
+                />
+              }
+            />
+            <Route path={PATHS.VENDOR_BLOG_CREATE} element={<CreateBlogPost />} />
+          </Route>
+          <Route path={PATHS.VENDOR_BLOG_EDIT} element={<CreateBlogPost editMode />} />
           <Route path={PATHS.VENDOR_CHAT} element={<ChatList hideSidebar />} />
           <Route path={PATHS.VENDOR_NOTIFICATIONS} element={<Notifications />} />
         </Route>

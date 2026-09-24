@@ -20,7 +20,7 @@ const navItems = [
   { name: 'Tổng quan', path: PATHS.VENDOR_PROFILE, icon: LayoutGrid, disabled: false },
   { name: 'Tour', path: PATHS.VENDOR_TOURS, icon: MapIcon, disabled: false },
   { name: 'Thống kê', path: PATHS.VENDOR_TOUR_STATISTICS, icon: BarChart3, disabled: false },
-  { name: 'Viết Blog', path: PATHS.VENDOR_BLOG_CREATE, icon: PenSquare, disabled: false },
+  { name: 'Viết Blog', path: PATHS.VENDOR_BLOG_LIST, icon: PenSquare, disabled: false },
   { name: 'Trò chuyện', path: PATHS.VENDOR_CHAT, icon: MessageSquare, disabled: false },
   { name: 'Thông báo', path: PATHS.VENDOR_NOTIFICATIONS, icon: Bell, disabled: false },
 ];

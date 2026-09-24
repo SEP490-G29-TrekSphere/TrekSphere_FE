@@ -10,7 +10,7 @@ import { useNotifications } from '@/features/notifications/hooks/useNotification
 import { useUnreadCount } from '@/features/notifications/hooks/useUnreadCount';
 import type { NotificationResponse } from '@/features/notifications/types/notification';
 import { formatRelativeTime } from '@/features/notifications/utils/formatRelativeTime';
-import { resolveNotificationUrl } from '@/features/notifications/utils/resolveNotificationUrl';
+import { getNotificationNavigation } from '@/features/notifications/utils/resolveNotificationUrl';
 import { cn } from '@/lib/utils';
 import { usePushToastOnMenu } from '@/shared/hooks';
 import { useAppStore } from '@/store/useAppStore';
@@ -54,9 +54,15 @@ export default function NotificationBell({
     handleOpenChange(false);
     queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    const targetUrl = resolveNotificationUrl(notification);
-    if (targetUrl) {
-      navigate(targetUrl);
+    const navigation = getNotificationNavigation(notification, user?.roles);
+    if (navigation) {
+      if (navigation.state) {
+        // Force ChatList to refetch when it's already mounted (route doesn't change,
+        // so its own refetchOnMount:'always' never fires) — otherwise the just-arrived
+        // conversation may be missing from its stale cached page and silently fail to select.
+        queryClient.invalidateQueries({ queryKey: ['chatConversations'] });
+      }
+      navigate(navigation.path, navigation.state ? { state: navigation.state } : undefined);
     }
   };
 

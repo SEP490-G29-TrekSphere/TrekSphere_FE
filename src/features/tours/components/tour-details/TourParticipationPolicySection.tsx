@@ -1,3 +1,4 @@
+import { ExpandableSection } from '@/features/tours/components/tour-details/ExpandableSection';
 import type { TourParticipationPolicy } from '@/features/tours/types';
 import { RichTextContent } from '@/shared/ui';
 
@@ -69,16 +70,21 @@ export function TourParticipationPolicySection({
       )}
 
       {details.length > 0 && (
-        <dl className="mt-3 divide-y divide-[#E8E4DA] border-y border-[#E8E4DA]">
-          {details.map((item) => (
-            <div key={item.label} className="grid gap-0.5 py-2.5 sm:grid-cols-[145px_1fr] sm:gap-4">
-              <dt className="text-xs font-bold text-[#6F7E72]">{item.label}</dt>
-              <dd className="text-sm font-medium text-[#1E3932]">
-                <RichTextContent content={item.value} />
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <ExpandableSection collapsedClassName="max-h-72" fadeFromClassName="from-white">
+          <dl className="mt-3 divide-y divide-[#E8E4DA] border-y border-[#E8E4DA]">
+            {details.map((item) => (
+              <div
+                key={item.label}
+                className="grid gap-0.5 py-2.5 sm:grid-cols-[145px_1fr] sm:gap-4"
+              >
+                <dt className="text-xs font-bold text-[#6F7E72]">{item.label}</dt>
+                <dd className="text-sm font-medium text-[#1E3932]">
+                  <RichTextContent content={item.value} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </ExpandableSection>
       )}
 
       <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold">

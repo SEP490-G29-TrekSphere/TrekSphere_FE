@@ -66,7 +66,7 @@ export function BlogPreviewModal({
         <span className="text-sm font-medium text-[#6F7B75]">{authorName}</span>
       </div>
 
-      <article className="flex flex-col gap-4 p-0 text-sm leading-relaxed text-[#06261D] ql-editor sm:text-base [&_img]:mx-auto [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl">
+      <article className="flex flex-col gap-4 p-0 text-sm leading-relaxed text-[#06261D] ql-editor whitespace-normal! sm:text-base [&_img]:mx-auto [&_img]:block [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl">
         {stripHtml(content).trim().length === 0 ? (
           <p className="italic text-[#9E9A92]">Nội dung đang được cập nhật.</p>
         ) : (
