@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
+import { RichTextContent } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useSwapGroupCheckpoints } from '../../../hooks/useGroupJourneyWorkspace';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
@@ -252,11 +253,12 @@ export function CheckpointListSection({
 
                 {/* Checkpoint Image if exists */}
                 {cp.imageUrl && (
-                  <div className="h-24 w-full -mx-3 mb-2.5 overflow-hidden border-y border-border relative">
+                  <div className="h-40 sm:h-44 w-[calc(100%+1.5rem)] -mx-3 mb-2.5 overflow-hidden border-y border-border relative bg-muted/40">
                     <img
                       src={cp.imageUrl}
                       alt={cp.title}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
                   </div>
                 )}
@@ -273,9 +275,13 @@ export function CheckpointListSection({
                     </p>
                   )}
                   {cp.description && (
-                    <p className="text-[10.5px] text-muted-foreground/90 line-clamp-2 mt-1">
-                      {cp.description}
-                    </p>
+                    <div className="line-clamp-3 overflow-hidden mt-1">
+                      <RichTextContent
+                        content={cp.description}
+                        variant="compact"
+                        className="text-[11px] text-muted-foreground/90 [&_p]:my-0.5 [&_p]:leading-relaxed [&_ul]:my-0.5 [&_ul]:space-y-0.5 [&_li]:text-[11px] [&_strong]:text-foreground [&_b]:text-foreground"
+                      />
+                    </div>
                   )}
                 </div>
 

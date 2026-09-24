@@ -1,6 +1,10 @@
 import { type ApiResponse, ApiService } from '@/config/apiClient';
 import type { PaginationResponse } from '../types/matchingGroup';
-import type { CreateSosAlertPayload, SosAlertResponse } from '../types/sos';
+import type {
+  CreateSosAlertPayload,
+  SosAlertResponse,
+  UpdateSosLocationPayload,
+} from '../types/sos';
 
 function unwrapResponse<T>(response: ApiResponse<T>): T {
   if (response.error) throw new Error(response.error);
@@ -38,6 +42,27 @@ export const sosService = {
       'GET',
       undefined,
       { page: String(page), size: String(size) }
+    );
+    return unwrapResponse(response);
+  },
+
+  async respondToSosAlert(groupId: string, sosAlertId: string): Promise<SosAlertResponse> {
+    const response = await ApiService<SosAlertResponse>(
+      `/matching-groups/${groupId}/sos-alerts/${sosAlertId}/respond`,
+      'PATCH'
+    );
+    return unwrapResponse(response);
+  },
+
+  async updateSosLocation(
+    groupId: string,
+    sosAlertId: string,
+    payload: UpdateSosLocationPayload
+  ): Promise<SosAlertResponse> {
+    const response = await ApiService<SosAlertResponse>(
+      `/matching-groups/${groupId}/sos-alerts/${sosAlertId}/location`,
+      'PATCH',
+      payload
     );
     return unwrapResponse(response);
   },

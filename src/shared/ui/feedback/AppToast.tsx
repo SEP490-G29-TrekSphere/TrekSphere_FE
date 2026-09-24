@@ -127,8 +127,10 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
         }
       }}
       tabIndex={t.actionUrl || t.onClick ? 0 : undefined}
-      className={`pointer-events-auto relative flex w-full max-w-[380px] items-start gap-3 overflow-hidden rounded-xl border bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all duration-200 dark:bg-[#1C2822]/95 ${
-        t.actionUrl || t.onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.99]' : ''
+      className={`pointer-events-auto relative flex w-full max-w-[380px] items-start gap-3 overflow-hidden rounded-xl border bg-card p-4 shadow-xl transition-all duration-200 ${
+        t.actionUrl || t.onClick
+          ? 'cursor-pointer hover:shadow-2xl hover:brightness-[1.02] active:scale-[0.99]'
+          : ''
       } ${config.borderColor} ${
         isExiting
           ? 'opacity-0 translate-x-4 scale-95'
@@ -146,13 +148,13 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
       {/* Content */}
       <div className="flex-1 pt-0.5 min-w-0 pr-1">
         {displayTitle && (
-          <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 leading-snug tracking-tight">
+          <h4 className="text-sm font-semibold text-foreground leading-snug tracking-tight">
             {displayTitle}
           </h4>
         )}
         <p
-          className={`text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed break-words ${
-            displayTitle ? 'mt-0.5' : 'text-sm font-medium text-neutral-800 dark:text-neutral-200'
+          className={`text-xs text-muted-foreground leading-relaxed break-words ${
+            displayTitle ? 'mt-0.5' : 'text-sm font-medium text-foreground'
           }`}
         >
           {t.message}
@@ -166,14 +168,14 @@ function ToastItem({ toast: t }: { toast: ToastMessage }) {
           e.stopPropagation();
           handleDismiss();
         }}
-        className="shrink-0 -mr-1 -mt-1 rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100/80 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600/30 cursor-pointer"
+        className="shrink-0 -mr-1 -mt-1 rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
         aria-label="Đóng thông báo"
       >
         <X className="h-4 w-4" />
       </button>
 
       {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-100 dark:bg-neutral-800/60 overflow-hidden">
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted overflow-hidden">
         <div
           className={`h-full transition-all duration-75 ease-linear ${config.progressBarColor}`}
           style={{ width: `${progressPercent}%` }}
@@ -199,7 +201,7 @@ export function AppGlobalToast() {
         top: `min(${currentTop}px, calc(100dvh - 120px))`,
         maxHeight: `calc(100dvh - min(${currentTop}px, calc(100dvh - 120px)) - 16px)`,
       }}
-      className="fixed inset-x-3 sm:inset-x-auto sm:right-5 sm:w-auto z-[100] flex flex-col items-center sm:items-end gap-2.5 p-0 pointer-events-none transition-[top,max-height] duration-300 ease-in-out overflow-y-auto"
+      className="fixed inset-x-3 sm:inset-x-auto sm:right-5 sm:w-auto z-[100] flex flex-col items-center sm:items-end gap-2.5 p-1.5 pointer-events-none transition-[top,max-height] duration-300 ease-in-out overflow-y-auto"
       aria-live="polite"
     >
       {toasts.map((t) => (

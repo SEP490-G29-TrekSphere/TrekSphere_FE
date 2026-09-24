@@ -75,3 +75,25 @@ export function getIncidentTypeLabel(type: IncidentType): string {
 export function getIncidentTypeMeta(type: IncidentType): IncidentMetaItem {
   return INCIDENT_TYPE_META[type] ?? INCIDENT_TYPE_META.OTHER;
 }
+
+export interface NationalHotline {
+  name: string;
+  number: string;
+  desc: string;
+  badge: string;
+}
+
+export const NATIONAL_HOTLINES: NationalHotline[] = [
+  {
+    name: 'Tổng đài Tìm kiếm Cứu nạn Quốc gia',
+    number: '112',
+    desc: 'Yêu cầu trợ giúp khẩn cấp toàn quốc 24/7',
+    badge: 'Quốc gia (24/7)',
+  },
+  {
+    name: 'Cấp cứu Y tế Quốc gia',
+    number: '115',
+    desc: 'Hỗ trợ sự cố sức khỏe, chấn thương',
+    badge: 'Y tế khẩn cấp',
+  },
+];

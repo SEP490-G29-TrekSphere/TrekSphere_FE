@@ -95,15 +95,26 @@ export function ChecklistUpsertModal({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="font-bold text-foreground">Phạm vi sử dụng:</label>
-              <select
-                value={formScope}
-                disabled={!isLeader && !editingItem}
-                onChange={(e) => setFormScope(e.target.value as GroupChecklistCategory)}
-                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLeader && <option value="SHARED">Đồ dùng chung cả đoàn</option>}
-                <option value="PERSONAL">Đồ dùng cá nhân</option>
-              </select>
+              {isLeader ? (
+                <select
+                  value={formScope}
+                  onChange={(e) => {
+                    const newScope = e.target.value as GroupChecklistCategory;
+                    setFormScope(newScope);
+                    if (newScope === 'PERSONAL') {
+                      setFormAssigneeMemberId('');
+                    }
+                  }}
+                  className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                >
+                  <option value="SHARED">Đồ dùng chung cả đoàn</option>
+                  <option value="PERSONAL">Đồ dùng cá nhân</option>
+                </select>
+              ) : (
+                <div className="w-full rounded-xl border border-border bg-muted/40 p-3 text-xs text-foreground font-medium select-none">
+                  Đồ dùng cá nhân
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -122,7 +133,7 @@ export function ChecklistUpsertModal({
             </div>
           </div>
 
-          {formScope === 'SHARED' && (
+          {isLeader && formScope === 'SHARED' && (
             <div className="space-y-1.5">
               <label className="font-bold text-foreground">
                 Phân công thành viên phụ trách mang:
@@ -154,7 +165,7 @@ export function ChecklistUpsertModal({
               htmlFor="isRequiredCheckbox"
               className="font-bold text-foreground cursor-pointer"
             >
-              Mục bắt buộc phải có cho chuyến đi
+              Mục quan trọng cho chuyến đi
             </label>
           </div>
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAddMemberToConversation } from '@/features/chat/hooks/useAddMemberToConversation';
 import { useCheckConversation } from '@/features/chat/hooks/useCheckConversation';
 import { useCreateConversation } from '@/features/chat/hooks/useCreateConversation';
+import { toast } from '@/store/useToastStore';
 import type { MatchingGroupDetailResponse } from '../types/matchingGroup';
 import { companionGroupKeys } from './companionGroupKeys';
 
@@ -11,7 +12,6 @@ interface UseCompanionGroupChatActionsOptions {
   group?: MatchingGroupDetailResponse;
   currentUserId?: string;
   chatPath: string;
-  showFeedback: (msg: string) => void;
 }
 
 export function useCompanionGroupChatActions({
@@ -19,7 +19,6 @@ export function useCompanionGroupChatActions({
   group,
   currentUserId,
   chatPath,
-  showFeedback,
 }: UseCompanionGroupChatActionsOptions) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,11 +52,11 @@ export function useCompanionGroupChatActions({
             navigate(chatPath, { state: { conversationId: createdConversation.conversationId } });
           },
           onError: (error) =>
-            showFeedback(error instanceof Error ? error.message : 'Lỗi khi tạo nhóm chat'),
+            toast.error(error instanceof Error ? error.message : 'Lỗi khi tạo nhóm chat'),
         });
       },
       onError: (error) =>
-        showFeedback(error instanceof Error ? error.message : 'Lỗi khi kiểm tra nhóm chat'),
+        toast.error(error instanceof Error ? error.message : 'Lỗi khi kiểm tra nhóm chat'),
     });
   }
 
@@ -83,7 +82,7 @@ export function useCompanionGroupChatActions({
           });
         },
         onError: (error) =>
-          showFeedback(error instanceof Error ? error.message : 'Lỗi khi kiểm tra phòng chat'),
+          toast.error(error instanceof Error ? error.message : 'Lỗi khi kiểm tra phòng chat'),
       }
     );
   }
@@ -103,14 +102,14 @@ export function useCompanionGroupChatActions({
       {
         onSuccess: (conversation) => {
           if (!conversation?.conversationId) {
-            showFeedback('Không tìm thấy nhóm chat tương ứng.');
+            toast.error('Không tìm thấy nhóm chat tương ứng.');
             return;
           }
           addMemberMutation.mutate(
             { conversationId: conversation.conversationId, memberId: selectedMember.id },
             {
               onSuccess: () => {
-                showFeedback(`Đã thêm ${selectedMember.name} vào nhóm chat!`);
+                toast.success(`Đã thêm ${selectedMember.name} vào nhóm chat!`);
                 onSuccessCallback();
                 if (groupId) {
                   void queryClient.invalidateQueries({
@@ -119,13 +118,13 @@ export function useCompanionGroupChatActions({
                 }
               },
               onError: (error) =>
-                showFeedback(
+                toast.error(
                   error instanceof Error ? error.message : 'Có lỗi xảy ra khi thêm thành viên.'
                 ),
             }
           );
         },
-        onError: () => showFeedback('Lỗi khi kiểm tra nhóm chat.'),
+        onError: () => toast.error('Lỗi khi kiểm tra nhóm chat.'),
       }
     );
   }

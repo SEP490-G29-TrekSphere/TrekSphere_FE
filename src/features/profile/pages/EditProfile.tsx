@@ -31,6 +31,10 @@ function toFormValues(profile?: UserProfile | null): UpdateProfileFormValues {
       '') as UpdateProfileFormValues['preferredDifficulty'],
     preferredAreas: profile?.preferredAreas ?? [],
     skills: profile?.skills ?? [],
+    emergencyContactName: profile?.emergencyContactName ?? '',
+    emergencyContactPhone:
+      normalizePhoneNumber(profile?.emergencyContactPhone) ||
+      (profile?.emergencyContactPhone ?? ''),
   };
 }
 
@@ -46,6 +50,16 @@ function buildProfileFormData(data: UpdateProfileFormValues, avatar: File | null
   if (data.preferredDifficulty) formData.append('preferredDifficulty', data.preferredDifficulty);
   appendList(formData, 'preferredAreas', data.preferredAreas);
   appendList(formData, 'skills', data.skills);
+
+  if (data.emergencyContactName !== undefined) {
+    formData.append('emergencyContactName', data.emergencyContactName.trim());
+  }
+  if (data.emergencyContactPhone !== undefined) {
+    formData.append(
+      'emergencyContactPhone',
+      data.emergencyContactPhone ? normalizePhoneNumber(data.emergencyContactPhone) : ''
+    );
+  }
 
   if (avatar) formData.append('avatar', avatar);
 

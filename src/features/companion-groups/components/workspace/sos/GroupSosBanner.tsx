@@ -10,13 +10,14 @@ interface GroupSosBannerProps {
 }
 
 export function GroupSosBanner({ alerts, onViewSos }: GroupSosBannerProps) {
-  const openAlerts = alerts.filter((a) => a.status === 'OPEN');
-  if (openAlerts.length === 0) return null;
+  const activeAlerts = alerts.filter((a) => a.status === 'OPEN' || a.status === 'RESPONDING');
+  if (activeAlerts.length === 0) return null;
 
-  const latestAlert = openAlerts[0];
+  const latestAlert = activeAlerts[0];
   const meta = getIncidentTypeMeta(latestAlert.incidentTypeCode);
   const Icon = meta.icon;
   const safeTelUri = getSafeTelUri(latestAlert.senderPhone);
+  const isResponding = latestAlert.status === 'RESPONDING';
 
   return (
     <div
@@ -37,8 +38,13 @@ export function GroupSosBanner({ alerts, onViewSos }: GroupSosBannerProps) {
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
-                BÁO ĐỘNG SOS KHẨN CẤP ({openAlerts.length})
+                BÁO ĐỘNG SOS KHẨN CẤP ({activeAlerts.length})
               </span>
+              {isResponding && (
+                <span className="rounded-md bg-amber-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
+                  ĐANG CỨU HỘ
+                </span>
+              )}
               <span className="text-xs font-black text-rose-700 dark:text-rose-300 flex items-center gap-1">
                 <Icon className="h-3.5 w-3.5" />
                 {meta.shortLabel}

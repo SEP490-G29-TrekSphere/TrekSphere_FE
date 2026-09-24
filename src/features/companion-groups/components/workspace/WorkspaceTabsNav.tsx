@@ -17,10 +17,10 @@ export type WorkspaceTabKey =
   | 'overview'
   | 'feed'
   | 'itinerary'
+  | 'budget'
   | 'checklist'
   | 'moments'
   | 'members'
-  | 'budget'
   | 'votes'
   | 'sos'
   | 'sosVotes'
@@ -37,10 +37,10 @@ export const WORKSPACE_TABS: WorkspaceTabDef[] = [
   { id: 'overview', label: 'Tổng quan', icon: Radio },
   { id: 'feed', label: 'Bảng tin', icon: MessageSquare },
   { id: 'itinerary', label: 'Lộ trình', icon: Layers },
+  { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
   { id: 'checklist', label: 'Đồ dùng', icon: Package },
   { id: 'moments', label: 'Khoảnh khắc & Album', icon: Camera },
   { id: 'members', label: 'Thành viên', icon: Users },
-  { id: 'budget', label: 'Dự toán & Chi phí', icon: Wallet },
   { id: 'votes', label: 'Bình chọn', icon: Vote },
   { id: 'sos', label: 'SOS', icon: Siren },
   { id: 'management', label: 'Quản lý nhóm', icon: Settings, leaderOnly: true },

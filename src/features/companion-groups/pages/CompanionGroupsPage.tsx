@@ -324,7 +324,7 @@ export default function CompanionGroupsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-16">
+    <div className="min-h-screen bg-background">
       <MatchingGroupDiscoveryHero />
       <div className="relative z-20 -mt-8 sm:-mt-10">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">

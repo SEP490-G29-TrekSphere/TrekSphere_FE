@@ -71,7 +71,7 @@ export const AppCurrencyInput = React.forwardRef<HTMLInputElement, AppCurrencyIn
             'w-full rounded-xl border border-input bg-background py-2.5 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden transition-colors disabled:cursor-not-allowed disabled:opacity-50',
             className,
             showIcon ? 'pl-11' : 'pl-3.5',
-            suffix ? 'pr-14' : 'pr-3.5'
+            suffix ? (suffix.length > 2 ? 'pr-14' : 'pr-9') : 'pr-3.5'
           )}
           {...props}
         />

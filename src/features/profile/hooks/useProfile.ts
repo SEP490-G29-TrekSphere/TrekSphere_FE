@@ -53,6 +53,8 @@ export function normalizeProfile(raw: Record<string, unknown>): UserProfile {
     skills: toStringList(raw.skills),
     trustScore: typeof raw.trustScore === 'number' ? raw.trustScore : undefined,
     trustReviewCount: typeof raw.trustReviewCount === 'number' ? raw.trustReviewCount : undefined,
+    emergencyContactName: (raw.emergencyContactName as string | null | undefined) ?? undefined,
+    emergencyContactPhone: (raw.emergencyContactPhone as string | null | undefined) ?? undefined,
   };
 }
 

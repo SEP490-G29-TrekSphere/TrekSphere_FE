@@ -175,11 +175,8 @@ export function AddCheckpointModal({
               <label className="font-bold text-foreground">
                 Thứ tự chặng (Order) <span className="text-red-500">*</span>
               </label>
-              <div className="flex h-[38px] items-center justify-between rounded-xl border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground select-none">
+              <div className="flex h-[38px] items-center rounded-xl border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground select-none">
                 <span>Chặng {nextOrder}</span>
-                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                  Tuần tự (Tự động)
-                </span>
               </div>
               <input
                 type="hidden"

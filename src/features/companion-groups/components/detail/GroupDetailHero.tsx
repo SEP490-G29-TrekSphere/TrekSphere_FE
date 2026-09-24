@@ -13,7 +13,6 @@ interface GroupDetailHeroProps {
   tourImageUrl?: string | null;
   coverImageUrl?: string | null;
   location?: string | null;
-  description?: string | null;
   status: MatchingGroupStatus;
   targetDate: string;
   matchingDeadline?: string | null;
@@ -53,7 +52,6 @@ export function GroupDetailHero({
   tourImageUrl,
   coverImageUrl,
   location,
-  description,
   status,
   targetDate,
   matchingDeadline,
@@ -150,19 +148,6 @@ export function GroupDetailHero({
           </div>
         </div>
       </div>
-
-      {(description || tourName) && (
-        <div className="space-y-2 p-5 sm:p-6">
-          {tourName && (
-            <p className="font-semibold text-primary text-xs sm:text-sm">Tour: {tourName}</p>
-          )}
-          {description && (
-            <p className="text-muted-foreground text-xs leading-relaxed sm:text-sm">
-              {description}
-            </p>
-          )}
-        </div>
-      )}
     </div>
   );
 }

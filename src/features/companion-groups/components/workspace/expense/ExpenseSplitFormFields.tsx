@@ -229,20 +229,20 @@ export function ExpenseSplitFormFields({
               {currentBeneficiaryMembers.map((m) => (
                 <div
                   key={m.matchingMemberId}
-                  className="flex items-center justify-between gap-3 p-2 rounded-xl bg-background border border-border"
+                  className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-background border border-border"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <MemberAvatar
                       fullName={m.fullName}
                       avatarUrl={m.avatarUrl ?? undefined}
                       size="sm"
                     />
-                    <span className="text-xs font-bold text-foreground truncate max-w-[120px]">
-                      {m.fullName}
-                    </span>
+                    <span className="text-xs font-bold text-foreground truncate">{m.fullName}</span>
                   </div>
-                  <div className="w-32">
+                  <div className="w-40 sm:w-48 shrink-0">
                     <AppCurrencyInput
+                      showIcon={false}
+                      suffix="đ"
                       placeholder="0"
                       value={customSharesMap[m.matchingMemberId] ?? 0}
                       onChange={(val) => {
@@ -251,7 +251,7 @@ export function ExpenseSplitFormFields({
                           [m.matchingMemberId]: val || 0,
                         }));
                       }}
-                      className="w-full text-right p-1.5 text-xs font-bold"
+                      className="w-full text-right py-2 text-xs font-extrabold"
                     />
                   </div>
                 </div>

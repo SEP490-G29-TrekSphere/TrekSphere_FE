@@ -130,6 +130,7 @@ function invalidateQueriesForNotification(
     case 'GROUP_POST_CREATED':
     case 'GROUP_POST_ANNOUNCEMENT':
     case 'GROUP_POST_COMMENT_ADDED':
+    case 'GROUP_CHECKLIST_ASSIGNED':
       queryClient.invalidateQueries({ queryKey: ['group-workspace'] });
       if (referenceId) {
         queryClient.invalidateQueries({ queryKey: companionGroupKeys.detail(referenceId) });

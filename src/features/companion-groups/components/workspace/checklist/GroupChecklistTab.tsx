@@ -102,10 +102,11 @@ export function GroupChecklistTab({
   ).length;
   const percent = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
-  const openCreateModal = (scope: GroupChecklistCategory = 'SHARED') => {
+  const openCreateModal = (scope?: GroupChecklistCategory) => {
+    const defaultScope: GroupChecklistCategory = isLeader ? (scope ?? 'SHARED') : 'PERSONAL';
     setEditingItem(null);
     setFormTitle('');
-    setFormScope(scope);
+    setFormScope(defaultScope);
     setFormTypeCode('TENT');
     setFormIsRequired(true);
     setFormAssigneeMemberId('');
@@ -117,10 +118,15 @@ export function GroupChecklistTab({
     e.stopPropagation();
     setEditingItem(item);
     setFormTitle(item.title || item.itemName || '');
-    setFormScope((item.itemScope || item.category || 'SHARED') as GroupChecklistCategory);
+    const itemScope = (item.itemScope || item.category || 'PERSONAL') as GroupChecklistCategory;
+    setFormScope(isLeader ? itemScope : 'PERSONAL');
     setFormTypeCode((item.itemTypeCode || item.itemType || 'TENT') as GroupChecklistItemType);
     setFormIsRequired(item.isRequired ?? true);
-    setFormAssigneeMemberId(item.assigneeMatchingMemberId || item.assigneeMemberId || '');
+    setFormAssigneeMemberId(
+      isLeader && itemScope === 'SHARED'
+        ? item.assigneeMatchingMemberId || item.assigneeMemberId || ''
+        : ''
+    );
     setFormNote(item.note || '');
     setIsModalOpen(true);
   };
@@ -153,6 +159,10 @@ export function GroupChecklistTab({
       return;
     }
 
+    const resolvedScope: GroupChecklistCategory = isLeader ? formScope : 'PERSONAL';
+    const resolvedAssigneeId =
+      isLeader && resolvedScope === 'SHARED' && formAssigneeMemberId ? formAssigneeMemberId : null;
+
     if (editingItem) {
       const itemId = editingItem.groupChecklistItemId || editingItem.itemId;
       if (!itemId) return;
@@ -162,11 +172,10 @@ export function GroupChecklistTab({
           itemId,
           payload: {
             title: formTitle.trim(),
-            itemScope: formScope,
+            itemScope: resolvedScope,
             itemTypeCode: formTypeCode,
             isRequired: formIsRequired,
-            assigneeMatchingMemberId:
-              formScope === 'SHARED' && formAssigneeMemberId ? formAssigneeMemberId : null,
+            assigneeMatchingMemberId: resolvedAssigneeId,
             note: formNote.trim() || null,
           },
         },
@@ -184,11 +193,10 @@ export function GroupChecklistTab({
       createItem.mutate(
         {
           title: formTitle.trim(),
-          itemScope: formScope,
+          itemScope: resolvedScope,
           itemTypeCode: formTypeCode,
           isRequired: formIsRequired,
-          assigneeMatchingMemberId:
-            formScope === 'SHARED' && formAssigneeMemberId ? formAssigneeMemberId : null,
+          assigneeMatchingMemberId: resolvedAssigneeId,
           note: formNote.trim() || null,
         },
         {
@@ -244,7 +252,7 @@ export function GroupChecklistTab({
         progressPercent={percent}
         isChecklistModifiable={isChecklistModifiable}
         isTripOngoing={isTripOngoing}
-        onOpenCreateModal={() => openCreateModal('SHARED')}
+        onOpenCreateModal={() => openCreateModal(isLeader ? 'SHARED' : 'PERSONAL')}
       />
 
       {/* ── CATEGORY TABS & FILTER ── */}
@@ -276,8 +284,9 @@ export function GroupChecklistTab({
               scope === 'PERSONAL'
                 ? !item.assigneeUserId || isAssignedToMe
                 : isLeader || isAssignedToMe;
+            const isMyPersonal = scope === 'PERSONAL' && (!item.assigneeUserId || isAssignedToMe);
             const canManage =
-              isChecklistModifiable && (isLeader || isAssignedToMe || scope === 'PERSONAL');
+              isChecklistModifiable && ((isLeader && scope === 'SHARED') || isMyPersonal);
 
             return (
               <ChecklistItemCard

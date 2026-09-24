@@ -137,6 +137,21 @@ export const updateProfileSchema = z
       .max(HIKING_BIO_MAX_LENGTH, `Giới thiệu tối đa ${HIKING_BIO_MAX_LENGTH} ký tự`)
       .optional()
       .or(z.literal('')),
+    emergencyContactName: z
+      .string()
+      .max(100, 'Tên người thân tối đa 100 ký tự')
+      .optional()
+      .or(z.literal('')),
+    emergencyContactPhone: z
+      .string()
+      .trim()
+      .optional()
+      .or(z.literal(''))
+      .refine((val) => !val || isValidVietnamesePhone(val), {
+        message:
+          'Số điện thoại người thân không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)',
+      })
+      .transform((val) => (val ? normalizePhoneNumber(val) : val)),
     experienceLevel: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'], {
       message: 'Vui lòng chọn cấp độ kinh nghiệm',
     }),
