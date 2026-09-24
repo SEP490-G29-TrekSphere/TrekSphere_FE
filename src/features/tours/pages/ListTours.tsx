@@ -39,7 +39,7 @@ export default function ListTours() {
   } = useTourFilters();
 
   return (
-    <div className="min-h-screen bg-background pt-16">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative h-[350px] sm:h-[450px] w-full">
         <img

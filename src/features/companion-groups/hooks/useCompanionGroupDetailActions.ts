@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/store/useToastStore';
-import type { JoinRequestAction } from '../components/detail/JoinRequestsCard';
-import {
-  MATCHING_GROUP_FEEDBACK_DURATION_MS,
-  MATCHING_GROUP_LEAVE_REDIRECT_DELAY_MS,
-} from '../constants';
-import { resolveGroupUserRole } from '../mappers';
-import type { MatchingGroupDetailResponse } from '../types/matchingGroup';
+import { MATCHING_GROUP_LEAVE_REDIRECT_DELAY_MS } from '../constants';
 import { useApproveMember } from './useApproveMember';
 import { useCancelJoinRequest } from './useCancelJoinRequest';
 import { useCompanionGroupChatActions } from './useCompanionGroupChatActions';
+import {
+  type ActiveGroupModal,
+  type JoinRequestAction,
+  resolveGroupUserRole,
+  type UseCompanionGroupDetailActionsOptions,
+} from './useCompanionGroupDetailActions.types';
 import { useJoinMatchingGroup } from './useJoinMatchingGroup';
 import { useLeaveMatchingGroup } from './useLeaveMatchingGroup';
 import {
@@ -20,39 +20,23 @@ import {
 import { useRejectMember } from './useRejectMember';
 import { useRemoveMember } from './useRemoveMember';
 
-export type ActiveGroupModal =
-  | 'leave'
-  | 'reject'
-  | 'approve'
-  | 'addBackToChat'
-  | 'removeMember'
-  | null;
-
-interface UseCompanionGroupDetailActionsOptions {
-  groupId?: string;
-  group?: MatchingGroupDetailResponse;
-  currentUserId?: string;
-  backPath: string;
-  chatPath: string;
-}
-
 export function useCompanionGroupDetailActions({
   groupId,
   group,
   currentUserId,
-  backPath,
   chatPath,
+  backPath,
 }: UseCompanionGroupDetailActionsOptions) {
   const navigate = useNavigate();
+
+  const joinMutation = useJoinMatchingGroup();
   const leaveMutation = useLeaveMatchingGroup();
   const withdrawMutation = useCancelJoinRequest();
-  const joinMutation = useJoinMatchingGroup();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
   const removeMemberMutation = useRemoveMember();
   const lifecycleMutation = useMatchingGroupLifecycle();
 
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<ActiveGroupModal>(null);
   const [selectedRequest, setSelectedRequest] = useState<JoinRequestAction | null>(null);
   const [selectedAddBackMember, setSelectedAddBackMember] = useState<{
@@ -65,17 +49,11 @@ export function useCompanionGroupDetailActions({
   } | null>(null);
   const currentUserRole = resolveGroupUserRole(group, currentUserId);
 
-  function showFeedback(message: string) {
-    setFeedback(message);
-    window.setTimeout(() => setFeedback(null), MATCHING_GROUP_FEEDBACK_DURATION_MS);
-  }
-
   const chatActions = useCompanionGroupChatActions({
     groupId,
     group,
     currentUserId,
     chatPath,
-    showFeedback,
   });
 
   function openRequestModal(action: 'approve' | 'reject', request: JoinRequestAction) {
@@ -100,13 +78,11 @@ export function useCompanionGroupDetailActions({
       {
         onSuccess: () => {
           setActiveModal(null);
-          showFeedback(`Đã xoá ${selectedRemoveMember.name} khỏi nhóm ghép.`);
+          toast.success(`Đã xoá ${selectedRemoveMember.name} khỏi nhóm ghép.`);
           setSelectedRemoveMember(null);
         },
         onError: (error) =>
-          showFeedback(
-            error instanceof Error ? error.message : 'Có lỗi xảy ra khi xoá thành viên.'
-          ),
+          toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xoá thành viên.'),
       }
     );
   }
@@ -125,11 +101,11 @@ export function useCompanionGroupDetailActions({
       {
         onSuccess: () => {
           setActiveModal(null);
-          showFeedback(`Đã duyệt thành viên ${selectedRequest.userName} gia nhập nhóm!`);
+          toast.success(`Đã duyệt thành viên ${selectedRequest.userName} gia nhập nhóm!`);
           setSelectedRequest(null);
         },
         onError: (error) =>
-          showFeedback(
+          toast.error(
             error instanceof Error ? error.message : 'Có lỗi xảy ra khi duyệt thành viên.'
           ),
       }
@@ -143,11 +119,11 @@ export function useCompanionGroupDetailActions({
       {
         onSuccess: () => {
           setActiveModal(null);
-          showFeedback(`Đã từ chối yêu cầu của ${selectedRequest.userName}`);
+          toast.success(`Đã từ chối yêu cầu của ${selectedRequest.userName}`);
           setSelectedRequest(null);
         },
         onError: (error) =>
-          showFeedback(
+          toast.error(
             error instanceof Error ? error.message : 'Có lỗi xảy ra khi từ chối yêu cầu.'
           ),
       }
@@ -159,11 +135,11 @@ export function useCompanionGroupDetailActions({
     leaveMutation.mutate(groupId, {
       onSuccess: () => {
         setActiveModal(null);
-        showFeedback('Bạn đã rời khỏi nhóm ghép thành công.');
+        toast.success('Bạn đã rời khỏi nhóm ghép thành công.');
         window.setTimeout(() => navigate(backPath), MATCHING_GROUP_LEAVE_REDIRECT_DELAY_MS);
       },
       onError: (error) =>
-        showFeedback(error instanceof Error ? error.message : 'Có lỗi xảy ra khi rời khỏi nhóm.'),
+        toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi rời khỏi nhóm.'),
     });
   }
 
@@ -173,7 +149,6 @@ export function useCompanionGroupDetailActions({
       { matchingGroupId: groupId, message },
       {
         onSuccess: () => {
-          showFeedback('Đã gửi yêu cầu tham gia nhóm ghép.');
           toast.success(
             'Đã gửi yêu cầu tham gia thành công! Trưởng nhóm sẽ xét duyệt yêu cầu của bạn.'
           );
@@ -181,7 +156,6 @@ export function useCompanionGroupDetailActions({
         },
         onError: (error) => {
           const msg = error instanceof Error ? error.message : 'Có lỗi xảy ra khi xin tham gia.';
-          showFeedback(msg);
           toast.error(msg);
         },
       }
@@ -193,10 +167,10 @@ export function useCompanionGroupDetailActions({
     withdrawMutation.mutate(groupId, {
       onSuccess: () => {
         setActiveModal(null);
-        showFeedback('Đã rút yêu cầu tham gia nhóm ghép.');
+        toast.success('Đã rút yêu cầu tham gia nhóm ghép.');
       },
       onError: (error) =>
-        showFeedback(error instanceof Error ? error.message : 'Có lỗi xảy ra khi rút yêu cầu.'),
+        toast.error(error instanceof Error ? error.message : 'Có lỗi xảy ra khi rút yêu cầu.'),
     });
   }
 
@@ -209,14 +183,13 @@ export function useCompanionGroupDetailActions({
     lifecycleMutation.mutate(
       { groupId, action },
       {
-        onSuccess: () => showFeedback(successMsg),
-        onError: (error) => showFeedback(error instanceof Error ? error.message : errorMsg),
+        onSuccess: () => toast.success(successMsg),
+        onError: (error) => toast.error(error instanceof Error ? error.message : errorMsg),
       }
     );
   }
 
   return {
-    feedback,
     activeModal,
     setActiveModal,
     selectedRequest,

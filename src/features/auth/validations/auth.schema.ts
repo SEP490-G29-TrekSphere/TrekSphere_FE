@@ -5,7 +5,7 @@ import {
   HIKING_SKILLS_MAX,
   HIKING_TAG_MAX_LENGTH,
 } from '@/constants';
-import { isValidVietnamesePhone, normalizePhoneNumber } from '@/utils/phone';
+import { isValidVietnamesePhone } from '@/utils/phone';
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email').email('Địa chỉ email không hợp lệ'),
@@ -97,8 +97,7 @@ export const updateProfileSchema = z
       .refine((val) => isValidVietnamesePhone(val), {
         message:
           'Số điện thoại không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)',
-      })
-      .transform((val) => normalizePhoneNumber(val)),
+      }),
     gender: z.enum(['male', 'female', 'other']).optional().or(z.literal('')),
     dateOfBirth: z
       .string({ message: 'Vui lòng chọn ngày sinh' })
@@ -137,6 +136,20 @@ export const updateProfileSchema = z
       .max(HIKING_BIO_MAX_LENGTH, `Giới thiệu tối đa ${HIKING_BIO_MAX_LENGTH} ký tự`)
       .optional()
       .or(z.literal('')),
+    emergencyContactName: z
+      .string()
+      .max(100, 'Tên người thân tối đa 100 ký tự')
+      .optional()
+      .or(z.literal('')),
+    emergencyContactPhone: z
+      .string()
+      .trim()
+      .optional()
+      .or(z.literal(''))
+      .refine((val) => !val || isValidVietnamesePhone(val), {
+        message:
+          'Số điện thoại người thân không hợp lệ (gồm 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09 hoặc +84)',
+      }),
     experienceLevel: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'], {
       message: 'Vui lòng chọn cấp độ kinh nghiệm',
     }),

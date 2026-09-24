@@ -35,9 +35,13 @@ export function EditExpenseModal({
   members,
 }: EditExpenseModalProps) {
   const updateExpenseMutation = useUpdateGroupExpense(groupId);
-  const activeMembers = members.filter(
-    (m): m is MatchingMemberItem & { matchingMemberId: string } =>
-      m.status === 'ACCEPTED' && Boolean(m.matchingMemberId)
+  const activeMembers = useMemo(
+    () =>
+      members.filter(
+        (m): m is MatchingMemberItem & { matchingMemberId: string } =>
+          m.status === 'ACCEPTED' && Boolean(m.matchingMemberId)
+      ),
+    [members]
   );
 
   const [scope, setScope] = useState<BeneficiaryScope>(expense?.beneficiaryScope || 'ALL_MEMBERS');
@@ -267,7 +271,8 @@ export function EditExpenseModal({
             >
               {activeMembers.map((m) => (
                 <option key={m.matchingMemberId} value={m.matchingMemberId}>
-                  {m.fullName} {m.role === 'LEADER' ? '👑 Trưởng nhóm' : ''}
+                  {m.fullName}
+                  {m.role === 'LEADER' ? ' (Trưởng nhóm)' : ''}
                 </option>
               ))}
             </select>

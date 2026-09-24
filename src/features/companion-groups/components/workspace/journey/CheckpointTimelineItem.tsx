@@ -1,4 +1,5 @@
 import { Clock, Eye, MapPin, Navigation, Pencil, Trash2 } from 'lucide-react';
+import { RichTextContent } from '@/shared/ui';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
 import { formatCheckpointTime } from '../../../utils/checkpointTime';
 
@@ -118,7 +119,13 @@ export function CheckpointTimelineItem({
         </div>
 
         {checkpoint.description && (
-          <p className="mt-3 leading-relaxed text-muted-foreground">{checkpoint.description}</p>
+          <div className="mt-3">
+            <RichTextContent
+              content={checkpoint.description}
+              variant="compact"
+              className="leading-relaxed text-muted-foreground [&_p]:my-1"
+            />
+          </div>
         )}
 
         {checkpoint.imageUrl && (
@@ -126,7 +133,7 @@ export function CheckpointTimelineItem({
             <img
               src={checkpoint.imageUrl}
               alt={checkpoint.title}
-              className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] sm:h-52"
+              className="h-48 sm:h-56 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               loading="lazy"
             />
           </div>

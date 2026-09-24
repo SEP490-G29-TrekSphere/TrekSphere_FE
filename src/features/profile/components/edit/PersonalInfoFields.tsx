@@ -103,6 +103,38 @@ export function PersonalInfoFields({ email }: { email?: string }) {
             <p className="mt-1 text-xs text-destructive">{errors.gender.message}</p>
           )}
         </div>
+
+        <div>
+          <label htmlFor="emergencyContactName" className={EDIT_LABEL_CLASS}>
+            Họ tên người thân khẩn cấp (ICE)
+          </label>
+          <input
+            id="emergencyContactName"
+            type="text"
+            placeholder="Vd: Nguyễn Văn A (Bố/Mẹ/Vợ/Chồng)"
+            {...register('emergencyContactName')}
+            className={EDIT_FIELD_CLASS}
+          />
+          {errors.emergencyContactName && (
+            <p className="mt-1 text-xs text-destructive">{errors.emergencyContactName.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="emergencyContactPhone" className={EDIT_LABEL_CLASS}>
+            Số điện thoại người thân khẩn cấp (ICE)
+          </label>
+          <input
+            id="emergencyContactPhone"
+            type="tel"
+            placeholder="Vd: 0912345678"
+            {...register('emergencyContactPhone')}
+            className={EDIT_FIELD_CLASS}
+          />
+          {errors.emergencyContactPhone && (
+            <p className="mt-1 text-xs text-destructive">{errors.emergencyContactPhone.message}</p>
+          )}
+        </div>
       </div>
     </section>
   );

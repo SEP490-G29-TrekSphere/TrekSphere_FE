@@ -75,9 +75,11 @@ export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
                   )}
 
                   {cp.description && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {cp.description}
-                    </p>
+                    <RichTextContent
+                      content={cp.description}
+                      variant="compact"
+                      className="text-xs text-muted-foreground leading-relaxed [&_p]:my-1"
+                    />
                   )}
 
                   {cp.imageUrl && (
@@ -85,7 +87,8 @@ export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
                       <img
                         src={cp.imageUrl}
                         alt={cp.title}
-                        className="h-40 w-full rounded-xl object-cover border border-border"
+                        className="h-44 sm:h-52 w-full rounded-xl object-cover border border-border"
+                        loading="lazy"
                       />
                     </div>
                   )}

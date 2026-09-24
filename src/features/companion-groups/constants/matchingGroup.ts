@@ -62,6 +62,9 @@ export const MATCHING_GROUP_STATUS_FILTER_OPTIONS = [
   { value: 'OPEN', label: 'Đang mở' },
   { value: 'FULL', label: 'Đã đủ' },
   { value: 'CLOSED', label: 'Đã đóng' },
+  { value: 'IN_PROGRESS', label: 'Đang diễn ra' },
+  { value: 'COMPLETED', label: 'Đã hoàn thành' },
+  { value: 'CANCELLED', label: 'Đã hủy' },
 ] as const satisfies ReadonlyArray<{ value: MatchingGroupStatusFilter; label: string }>;
 
 export type MatchingGroupDifficultyFilter = JourneyDifficulty | 'ALL';

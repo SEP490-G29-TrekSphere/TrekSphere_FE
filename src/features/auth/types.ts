@@ -93,6 +93,9 @@ export interface UserProfile {
 
   trustScore?: number;
   trustReviewCount?: number;
+
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
 }
 
 /**
@@ -107,4 +110,6 @@ export interface UpdateProfilePayload {
   address?: string;
   bio?: string;
   interests?: string[];
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
 }

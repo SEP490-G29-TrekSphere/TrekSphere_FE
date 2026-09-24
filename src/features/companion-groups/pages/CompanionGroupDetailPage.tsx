@@ -156,12 +156,6 @@ export default function CompanionGroupDetailPage({
 
   return (
     <div className={shellClassName}>
-      {actions.feedback && (
-        <div className="fade-in slide-in-from-top-4 fixed top-6 right-6 z-[100] animate-in rounded-xl bg-primary px-6 py-3 font-semibold text-sm text-white shadow-lg">
-          {actions.feedback}
-        </div>
-      )}
-
       <div className={`${embedded ? 'w-full' : 'mx-auto max-w-6xl'} space-y-7`}>
         {/* Hero Section */}
         <GroupDetailHero
@@ -170,7 +164,6 @@ export default function CompanionGroupDetailPage({
           tourImageUrl={group.tourImageUrl}
           coverImageUrl={group.coverImageUrl}
           location={group.location}
-          description={group.description}
           status={group.status}
           targetDate={group.targetDate}
           matchingDeadline={group.matchingDeadline}

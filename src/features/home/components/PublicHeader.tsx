@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, Send, User, Users, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { queryClient } from '@/config/queryClient';
@@ -20,6 +20,15 @@ const NAV_ITEMS = [
   { label: 'Bài viết', path: PATHS.NEWS },
 ];
 
+const HERO_PAGES: string[] = [PATHS.HOME, PATHS.TOURS, PATHS.GROUPS];
+
+function isNavItemActive(pathname: string, itemPath: string): boolean {
+  if (itemPath === PATHS.HOME) {
+    return pathname === PATHS.HOME;
+  }
+  return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+}
+
 export default function PublicHeader() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
@@ -34,18 +43,18 @@ export default function PublicHeader() {
   usePushToastOnMenu('public-header-mobile', mobileMenuOpen, 220);
 
   useEffect(() => {
-    void location.pathname;
     const onScroll = () => setScrolled(window.scrollY > 80);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [location.pathname]);
+  }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset popups on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
     setNotificationOpen(false);
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handler = (e: MouseEvent | TouchEvent) => {
@@ -78,17 +87,17 @@ export default function PublicHeader() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';
   const dashboardPath = getRoleDashboardPath(user?.roles);
 
-  // On the home page the header starts transparent over the cinematic hero
-  const isHome = location.pathname === PATHS.HOME;
-  const transparent = isHome && !scrolled;
+  // Transparent header over cinematic hero pages (Home, Tours, Matching Discover)
+  const isHero = HERO_PAGES.includes(location.pathname);
+  const transparent = isHero && !scrolled;
 
   return (
     <header
       ref={headerRef}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled || !isHome
-          ? 'bg-background/80 backdrop-blur-[16px] border-b border-border/60'
-          : 'bg-transparent border-b border-transparent'
+        transparent
+          ? 'bg-transparent border-b border-transparent'
+          : 'bg-background/85 backdrop-blur-[16px] border-b border-border/60 shadow-sm'
       }`}
     >
       <div className="mx-auto flex h-16 max-w-none w-full items-center justify-between px-4 sm:px-6">
@@ -120,7 +129,7 @@ export default function PublicHeader() {
 
         <nav className="hidden md:flex items-center gap-8">
           {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isNavItemActive(location.pathname, item.path);
             return (
               <Link
                 key={item.path}
@@ -128,10 +137,10 @@ export default function PublicHeader() {
                 className={`relative text-sm font-medium transition-colors ${
                   transparent
                     ? isActive
-                      ? 'text-white'
-                      : 'text-white/70 hover:text-white'
+                      ? 'text-white font-semibold'
+                      : 'text-white/80 hover:text-white'
                     : isActive
-                      ? 'text-primary hover:text-primary'
+                      ? 'text-primary font-semibold'
                       : 'text-muted-foreground hover:text-primary'
                 }`}
               >
@@ -198,12 +207,36 @@ export default function PublicHeader() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border bg-popover p-1 shadow-lg">
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border bg-popover p-1.5 shadow-lg">
                     <div className="px-3 py-2">
-                      <p className="truncate text-sm font-semibold">{user.name}</p>
+                      <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
                       <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                     </div>
                     <div className="my-1 h-px bg-border" />
+                    <Link
+                      to={PATHS.TREKKER_PROFILE}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <User className="h-4 w-4" />
+                      Trang cá nhân
+                    </Link>
+                    <Link
+                      to={PATHS.TREKKER_MY_GROUPS}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <Users className="h-4 w-4" />
+                      Nhóm của tôi
+                    </Link>
+                    <Link
+                      to={PATHS.TREKKER_MY_JOIN_REQUESTS}
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <Send className="h-4 w-4" />
+                      Yêu cầu tham gia
+                    </Link>
                     {dashboardPath && (
                       <Link
                         to={dashboardPath}
@@ -257,12 +290,12 @@ export default function PublicHeader() {
           id="public-mobile-nav"
           className={`md:hidden border-t px-4 py-3 space-y-1 ${
             transparent
-              ? 'border-white/20 bg-black/20 backdrop-blur-[16px]'
+              ? 'border-white/20 bg-black/40 backdrop-blur-[16px]'
               : 'border-border/60 bg-background/95 backdrop-blur-[16px]'
           }`}
         >
           {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = isNavItemActive(location.pathname, item.path);
             return (
               <Link
                 key={item.path}
@@ -271,10 +304,10 @@ export default function PublicHeader() {
                 className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   transparent
                     ? isActive
-                      ? 'text-white bg-white/10'
+                      ? 'text-white bg-white/15 font-semibold'
                       : 'text-white/80 hover:text-white hover:bg-white/10'
                     : isActive
-                      ? 'text-primary bg-primary/5'
+                      ? 'text-primary bg-primary/10 font-semibold'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >

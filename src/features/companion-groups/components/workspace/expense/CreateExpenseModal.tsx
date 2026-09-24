@@ -45,22 +45,25 @@ export function CreateExpenseModal({
   currentUserId,
 }: CreateExpenseModalProps) {
   const createExpenseMutation = useCreateGroupExpense(groupId);
-  const activeMembers = members.filter(
-    (m): m is MatchingMemberItem & { matchingMemberId: string } =>
-      m.status === 'ACCEPTED' && Boolean(m.matchingMemberId)
+  const activeMembers = useMemo(
+    () =>
+      members.filter(
+        (m): m is MatchingMemberItem & { matchingMemberId: string } =>
+          m.status === 'ACCEPTED' && Boolean(m.matchingMemberId)
+      ),
+    [members]
   );
 
   const [scope, setScope] = useState<BeneficiaryScope>('ALL_MEMBERS');
-  const [selectedMembers, setSelectedMembers] = useState<string[]>(
-    activeMembers.map((m) => m.matchingMemberId)
-  );
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('EQUAL');
   const [customSharesMap, setCustomSharesMap] = useState<Record<string, number>>({});
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
   const receiptCleanup = useImageUploadCleanup();
 
-  const defaultLeaderMember = activeMembers.find(
-    (m) => m.role === 'LEADER' || m.userId === currentUserId
+  const defaultLeaderMember = useMemo(
+    () => activeMembers.find((m) => m.role === 'LEADER' || m.userId === currentUserId),
+    [activeMembers, currentUserId]
   );
 
   const {
@@ -121,6 +124,7 @@ export function CreateExpenseModal({
     setCustomSharesMap(newMap);
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset modal state only when modal opens
   useEffect(() => {
     if (isOpen) {
       setScope('ALL_MEMBERS');
@@ -139,7 +143,7 @@ export function CreateExpenseModal({
         note: '',
       });
     }
-  }, [isOpen, activeMembers, defaultLeaderMember, reset]);
+  }, [isOpen]);
 
   const handleClose = () => {
     receiptCleanup.discard();
@@ -248,8 +252,8 @@ export function CreateExpenseModal({
             >
               {activeMembers.map((m) => (
                 <option key={m.matchingMemberId} value={m.matchingMemberId}>
-                  {m.fullName} {m.userId === currentUserId ? '(Bạn)' : ''}{' '}
-                  {m.role === 'LEADER' ? '👑 Trưởng nhóm' : ''}
+                  {m.fullName} {m.userId === currentUserId ? '(Bạn)' : ''}
+                  {m.role === 'LEADER' ? ' (Trưởng nhóm)' : ''}
                 </option>
               ))}
             </select>

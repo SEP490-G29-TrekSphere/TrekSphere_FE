@@ -37,9 +37,13 @@ export function ChecklistItemCard({
       key={id}
       role="button"
       tabIndex={0}
-      onClick={() => onToggleStatus(item)}
+      onClick={() => {
+        if (canToggle) {
+          onToggleStatus(item);
+        }
+      }}
       onKeyUp={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (canToggle && (e.key === 'Enter' || e.key === ' ')) {
           onToggleStatus(item);
         }
       }}
@@ -56,7 +60,7 @@ export function ChecklistItemCard({
         'group relative rounded-2xl border p-4 transition-all duration-200 flex flex-col justify-between space-y-3 select-none',
         canToggle
           ? 'cursor-pointer hover:border-primary/50 hover:shadow-sm'
-          : 'cursor-default opacity-90',
+          : 'cursor-not-allowed opacity-75',
         isDone ? 'border-primary/20 bg-primary/5' : 'border-border/80 bg-card'
       )}
     >
@@ -86,8 +90,8 @@ export function ChecklistItemCard({
                 {title}
               </h4>
               {item.isRequired && (
-                <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] font-extrabold text-foreground">
-                  Bắt buộc
+                <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 dark:text-amber-400">
+                  Quan trọng
                 </span>
               )}
               <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">

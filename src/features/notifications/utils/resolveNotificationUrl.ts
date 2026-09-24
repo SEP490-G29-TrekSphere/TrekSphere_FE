@@ -67,6 +67,9 @@ export function resolveNotificationUrl(
     case 'GROUP_CHECKPOINT_SKIPPED':
       return referenceId ? `/trekker/my-groups/${referenceId}?tab=itinerary` : '/trekker/my-groups';
 
+    case 'GROUP_CHECKLIST_ASSIGNED':
+      return referenceId ? `/trekker/my-groups/${referenceId}?tab=checklist` : '/trekker/my-groups';
+
     case 'GROUP_TRIP_ENDED':
       return referenceId
         ? `/trekker/my-groups/${referenceId}?tab=members&subTab=reviews`
