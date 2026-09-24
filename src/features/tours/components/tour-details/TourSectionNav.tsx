@@ -7,9 +7,18 @@ import { cn } from '@/lib/utils';
 
 interface TourSectionNavProps {
   sections: TourSection[];
+  /**
+   * Sticky offset from the top, as a Tailwind `top-*` class. Defaults to
+   * `top-16`, calibrated to sit right below the 64px guest-facing site
+   * header (`PublicLayout`'s `Header`). Pages with a different element
+   * pinned above this nav (e.g. a page-specific banner) must pass a class
+   * matching that element's actual rendered height, or the two sticky
+   * offsets will overlap once their heights don't match.
+   */
+  topClassName?: string;
 }
 
-export function TourSectionNav({ sections }: TourSectionNavProps) {
+export function TourSectionNav({ sections, topClassName = 'top-16' }: TourSectionNavProps) {
   const activeId = useSectionSpy(
     sections.map((section) => section.id),
     SECTION_SCROLL_OFFSET
@@ -29,7 +38,10 @@ export function TourSectionNav({ sections }: TourSectionNavProps) {
   return (
     <nav
       aria-label="Điều hướng nội dung tour"
-      className="sticky top-16 z-30 border-b border-border bg-background/90 backdrop-blur-md"
+      className={cn(
+        'sticky z-30 border-b border-border bg-background/90 backdrop-blur-md',
+        topClassName
+      )}
     >
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         <ul className="-mb-px flex gap-1 overflow-x-auto">

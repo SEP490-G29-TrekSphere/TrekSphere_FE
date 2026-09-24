@@ -116,7 +116,6 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             onUploadingChange={setIsUploadingProof}
             showOpenLink
             previewClassName="max-h-36 w-full bg-background/50 object-contain"
-            urlPlaceholder="https://... ảnh bill chuyển khoản"
             disabled={actionLoading}
           />
 

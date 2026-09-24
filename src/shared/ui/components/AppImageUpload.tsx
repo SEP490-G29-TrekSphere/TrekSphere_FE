@@ -2,14 +2,14 @@ import { ExternalLink, ImagePlus, Loader2, X } from 'lucide-react';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
 // profileService provides shared file upload transport (/files/upload) for the entire app.
 import { profileService } from '@/features/profile/services/profileService';
+import { cn } from '@/lib/utils';
 import { toast } from '@/store/useToastStore';
 import { getSafeImageUrl } from '@/utils/sanitize';
 
 /**
  * Universal image upload component for the entire app:
  * 1. File selection from device immediately uploads to storage, form state holds URL.
- * 2. Alternatively accepts raw image URLs directly.
- * 3. Lifecycle management via `ImageUploadCleanup` (calls delete API on discard/unmount).
+ * 2. Lifecycle management via `ImageUploadCleanup` (calls delete API on discard/unmount).
  */
 
 const DEFAULT_MAX_SIZE_MB = 5;
@@ -59,48 +59,6 @@ interface UploadOptions {
   cleanup: ImageUploadCleanup;
 }
 
-type ImageInputMode = 'upload' | 'url';
-
-/** Segmented toggle switching between "upload a file" and "paste a URL" — only one input is shown at a time. */
-function ImageInputModeToggle({
-  mode,
-  onChange,
-  disabled,
-}: {
-  mode: ImageInputMode;
-  onChange: (mode: ImageInputMode) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div
-      className="inline-flex w-fit rounded-xl bg-muted/50 p-1"
-      role="radiogroup"
-      aria-label="Cách thêm ảnh"
-    >
-      {(
-        [
-          ['upload', 'Tải lên'],
-          ['url', 'Dán URL'],
-        ] as const
-      ).map(([value, text]) => (
-        <button
-          key={value}
-          type="button"
-          disabled={disabled}
-          onClick={() => onChange(value)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-            mode === value
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {text}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 async function uploadOne(file: File, { folder, maxSizeMb, cleanup }: UploadOptions) {
   if (!file.type.startsWith('image/')) {
     toast.error(`"${file.name}" không phải là file ảnh.`);
@@ -134,7 +92,6 @@ export interface AppImageUploadFieldProps {
   label?: ReactNode;
   /** Helper text displayed below input. */
   hint?: ReactNode;
-  urlPlaceholder?: string;
   maxSizeMb?: number;
   disabled?: boolean;
   errorMessage?: string;
@@ -143,6 +100,8 @@ export interface AppImageUploadFieldProps {
   /** Preview image container classes. */
   previewClassName?: string;
   className?: string;
+  /** Custom button class names. */
+  buttonClassName?: string;
   /** Loading state callback to disable submit buttons. */
   onUploadingChange?: (isUploading: boolean) => void;
   /** Raw File callback for multipart endpoints. */
@@ -156,19 +115,18 @@ export function AppImageUploadField({
   cleanup,
   label,
   hint,
-  urlPlaceholder = 'https://images.unsplash.com/...',
   maxSizeMb = DEFAULT_MAX_SIZE_MB,
   disabled = false,
   errorMessage,
   showOpenLink = false,
   previewClassName = 'h-36 w-full object-cover',
   className,
+  buttonClassName,
   onUploadingChange,
   onFileSelected,
 }: AppImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [mode, setMode] = useState<ImageInputMode>('upload');
 
   const setUploading = (next: boolean) => {
     setIsUploading(next);
@@ -243,51 +201,36 @@ export function AppImageUploadField({
         </div>
       )}
 
-      <ImageInputModeToggle mode={mode} onChange={setMode} disabled={disabled} />
-
-      {mode === 'upload' ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <button
-            type="button"
-            disabled={disabled || isUploading}
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                <span>Đang tải ảnh lên...</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus className="h-3.5 w-3.5 text-primary" />
-                <span>{value ? 'Đổi ảnh khác' : 'Tải ảnh từ máy'}</span>
-              </>
-            )}
-          </button>
-        </div>
-      ) : (
+      <div className="flex w-full flex-wrap items-center gap-2">
         <input
-          type="text"
-          value={value ?? ''}
-          disabled={disabled}
-          onChange={(event) => {
-            // Release previous session upload when manually entering a URL
-            if (value) cleanup.release(value);
-            onChange(event.target.value);
-            onFileSelected?.(null);
-          }}
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
-          placeholder={urlPlaceholder}
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
         />
-      )}
+        <button
+          type="button"
+          disabled={disabled || isUploading}
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            'inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50',
+            buttonClassName
+          )}
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              <span>Đang tải ảnh lên...</span>
+            </>
+          ) : (
+            <>
+              <ImagePlus className="h-3.5 w-3.5 text-primary" />
+              <span>{value ? 'Đổi ảnh khác' : 'Tải ảnh từ máy'}</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}
       {errorMessage && <p className="text-[10px] text-red-500">{errorMessage}</p>}
@@ -307,7 +250,6 @@ export interface AppImageUploadGalleryProps {
   cleanup: ImageUploadCleanup;
   label?: ReactNode;
   hint?: ReactNode;
-  urlPlaceholder?: string;
   maxSizeMb?: number;
   /** Max images limit (undefined = unlimited). */
   maxImages?: number;
@@ -329,7 +271,6 @@ export function AppImageUploadGallery({
   cleanup,
   label,
   hint,
-  urlPlaceholder = 'https://images.unsplash.com/...',
   maxSizeMb = DEFAULT_MAX_SIZE_MB,
   maxImages,
   disabled = false,
@@ -341,8 +282,6 @@ export function AppImageUploadGallery({
 }: AppImageUploadGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [urlDraft, setUrlDraft] = useState('');
-  const [mode, setMode] = useState<ImageInputMode>('upload');
 
   const setUploading = (next: boolean) => {
     setIsUploading(next);
@@ -382,25 +321,6 @@ export function AppImageUploadGallery({
     }
   };
 
-  const handleAddUrl = () => {
-    const url = urlDraft.trim();
-    if (!url) return;
-    if (isFull) {
-      toast.error(`Chỉ được thêm tối đa ${maxImages} ảnh.`);
-      return;
-    }
-    if (value.includes(url)) {
-      toast.error('Ảnh này đã có trong danh sách.');
-      return;
-    }
-    if (!getSafeImageUrl(url)) {
-      toast.error('Đường dẫn ảnh không hợp lệ.');
-      return;
-    }
-    onChange([...value, url]);
-    setUrlDraft('');
-  };
-
   const handleRemove = (index: number) => {
     const url = value[index];
     if (url) cleanup.release(url);
@@ -411,63 +331,34 @@ export function AppImageUploadGallery({
     <div className={className ?? 'space-y-2'}>
       {label && <span className="block text-xs font-bold text-foreground">{label}</span>}
 
-      <ImageInputModeToggle mode={mode} onChange={setMode} disabled={disabled || isFull} />
-
-      {mode === 'upload' ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <button
-            type="button"
-            disabled={disabled || isUploading || isFull}
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                <span>Đang tải ảnh lên...</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus className="h-3.5 w-3.5 text-primary" />
-                <span>Tải ảnh từ máy</span>
-              </>
-            )}
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={urlDraft}
-            disabled={disabled || isFull}
-            onChange={(event) => setUrlDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleAddUrl();
-              }
-            }}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
-            placeholder={urlPlaceholder}
-          />
-          <button
-            type="button"
-            onClick={handleAddUrl}
-            disabled={disabled || isFull || !urlDraft.trim()}
-            className="shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
-          >
-            Thêm
-          </button>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <button
+          type="button"
+          disabled={disabled || isUploading || isFull}
+          onClick={() => fileInputRef.current?.click()}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/5 disabled:opacity-50"
+        >
+          {isUploading ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              <span>Đang tải ảnh lên...</span>
+            </>
+          ) : (
+            <>
+              <ImagePlus className="h-3.5 w-3.5 text-primary" />
+              <span>Tải ảnh từ máy</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {value.length > 0 && (
         <div className={gridClassName}>

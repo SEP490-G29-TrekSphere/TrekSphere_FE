@@ -53,12 +53,11 @@ export function useVendorTourMutations() {
       checkpoints: CheckpointSubmitItem[];
       deletedCheckpointIds: string[];
     }) => {
-      const updated = await vendorTourService.updateTour(tourId, tour);
-
-      for (const checkpointId of deletedCheckpointIds) {
-        await vendorTourService.deleteCheckpoint(checkpointId);
-      }
-
+      // Sync checkpoints to their final state BEFORE updating the tour itself.
+      // A PUBLISHED tour's structural validation (>=2 checkpoints, etc.) runs
+      // as part of the tour-update call and reads whatever is already
+      // persisted — if that call ran first, adding checkpoints to fix a
+      // previously-deficient tour would still fail against the stale count.
       for (const checkpoint of checkpoints) {
         if (checkpoint.checkpointId) {
           await vendorTourService.updateCheckpoint(checkpoint.checkpointId, checkpoint.payload);
@@ -66,7 +65,12 @@ export function useVendorTourMutations() {
           await vendorTourService.createCheckpoint(tourId, checkpoint.payload);
         }
       }
-      return updated;
+
+      for (const checkpointId of deletedCheckpointIds) {
+        await vendorTourService.deleteCheckpoint(checkpointId);
+      }
+
+      return await vendorTourService.updateTour(tourId, tour);
     },
     onSuccess: (_data, variables) => {
       invalidate();

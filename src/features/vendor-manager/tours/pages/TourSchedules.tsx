@@ -204,6 +204,8 @@ export default function TourSchedules() {
               }
             : undefined
         }
+        existingSchedules={schedules}
+        currentScheduleId={isEditingExisting ? formTarget.scheduleId : undefined}
         durationDays={tour.durationDays}
         isPending={createSchedule.isPending || updateSchedule.isPending}
         onSubmit={handleFormSubmit}

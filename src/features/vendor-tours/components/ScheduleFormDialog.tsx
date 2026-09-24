@@ -13,7 +13,12 @@ import {
 import { parseIsoDate, toIsoDate } from '@/lib';
 import { AppDatePicker } from '@/shared/ui';
 import { SCHEDULE_STATUS_OPTIONS } from '../constants';
-import type { ApiScheduleStatus, CreateSchedulePayload, UpdateSchedulePayload } from '../types';
+import type {
+  ApiScheduleStatus,
+  CreateSchedulePayload,
+  TourSchedule,
+  UpdateSchedulePayload,
+} from '../types';
 import {
   type ScheduleFormInput,
   type ScheduleFormValues,
@@ -53,6 +58,11 @@ export interface ScheduleFormDialogProps {
 
   defaultValues?: Partial<ScheduleFormDefaultValues>;
 
+  /** The tour's other schedules (excluding the one being edited), used to block exact-date duplicates. */
+  existingSchedules?: TourSchedule[];
+  /** Id of the schedule being edited, so it isn't compared against itself in the duplicate check. */
+  currentScheduleId?: string;
+
   durationDays: number;
   isPending?: boolean;
   onSubmit: (payload: CreateSchedulePayload | UpdateSchedulePayload) => void;
@@ -63,6 +73,8 @@ export function ScheduleFormDialog({
   onOpenChange,
   mode,
   defaultValues,
+  existingSchedules = [],
+  currentScheduleId,
   durationDays,
   isPending = false,
   onSubmit: onSubmitProp,
@@ -99,9 +111,22 @@ export function ScheduleFormDialog({
       return;
     }
 
-    if (latestReturnDate && values.returnDate > toIsoDate(latestReturnDate)) {
+    if (latestReturnDate && values.returnDate !== toIsoDate(latestReturnDate)) {
       setError('returnDate', {
-        message: `Lịch trình vượt quá ${durationDays} ngày đã thiết lập cho tour.`,
+        message: `Lịch khởi hành phải kéo dài đúng ${durationDays} ngày như Tour đã thiết lập.`,
+      });
+      return;
+    }
+
+    const isDuplicate = existingSchedules.some(
+      (schedule) =>
+        schedule.scheduleId !== currentScheduleId &&
+        schedule.departureDate === values.departureDate &&
+        schedule.returnDate === values.returnDate
+    );
+    if (isDuplicate) {
+      setError('returnDate', {
+        message: 'Đã có lịch khởi hành khác với đúng ngày đi và ngày về này.',
       });
       return;
     }
@@ -188,9 +213,13 @@ export function ScheduleFormDialog({
                     selected={parseIsoDate(field.value)}
                     onChange={(date: Date | null) => {
                       field.onChange(toIsoDate(date));
-                      if (date && latestReturnDate && date > latestReturnDate) {
+                      if (
+                        date &&
+                        latestReturnDate &&
+                        toIsoDate(date) !== toIsoDate(latestReturnDate)
+                      ) {
                         setError('returnDate', {
-                          message: `Lịch trình vượt quá ${durationDays} ngày đã thiết lập cho tour.`,
+                          message: `Lịch khởi hành phải kéo dài đúng ${durationDays} ngày như Tour đã thiết lập.`,
                         });
                       } else {
                         clearErrors('returnDate');
@@ -198,6 +227,7 @@ export function ScheduleFormDialog({
                     }}
                     onBlur={field.onBlur}
                     minDate={parseIsoDate(departureDate) ?? undefined}
+                    maxDate={latestReturnDate ?? undefined}
                     className="w-full cursor-pointer rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     placeholderText="Chọn ngày kết thúc"
                   />

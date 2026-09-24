@@ -24,9 +24,7 @@ export function ScheduleTableRow({ schedule, onEditClick, onDeleteClick }: Sched
       </td>
 
       <td className="px-6 py-4 align-middle">
-        <span className="text-sm font-medium text-muted-foreground">
-          {formatDate(schedule.returnDate)}
-        </span>
+        <span className="font-semibold text-foreground">{formatDate(schedule.returnDate)}</span>
       </td>
 
       <td className="px-6 py-4 align-middle">

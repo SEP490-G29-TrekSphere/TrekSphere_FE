@@ -1,5 +1,9 @@
 import { MapPin, X } from 'lucide-react';
-import { AppImageUploadGallery, type ImageUploadCleanup } from '@/shared/ui';
+import {
+  AppImageUploadGallery,
+  ExpandableTextareaField,
+  type ImageUploadCleanup,
+} from '@/shared/ui';
 
 export interface CheckpointDraft {
   key: string;
@@ -138,12 +142,13 @@ function CheckpointRow({
           placeholder="Tên checkpoint (VD: Trạm nghỉ 2000m)"
           className="w-full rounded-xl border-none bg-white px-4 py-2.5 text-sm font-semibold text-foreground focus:outline-none"
         />
-        <textarea
+        <ExpandableTextareaField
           value={checkpoint.description}
-          onChange={(e) => onChange({ description: e.target.value })}
+          onChange={(description) => onChange({ description })}
           placeholder="Mô tả ngắn về checkpoint này..."
           rows={2}
-          className="w-full resize-none rounded-xl border-none bg-white px-4 py-2.5 text-sm text-foreground focus:outline-none"
+          className="space-y-0"
+          textareaClassName="border-none bg-white text-foreground"
         />
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <input

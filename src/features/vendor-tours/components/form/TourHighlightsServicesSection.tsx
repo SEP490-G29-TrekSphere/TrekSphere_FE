@@ -1,11 +1,12 @@
-import type { UseFormRegister } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
+import { AppExpandableTextarea } from '@/shared/ui';
 import type { TourFormInput } from '../../validations';
 
 interface TourHighlightsServicesSectionProps {
-  register: UseFormRegister<TourFormInput>;
+  control: Control<TourFormInput>;
 }
 
-export function TourHighlightsServicesSection({ register }: TourHighlightsServicesSectionProps) {
+export function TourHighlightsServicesSection({ control }: TourHighlightsServicesSectionProps) {
   return (
     <section className="space-y-5 rounded-3xl border border-border bg-card p-6 lg:col-span-5">
       <div>
@@ -18,45 +19,36 @@ export function TourHighlightsServicesSection({ register }: TourHighlightsServic
         </p>
       </div>
 
-      <div>
-        <label htmlFor="highlights" className="mb-1.5 block text-sm font-semibold text-foreground">
-          Điểm nổi bật của tour
-        </label>
-        <textarea
-          id="highlights"
-          rows={3}
-          {...register('highlights')}
-          placeholder="- Ngắm biển mây bồng bềnh&#10;- Chinh phục đỉnh núi nóc nhà Đông Dương&#10;- Trải nghiệm ẩm thực người bản địa"
-          className="w-full resize-none rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-        />
-      </div>
+      <AppExpandableTextarea
+        name="highlights"
+        control={control}
+        label="Điểm nổi bật của tour"
+        rows={3}
+        placeholder={
+          '- Ngắm biển mây bồng bềnh\n- Chinh phục đỉnh núi nóc nhà Đông Dương\n- Trải nghiệm ẩm thực người bản địa'
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="includes" className="mb-1.5 block text-sm font-semibold text-foreground">
-            Dịch vụ bao gồm trong tour
-          </label>
-          <textarea
-            id="includes"
-            rows={3}
-            {...register('includes')}
-            placeholder="- Hướng dẫn viên và Porter bản địa&#10;- Bữa ăn và nước uống suốt hành trình&#10;- Lều trại và túi ngủ chuyên dụng&#10;- Bảo hiểm du lịch"
-            className="w-full resize-none rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
+        <AppExpandableTextarea
+          name="includes"
+          control={control}
+          label="Dịch vụ bao gồm trong tour"
+          rows={3}
+          placeholder={
+            '- Hướng dẫn viên và Porter bản địa\n- Bữa ăn và nước uống suốt hành trình\n- Lều trại và túi ngủ chuyên dụng\n- Bảo hiểm du lịch'
+          }
+        />
 
-        <div>
-          <label htmlFor="excludes" className="mb-1.5 block text-sm font-semibold text-foreground">
-            Dịch vụ không bao gồm
-          </label>
-          <textarea
-            id="excludes"
-            rows={3}
-            {...register('excludes')}
-            placeholder="- Chi phí cá nhân phát sinh ngoài chương trình&#10;- Vé máy bay/tàu xe đến điểm tập kết&#10;- Tiền tip cho HDV/Porter"
-            className="w-full resize-none rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
+        <AppExpandableTextarea
+          name="excludes"
+          control={control}
+          label="Dịch vụ không bao gồm"
+          rows={3}
+          placeholder={
+            '- Chi phí cá nhân phát sinh ngoài chương trình\n- Vé máy bay/tàu xe đến điểm tập kết\n- Tiền tip cho HDV/Porter'
+          }
+        />
       </div>
     </section>
   );

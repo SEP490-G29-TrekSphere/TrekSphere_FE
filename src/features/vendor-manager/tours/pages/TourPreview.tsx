@@ -100,10 +100,10 @@ export default function TourPreview() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2.5 sm:px-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
+      <div className="sticky top-0 z-30 flex h-12 items-center justify-between gap-3 overflow-hidden border-b border-amber-500/30 bg-amber-500/10 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 text-xs font-bold text-amber-800">
           <Eye className="h-4 w-4 shrink-0" />
-          <span>Chế độ xem trước — chỉ bạn thấy, không phải trang Guest thật</span>
+          <span className="truncate">Chế độ xem trước — chỉ bạn thấy được nội dung này</span>
           <TourStatusBadge status={tour.status} />
         </div>
         <button
@@ -117,7 +117,7 @@ export default function TourPreview() {
       </div>
 
       <TourDetailHero tour={tour} />
-      <TourSectionNav sections={visibleSections} />
+      <TourSectionNav sections={visibleSections} topClassName="top-12" />
 
       <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
         <div className="flex min-w-0 flex-col gap-10">

@@ -17,7 +17,7 @@ export function TourRequirementsSection({
     <section className="space-y-5 rounded-3xl border border-border bg-card p-6 lg:col-span-5">
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Điều kiện tham gia (Participation Policy)
+          Điều kiện tham gia
         </h3>
         <p className="mt-1 text-xs font-medium text-muted-foreground">
           Tuổi tối thiểu là bắt buộc; các giới hạn khác chỉ nhập khi cần. Tour đầy đủ policy giúp

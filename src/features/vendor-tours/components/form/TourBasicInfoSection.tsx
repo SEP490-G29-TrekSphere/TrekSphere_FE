@@ -1,4 +1,3 @@
-import { Info } from 'lucide-react';
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { AppCurrencyInput, AppImageUploadField, type ImageUploadCleanup } from '@/shared/ui';
@@ -227,12 +226,8 @@ export function TourDurationAndCoverSection({
           onUploadingChange={setIsUploadingImages}
           maxSizeMb={MAX_COVER_SIZE_MB}
           previewClassName="aspect-[3/2] w-full object-cover"
+          buttonClassName="w-full py-4 text-sm font-semibold flex items-center justify-center border-2 border-dashed border-border/80 hover:border-primary hover:bg-primary/5 transition-all"
         />
-        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Hình ảnh đẹp sẽ giúp tour của bạn thu hút hơn. Kích thước khuyến nghị: 1200 x 800px. Định
-          dạng JPG, PNG.
-        </p>
       </section>
     </>
   );

@@ -253,7 +253,7 @@ export function TourForm({
 
           <section className="space-y-4 rounded-3xl border border-border bg-card p-6">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Lịch trình &amp; Checkpoints
+              Checkpoints
             </h3>
             <CheckpointFields
               checkpoints={checkpoints}
@@ -278,7 +278,7 @@ export function TourForm({
         </div>
 
         {/* Highlights & Services — Full width */}
-        <TourHighlightsServicesSection register={register} />
+        <TourHighlightsServicesSection control={control} />
 
         {/* Participation Policy — Full width */}
         <TourRequirementsSection register={register} control={control} errors={errors} />

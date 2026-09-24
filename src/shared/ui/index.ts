@@ -67,6 +67,8 @@ export {
 export {
   AppExpandableTextarea,
   type AppExpandableTextareaProps,
+  ExpandableTextareaField,
+  type ExpandableTextareaFieldProps,
 } from './form/AppExpandableTextarea';
 export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 export { AppFormInput, type AppFormInputProps } from './form/AppFormInput';
