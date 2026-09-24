@@ -36,14 +36,12 @@ export function getLatestReturnDate(departureDate: string, durationDays: number)
 export interface ScheduleFormDefaultValues {
   departureDate: string;
   returnDate: string;
-  availableSlots: number;
   status: ApiScheduleStatus;
 }
 
 const EMPTY_DEFAULTS: ScheduleFormInput = {
   departureDate: '',
   returnDate: '',
-  availableSlots: 1,
   status: 'OPEN',
   reason: '',
 };
@@ -55,10 +53,6 @@ export interface ScheduleFormDialogProps {
 
   defaultValues?: Partial<ScheduleFormDefaultValues>;
 
-  bookedSlots?: number;
-
-  maxCapacity: number;
-
   durationDays: number;
   isPending?: boolean;
   onSubmit: (payload: CreateSchedulePayload | UpdateSchedulePayload) => void;
@@ -69,14 +63,11 @@ export function ScheduleFormDialog({
   onOpenChange,
   mode,
   defaultValues,
-  bookedSlots = 0,
-  maxCapacity,
   durationDays,
   isPending = false,
   onSubmit: onSubmitProp,
 }: ScheduleFormDialogProps) {
   const isEdit = mode === 'edit';
-  const requiresReason = isEdit && bookedSlots > 0;
 
   const {
     register,
@@ -93,7 +84,9 @@ export function ScheduleFormDialog({
   });
 
   const departureDate = watch('departureDate');
+  const selectedStatus = watch('status');
   const latestReturnDate = getLatestReturnDate(departureDate, durationDays);
+  const requiresReason = isEdit && selectedStatus === 'CANCELLED';
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: rule suppressed for specific design requirements
   useEffect(() => {
@@ -113,15 +106,8 @@ export function ScheduleFormDialog({
       return;
     }
 
-    if (values.availableSlots > maxCapacity) {
-      setError('availableSlots', {
-        message: `Không thể vượt quá sức chứa tối đa của tour (${maxCapacity}).`,
-      });
-      return;
-    }
-
     if (requiresReason && !values.reason?.trim()) {
-      setError('reason', { message: 'Vui lòng nhập lý do điều chỉnh' });
+      setError('reason', { message: 'Vui lòng nhập lý do hủy' });
       return;
     }
 
@@ -137,7 +123,6 @@ export function ScheduleFormDialog({
       const payload: CreateSchedulePayload = {
         departureDate: values.departureDate,
         returnDate: values.returnDate,
-        availableSlots: values.availableSlots,
       };
       onSubmitProp(payload);
     }
@@ -152,10 +137,10 @@ export function ScheduleFormDialog({
           </DialogTitle>
           <DialogDescription>
             {requiresReason
-              ? 'Lịch này đã có khách đặt — vui lòng nhập lý do điều chỉnh, hệ thống sẽ tự động gửi thông báo tới từng khách hàng đã đặt.'
+              ? 'Hủy lịch khởi hành này — vui lòng nhập lý do, hệ thống sẽ tự động gửi thông báo tới các nhóm ghép đang nhắm vào ngày này.'
               : isEdit
-                ? 'Điều chỉnh ngày đi, số chỗ hoặc trạng thái của lịch khởi hành này.'
-                : 'Thiết lập ngày đi, ngày về và giới hạn số chỗ cho lịch khởi hành mới.'}
+                ? 'Điều chỉnh ngày đi, ngày về hoặc trạng thái của lịch khởi hành này.'
+                : 'Thiết lập ngày đi và ngày về cho lịch khởi hành mới.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -224,33 +209,6 @@ export function ScheduleFormDialog({
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="availableSlots"
-              className="mb-1.5 block text-sm font-semibold text-foreground"
-            >
-              {isEdit ? 'Chỗ còn trống hiện tại' : 'Số chỗ mở bán'}{' '}
-              <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="availableSlots"
-              type="number"
-              min={1}
-              max={maxCapacity}
-              disabled={isEdit}
-              {...register('availableSlots')}
-              className="w-full rounded-xl bg-muted/50 px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
-            />
-            {isEdit && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                Đã đặt: {bookedSlots} chỗ. Số chỗ mở bán chỉ được thiết lập khi tạo lịch.
-              </p>
-            )}
-            {errors.availableSlots && (
-              <p className="mt-1 text-xs text-destructive">{errors.availableSlots.message}</p>
-            )}
-          </div>
-
           {isEdit && (
             <div>
               <label
@@ -279,13 +237,13 @@ export function ScheduleFormDialog({
                 htmlFor="reason"
                 className="mb-1.5 block text-sm font-semibold text-foreground"
               >
-                Lý do điều chỉnh <span className="text-destructive">*</span>
+                Lý do hủy <span className="text-destructive">*</span>
               </label>
               <textarea
                 id="reason"
                 {...register('reason')}
                 rows={3}
-                placeholder="Vd: Điều chỉnh do dự báo thời tiết xấu..."
+                placeholder="Vd: Hủy lịch do dự báo thời tiết nguy hiểm..."
                 className="w-full resize-none rounded-2xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               />
               {errors.reason && (

@@ -1,5 +1,5 @@
 import { Sparkles } from 'lucide-react';
-import { splitField } from '@/features/tours/components/tour-details/shared';
+import { splitLines } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailFromApi } from '@/features/tours/types';
 import { RichTextContent } from '@/shared/ui';
 
@@ -8,7 +8,7 @@ interface TourOverviewSectionProps {
 }
 
 export function TourOverviewSection({ tour }: TourOverviewSectionProps) {
-  const highlights = splitField(tour.highlights);
+  const highlights = splitLines(tour.highlights);
 
   return (
     <div className="flex flex-col gap-6">

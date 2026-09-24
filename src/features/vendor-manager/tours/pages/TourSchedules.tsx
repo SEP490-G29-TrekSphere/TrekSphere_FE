@@ -2,7 +2,6 @@ import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PATHS } from '@/constants';
-import { CancelBookedScheduleDialog } from '@/features/vendor-tours/components/CancelBookedScheduleDialog';
 import { DeleteScheduleConfirmDialog } from '@/features/vendor-tours/components/DeleteScheduleConfirmDialog';
 import { ScheduleFormDialog } from '@/features/vendor-tours/components/ScheduleFormDialog';
 import { ScheduleTableRow } from '@/features/vendor-tours/components/ScheduleTableRow';
@@ -12,7 +11,6 @@ import {
 } from '@/features/vendor-tours/components/TourTableRow';
 import { useVendorScheduleMutations } from '@/features/vendor-tours/hooks/useVendorScheduleMutations';
 import { useVendorTourDetail } from '@/features/vendor-tours/hooks/useVendorTourDetail';
-import { vendorScheduleCancellationService } from '@/features/vendor-tours/services/vendorScheduleCancellationService';
 import type {
   CreateSchedulePayload,
   TourSchedule,
@@ -20,25 +18,22 @@ import type {
 } from '@/features/vendor-tours/types';
 import { toast } from '@/store/useToastStore';
 
-const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Chỗ (đã đặt/tổng)', 'Trạng thái', 'Thao tác'];
+const TABLE_COLUMNS = ['Ngày đi', 'Ngày về', 'Trạng thái', 'Thao tác'];
 
 export default function TourSchedules() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: tour, isLoading, isError, error } = useVendorTourDetail(id);
-  const { createSchedule, updateSchedule, deleteSchedule, cancelScheduleWithBookings } =
-    useVendorScheduleMutations(id ?? '');
+  const { createSchedule, updateSchedule, deleteSchedule } = useVendorScheduleMutations(id ?? '');
 
   const [formTarget, setFormTarget] = useState<TourSchedule | 'create' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TourSchedule | null>(null);
-  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
 
   const handleBack = () => navigate(PATHS.VENDOR_MANAGER_TOURS);
 
   const schedules = [...(tour?.schedules ?? [])].sort((a, b) =>
     a.departureDate.localeCompare(b.departureDate)
   );
-  const cancelTarget = schedules.find((schedule) => schedule.scheduleId === cancelTargetId) ?? null;
 
   const handleFormSubmit = (payload: CreateSchedulePayload | UpdateSchedulePayload) => {
     if (formTarget === 'create') {
@@ -77,45 +72,8 @@ export default function TourSchedules() {
     });
   };
 
-  const openBookedScheduleCancellation = (schedule: TourSchedule) => {
-    cancelScheduleWithBookings.reset();
-    setCancelTargetId(schedule.scheduleId);
-  };
-
-  const handleCancelClick = async (schedule: TourSchedule) => {
-    if (schedule.bookedSlots > 0) {
-      openBookedScheduleCancellation(schedule);
-      return;
-    }
-
-    try {
-      const preview = await vendorScheduleCancellationService.preview(schedule);
-      if (preview.cancellableBookings.length > 0 || preview.blockingBookings.length > 0) {
-        openBookedScheduleCancellation(schedule);
-        return;
-      }
-      setDeleteTarget(schedule);
-    } catch {
-      openBookedScheduleCancellation(schedule);
-    }
-  };
-
-  const handleBookedScheduleCancel = (reason: string) => {
-    if (!cancelTarget) return;
-    cancelScheduleWithBookings.mutate(
-      { schedule: cancelTarget, reason },
-      {
-        onSuccess: (result) => {
-          setCancelTargetId(null);
-          toast.success(
-            `Đã hủy lịch và ${result.cancelledBookingCount} booking. ${result.refundBookingCount} booking đã chuyển sang chờ hoàn tiền.`
-          );
-        },
-        onError: (err) => {
-          toast.error(err instanceof Error ? err.message : 'Không thể hủy lịch khởi hành.');
-        },
-      }
-    );
+  const handleDeleteClick = (schedule: TourSchedule) => {
+    setDeleteTarget(schedule);
   };
 
   if (isLoading) {
@@ -172,7 +130,7 @@ export default function TourSchedules() {
             Lịch khởi hành — {tour.tourName}
           </h2>
           <p className="text-sm font-medium mt-1" style={{ color: '#6F7B75' }}>
-            Thiết lập ngày đi, ngày về, giá riêng và giới hạn số chỗ cho từng lịch khởi hành.
+            Thiết lập ngày đi và ngày về cho từng lịch khởi hành.
           </p>
         </div>
 
@@ -224,7 +182,7 @@ export default function TourSchedules() {
                     key={schedule.scheduleId}
                     schedule={schedule}
                     onEditClick={setFormTarget}
-                    onDeleteClick={handleCancelClick}
+                    onDeleteClick={handleDeleteClick}
                   />
                 ))
               )}
@@ -242,13 +200,10 @@ export default function TourSchedules() {
             ? {
                 departureDate: formTarget.departureDate,
                 returnDate: formTarget.returnDate,
-                availableSlots: formTarget.availableSlots,
                 status: formTarget.status,
               }
             : undefined
         }
-        bookedSlots={isEditingExisting ? formTarget.bookedSlots : 0}
-        maxCapacity={tour.maxCapacity}
         durationDays={tour.durationDays}
         isPending={createSchedule.isPending || updateSchedule.isPending}
         onSubmit={handleFormSubmit}
@@ -260,21 +215,6 @@ export default function TourSchedules() {
         departureDate={deleteTarget?.departureDate ?? ''}
         onConfirm={handleDeleteConfirm}
         isPending={deleteSchedule.isPending}
-      />
-
-      <CancelBookedScheduleDialog
-        open={cancelTarget !== null}
-        onOpenChange={(open) => {
-          if (!open && !cancelScheduleWithBookings.isPending) setCancelTargetId(null);
-        }}
-        schedule={cancelTarget}
-        isPending={cancelScheduleWithBookings.isPending}
-        errorMessage={
-          cancelScheduleWithBookings.error instanceof Error
-            ? cancelScheduleWithBookings.error.message
-            : undefined
-        }
-        onConfirm={handleBookedScheduleCancel}
       />
     </div>
   );

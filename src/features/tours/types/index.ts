@@ -7,7 +7,6 @@ export type {
   GalleryImage,
   LevelBadgeVariant,
   LevelClass,
-  PaymentStatus,
   RecommendationReason,
   RecommendedTourApiItem,
   RecommendedTourListApiResponse,

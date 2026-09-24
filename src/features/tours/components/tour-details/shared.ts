@@ -33,6 +33,23 @@ export function splitField(value: string | null | undefined): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Splits free text authored as dash-bulleted, newline-separated lines
+ * (the pattern the tour create/edit form asks vendors to type, e.g.
+ * "- Item one\n- Item two") into individual, trimmed list items.
+ *
+ * `splitField` above intentionally splits on commas instead — it stays
+ * dedicated to comma-joined checkpoint image URLs (see
+ * `getCheckpointImageUrls`) and must not be reused for this.
+ */
+export function splitLines(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split('\n')
+    .map((line) => line.trim().replace(/^[-*•]\s*/, ''))
+    .filter(Boolean);
+}
+
 export function getCheckpointImageUrls(
   checkpoint: Pick<TourCheckpoint, 'checkpointImageUrl' | 'checkpointImageUrls'>
 ): string[] {

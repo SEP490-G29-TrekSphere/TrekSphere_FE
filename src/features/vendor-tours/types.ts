@@ -103,15 +103,12 @@ export type TourSchedule = TourDetailScheduleApi;
 export interface CreateSchedulePayload {
   departureDate: string;
   returnDate: string;
-
-  availableSlots: number;
 }
 
 export interface UpdateSchedulePayload {
   departureDate?: string;
   returnDate?: string;
 
-  availableSlots?: number;
   status?: ApiScheduleStatus;
 
   reason?: string;

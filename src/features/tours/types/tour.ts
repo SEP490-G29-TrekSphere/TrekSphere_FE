@@ -1,8 +1,3 @@
-import type { TourPaymentPolicy } from '@/features/payments/types';
-import type { CancellationPolicy } from '@/features/vendor-cancellation-policies/types';
-
-export type { PaymentStatus } from '@/features/payments/types';
-
 export type TourLevel = 'Dễ' | 'Trung bình' | 'Khó' | 'Khám phá';
 
 export interface Tour {
@@ -301,8 +296,6 @@ export interface TourDetailScheduleApi {
   departureDate: string;
   returnDate: string;
 
-  availableSlots: number;
-  bookedSlots: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED' | 'COMPLETED';
   isDeleted: boolean;
   createdAt: string;
@@ -349,13 +342,7 @@ export interface TourDetailFromApi {
   images: TourDetailImageApi[];
   schedules: TourDetailScheduleApi[];
 
-  cancellationPolicies?: CancellationPolicy[];
-
-  paymentPolicy?: TourPaymentPolicy;
-
   participationPolicy?: TourParticipationPolicy | null;
-
-  nonRefundableCost?: number;
 }
 
 export interface TourSearchValues {

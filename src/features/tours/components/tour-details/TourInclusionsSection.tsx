@@ -1,5 +1,5 @@
 import { Check, X } from 'lucide-react';
-import { splitField } from '@/features/tours/components/tour-details/shared';
+import { splitLines } from '@/features/tours/components/tour-details/shared';
 import type { TourDetailFromApi } from '@/features/tours/types';
 
 interface TourInclusionsSectionProps {
@@ -7,8 +7,8 @@ interface TourInclusionsSectionProps {
 }
 
 export function TourInclusionsSection({ tour }: TourInclusionsSectionProps) {
-  const includes = splitField(tour.includes);
-  const excludes = splitField(tour.excludes);
+  const includes = splitLines(tour.includes);
+  const excludes = splitLines(tour.excludes);
 
   if (includes.length === 0 && excludes.length === 0) {
     return (

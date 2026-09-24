@@ -1,12 +1,18 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
+import { AppExpandableTextarea } from '@/shared/ui';
 import type { TourFormInput } from '../../validations';
 
 interface TourRequirementsSectionProps {
   register: UseFormRegister<TourFormInput>;
+  control: Control<TourFormInput>;
   errors: FieldErrors<TourFormInput>;
 }
 
-export function TourRequirementsSection({ register, errors }: TourRequirementsSectionProps) {
+export function TourRequirementsSection({
+  register,
+  control,
+  errors,
+}: TourRequirementsSectionProps) {
   return (
     <section className="space-y-5 rounded-3xl border border-border bg-card p-6 lg:col-span-5">
       <div>
@@ -108,15 +114,14 @@ export function TourRequirementsSection({ register, errors }: TourRequirementsSe
             'Ví dụ: CCCD/Hộ chiếu bản gốc còn hạn để đăng ký kiểm lâm',
           ],
         ].map(([name, label, placeholder]) => (
-          <label key={name} className="text-sm font-semibold text-foreground">
-            {label}
-            <textarea
-              rows={2}
-              placeholder={placeholder}
-              {...register(name as keyof TourFormInput)}
-              className="mt-1.5 w-full resize-none rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-            />
-          </label>
+          <AppExpandableTextarea
+            key={name}
+            name={name as keyof TourFormInput}
+            control={control}
+            label={label}
+            placeholder={placeholder}
+            rows={2}
+          />
         ))}
       </div>
 
@@ -139,15 +144,13 @@ export function TourRequirementsSection({ register, errors }: TourRequirementsSe
         </label>
       </div>
 
-      <label className="block text-sm font-semibold text-foreground">
-        Quy định khác
-        <textarea
-          rows={2}
-          {...register('additionalRequirements')}
-          placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành, tuân thủ nguyên tắc Không để lại dấu vết (Leave No Trace)"
-          className="mt-1.5 w-full resize-none rounded-xl bg-muted/50 px-4 py-3 text-sm font-medium text-foreground outline-none focus:ring-1 focus:ring-primary"
-        />
-      </label>
+      <AppExpandableTextarea
+        name="additionalRequirements"
+        control={control}
+        label="Quy định khác"
+        placeholder="Ví dụ: Không sử dụng rượu bia trong 12 giờ trước khi khởi hành, tuân thủ nguyên tắc Không để lại dấu vết (Leave No Trace)"
+        rows={2}
+      />
     </section>
   );
 }

@@ -64,6 +64,10 @@ export {
   AppFormCurrencyInput,
   type AppFormCurrencyInputProps,
 } from './form/AppCurrencyInput';
+export {
+  AppExpandableTextarea,
+  type AppExpandableTextareaProps,
+} from './form/AppExpandableTextarea';
 export { AppFormDatePicker, type AppFormDatePickerProps } from './form/AppFormDatePicker';
 export { AppFormInput, type AppFormInputProps } from './form/AppFormInput';
 export {

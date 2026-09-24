@@ -281,10 +281,10 @@ export function TourForm({
         <TourHighlightsServicesSection register={register} />
 
         {/* Participation Policy — Full width */}
-        <TourRequirementsSection register={register} errors={errors} />
+        <TourRequirementsSection register={register} control={control} errors={errors} />
 
         {/* Detailed Itinerary — Full width */}
-        <TourDescriptionSection register={register} errors={errors} />
+        <TourDescriptionSection control={control} errors={errors} />
       </div>
 
       <hr className="border-border" />

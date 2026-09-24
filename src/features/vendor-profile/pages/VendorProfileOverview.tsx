@@ -1,5 +1,4 @@
 import { getPrimaryRole, PATHS, ROLES } from '@/constants';
-import { VendorCancellationPolicyCard } from '@/features/vendor-cancellation-policies';
 import { useVendorTourStats } from '@/features/vendor-tours/hooks/useVendorTourStats';
 import { useAppStore } from '@/store/useAppStore';
 import { VendorContactCard } from '../components/VendorContactCard';
@@ -48,8 +47,6 @@ export default function VendorProfileOverview() {
         <VendorLegalCard profile={profile} />
         <VendorContactCard profile={profile} />
       </div>
-
-      <VendorCancellationPolicyCard canManage={canManage} />
     </div>
   );
 }
