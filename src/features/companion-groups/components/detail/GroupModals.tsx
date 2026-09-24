@@ -1,10 +1,11 @@
 import { LogOut, UserCheck, UserMinus } from 'lucide-react';
 import { ConfirmActionDialog } from '@/shared/ui';
+import type { ActiveGroupModal } from '../../hooks/useCompanionGroupDetailActions.types';
 import type { UserRoleInGroup } from '../../types';
 import { ReviewJoinRequestModal } from '../modals/ReviewJoinRequestModal';
 import type { JoinRequestAction } from './JoinRequestsCard';
 
-type ActiveModal = 'leave' | 'reject' | 'approve' | 'addBackToChat' | 'removeMember' | null;
+type ActiveModal = ActiveGroupModal;
 
 interface GroupModalsProps {
   activeModal: ActiveModal;

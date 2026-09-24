@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/store/useToastStore';
-import {
-  MATCHING_GROUP_LEAVE_REDIRECT_DELAY_MS,
-  type MatchingGroupLifecycleAction,
-} from '../constants';
+import { MATCHING_GROUP_LEAVE_REDIRECT_DELAY_MS } from '../constants';
 import { useApproveMember } from './useApproveMember';
 import { useCancelJoinRequest } from './useCancelJoinRequest';
 import { useCompanionGroupChatActions } from './useCompanionGroupChatActions';
@@ -16,7 +13,10 @@ import {
 } from './useCompanionGroupDetailActions.types';
 import { useJoinMatchingGroup } from './useJoinMatchingGroup';
 import { useLeaveMatchingGroup } from './useLeaveMatchingGroup';
-import { useMatchingGroupLifecycle } from './useMatchingGroupLifecycle';
+import {
+  type MatchingGroupLifecycleAction,
+  useMatchingGroupLifecycle,
+} from './useMatchingGroupLifecycle';
 import { useRejectMember } from './useRejectMember';
 import { useRemoveMember } from './useRemoveMember';
 
