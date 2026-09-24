@@ -135,7 +135,7 @@ export default function ResetPassword() {
         </div>
       ) : (
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
             <input type="hidden" {...methods.register('token')} />
 
             <AppFormPasswordInput

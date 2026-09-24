@@ -45,7 +45,7 @@ export default function ForgotPassword() {
       variant="forgot-password"
     >
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
           <AppFormInput
             name="email"
             label="Email"

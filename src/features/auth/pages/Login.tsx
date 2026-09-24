@@ -236,7 +236,7 @@ export default function Login() {
         variant="login"
       >
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
             <AppFormInput
               name="email"
               label="Email"

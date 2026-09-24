@@ -58,7 +58,7 @@ export default function Register() {
       variant="register"
     >
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
           <AppFormInput
             name="fullName"
             label="Họ tên"
