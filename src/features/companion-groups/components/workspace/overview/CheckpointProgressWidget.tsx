@@ -98,7 +98,7 @@ export function CheckpointProgressWidget({
         {isTripInProgress ? (
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-            Đang diễn ra (Live)
+            Đang diễn ra
           </span>
         ) : (
           <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">

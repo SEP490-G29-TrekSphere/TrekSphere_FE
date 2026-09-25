@@ -37,7 +37,7 @@ export function ActualExpensesSection({
             Hóa Đơn Thực Tế & Quyết Toán Chi Phí
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Ghi nhận các khoản ứng trước thực tế để tự động tính đối trừ giao dịch P2P tối ưu
+            Ghi nhận các khoản ứng trước thực tế để tự động tính đối trừ giao dịch tối ưu
           </p>
         </div>
         {isLeader && !isCancelled && (

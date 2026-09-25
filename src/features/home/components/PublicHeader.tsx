@@ -1,17 +1,13 @@
 import { LayoutDashboard, LogOut, Menu, Send, User, Users, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { queryClient } from '@/config/queryClient';
 import { PATHS } from '@/constants';
 import { getRoleDashboardPath } from '@/constants/roles';
-import { authService } from '@/features/auth';
-import { profileKeys } from '@/features/profile/hooks/useProfile';
+import { useLogout } from '@/features/auth/hooks/useLogout';
 import NotificationBell from '@/shared/components/NotificationBell';
 import { usePushToastOnMenu } from '@/shared/hooks';
 import { AppLogo } from '@/shared/ui';
 import { useAppStore } from '@/store/useAppStore';
-import { toast } from '@/store/useToastStore';
-import { storage } from '@/utils/storage';
 
 const NAV_ITEMS = [
   { label: 'Trang chủ', path: PATHS.HOME },
@@ -32,7 +28,7 @@ function isNavItemActive(pathname: string, itemPath: string): boolean {
 export default function PublicHeader() {
   const location = useLocation();
   const user = useAppStore((state) => state.user);
-  const setUser = useAppStore((state) => state.setUser);
+  const { logout } = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -73,15 +69,10 @@ export default function PublicHeader() {
   }, []);
 
   const handleLogout = async () => {
-    await authService.logout();
-    storage.remove('accessToken');
-    storage.remove('refreshToken');
-    setUser(null);
-    queryClient.removeQueries({ queryKey: profileKeys.all });
-    toast.success('Đã đăng xuất.');
     setDropdownOpen(false);
     setNotificationOpen(false);
     setMobileMenuOpen(false);
+    await logout();
   };
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? 'A';

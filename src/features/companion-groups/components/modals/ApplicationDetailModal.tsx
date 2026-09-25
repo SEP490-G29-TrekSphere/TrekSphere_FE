@@ -74,10 +74,6 @@ export function ApplicationDetailModal({
           </div>
           <div>
             <h2 className="font-bold text-foreground text-base">Chi Tiết Đơn Tham Gia</h2>
-            <p className="text-muted-foreground text-xs">
-              Mã đơn:{' '}
-              <span className="font-mono">{application.applicationId.substring(0, 8)}...</span>
-            </p>
           </div>
         </div>
       </div>

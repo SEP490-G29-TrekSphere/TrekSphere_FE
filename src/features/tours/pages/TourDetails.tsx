@@ -97,7 +97,7 @@ export default function TourDetailsPage() {
       <TourSectionNav sections={visibleSections} />
 
       <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 md:py-10">
-        {user && (
+        {user && user.id !== tour.creatorId && (
           <div className="mb-6 flex justify-end">
             <button
               type="button"

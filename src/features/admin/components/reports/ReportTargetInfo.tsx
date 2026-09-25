@@ -1,6 +1,6 @@
-import { AlertTriangle, Shield, UserX } from 'lucide-react';
+import { AlertTriangle, Maximize2, Shield, UserX } from 'lucide-react';
 import { useState } from 'react';
-import { sanitizeHtml } from '@/utils/sanitize';
+import { stripHtml } from '@/utils/sanitize';
 import { ReportTargetPreviewModal } from './ReportTargetPreviewModal';
 
 export interface ReportTargetInfoProps {
@@ -37,7 +37,6 @@ export function ReportTargetInfo({
   targetAuthorTrustScore,
 }: ReportTargetInfoProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const isHtmlContent = targetType === 'BLOG';
 
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
@@ -144,27 +143,23 @@ export function ReportTargetInfo({
         </span>
       </div>
 
-      {/* Target Content Body Box */}
+      {/* Target Content Body Box — plain-text preview only, no scroll; click to see full content in a modal. */}
       <button
         type="button"
         onClick={() => setPreviewOpen(true)}
-        className="w-full text-left bg-[#EAE8E2]/60 border border-[#DCD9CF] rounded-2xl p-6 space-y-4 cursor-pointer transition-colors hover:bg-[#EAE8E2]"
+        className="w-full text-left bg-[#EAE8E2]/60 border border-[#DCD9CF] rounded-2xl p-6 space-y-3 cursor-pointer transition-colors hover:bg-[#EAE8E2]"
         title="Xem đầy đủ nội dung bị báo cáo"
       >
         <h2 className="text-xl font-bold text-zinc-900 leading-snug">
           {targetTitle || 'Bình luận / Đánh giá'}
         </h2>
-        {isHtmlContent ? (
-          <div
-            className="ql-editor whitespace-normal! break-words !p-0 text-sm leading-relaxed text-zinc-700 line-clamp-4"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with DOMPurify via sanitizeHtml, same pattern as blog content.
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(targetContent ?? '') }}
-          />
-        ) : (
-          <div className="text-sm text-zinc-700 leading-relaxed font-medium whitespace-pre-line break-words line-clamp-4">
-            {targetContent}
-          </div>
-        )}
+        <div className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-700">
+          {stripHtml(targetContent ?? '')}
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+          <Maximize2 className="size-3.5" />
+          Xem đầy đủ nội dung
+        </div>
       </button>
 
       <ReportTargetPreviewModal

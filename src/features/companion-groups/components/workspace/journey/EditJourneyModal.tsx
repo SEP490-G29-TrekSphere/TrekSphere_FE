@@ -1,6 +1,6 @@
 import { Loader2, Pencil, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { AppModalShell } from '@/shared/ui';
+import { AppDatePicker, AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupJourney } from '../../../hooks/useGroupJourneyWorkspace';
 import type { JourneyDifficulty } from '../../../types/matchingGroup';
@@ -11,6 +11,12 @@ interface EditJourneyModalProps {
   onClose: () => void;
   groupId: string;
   journey: CustomJourneyDetailResponse | null | undefined;
+}
+
+function toLocalDateValue(date: Date) {
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60 * 1_000);
+  return localDate.toISOString().split('T')[0];
 }
 
 const DIFFICULTY_OPTIONS: { value: JourneyDifficulty; label: string }[] = [
@@ -136,20 +142,18 @@ export function EditJourneyModal({ isOpen, onClose, groupId, journey }: EditJour
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="font-bold text-foreground">Ngày bắt đầu</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+              <AppDatePicker
+                selected={startDate ? new Date(startDate) : null}
+                onChange={(date: Date | null) => setStartDate(date ? toLocalDateValue(date) : '')}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
 
             <div className="space-y-1">
               <label className="font-bold text-foreground">Ngày kết thúc</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+              <AppDatePicker
+                selected={endDate ? new Date(endDate) : null}
+                onChange={(date: Date | null) => setEndDate(date ? toLocalDateValue(date) : '')}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>

@@ -1,4 +1,6 @@
 import { MessageCircle, Route } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { getUserProfilePath } from '@/constants';
 import { RichTextContent } from '@/shared/ui';
 import { isCurrentUserGroupLeader, resolveCurrentLeaderMember } from '../../mappers/matchingGroup';
 import type { UserRoleInGroup } from '../../types';
@@ -38,15 +40,32 @@ export function GroupOverviewTab({
       {/* 1. Leader Profile Card */}
       <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="flex items-center gap-3.5">
-            <MemberAvatar fullName={leaderName} avatarUrl={leaderAvatar} size="lg" />
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-foreground">{leaderName}</h3>
+          {leaderId ? (
+            <Link
+              to={getUserProfilePath(leaderId)}
+              className="group flex items-center gap-3.5 hover:opacity-90 transition-opacity"
+            >
+              <MemberAvatar fullName={leaderName} avatarUrl={leaderAvatar} size="lg" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-foreground group-hover:text-primary transition-colors">
+                    {leaderName}
+                  </h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Trưởng nhóm (Group Leader)</p>
               </div>
-              <p className="text-xs text-muted-foreground">Trưởng nhóm (Group Leader)</p>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3.5">
+              <MemberAvatar fullName={leaderName} avatarUrl={leaderAvatar} size="lg" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-foreground">{leaderName}</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Trưởng nhóm (Group Leader)</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {!isLeader && currentUserId && (
             <div className="flex items-center gap-2">

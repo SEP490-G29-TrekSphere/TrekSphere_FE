@@ -33,6 +33,8 @@ export function MembersCard({
   onRemoveMember,
 }: MembersCardProps) {
   const isCancelled = groupStatus === 'CANCELLED';
+  const isTripLocked = groupStatus === 'IN_PROGRESS' || groupStatus === 'COMPLETED';
+  const canRemoveMembers = !isCancelled && !isTripLocked;
   const acceptedMembers = members.filter((m) => m.status === 'ACCEPTED');
   const currentLeader = acceptedMembers.find((m) => m.role === 'LEADER');
   const displayLeaderName = currentLeader?.fullName || ownerName;
@@ -171,7 +173,7 @@ export function MembersCard({
                             <MessageCircle className="h-4 w-4 text-primary" />
                             Nhắn tin riêng
                           </button>
-                          {!isLeader && !isCancelled && member.matchingMemberId && (
+                          {!isLeader && canRemoveMembers && member.matchingMemberId && (
                             <button
                               type="button"
                               onClick={() => {

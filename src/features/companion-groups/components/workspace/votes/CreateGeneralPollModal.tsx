@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, Trash2, Vote, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { AppModalShell } from '@/shared/ui';
+import { AppFormDatePicker, AppModalShell } from '@/shared/ui';
 import { useCreateVote } from '../../../hooks/vote/useCreateVote';
 import {
   type CreateGeneralPollFormValues,
@@ -170,10 +170,14 @@ export function CreateGeneralPollModal({
             <label htmlFor="poll-closes-at" className="font-bold text-foreground text-xs">
               Thời hạn bỏ phiếu <span className="text-destructive">*</span>
             </label>
-            <input
+            <AppFormDatePicker
               id="poll-closes-at"
-              type="datetime-local"
-              {...register('closesAt')}
+              name="closesAt"
+              control={control}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Giờ"
               disabled={createVote.isPending}
               className="w-full rounded-xl border border-input bg-background p-2.5 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
             />

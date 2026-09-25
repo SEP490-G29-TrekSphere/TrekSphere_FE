@@ -110,7 +110,7 @@ export default function NotificationBell({
           )}
         </div>
 
-        <div className="scrollbar-hover max-h-96 overflow-y-auto">
+        <div className="hide-scrollbar max-h-96 overflow-y-auto overscroll-contain">
           {isLoading ? (
             <p className="px-3 py-6 text-center text-sm text-muted-foreground">Đang tải...</p>
           ) : items.length === 0 ? (

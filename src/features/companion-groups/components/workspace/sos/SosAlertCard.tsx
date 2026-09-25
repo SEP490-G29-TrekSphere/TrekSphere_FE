@@ -128,7 +128,7 @@ export function SosAlertCard({
           <div className="flex items-center gap-2">
             <Phone className="h-3.5 w-3.5 text-rose-600 shrink-0" />
             <span>
-              <strong className="text-rose-600">Người thân khẩn cấp (ICE):</strong>{' '}
+              <strong className="text-rose-600">Người thân khẩn cấp:</strong>{' '}
               {alert.senderEmergencyContactName || 'Người thân'} •{' '}
               <span className="font-bold">
                 {alert.senderEmergencyContactPhone || 'Chưa cập nhật'}
@@ -140,7 +140,7 @@ export function SosAlertCard({
               href={safeIceTelUri}
               className="inline-flex items-center justify-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-700 transition shrink-0 self-start sm:self-auto"
             >
-              Gọi người thân ICE
+              Gọi người thân
             </a>
           )}
         </div>

@@ -31,7 +31,7 @@ export function LeaderPostsWidget({
     if (!postsData) return [];
     const all = Array.isArray(postsData) ? postsData : (postsData.content ?? []);
     return all
-      .filter((p) => (p.postedByRole || p.authorRole) === 'LEADER')
+      .filter((p) => (p.postedByRole || p.authorRole) === 'LEADER' && p.isPinned)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, MAX_VISIBLE_POSTS);
   }, [postsData]);

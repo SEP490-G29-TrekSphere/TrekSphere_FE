@@ -2,7 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Calendar, CheckCircle2, FileText, Loader2, Save, UserCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { AppCurrencyInput, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
+import {
+  AppCurrencyInput,
+  AppFormDatePicker,
+  AppModalShell,
+  useImageUploadCleanup,
+} from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { useUpdateGroupExpense } from '../../../hooks/useGroupExpenseWorkspace';
 import type {
@@ -284,9 +289,13 @@ export function EditExpenseModal({
             <Calendar className="h-3.5 w-3.5 text-primary" />
             Thời gian chi tiêu:
           </label>
-          <input
-            type="datetime-local"
-            {...register('spentAt')}
+          <AppFormDatePicker
+            name="spentAt"
+            control={control}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            timeCaption="Giờ"
             className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary"
           />
         </div>

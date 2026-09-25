@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Users, Vote, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { AppModalShell } from '@/shared/ui';
+import { AppFormDatePicker, AppModalShell } from '@/shared/ui';
 import { useOpenLeaderElection } from '../../../hooks/vote/useOpenLeaderElection';
 import type { MatchingMemberItem } from '../../../services/companionGroupService';
 import {
@@ -39,6 +39,7 @@ export function OpenLeaderElectionModal({
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -168,10 +169,14 @@ export function OpenLeaderElectionModal({
             <label htmlFor="election-closes-at" className="font-bold text-foreground text-xs">
               Thời hạn bỏ phiếu <span className="text-destructive">*</span>
             </label>
-            <input
+            <AppFormDatePicker
               id="election-closes-at"
-              type="datetime-local"
-              {...register('closesAt')}
+              name="closesAt"
+              control={control}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              timeCaption="Giờ"
               disabled={openElection.isPending}
               className="w-full rounded-xl border border-input bg-background p-2.5 text-xs text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
             />
