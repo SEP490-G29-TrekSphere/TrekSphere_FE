@@ -44,6 +44,9 @@ export function CreateApplicationDialog({
       contactPhone: '',
       businessDescription: '',
       taxCode: '',
+      businessAddress: '',
+      legalRepresentativeName: '',
+      legalRepresentativePosition: '',
     },
   });
 
@@ -56,6 +59,9 @@ export function CreateApplicationDialog({
         contactPhone: initialData?.contactPhone || '',
         businessDescription: initialData?.businessDescription || '',
         taxCode: initialData?.taxCode || '',
+        businessAddress: initialData?.businessAddress || '',
+        legalRepresentativeName: initialData?.legalRepresentativeName || '',
+        legalRepresentativePosition: initialData?.legalRepresentativePosition || '',
       });
       setLicenseFile(null);
       setLicenseError(null);
@@ -88,9 +94,10 @@ export function CreateApplicationDialog({
     formData.append('contactEmail', values.contactEmail);
     formData.append('contactPhone', values.contactPhone);
     formData.append('taxCode', values.taxCode);
-    if (values.businessDescription) {
-      formData.append('businessDescription', values.businessDescription);
-    }
+    formData.append('businessDescription', values.businessDescription);
+    formData.append('businessAddress', values.businessAddress);
+    formData.append('legalRepresentativeName', values.legalRepresentativeName);
+    formData.append('legalRepresentativePosition', values.legalRepresentativePosition);
     if (licenseFile) {
       formData.append('businessLicense', licenseFile);
     }
@@ -201,8 +208,33 @@ export function CreateApplicationDialog({
             </div>
           </div>
 
+          <AppFormInput
+            name="businessAddress"
+            control={control}
+            label="Địa chỉ doanh nghiệp *"
+            placeholder="Nhập địa chỉ trụ sở kinh doanh"
+            className="text-sm"
+          />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <AppFormInput
+              name="legalRepresentativeName"
+              control={control}
+              label="Người đại diện pháp luật *"
+              placeholder="Họ và tên người đại diện"
+              className="text-sm"
+            />
+            <AppFormInput
+              name="legalRepresentativePosition"
+              control={control}
+              label="Chức vụ người đại diện *"
+              placeholder="VD: Giám đốc, Chủ sở hữu..."
+              className="text-sm"
+            />
+          </div>
+
           <div className="space-y-2">
-            <AppLabel htmlFor="businessDescription">Mô tả kinh doanh</AppLabel>
+            <AppLabel htmlFor="businessDescription">Mô tả kinh doanh *</AppLabel>
             <Textarea
               id="businessDescription"
               placeholder="Mô tả tóm tắt về loại hình kinh doanh, dịch vụ..."

@@ -21,6 +21,9 @@ export interface VendorApplication {
   rejectionReason?: string;
   taxCode?: string;
   businessLicenseUrl?: string;
+  businessAddress?: string;
+  legalRepresentativeName?: string;
+  legalRepresentativePosition?: string;
   createdAt: string;
 }
 
