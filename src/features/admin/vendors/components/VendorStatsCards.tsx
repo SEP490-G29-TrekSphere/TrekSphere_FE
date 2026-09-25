@@ -1,4 +1,4 @@
-import { Ban, CheckCircle2, PauseCircle, Store } from 'lucide-react';
+import { Ban, CheckCircle2, Clock, Store } from 'lucide-react';
 import type { VendorStatsResponse } from '../types';
 
 interface VendorStatsCardsProps {
@@ -24,16 +24,16 @@ export function VendorStatsCards({ stats }: VendorStatsCardsProps) {
       iconColor: '#16A34A',
     },
     {
-      title: 'NGỪNG HOẠT ĐỘNG',
-      value: stats?.inactive ?? 0,
-      icon: PauseCircle,
-      bgColor: '#F5F5F5',
-      iconBg: '#E5E5E5',
-      iconColor: '#6F7B75',
+      title: 'CHỜ HOẠT ĐỘNG',
+      value: stats?.pending ?? 0,
+      icon: Clock,
+      bgColor: '#FFFBEB',
+      iconBg: '#FEF3C7',
+      iconColor: '#B45309',
     },
     {
-      title: 'ĐÃ THU HỒI',
-      value: stats?.revoked ?? 0,
+      title: 'TẠM NGƯNG HOẠT ĐỘNG',
+      value: stats?.suspended ?? 0,
       icon: Ban,
       bgColor: '#FFF5F5',
       iconBg: '#FEE2E2',

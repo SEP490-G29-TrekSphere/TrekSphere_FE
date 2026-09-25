@@ -43,7 +43,7 @@ export function useResolveAdminReport() {
           if (!old) return old;
           return {
             ...old,
-            status: variables.data.action === 'DISMISS' ? 'DISMISSED' : 'RESOLVED',
+            status: variables.data.action === 'DISMISS' ? 'REJECTED' : 'RESOLVED',
             resolutionNotes: variables.data.resolutionNotes,
             updatedAt: new Date().toISOString(),
           };

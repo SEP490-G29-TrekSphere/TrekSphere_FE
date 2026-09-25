@@ -70,7 +70,6 @@ export default function AccountList() {
           { key: 'ALL', label: 'Tất cả' },
           { key: 'trekker', label: 'Khách du lịch' },
           { key: 'vendor', label: 'Nhà cung cấp' },
-          { key: 'admin', label: 'Quản trị viên' },
         ]}
         activeTab={filterRole}
         onTabChange={(role) => {

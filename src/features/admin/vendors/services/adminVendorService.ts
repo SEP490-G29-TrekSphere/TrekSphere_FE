@@ -131,18 +131,18 @@ export const adminVendorService = {
       return unwrapResponse(response).totalElements ?? 0;
     };
 
-    const [total, active, inactive, revoked] = await Promise.all([
+    const [total, pending, active, suspended] = await Promise.all([
       fetchTotal(),
+      fetchTotal('PENDING'),
       fetchTotal('ACTIVE'),
-      fetchTotal('INACTIVE'),
-      fetchTotal('REVOKED'),
+      fetchTotal('SUSPENDED'),
     ]);
 
     return {
       total,
+      pending,
       active,
-      inactive,
-      revoked,
+      suspended,
     };
   },
 

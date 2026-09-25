@@ -1,4 +1,4 @@
-export type VendorStatus = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
+export type VendorStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED';
 
 export interface VendorManager {
   userId: string;
@@ -40,20 +40,20 @@ export interface AdminVendorFilter {
 
 export interface VendorStatsResponse {
   total: number;
+  pending: number;
   active: number;
-  inactive: number;
-  revoked: number;
+  suspended: number;
 }
 
 export const VENDOR_STATUS_LABELS: Record<VendorStatus, string> = {
+  PENDING: 'Chờ hoạt động',
   ACTIVE: 'Đang hoạt động',
-  INACTIVE: 'Ngừng hoạt động',
-  REVOKED: 'Đã thu hồi',
+  SUSPENDED: 'Tạm ngưng hoạt động',
 };
 
 export const VENDOR_STATUS_FILTER_OPTIONS: Array<{ value: VendorStatus | 'ALL'; label: string }> = [
   { value: 'ALL', label: 'Tất cả trạng thái' },
+  { value: 'PENDING', label: 'Chờ hoạt động' },
   { value: 'ACTIVE', label: 'Đang hoạt động' },
-  { value: 'INACTIVE', label: 'Ngừng hoạt động' },
-  { value: 'REVOKED', label: 'Đã thu hồi' },
+  { value: 'SUSPENDED', label: 'Tạm ngưng hoạt động' },
 ];

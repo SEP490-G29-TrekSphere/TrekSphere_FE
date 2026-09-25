@@ -18,7 +18,7 @@ interface VendorStatusDialogProps {
   isPending?: boolean;
 }
 
-const STATUS_OPTIONS: VendorStatus[] = ['ACTIVE', 'INACTIVE', 'REVOKED'];
+const STATUS_OPTIONS: VendorStatus[] = ['ACTIVE', 'SUSPENDED'];
 
 export function VendorStatusDialog({
   vendor,

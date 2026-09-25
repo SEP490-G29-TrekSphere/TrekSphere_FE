@@ -1,5 +1,5 @@
 import { PATHS } from '@/constants';
-import { AppIdDisplay, PortalPageHeader, PortalStatusBadge } from '@/shared/ui';
+import { PortalPageHeader, PortalStatusBadge } from '@/shared/ui';
 import type { ReportStatus } from '../../services/adminReportService';
 
 export interface ReportDetailHeaderProps {
@@ -7,7 +7,7 @@ export interface ReportDetailHeaderProps {
   status: ReportStatus;
 }
 
-export function ReportDetailHeader({ id, status }: ReportDetailHeaderProps) {
+export function ReportDetailHeader({ status }: ReportDetailHeaderProps) {
   return (
     <PortalPageHeader
       breadcrumbs={[{ label: 'Báo cáo', href: PATHS.ADMIN_REPORTS }, { label: 'Xử lý Báo cáo' }]}
@@ -17,7 +17,6 @@ export function ReportDetailHeader({ id, status }: ReportDetailHeaderProps) {
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#06261D]">
             Xử lý Báo cáo
           </h1>
-          <AppIdDisplay id={id} />
         </div>
       }
       actions={

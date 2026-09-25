@@ -20,7 +20,7 @@ export default function ReportDetail() {
   const [isEditingDecision, setIsEditingDecision] = useState(false);
 
   const isSubmitted = reportData
-    ? (reportData.status === 'RESOLVED' || reportData.status === 'DISMISSED') && !isEditingDecision
+    ? (reportData.status === 'RESOLVED' || reportData.status === 'REJECTED') && !isEditingDecision
     : false;
 
   const handleSubmitDecision = () => {

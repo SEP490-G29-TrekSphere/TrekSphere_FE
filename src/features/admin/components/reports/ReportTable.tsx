@@ -11,8 +11,8 @@ export interface ReportTableProps {
   page: number;
   totalPages: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  activeTab?: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED';
-  setActiveTab?: (tab: 'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED') => void;
+  activeTab?: 'ALL' | 'PENDING' | 'RESOLVED' | 'REJECTED';
+  setActiveTab?: (tab: 'ALL' | 'PENDING' | 'RESOLVED' | 'REJECTED') => void;
   isFetching?: boolean;
 }
 

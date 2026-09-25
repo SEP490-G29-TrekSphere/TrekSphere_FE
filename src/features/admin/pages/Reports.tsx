@@ -5,7 +5,7 @@ import { useAdminReports } from '../hooks/useAdminReports';
 import type { ReportStatus } from '../services/adminReportService';
 
 export default function Reports() {
-  const [activeTab, setActiveTab] = useState<'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'PENDING' | 'RESOLVED' | 'REJECTED'>('ALL');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [page, setPage] = useState(0);
 
@@ -46,7 +46,7 @@ export default function Reports() {
         description="Kiểm tra và xử lý các nội dung vi phạm được người dùng báo cáo trong cộng đồng"
       />
 
-      <PortalFilterBar<'ALL' | 'PENDING' | 'RESOLVED' | 'DISMISSED'>
+      <PortalFilterBar<'ALL' | 'PENDING' | 'RESOLVED' | 'REJECTED'>
         tabs={[
           { key: 'ALL', label: 'Tất cả', count: activeTab === 'ALL' ? totalElements : undefined },
           {
@@ -60,9 +60,9 @@ export default function Reports() {
             count: activeTab === 'RESOLVED' ? totalElements : undefined,
           },
           {
-            key: 'DISMISSED',
+            key: 'REJECTED',
             label: 'Bỏ qua',
-            count: activeTab === 'DISMISSED' ? totalElements : undefined,
+            count: activeTab === 'REJECTED' ? totalElements : undefined,
           },
         ]}
         activeTab={activeTab}

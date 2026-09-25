@@ -1,5 +1,7 @@
 import { AlertTriangle, Shield, UserX } from 'lucide-react';
-import { AppIdDisplay } from '@/shared/ui';
+import { useState } from 'react';
+import { sanitizeHtml } from '@/utils/sanitize';
+import { ReportTargetPreviewModal } from './ReportTargetPreviewModal';
 
 export interface ReportTargetInfoProps {
   reason: string;
@@ -34,6 +36,9 @@ export function ReportTargetInfo({
   targetAuthorStatus,
   targetAuthorTrustScore,
 }: ReportTargetInfoProps) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const isHtmlContent = targetType === 'BLOG';
+
   return (
     <div className="bg-[#FAF9F5] border border-[#E5E4DE] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
       {/* Report Reason Highlight Box */}
@@ -137,18 +142,39 @@ export function ReportTargetInfo({
         <span className="text-xs font-extrabold tracking-wider text-zinc-500 uppercase">
           NỘI DUNG BỊ BÁO CÁO ({targetType})
         </span>
-        <AppIdDisplay id={targetId} label="ID" />
       </div>
 
       {/* Target Content Body Box */}
-      <div className="bg-[#EAE8E2]/60 border border-[#DCD9CF] rounded-2xl p-6 space-y-4">
+      <button
+        type="button"
+        onClick={() => setPreviewOpen(true)}
+        className="w-full text-left bg-[#EAE8E2]/60 border border-[#DCD9CF] rounded-2xl p-6 space-y-4 cursor-pointer transition-colors hover:bg-[#EAE8E2]"
+        title="Xem đầy đủ nội dung bị báo cáo"
+      >
         <h2 className="text-xl font-bold text-zinc-900 leading-snug">
           {targetTitle || 'Bình luận / Đánh giá'}
         </h2>
-        <div className="text-sm text-zinc-700 leading-relaxed font-medium whitespace-pre-line">
-          {targetContent}
-        </div>
-      </div>
+        {isHtmlContent ? (
+          <div
+            className="ql-editor whitespace-normal! break-words !p-0 text-sm leading-relaxed text-zinc-700 line-clamp-4"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with DOMPurify via sanitizeHtml, same pattern as blog content.
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(targetContent ?? '') }}
+          />
+        ) : (
+          <div className="text-sm text-zinc-700 leading-relaxed font-medium whitespace-pre-line break-words line-clamp-4">
+            {targetContent}
+          </div>
+        )}
+      </button>
+
+      <ReportTargetPreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        targetType={targetType}
+        targetId={targetId}
+        targetTitle={targetTitle}
+        targetContent={targetContent}
+      />
     </div>
   );
 }

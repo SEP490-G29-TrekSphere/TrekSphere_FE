@@ -58,9 +58,9 @@ export default function VendorList() {
       <PortalFilterBar<VendorStatus | 'ALL'>
         tabs={[
           { key: 'ALL', label: 'Tất cả', count: stats?.total },
+          { key: 'PENDING', label: 'Chờ hoạt động', count: stats?.pending },
           { key: 'ACTIVE', label: 'Đang hoạt động', count: stats?.active },
-          { key: 'INACTIVE', label: 'Ngừng hoạt động', count: stats?.inactive },
-          { key: 'REVOKED', label: 'Đã thu hồi', count: stats?.revoked },
+          { key: 'SUSPENDED', label: 'Tạm ngưng hoạt động', count: stats?.suspended },
         ]}
         activeTab={status}
         onTabChange={(newStatus) => {

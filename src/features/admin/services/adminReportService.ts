@@ -1,6 +1,6 @@
 import { ApiService } from '@/config/apiClient';
 
-export type ReportStatus = 'PENDING' | 'RESOLVED' | 'DISMISSED';
+export type ReportStatus = 'PENDING' | 'RESOLVED' | 'REJECTED';
 export type ReportTargetType = 'BLOG' | 'COMMENT' | 'TOUR';
 export type ReportAction = 'HIDE_CONTENT' | 'WARNING' | 'DISMISS';
 
@@ -62,16 +62,6 @@ export const adminReportService = {
       params
     );
     if (res.error || (res.status && res.status >= 400)) {
-      if (filter.status === 'DISMISSED') {
-        return {
-          content: [],
-          pageNumber: filter.page ?? 0,
-          pageSize: filter.size ?? 10,
-          totalElements: 0,
-          totalPages: 1,
-          last: true,
-        };
-      }
       throw new Error(res.message || res.error || 'Lỗi lấy danh sách báo cáo');
     }
     if (!res.data) throw new Error('Không nhận được dữ liệu');

@@ -323,6 +323,33 @@ export default function ApplicationDetails() {
                 <p className="font-bold text-sm text-zinc-800">{application.contactPhone}</p>
               </div>
 
+              <div className="space-y-1 md:col-span-2">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  ĐỊA CHỈ DOANH NGHIỆP
+                </span>
+                <p className="font-bold text-sm text-zinc-800">
+                  {application.businessAddress || '—'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  NGƯỜI ĐẠI DIỆN PHÁP LUẬT
+                </span>
+                <p className="font-bold text-sm text-zinc-800">
+                  {application.legalRepresentativeName || '—'}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  CHỨC VỤ NGƯỜI ĐẠI DIỆN
+                </span>
+                <p className="font-bold text-sm text-zinc-800">
+                  {application.legalRepresentativePosition || '—'}
+                </p>
+              </div>
+
               {application.businessDescription && (
                 <div className="space-y-1 md:col-span-2">
                   <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">

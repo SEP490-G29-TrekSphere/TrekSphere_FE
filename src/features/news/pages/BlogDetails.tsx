@@ -101,7 +101,7 @@ export default function BlogDetails() {
             Quay lại
           </button>
 
-          {isLoggedIn && (
+          {isLoggedIn && user?.id !== post?.authorId && (
             <button
               type="button"
               onClick={() => setIsReportModalOpen(true)}
