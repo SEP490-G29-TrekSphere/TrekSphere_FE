@@ -76,28 +76,6 @@ export function BlogSidebar({ relatedPosts, isLoggedIn }: BlogSidebarProps) {
           </Link>
         </section>
       )}
-
-      {/* Newsletter */}
-      <section className="rounded-2xl bg-muted p-5">
-        <h3 className="text-base font-bold text-primary">Nhận bản tin Trek</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Đăng ký để nhận cẩm nang và tips trekking mới nhất mỗi tuần.
-        </p>
-        <form onSubmit={(e) => e.preventDefault()} className="mt-4 flex flex-col gap-3">
-          <input
-            type="email"
-            placeholder="Email của bạn"
-            aria-label="Email"
-            className="h-11 rounded-full bg-card px-4 text-sm text-primary outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
-          />
-          <button
-            type="submit"
-            className="h-11 rounded-full bg-primary text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            Đăng ký
-          </button>
-        </form>
-      </section>
     </aside>
   );
 }

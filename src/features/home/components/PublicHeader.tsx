@@ -56,7 +56,6 @@ export default function PublicHeader() {
     const handler = (e: MouseEvent | TouchEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
-        setNotificationOpen(false);
         setMobileMenuOpen(false);
       }
     };
