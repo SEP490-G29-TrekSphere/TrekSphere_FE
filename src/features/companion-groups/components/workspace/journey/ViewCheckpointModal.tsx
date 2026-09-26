@@ -2,6 +2,7 @@ import { Calendar, MapPin } from 'lucide-react';
 import { AppModalShell, RichTextContent } from '@/shared/ui';
 import type { CustomJourneyCheckpointResponse } from '../../../types/workspace';
 import { formatCheckpointTime } from '../../../utils/checkpointTime';
+import { CheckpointImageCarousel } from '../../shared/CheckpointImageCarousel';
 
 interface ViewCheckpointModalProps {
   checkpoint: CustomJourneyCheckpointResponse | null;
@@ -40,12 +41,12 @@ export function ViewCheckpointModal({ checkpoint, onClose }: ViewCheckpointModal
       </div>
 
       <div className="max-h-[70vh] space-y-3 overflow-y-auto px-5 py-4 text-xs">
-        {checkpoint.imageUrl && (
+        {checkpoint.imageUrls.length > 0 && (
           <div className="overflow-hidden rounded-xl border border-border">
-            <img
-              src={checkpoint.imageUrl}
+            <CheckpointImageCarousel
+              images={checkpoint.imageUrls}
               alt={checkpoint.title}
-              className="h-48 w-full object-cover sm:h-56"
+              className="h-48 w-full sm:h-56"
             />
           </div>
         )}

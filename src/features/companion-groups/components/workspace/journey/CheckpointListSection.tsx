@@ -251,11 +251,11 @@ export function CheckpointListSection({
                   </div>
                 </div>
 
-                {/* Checkpoint Image if exists */}
-                {cp.imageUrl && (
+                {/* Checkpoint Image if exists — card preview only shows the first image */}
+                {cp.imageUrls.length > 0 && (
                   <div className="h-40 sm:h-44 w-[calc(100%+1.5rem)] -mx-3 mb-2.5 overflow-hidden border-y border-border relative bg-muted/40">
                     <img
-                      src={cp.imageUrl}
+                      src={cp.imageUrls[0]}
                       alt={cp.title}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"

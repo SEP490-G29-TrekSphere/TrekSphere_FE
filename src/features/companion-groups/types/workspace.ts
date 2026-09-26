@@ -16,6 +16,7 @@ export interface CustomJourneyCheckpointResponse {
   plannedStartAt: string | null;
   plannedEndAt: string | null;
   imageUrl: string | null;
+  imageUrls: string[];
   status?: 'PENDING' | 'CHECKED_IN' | 'SKIPPED' | string;
   category?: string;
   distanceAltitude?: string;

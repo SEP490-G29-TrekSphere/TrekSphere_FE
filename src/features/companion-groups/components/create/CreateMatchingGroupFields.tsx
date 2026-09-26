@@ -1,17 +1,11 @@
-import {
-  AlignLeft,
-  Calendar,
-  Clock,
-  Compass,
-  Flag,
-  Gauge,
-  ImageIcon,
-  Info,
-  Tag,
-  Users,
-} from 'lucide-react';
+import { Calendar, Clock, Compass, Flag, Gauge, ImageIcon, Info, Tag, Users } from 'lucide-react';
 import { Controller, type UseFormReturn } from 'react-hook-form';
-import { AppDatePicker, AppImageUploadField, type ImageUploadCleanup } from '@/shared/ui';
+import {
+  AppDatePicker,
+  AppExpandableTextarea,
+  AppImageUploadField,
+  type ImageUploadCleanup,
+} from '@/shared/ui';
 import {
   JOURNEY_DIFFICULTY_OPTIONS,
   MATCHING_GROUP_DESCRIPTION_MAX_LENGTH,
@@ -315,25 +309,15 @@ export function CreateMatchingGroupFields({
 
       {/* Description */}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 font-semibold text-foreground text-sm">
-          <AlignLeft className="h-4 w-4 text-muted-foreground" />
-          Mô tả nhóm
-          <span className="font-normal text-muted-foreground text-xs">(Không bắt buộc)</span>
-        </label>
-        <div className="relative">
-          <textarea
-            rows={4}
-            {...form.register('description')}
-            disabled={isPending}
-            maxLength={MATCHING_GROUP_DESCRIPTION_MAX_LENGTH}
-            placeholder="Chia sẻ về bản thân, yêu cầu thể lực, kinh nghiệm mong muốn của thành viên..."
-            className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 font-medium text-foreground text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
-          />
-          <div className="absolute right-3 bottom-3 text-muted-foreground text-xs">
-            {description.length}/{MATCHING_GROUP_DESCRIPTION_MAX_LENGTH}
-          </div>
-        </div>
-        <FieldError message={form.formState.errors.description?.message} />
+        <AppExpandableTextarea
+          name="description"
+          control={form.control}
+          label="Mô tả nhóm"
+          helperText={`${description.length}/${MATCHING_GROUP_DESCRIPTION_MAX_LENGTH} ký tự`}
+          placeholder="Chia sẻ về bản thân, yêu cầu thể lực, kinh nghiệm mong muốn của thành viên..."
+          rows={4}
+          disabled={isPending}
+        />
       </div>
     </div>
   );

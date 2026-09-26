@@ -2,6 +2,7 @@ import { Clock, MapPin, Route } from 'lucide-react';
 import { RichTextContent } from '@/shared/ui';
 import type { MatchingGroupDetailResponse } from '../../types/matchingGroup';
 import { formatCheckpointTime } from '../../utils/checkpointTime';
+import { CheckpointImageCarousel } from '../shared/CheckpointImageCarousel';
 
 interface GroupItineraryTabProps {
   group: MatchingGroupDetailResponse;
@@ -82,13 +83,12 @@ export function GroupItineraryTab({ group }: GroupItineraryTabProps) {
                     />
                   )}
 
-                  {cp.imageUrl && (
+                  {cp.imageUrls.length > 0 && (
                     <div className="pt-2">
-                      <img
-                        src={cp.imageUrl}
+                      <CheckpointImageCarousel
+                        images={cp.imageUrls}
                         alt={cp.title}
-                        className="h-44 sm:h-52 w-full rounded-xl object-cover border border-border"
-                        loading="lazy"
+                        className="h-44 sm:h-52 w-full rounded-xl border border-border"
                       />
                     </div>
                   )}

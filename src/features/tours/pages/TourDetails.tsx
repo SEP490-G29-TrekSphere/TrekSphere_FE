@@ -11,7 +11,6 @@ import {
   TourDetailError,
   TourDetailHero,
   TourDetailSkeleton,
-  TourGallerySection,
   TourInclusionsSection,
   TourMobileBookingBar,
   TourNotFound,
@@ -35,7 +34,6 @@ const SECTIONS: TourSection[] = [
   { id: SECTION_IDS.schedules, label: 'Lịch khởi hành' },
   { id: SECTION_IDS.route, label: 'Lộ trình' },
   { id: SECTION_IDS.inclusions, label: 'Bao gồm' },
-  { id: SECTION_IDS.gallery, label: 'Hình ảnh' },
   { id: SECTION_IDS.requirements, label: 'Điều kiện' },
 ];
 
@@ -66,12 +64,10 @@ export default function TourDetailsPage() {
 
   const hasInclusions =
     splitField(tour?.includes).length > 0 || splitField(tour?.excludes).length > 0;
-  const hasGallery = (tour?.images.length ?? 0) > 0;
   const hasParticipationPolicy = Boolean(tour?.participationPolicy);
   const visibleSections = SECTIONS.filter(
     (section) =>
       (section.id !== SECTION_IDS.inclusions || hasInclusions) &&
-      (section.id !== SECTION_IDS.gallery || hasGallery) &&
       (section.id !== SECTION_IDS.requirements || hasParticipationPolicy)
   );
 
@@ -145,13 +141,6 @@ export default function TourDetailsPage() {
               >
                 <SectionHeading title="Bao gồm & không bao gồm" />
                 <TourInclusionsSection tour={tour} />
-              </section>
-            )}
-
-            {hasGallery && (
-              <section id={SECTION_IDS.gallery} style={{ scrollMarginTop: SECTION_SCROLL_OFFSET }}>
-                <SectionHeading title="Hình ảnh" />
-                <TourGallerySection tour={tour} />
               </section>
             )}
 

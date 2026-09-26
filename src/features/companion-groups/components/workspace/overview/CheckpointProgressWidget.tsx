@@ -213,10 +213,10 @@ export function CheckpointProgressWidget({
 
               {/* Right: Optional Thumbnail & Actions */}
               <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2.5 shrink-0 self-stretch sm:self-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
-                {checkpoint.imageUrl && (
+                {checkpoint.imageUrls.length > 0 && (
                   <div className="h-16 w-24 sm:w-28 rounded-xl overflow-hidden border border-border shrink-0 bg-muted/30">
                     <img
-                      src={checkpoint.imageUrl}
+                      src={checkpoint.imageUrls[0]}
                       alt={checkpoint.title}
                       className="h-full w-full object-cover"
                       loading="lazy"
