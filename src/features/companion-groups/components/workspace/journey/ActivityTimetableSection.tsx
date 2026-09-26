@@ -1,6 +1,7 @@
 import { Clock, Layers, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
-import { TIMETABLE_TIME_SLOTS } from '../../../constants/workspace';
+import { getOverlappingTimeSlots, TIMETABLE_TIME_SLOTS } from '../../../constants/workspace';
 import type { CustomJourneyActivityResponse, TimeSlot } from '../../../types/workspace';
+import { extractTimeHHmm } from '../../../validations/workspace.schema';
 
 interface ActivityTimetableSectionProps {
   activities: CustomJourneyActivityResponse[];
@@ -116,6 +117,12 @@ export function ActivityTimetableSection({
                     const slotActivities = activities.filter((act) => {
                       const actDay = act.dayNo ?? 1;
                       if (actDay !== day) return false;
+
+                      const startHHmm = extractTimeHHmm(act.plannedStartAt);
+                      const endHHmm = extractTimeHHmm(act.plannedEndAt);
+                      if (startHHmm && endHHmm) {
+                        return getOverlappingTimeSlots(startHHmm, endHHmm).includes(slot.slotEnum);
+                      }
                       return act.timeSlot === slot.slotEnum;
                     });
 

@@ -91,9 +91,6 @@ export function ReportTable({
                       <div>
                         <div className="font-bold text-zinc-900 text-sm flex items-center gap-2">
                           <span>{getItemTypeName(item.targetType)}</span>
-                          <span className="text-zinc-500 font-semibold text-xs">
-                            ID: {item.targetId.substring(0, 8)}...
-                          </span>
                         </div>
                         <p className="text-zinc-500 font-medium text-xs truncate max-w-xs mt-0.5">
                           {item.targetTitle || 'Nội dung...'}

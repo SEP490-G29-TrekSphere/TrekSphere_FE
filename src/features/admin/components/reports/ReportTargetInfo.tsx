@@ -153,9 +153,11 @@ export function ReportTargetInfo({
         <h2 className="text-xl font-bold text-zinc-900 leading-snug">
           {targetTitle || 'Bình luận / Đánh giá'}
         </h2>
-        <div className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-700">
-          {stripHtml(targetContent ?? '')}
-        </div>
+        <div
+          className="line-clamp-3 text-sm font-medium leading-relaxed text-zinc-700"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: stripHtml() already removes all tags (ALLOWED_TAGS: []); only decoded text/entities remain.
+          dangerouslySetInnerHTML={{ __html: stripHtml(targetContent ?? '') }}
+        />
         <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
           <Maximize2 className="size-3.5" />
           Xem đầy đủ nội dung

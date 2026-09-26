@@ -9,6 +9,7 @@ import {
   Unlock,
   XCircle,
 } from 'lucide-react';
+import { ExpandableSection } from '@/features/tours/components/tour-details';
 import { RichTextContent } from '@/shared/ui';
 import { formatDate } from '@/utils/format';
 import type { MatchingGroupStatus } from '../../../types/matchingGroup';
@@ -158,7 +159,9 @@ export function JourneyHeaderCard({
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Mô tả lộ trình
               </h4>
-              <RichTextContent content={journey.description!} />
+              <ExpandableSection collapsedClassName="max-h-64" fadeFromClassName="from-card">
+                <RichTextContent content={journey.description!} />
+              </ExpandableSection>
             </div>
           )}
 
@@ -167,7 +170,9 @@ export function JourneyHeaderCard({
               <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
                 Lưu ý & Mô tả từ Trưởng nhóm
               </h4>
-              <RichTextContent content={groupDescription!} />
+              <ExpandableSection collapsedClassName="max-h-64" fadeFromClassName="from-primary/5">
+                <RichTextContent content={groupDescription!} />
+              </ExpandableSection>
             </div>
           )}
         </div>

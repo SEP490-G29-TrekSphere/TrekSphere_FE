@@ -90,10 +90,7 @@ export default function PublicVendorProfilePage() {
             </div>
 
             <div className="min-w-0 flex-1 text-white">
-              <p className="text-xs font-bold uppercase tracking-wider text-white/70">
-                Hồ sơ nhà tổ chức
-              </p>
-              <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">{profile.companyName}</h1>
+              <h1 className="text-2xl font-extrabold sm:text-3xl">{profile.companyName}</h1>
               {profile.description && (
                 <div className="mt-2 max-w-2xl">
                   <RichTextContent content={profile.description} variant="dark" />

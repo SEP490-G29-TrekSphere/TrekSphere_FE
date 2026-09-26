@@ -1,19 +1,32 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Clock, Loader2, MapPin, Plus } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { AppModalShell } from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
-import { TIME_SLOT_BOUNDARIES, TIME_SLOT_OPTIONS } from '../../../constants/workspace';
+import {
+  resolveTimeSlotForRange,
+  TIME_SLOT_BOUNDARIES,
+  TIME_SLOT_OPTIONS,
+} from '../../../constants/workspace';
 import { useCreateGroupJourneyActivity } from '../../../hooks/useGroupJourneyWorkspace';
-import type { CustomJourneyCheckpointResponse, TimeSlot } from '../../../types/workspace';
-import { type ActivityFormValues, activityFormSchema } from '../../../validations/workspace.schema';
+import type {
+  CustomJourneyActivityResponse,
+  CustomJourneyCheckpointResponse,
+  TimeSlot,
+} from '../../../types/workspace';
+import {
+  type ActivityFormValues,
+  buildActivityFormSchema,
+  extractTimeHHmm,
+} from '../../../validations/workspace.schema';
 
 interface AddActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
   groupId: string;
   checkpoints: CustomJourneyCheckpointResponse[];
+  activities?: CustomJourneyActivityResponse[];
   suggestedDayNo?: number;
   suggestedTimeSlot?: TimeSlot;
   existingActivitiesCount?: number;
@@ -25,6 +38,7 @@ export function AddActivityModal({
   onClose,
   groupId,
   checkpoints,
+  activities = [],
   suggestedDayNo = 1,
   suggestedTimeSlot = 'MORNING',
   existingActivitiesCount = 0,
@@ -35,6 +49,10 @@ export function AddActivityModal({
   const safeInitialDay = Math.min(Math.max(1, suggestedDayNo), effectiveMaxDays);
 
   const initialBoundary = TIME_SLOT_BOUNDARIES[suggestedTimeSlot] ?? TIME_SLOT_BOUNDARIES.MORNING;
+  const activitySchema = useMemo(
+    () => buildActivityFormSchema(checkpoints, activities),
+    [checkpoints, activities]
+  );
 
   const {
     register,
@@ -43,7 +61,7 @@ export function AddActivityModal({
     setValue,
     formState: { errors },
   } = useForm<ActivityFormValues>({
-    resolver: zodResolver(activityFormSchema),
+    resolver: zodResolver(activitySchema),
     defaultValues: {
       dayNo: safeInitialDay,
       timeSlot: suggestedTimeSlot,
@@ -184,7 +202,24 @@ export function AddActivityModal({
             </span>
           </label>
           <select
-            {...register('checkpointId')}
+            {...register('checkpointId', {
+              onChange: (e) => {
+                const cpId = e.target.value;
+                const checkpoint = checkpoints.find(
+                  (cp) => (cp.customJourneyCheckpointId || cp.id) === cpId
+                );
+                const cpStart = extractTimeHHmm(checkpoint?.plannedStartAt);
+                const cpEnd = extractTimeHHmm(checkpoint?.plannedEndAt);
+                if (cpStart && cpEnd) {
+                  setValue('plannedStartAt', cpStart, { shouldValidate: true, shouldDirty: true });
+                  setValue('plannedEndAt', cpEnd, { shouldValidate: true, shouldDirty: true });
+                  setValue('timeSlot', resolveTimeSlotForRange(cpStart, cpEnd), {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+              },
+            })}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
           >
             <option value="">-- Không gắn trạm dừng chân cố định --</option>
@@ -199,7 +234,8 @@ export function AddActivityModal({
             })}
           </select>
           <p className="mt-1 text-[10.5px] text-muted-foreground">
-            Liên kết hoạt động này với một mốc Checkpoint trên cung đường trek.
+            Liên kết hoạt động này với một mốc Checkpoint trên cung đường trek. Giờ bắt đầu/kết thúc
+            và buổi sẽ tự điền theo giờ của chặng (nếu có).
           </p>
         </div>
 

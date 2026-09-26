@@ -1,8 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlignLeft, ImageIcon, Loader2, Save, Tag, Users, X } from 'lucide-react';
+import { ImageIcon, Loader2, Save, Tag, Users, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { AppImageUploadField, AppModalShell, useImageUploadCleanup } from '@/shared/ui';
+import {
+  AppExpandableTextarea,
+  AppImageUploadField,
+  AppModalShell,
+  useImageUploadCleanup,
+} from '@/shared/ui';
 import { toast } from '@/store/useToastStore';
 import { MATCHING_GROUP_DESCRIPTION_MAX_LENGTH } from '../../constants';
 import { useUpdateMatchingGroup } from '../../hooks/useUpdateMatchingGroup';
@@ -175,30 +180,15 @@ export function EditMatchingGroupModal({ isOpen, onClose, group }: EditMatchingG
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="edit-description"
-              className="flex items-center gap-2 font-semibold text-foreground text-xs"
-            >
-              <AlignLeft className="h-3.5 w-3.5 text-muted-foreground" />
-              Mô tả nhóm
-            </label>
-            <span className="text-[11px] text-muted-foreground">
-              {description.length}/{MATCHING_GROUP_DESCRIPTION_MAX_LENGTH}
-            </span>
-          </div>
-          <textarea
-            id="edit-description"
-            rows={4}
-            maxLength={MATCHING_GROUP_DESCRIPTION_MAX_LENGTH}
-            {...form.register('description')}
-            disabled={isPending}
+          <AppExpandableTextarea
+            name="description"
+            control={form.control}
+            label="Mô tả nhóm"
+            helperText={`${description.length}/${MATCHING_GROUP_DESCRIPTION_MAX_LENGTH} ký tự`}
             placeholder="Chia sẻ thêm thông tin hoặc yêu cầu đối với thành viên..."
-            className="w-full resize-none rounded-lg border border-input bg-background p-3 font-medium text-foreground text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50"
+            rows={4}
+            disabled={isPending}
           />
-          {form.formState.errors.description && (
-            <p className="text-destructive text-xs">{form.formState.errors.description.message}</p>
-          )}
         </div>
       </form>
 

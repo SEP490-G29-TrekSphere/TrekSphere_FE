@@ -32,12 +32,12 @@ export function useLogout(options: UseLogoutOptions = {}): UseLogoutReturn {
       console.warn('[useLogout] authService.logout failed (continuing anyway):', err);
     }
 
+    navigate(redirectTo);
     storage.remove('accessToken');
     storage.remove('refreshToken');
     setUser(null);
     queryClient.clear();
     toast.success('Đã đăng xuất.');
-    navigate(redirectTo);
   }, [callApi, navigate, redirectTo, setUser]);
 
   return { logout, isLoggingOut: false };

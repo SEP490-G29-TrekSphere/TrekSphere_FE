@@ -1,4 +1,5 @@
 import { Route } from 'lucide-react';
+import { ExpandableSection } from '@/features/tours/components/tour-details';
 import { RichTextContent } from '@/shared/ui';
 import { MemberAvatar } from '../../detail/MemberAvatar';
 
@@ -46,7 +47,9 @@ export function LeaderCard({
             <h4 className="mb-1.5 font-bold text-muted-foreground text-xs uppercase tracking-wider">
               Mô tả nhóm ghép
             </h4>
-            <RichTextContent content={groupDesc!} />
+            <ExpandableSection collapsedClassName="max-h-64" fadeFromClassName="from-card">
+              <RichTextContent content={groupDesc!} />
+            </ExpandableSection>
           </div>
         ) : !hasJourneyDesc ? (
           <div>
@@ -65,7 +68,9 @@ export function LeaderCard({
               <Route className="h-3.5 w-3.5 text-primary" />
               Tổng quan lộ trình
             </h4>
-            <RichTextContent content={journeyDescription!} />
+            <ExpandableSection collapsedClassName="max-h-64" fadeFromClassName="from-muted/30">
+              <RichTextContent content={journeyDescription!} />
+            </ExpandableSection>
           </div>
         )}
       </div>

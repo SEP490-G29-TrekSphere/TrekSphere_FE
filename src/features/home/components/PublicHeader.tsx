@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, Menu, Send, User, Users, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { PATHS } from '@/constants';
@@ -204,30 +204,6 @@ export default function PublicHeader() {
                       <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                     </div>
                     <div className="my-1 h-px bg-border" />
-                    <Link
-                      to={PATHS.TREKKER_PROFILE}
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <User className="h-4 w-4" />
-                      Trang cá nhân
-                    </Link>
-                    <Link
-                      to={PATHS.TREKKER_MY_GROUPS}
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <Users className="h-4 w-4" />
-                      Nhóm của tôi
-                    </Link>
-                    <Link
-                      to={PATHS.TREKKER_MY_JOIN_REQUESTS}
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <Send className="h-4 w-4" />
-                      Yêu cầu tham gia
-                    </Link>
                     {dashboardPath && (
                       <Link
                         to={dashboardPath}

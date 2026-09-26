@@ -130,3 +130,54 @@ export const TIMETABLE_TIME_SLOTS: ReadonlyArray<{
   { id: 'afternoon', slotEnum: 'AFTERNOON', label: 'CHIỀU', time: '13:30 - 18:00' },
   { id: 'evening', slotEnum: 'EVENING', label: 'TỐI', time: '18:00 - 22:00' },
 ] as const;
+
+function timeStrToMinutes(timeStr: string): number {
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+/**
+ * Chọn buổi (TimeSlot) phù hợp nhất cho một khoảng giờ [startTime, endTime] bất kỳ
+ * (VD: khung giờ của 1 chặng vắt ngang nhiều buổi), dựa trên buổi có phần giao (overlap)
+ * nhiều nhất với khoảng giờ đó. Dùng để gợi ý/auto-chọn buổi khi hoạt động được gắn vào
+ * 1 checkpoint có giờ không khớp gọn vào đúng 1 buổi cố định.
+ */
+export function resolveTimeSlotForRange(startTime: string, endTime: string): TimeSlot {
+  const startMin = timeStrToMinutes(startTime);
+  const endMin = timeStrToMinutes(endTime);
+
+  let bestSlot: TimeSlot = 'MORNING';
+  let bestOverlap = -1;
+
+  for (const slot of TIMETABLE_TIME_SLOTS) {
+    const boundary = TIME_SLOT_BOUNDARIES[slot.slotEnum];
+    const boundaryStart = timeStrToMinutes(boundary.start);
+    const boundaryEnd = timeStrToMinutes(boundary.end);
+
+    const overlap = Math.min(endMin, boundaryEnd) - Math.max(startMin, boundaryStart);
+    if (overlap > bestOverlap) {
+      bestOverlap = overlap;
+      bestSlot = slot.slotEnum;
+    }
+  }
+
+  return bestSlot;
+}
+
+/**
+ * Trả về TẤT CẢ các buổi (TimeSlot) mà khoảng giờ [startTime, endTime] có giao nhau
+ * (overlap chặt - 2 khoảng nối đuôi nhau đúng khớp không tính là giao nhau). Dùng để
+ * hiển thị 1 hoạt động vắt ngang nhiều buổi ở tất cả các hàng buổi liên quan trong
+ * bảng thời khóa biểu, thay vì chỉ hiển thị ở buổi đã lưu trong DB.
+ */
+export function getOverlappingTimeSlots(startTime: string, endTime: string): TimeSlot[] {
+  const startMin = timeStrToMinutes(startTime);
+  const endMin = timeStrToMinutes(endTime);
+
+  return TIMETABLE_TIME_SLOTS.filter((slot) => {
+    const boundary = TIME_SLOT_BOUNDARIES[slot.slotEnum];
+    const boundaryStartMin = timeStrToMinutes(boundary.start);
+    const boundaryEndMin = timeStrToMinutes(boundary.end);
+    return startMin < boundaryEndMin && boundaryStartMin < endMin;
+  }).map((slot) => slot.slotEnum);
+}

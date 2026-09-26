@@ -235,6 +235,7 @@ export function GroupJourneyTab({
         onClose={() => setIsAddActivityModalOpen(false)}
         groupId={groupId}
         checkpoints={checkpoints}
+        activities={activities}
         suggestedDayNo={selectedDay}
         suggestedTimeSlot={selectedSlot}
         existingActivitiesCount={activities.length}
@@ -247,6 +248,7 @@ export function GroupJourneyTab({
         groupId={groupId}
         activity={editingActivity}
         checkpoints={checkpoints}
+        activities={activities}
         maxDays={totalJourneyDays}
       />
 
