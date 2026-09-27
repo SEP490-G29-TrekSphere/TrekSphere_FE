@@ -10,8 +10,9 @@ import { PortalFilterBar, PortalPageHeader } from '@/shared/ui';
 
 const PAGE_SIZE = 10;
 
+// Backend already returns rates on a 0-100 scale, rounded to 1 decimal.
 function formatRate(rate: number): string {
-  return `${Math.round(rate * 100)}%`;
+  return `${Number(rate.toFixed(1)).toLocaleString('vi-VN')}%`;
 }
 
 function formatDate(value: string | null): string {
@@ -118,11 +119,15 @@ export default function TourStatistics() {
         </div>
       </div>
 
+      <p className="-mt-3 text-xs" style={{ color: '#6F7B75' }}>
+        Các chỉ số tổng quan tính trên toàn bộ tour của bạn, không phụ thuộc bộ lọc bên dưới.
+      </p>
+
       <PortalFilterBar
         tabs={STATUS_TABS}
         activeTab={status}
         onTabChange={setStatus}
-        searchPlaceholder="Lọc theo tên tour..."
+        searchPlaceholder="Lọc theo tên tour hoặc địa điểm..."
         searchValue={keyword}
         onSearchChange={setKeyword}
         onSearchClear={() => setKeyword('')}
