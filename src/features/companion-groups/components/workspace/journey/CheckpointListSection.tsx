@@ -142,7 +142,10 @@ export function CheckpointListSection({
           {canEdit ? 'Bấm "Thêm checkpoint" để lên kế hoạch các điểm dừng chân.' : ''}
         </div>
       ) : (
-        <div role="list" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          role="list"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+        >
           {checkpoints.map((cp, index) => {
             const cpId = cp.customJourneyCheckpointId || cp.id || '';
             const isDragging = draggedId === cpId;
@@ -171,25 +174,25 @@ export function CheckpointListSection({
                 }`}
               >
                 {/* Visual Drag Handle & Order Badge */}
-                <div className="flex items-center justify-between pb-2 mb-1 border-b border-border/40">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-1.5 pb-2 mb-1 border-b border-border/40">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     {canEdit && (
                       <div
-                        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-0.5 rounded-md hover:bg-muted"
+                        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-0.5 rounded-md hover:bg-muted shrink-0"
                         title="Kéo thả để đổi thứ tự chặng"
                       >
                         <GripVertical className="h-3.5 w-3.5" />
                       </div>
                     )}
-                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10.5px] font-extrabold text-primary">
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10.5px] font-extrabold text-primary whitespace-nowrap">
                       Chặng {cp.checkpointOrder} {cp.dayNo ? `• Ngày ${cp.dayNo}` : ''}
                     </span>
                   </div>
 
                   {/* Actions (View, Edit, Delete, Quick Reorder) */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 shrink-0">
                     {canEdit && (
-                      <div className="flex items-center mr-1 border-r border-border/60 pr-1">
+                      <div className="flex items-center mr-0.5 border-r border-border/60 pr-1 gap-0.5">
                         <button
                           type="button"
                           disabled={!prevCp || swapMutation.isPending}
